@@ -460,6 +460,27 @@ class Settings(BaseSettings):
     # ROLLBACK without a redeploy: ENABLE_MEASURE_SCOPE_GATE=False.
     ENABLE_MEASURE_SCOPE_GATE: bool = Field(True, env="ENABLE_MEASURE_SCOPE_GATE")
 
+    # Interested-party gate (2026-08-13): check TRU-018F-44AA badged "Donald
+    # Trump stopped 6 wars" supported-all-4, with whitehouse.gov's own "I've
+    # solved six wars" weighing primary-3 against PolitiFact at commentary-1. A
+    # source CONTROLLED BY the claim's subject cannot be directional on that
+    # claim — re-labelled context with a receipt; tier untouched. Arms only when
+    # the claim names PERSON/ORG subjects. Symmetric: scopes a subject's
+    # self-serving denial out of `challenges` exactly as self-praise out of
+    # `supports`. ROLLBACK without a redeploy: ENABLE_INTERESTED_PARTY_GATE=False.
+    ENABLE_INTERESTED_PARTY_GATE: bool = Field(True, env="ENABLE_INTERESTED_PARTY_GATE")
+
+    # Recital gate (2026-08-13): the same check's load-bearing failure —
+    # "states Trump claimed to have 'settled six wars'" was mapped `supports`.
+    # Evidence that a claim WAS MADE is evidence of the making, not the content;
+    # a reference resting on subject-anchored attribution (or distancing adverbs
+    # like "purportedly") with no verification framing is re-labelled context
+    # with a receipt. Reads the mapper's own reasoning first (authoritative in
+    # both directions), evidence text as fallback. Never arms for elements that
+    # themselves assert a saying. Symmetric, like every gate.
+    # ROLLBACK without a redeploy: ENABLE_RECITAL_SCOPE_GATE=False.
+    ENABLE_RECITAL_SCOPE_GATE: bool = Field(True, env="ENABLE_RECITAL_SCOPE_GATE")
+
     # Fallback policy: When content extraction fails (403/timeout), should we use search snippets?
     # True = Keep snippet as low-quality fallback (marked in metadata for downstream weighting)
     # False = Drop sources entirely if content extraction fails

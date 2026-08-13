@@ -28,6 +28,7 @@ from app.pipeline.progress import ProgressReporter
 from app.services.push_notifications import push_notification_service
 from app.services.email_notifications import email_notification_service
 from app.services.cache import get_cache_service
+from app.utils import interested_party
 from app.utils.date_provenance import derive_date_basis
 from app.utils.date_utils import parse_date
 from app.utils.temporal_markers import has_historical_marker
@@ -175,6 +176,27 @@ def attach_claim_jurisdiction(
     jurisdiction = (claim.get("article_classification") or {}).get("jurisdiction")
     claim_map.setdefault("metadata", {})["jurisdiction"] = jurisdiction
     return jurisdiction
+
+
+def attach_claim_subjects(
+    claim: Dict[str, Any], claim_map: Dict[str, Any]
+) -> List[str]:
+    """Carry the claim's subject set onto its claim_map, and return what was set.
+
+    The interested-party and recital gates (2026-08-13, check TRU-018F-44AA)
+    arm on the claim's named subjects — key_entities of type PERSON/ORG — so
+    that a source controlled by the claim's subject, or a reference resting on
+    the subject SAYING the thing, cannot count directionally.
+
+    Same pattern as `attach_claim_jurisdiction` directly above, for the same
+    reasons: one writer, rides `claim_map["metadata"]` which every mapping path
+    receives, module-level so the seam is testable (the retrieve.py lesson),
+    and degrades safely — no subjects means neither gate arms. Not part of the
+    signed canonical payload (metadata is not canonicalised).
+    """
+    subjects = interested_party.claim_subjects(claim.get("key_entities"))
+    claim_map.setdefault("metadata", {})["subjects"] = subjects
+    return subjects
 
 
 def extract_pipeline_metrics(
@@ -2392,6 +2414,7 @@ async def run_pipeline_phase2(
                 scaffold, ev_list
             )
             attach_claim_jurisdiction(claim, scaffold)
+            attach_claim_subjects(claim, scaffold)
 
     # Budget: ~55s Google thinking model batch mapping + ~25s parallel
     # completion passes (Step 2 NF-19 fix, 2026-05-12) + ~30s OpenAI

@@ -38,11 +38,17 @@ from app.models.claim_map import (
 )
 from app.utils.atomicity import is_mixed_shape
 from app.utils.scope_sensitivity import apply_scope_flags
+from app.utils.interested_party import (
+    claim_subjects,
+    distinctive_tokens,
+    interested_party_match,
+)
 from app.utils.jurisdiction_scope import (
     claim_target_country,
     evidence_country,
     is_out_of_jurisdiction_for_country,
 )
+from app.utils.recital_scope import element_asserts_attribution, recital_match
 from app.utils.temporal_scope import (
     Period,
     element_interval_end,
@@ -1312,21 +1318,21 @@ class _IndexedEvidence(NamedTuple):
 class _ScopeGate(NamedTuple):
     """One mechanical reason a reference cannot speak to an element.
 
-    `fires` and `entry` both take an `_IndexedEvidence`; `summary` is merged into
-    the top of the receipt, `pins` is the human clause in the log line.
+    `fires` and `entry` both take (`_IndexedEvidence`, the reference dict) —
+    the ref was added 2026-08-13 for the recital gate, which reads the mapper's
+    own `reasoning` string; the earlier gates ignore it. `summary` is merged
+    into the top of the receipt, `pins` is the human clause in the log line.
     """
 
     key: str
     label: str
     pins: str
     summary: Dict[str, Any]
-    fires: Callable[["_IndexedEvidence"], bool]
-    entry: Callable[["_IndexedEvidence"], Dict[str, Any]]
+    fires: Callable[["_IndexedEvidence", Dict[str, Any]], bool]
+    entry: Callable[["_IndexedEvidence", Dict[str, Any]], Dict[str, Any]]
 
 
-def _index_evidence(
-    evidence_list: List[Dict[str, Any]]
-) -> Dict[str, _IndexedEvidence]:
+def _index_evidence(evidence_list: List[Dict[str, Any]]) -> Dict[str, _IndexedEvidence]:
     """Index evidence by id with the fields the scope gates read."""
     index: Dict[str, _IndexedEvidence] = {}
     for ev in evidence_list or []:
@@ -2190,9 +2196,15 @@ class ClaimMapAnalyzer:
           * jurisdiction is next — a domain is the least ambiguous signal we have,
             so when an item is both foreign and off-measure, "wrong country" is the
             honest reason to record;
-          * measure is LAST, so it can only ever claim references the other two
-            left alone. That is what makes it purely additive: it cannot alter the
-            counts or receipts of the gates that shipped before it.
+          * measure runs after those two, so it can only ever claim references
+            they left alone. That is what makes it purely additive: it cannot
+            alter the counts or receipts of the gates that shipped before it;
+          * interested-party and recital (2026-08-13, check TRU-018F-44AA) are
+            appended LAST, in that order, by the same additive argument — and
+            interested-party precedes recital because a domain match is the less
+            ambiguous signal (the jurisdiction-before-measure argument re-used):
+            when the White House recites its own claim, "interested party" is
+            the honest reason to record.
         """
         gates: List[_ScopeGate] = []
 
@@ -2218,12 +2230,14 @@ class ClaimMapAnalyzer:
                         ),
                     )
 
-                def _temporal_fires(item: "_IndexedEvidence", _p=period) -> bool:
+                def _temporal_fires(
+                    item: "_IndexedEvidence", _ref: Dict[str, Any], _p=period
+                ) -> bool:
                     reading = _temporal_reading(item)
                     return bool(reading.all_periods) and _p not in reading.all_periods
 
                 def _temporal_entry(
-                    item: "_IndexedEvidence", _p=period
+                    item: "_IndexedEvidence", _ref: Dict[str, Any], _p=period
                 ) -> Dict[str, Any]:
                     entry: Dict[str, Any] = {"element_period": _format_period(_p)}
                     reading = _temporal_reading(item)
@@ -2257,10 +2271,10 @@ class ClaimMapAnalyzer:
                         label="JURISDICTION SCOPE",
                         pins=f"claim pins {country}",
                         summary={"claim_jurisdiction": country},
-                        fires=lambda item, _c=country: is_out_of_jurisdiction_for_country(
+                        fires=lambda item, _ref, _c=country: is_out_of_jurisdiction_for_country(
                             _c, item.country, item.text
                         ),
-                        entry=lambda item, _c=country: {
+                        entry=lambda item, _ref, _c=country: {
                             "claim_jurisdiction": _c,
                             "source_country": item.country,
                         },
@@ -2279,7 +2293,7 @@ class ClaimMapAnalyzer:
                         label="MEASURE SCOPE",
                         pins=f"element measures the interval ending {_format_period(end)}",
                         summary={"element_interval_end": _format_period(end)},
-                        fires=lambda item, _e=end: is_measure_mismatch(
+                        fires=lambda item, _ref, _e=end: is_measure_mismatch(
                             _e,
                             item.text,
                             published_date=(
@@ -2293,7 +2307,7 @@ class ClaimMapAnalyzer:
                                 else None
                             ),
                         ),
-                        entry=lambda item, _e=end: {
+                        entry=lambda item, _ref, _e=end: {
                             "element_interval_end": _format_period(_e),
                             "evidence_interval_ends": sorted(
                                 _format_period(p)
@@ -2315,6 +2329,54 @@ class ClaimMapAnalyzer:
                     )
                 )
 
+        # Both 2026-08-13 gates arm on the claim's subject set (key_entities
+        # PERSON/ORG, written onto metadata by runner.attach_claim_subjects —
+        # the attach_claim_jurisdiction pattern). No subjects → neither arms,
+        # the safe direction.
+        subjects = claim_subjects((claim_map.get("metadata") or {}).get("subjects"))
+
+        if subjects and getattr(settings, "ENABLE_INTERESTED_PARTY_GATE", True):
+            gates.append(
+                _ScopeGate(
+                    key="interested_party",
+                    label="INTERESTED PARTY",
+                    pins=f"claim subjects: {', '.join(subjects)}",
+                    summary={"claim_subjects": subjects},
+                    fires=lambda item, _ref, _s=subjects: interested_party_match(
+                        _s, item.ev.get("url")
+                    )
+                    is not None,
+                    entry=lambda item, _ref, _s=subjects: interested_party_match(
+                        _s, item.ev.get("url")
+                    )
+                    or {},
+                )
+            )
+
+        if (
+            subjects
+            and getattr(settings, "ENABLE_RECITAL_SCOPE_GATE", True)
+            and not element_asserts_attribution(elem.get("description"))
+        ):
+            tokens = distinctive_tokens(subjects)
+            if tokens:
+                gates.append(
+                    _ScopeGate(
+                        key="recital_scope",
+                        label="RECITAL",
+                        pins="reference rests on the claim being made, not established",
+                        summary={"claim_subjects": subjects},
+                        fires=lambda item, ref, _t=tokens: recital_match(
+                            ref.get("reasoning"), item.text, _t
+                        )
+                        is not None,
+                        entry=lambda item, ref, _t=tokens: recital_match(
+                            ref.get("reasoning"), item.text, _t
+                        )
+                        or {},
+                    )
+                )
+
         return gates
 
     def _apply_scope_gates(
@@ -2328,23 +2390,28 @@ class ClaimMapAnalyzer:
         Returns ``{basis_key: receipt}`` for whichever gates fired, so the caller
         can merge it straight into the basis.
 
-        Three mechanical rules share this body because they share everything except
+        Five mechanical rules share this body because they share everything except
         the question they ask: each finds evidence that cannot speak to the element,
         re-labels it `context` (never deletes it), and leaves a receipt. Writing
         them as separate methods duplicated the reference loop, the evidence lookup
-        and the receipt assembly three times over.
+        and the receipt assembly per gate.
 
-          temporal      — a different PERIOD          (F1, check 618efbc4)
-          jurisdiction  — a different COUNTRY         (check 757f02c2)
-          measure       — a different INTERVAL        (check 757f02c2)
+          temporal         — a different PERIOD            (F1, check 618efbc4)
+          jurisdiction     — a different COUNTRY           (check 757f02c2)
+          measure          — a different INTERVAL          (check 757f02c2)
+          interested-party — the claimant's own organ      (check TRU-018F-44AA)
+          recital          — the claim REPORTED, not made  (check TRU-018F-44AA)
 
-        **Symmetric, all three.** They scope `supports` exactly as they scope
+        **Symmetric, all five.** They scope `supports` exactly as they scope
         `challenges`, because evidence that does not bear on an element bears on it
         in neither direction, and a gate that only removed challenges would be a
-        sycophancy mechanism — the thing invariant #7 forbids.
+        sycophancy mechanism — the thing invariant #7 forbids. (For the 2026-08-13
+        pair the symmetric case is a subject's self-serving DENIAL, scoped out of
+        `challenges` exactly as self-praise is scoped out of `supports`.)
 
         Rollback: ENABLE_TEMPORAL_SCOPE_GATE, ENABLE_JURISDICTION_SCOPE_GATE,
-        ENABLE_MEASURE_SCOPE_GATE — each independently, plus
+        ENABLE_MEASURE_SCOPE_GATE, ENABLE_INTERESTED_PARTY_GATE,
+        ENABLE_RECITAL_SCOPE_GATE — each independently, plus
         ENABLE_TEMPORAL_PUBLICATION_RESOLUTION for the inferring half.
         """
         gates = self._armed_scope_gates(elem, claim_map)
@@ -2364,14 +2431,14 @@ class ClaimMapAnalyzer:
                 continue
 
             for gate in gates:
-                if not gate.fires(item):
+                if not gate.fires(item, ref):
                     continue
                 ref["relationship"] = EvidenceRelationship.context
                 entry: Dict[str, Any] = {
                     "evidence_id": ref.get("evidence_id"),
                     "was": value,
                 }
-                entry.update(gate.entry(item))
+                entry.update(gate.entry(item, ref))
                 scoped[gate.key].append(entry)
                 # One gate owns the reference. Letting a second also claim it
                 # would double-count the same exclusion in two receipts.
