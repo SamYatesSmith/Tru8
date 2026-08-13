@@ -172,9 +172,20 @@ graded as artefacts for their recipients:
 | Scotland 48p "lost £22m" | `7a6a4b91` | **C+** | Zero challenges — Macfarlane's published rebuttal missing from pool; fine for Tapper only |
 | Full-fat dairy "no weight gain" | `c2bfbb8c` | **C−** | One trial + its echo, uniformly supported; Gid M-K's teardown absent. Do not send as-is |
 
+**RE-GRADED 2026-08-13 after the assertion-evidence gates shipped** (fresh
+full-tier re-runs, 45p; design `audit/2026-08-13_assertion_evidence_design.md`
+§9b passed on the Trump fixture first). The gates did NOT lift these three,
+each for a structural reason now on the register:
+| Record | Re-run | Grade | Why unchanged |
+|---|---|---|---|
+| NHS 29% | `ae8c2e27` | **A− → send the ORIGINAL `11f54993`, not the re-run (re-run grades C+)** | Gates never armed: the claimant (NHS England) is not in the claim's key_entities ("NHS App" is PRODUCT), so recital anchoring has no subject. Run-variance also LOST the A−'s virtues: TTE's own critique flipped context→supports and the unpublished-evaluation uncertainty note vanished. |
+| Scotland 48p | `12cc567a` | **C+ (unchanged), Tapper only** | Not a recital claim (the claim is Neidle's, not the Scottish Government's). Macfarlane's actual rebuttal (post 589) STILL absent from the pool; his post 587's distill now carries the critique lines but is mapped `supports`. Zero challenges. |
+| Dairy | `c2bfbb8c` re-run `5a32dd70` | **C− (unchanged), HOLD** | `subjects: []` — no PERSON/ORG entity, gates structurally unarmed. One trial + 9 echoes uniformly `supports`; Gid M-K's teardown still not retrieved. |
+
 **⏳ OPEN DECISION (founder):** approve the swap — first five = Heneghan/
-Jefferson, Viglione, Seymour, Tapper, McSweeney (one more ~1.5p check needed);
-Macfarlane + Gid M-K to round two once their records can carry the rebuttals.
+Jefferson (send the ORIGINAL `11f54993`), Viglione, Seymour, Tapper, McSweeney
+(one more ~1.5p check needed); Macfarlane + Gid M-K to round two once their
+records can carry the rebuttals.
 
 **⚠️ Learned, recorded in OPEN_WORK, not actioned:** Substack/small-site
 rebuttals of mainstream claims don't reach the evidence pool — the exact

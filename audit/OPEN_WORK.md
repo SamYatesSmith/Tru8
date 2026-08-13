@@ -41,15 +41,28 @@ interested_party ×2 (incl. a RECOVERY ref — live proof the `d39b65d`
 merge-path fix works), recital ×4 (both press recitals + StateDept tweet, all
 `found_in: reasoning`). Residual softness: one element `supported` off a single
 BBC ref (`all_supports` floor, §10). Design §9a/§9b hold the full record.
-**STILL OPEN:** (1) **re-run + re-grade the three outreach records** (NHS
-`11f54993` · Scotland `7a6a4b91` · dairy `c2bfbb8c`, ~45p) before any send;
-(2) **bench run against the gates** — blocked while the held reframe sits in
-the tree (~$0.25 when run); (3) **Phase 2 prompt half** — **founder decision
-owed on sequencing vs the held reframe** (§8); (4) **`tru8-mcp` 1.0.5 PyPI
-release** (founder) — carries the `max_age_hours=0` client fix; sync the
-mirror repo on release. Adjacent defects: design §10 (all_supports floor,
-`>=` boundary, print-only `uncertainty`, decompose duplicates/wording drift,
-stale basis blocks).
+**(1) ✅ Outreach re-grades DONE 2026-08-13 (45p; table in `OUTREACH.md`):
+grades UNCHANGED (NHS A− via the ORIGINAL record · Scotland C+ · dairy C−) —
+the gates fix the Trump-class failure but these fail differently.** THREE
+structural reasons, now on the register: (a) **gate arming misses implicit
+claimants** — NHS England is not in the claim's key_entities, so subjects =
+["gp practices"] and recital anchoring is toothless; the dairy claim has NO
+person/org → `subjects: []`, gates never arm. Phase 2's prompt rule covers
+unanchored recitals and is now MORE important, not less. (b) **retrieval never
+fetches the named rebuttal** (Macfarlane 589, Gid M-K teardown — the recorded
+2026-08-12 observation stands; all query lanes still phrase claim-direction).
+(c) **run-variance**: same pool, mapper flipped TTE's critique context→supports
+and dropped the uncertainty note — a re-run can be WORSE; send decisions should
+name a specific check id, never "the latest run".
+**STILL OPEN:** (2) **bench run against the gates** — blocked while the held
+reframe sits in the tree (~$0.25 when run; baseline the gates against existing
+cassettes FIRST, then the prompt change with its own re-record); (3) **Phase 2
+prompt half** — proceeding sequentially per design §8 recommendation (recital
+rule alone; the reframe stays held, its shipping remains the founder's call);
+(4) **`tru8-mcp` 1.0.5 PyPI release** (founder) — carries the
+`max_age_hours=0` client fix; sync the mirror repo on release. Adjacent
+defects: design §10 (all_supports floor, `>=` boundary, print-only
+`uncertainty`, decompose duplicates/wording drift, stale basis blocks).
 
 **⏸ OUTREACH HELD** until acceptance passes (design §9) — the first-five swap
 decision below stays open but sends wait; the list keeps.
