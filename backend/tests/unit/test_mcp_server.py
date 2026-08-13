@@ -177,3 +177,52 @@ class TestToolFunctions:
         self.mock_client.get_check.assert_awaited_once_with("chk-1", computed=False)
         parsed = json.loads(result)
         assert parsed["id"] == "chk-1"
+
+
+class TestMaxAgeHoursZeroReachesTheServer:
+    """`max_age_hours=0` means "never serve a cached result" — and until
+    2026-08-13 the client dropped it on truthiness, the exact twin of the
+    server-side bug fixed 2026-08-05 in agent.py. Found when the
+    TRU-018F-44AA acceptance run was served the stale broken record it
+    existed to invalidate."""
+
+    @pytest.fixture
+    def captured(self, monkeypatch):
+        import httpx
+
+        box = {}
+
+        class _StubClient:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+            async def post(self, url, json=None, headers=None):
+                box["payload"] = json
+                return httpx.Response(
+                    200,
+                    json={"id": "chk-1", "status": "completed"},
+                    request=httpx.Request("POST", url),
+                )
+
+        monkeypatch.setattr("tru8_mcp.tools.httpx.AsyncClient", _StubClient)
+        return box
+
+    async def test_zero_is_sent_not_dropped(self, captured):
+        from tru8_mcp.tools import Tru8APIClient
+
+        client = Tru8APIClient(api_url="https://api.example.com", api_key="k")
+        await client.submit_smart("Some claim", max_age_hours=0)
+        assert captured["payload"]["max_age_hours"] == 0
+
+    async def test_none_is_still_omitted(self, captured):
+        from tru8_mcp.tools import Tru8APIClient
+
+        client = Tru8APIClient(api_url="https://api.example.com", api_key="k")
+        await client.submit_smart("Some claim", max_age_hours=None)
+        assert "max_age_hours" not in captured["payload"]

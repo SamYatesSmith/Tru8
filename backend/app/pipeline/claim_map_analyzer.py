@@ -1332,6 +1332,46 @@ class _ScopeGate(NamedTuple):
     entry: Callable[["_IndexedEvidence", Dict[str, Any]], Dict[str, Any]]
 
 
+#: Every basis key a scope gate can write. Later mapping passes (completion
+#: census, coverage recovery) re-run the gates over merged refs and must MERGE
+#: their receipts with the main pass's rather than overwrite them — losing a
+#: receipt is losing the record of an exclusion (invariant #5).
+_SCOPE_RECEIPT_KEYS = (
+    "temporal_scope",
+    "jurisdiction_scope",
+    "measure_scope",
+    "interested_party",
+    "recital_scope",
+)
+
+
+def _merge_scope_receipts(
+    prior: Optional[Dict[str, Any]], fresh: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Combine gate receipts from an earlier pass with a later pass's.
+
+    Already-scoped refs are `context` by the time a later pass runs, so they
+    produce no new entries — the fresh receipts cover only newly merged refs
+    and the two sets are disjoint by construction.
+    """
+    merged: Dict[str, Any] = {}
+    prior = prior or {}
+    for key in _SCOPE_RECEIPT_KEYS:
+        old, new = prior.get(key), fresh.get(key)
+        if old and new:
+            merged[key] = {
+                **new,
+                "scoped": list(old.get("scoped") or []) + list(new.get("scoped") or []),
+                "scoped_count": (old.get("scoped_count") or 0)
+                + (new.get("scoped_count") or 0),
+            }
+        elif old:
+            merged[key] = old
+        elif new:
+            merged[key] = new
+    return merged
+
+
 def _index_evidence(evidence_list: List[Dict[str, Any]]) -> Dict[str, _IndexedEvidence]:
     """Index evidence by id with the fields the scope gates read."""
     index: Dict[str, _IndexedEvidence] = {}
@@ -2650,6 +2690,9 @@ class ClaimMapAnalyzer:
             raw_elements = parsed.get("elements", [])
             raw_by_id = {e.get("element_id"): e for e in raw_elements}
 
+            # Built once for the gate pass over merged refs below.
+            completion_ev_index = _index_evidence(evidence_list)
+
             total_added = 0
             for elem in all_elements:
                 eid = elem["element_id"]
@@ -2696,10 +2739,31 @@ class ClaimMapAnalyzer:
                 )
                 total_added += len(new_refs_filtered)
 
+                # Scope gates over the MERGED refs, BEFORE the basis and state
+                # recompute below (2026-08-13, check TRU-018F-44AA acceptance
+                # run 6f88a77f): this pass previously merged refs ungated, so
+                # whitehouse.gov's own press release re-entered a Trump claim
+                # as a `supports` the interested-party gate had no chance to
+                # see. Already-gated refs are `context` and are skipped, so
+                # only the additions are examined; receipts are MERGED with
+                # the main pass's — the fresh basis recompute below would
+                # otherwise destroy them.
+                prior_receipts = {
+                    k: v
+                    for k, v in (elem.get("basis") or {}).items()
+                    if k in _SCOPE_RECEIPT_KEYS
+                }
+                scope_receipts = self._apply_scope_gates(
+                    elem, completion_ev_index, claim_map
+                )
+
                 # Re-derive state with the merged refs. Recompute basis
                 # too so the per-element metrics reflect the completion
                 # pass's additions.
                 elem["basis"] = _compute_element_basis(elem, evidence_list)
+                elem["basis"].update(
+                    _merge_scope_receipts(prior_receipts, scope_receipts)
+                )
                 mech_state, state_basis = _derive_element_state_with_authority(
                     elem, evidence_list, _state_floor_for(claim_map)
                 )
@@ -2834,6 +2898,9 @@ class ClaimMapAnalyzer:
                 raw_elements = parsed.get("elements", [])
                 raw_by_id = {e.get("element_id"): e for e in raw_elements}
 
+                # Built once for the gate pass over merged refs below.
+                recovery_ev_index = _index_evidence(new_evidence)
+
                 for elem in all_elements:
                     eid = elem["element_id"]
                     mapped = raw_by_id.get(eid)
@@ -2850,6 +2917,32 @@ class ClaimMapAnalyzer:
                     new_refs = self._validate_evidence_refs(raw_refs, new_evidence)
                     existing_refs = elem.get("evidence_refs", [])
                     elem["evidence_refs"] = existing_refs + new_refs
+
+                    # Scope gates over the merged refs, BEFORE the state
+                    # re-derivation below (2026-08-13, check 6f88a77f): this
+                    # path previously merged recovery refs ungated — the
+                    # acceptance run had whitehouse.gov's "365 WINS" release
+                    # supporting the causal elements of a Trump claim through
+                    # exactly this seam. The index covers new_evidence only:
+                    # pre-existing refs were gated in the main pass and
+                    # resolve to no-ops here. Receipts merge; this path never
+                    # recomputes the basis, so prior receipts survive in place.
+                    if new_refs:
+                        scope_receipts = self._apply_scope_gates(
+                            elem, recovery_ev_index, claim_map
+                        )
+                        if scope_receipts:
+                            basis = elem.setdefault("basis", {})
+                            basis.update(
+                                _merge_scope_receipts(
+                                    {
+                                        k: v
+                                        for k, v in basis.items()
+                                        if k in _SCOPE_RECEIPT_KEYS
+                                    },
+                                    scope_receipts,
+                                )
+                            )
 
                     is_target = eid in target_set
                     ref_ids = [r.get("evidence_id", "?") for r in new_refs]

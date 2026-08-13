@@ -143,7 +143,12 @@ class Tru8APIClient:
         input_type = self._detect_input_type(claim)
         if input_type:
             payload["input_type"] = input_type
-        if max_age_hours:
+        # `is not None`, not truthiness: 0 means "never serve a cached result"
+        # and truthiness silently dropped it — the client-side twin of the
+        # server bug fixed 2026-08-05 (agent.py), found 2026-08-13 when the
+        # TRU-018F-44AA acceptance run was served the stale broken record it
+        # existed to invalidate.
+        if max_age_hours is not None:
             payload["max_age_hours"] = max_age_hours
 
         async with httpx.AsyncClient(

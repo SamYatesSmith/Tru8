@@ -303,3 +303,120 @@ def test_the_runner_writes_an_empty_list_when_there_are_no_entities():
     claim_map = {}
     assert attach_claim_subjects({}, claim_map) == []
     assert claim_map["metadata"]["subjects"] == []
+
+
+# ---------------------------------------------------------------------------
+# The two post-mapping merge paths — found OPEN by acceptance run 6f88a77f
+# ---------------------------------------------------------------------------
+# The first live acceptance run after the gates shipped had whitehouse.gov's
+# "365 WINS" release re-entering the causal elements as `supports` — through
+# the completion census and coverage recovery, which merged refs and re-derived
+# state WITHOUT running the gates. These tests pin both seams.
+
+WH_365 = {
+    "evidence_id": "ev-wh-365",
+    "url": "https://www.whitehouse.gov/releases/2026/01/365-wins-in-365-days/",
+    "title": "365 WINS IN 365 DAYS: President Trump's Return Marks ...",
+    "snippet": "Peace deals ending multiple wars under President Trump.",
+    "tier": "primary",
+    "evidence_type": "official",
+}
+
+WH_365_REF = {
+    "evidence_id": "ev-wh-365",
+    "relationship": "supports",
+    "reasoning": (
+        "This statement claims 'peace deals ending multiple wars' under "
+        "President Trump, suggesting actions were taken to end hostilities."
+    ),
+}
+
+
+def _canned_llm(response):
+    async def fake_call_llm(*args, **kwargs):
+        return response
+
+    return fake_call_llm
+
+
+async def test_the_completion_census_cannot_bypass_the_gates(monkeypatch):
+    """MAP COMPLETION merges leftover refs and re-derives state; before
+    2026-08-13 it did so ungated, which is exactly how the acceptance run's
+    e4 stayed `supported`."""
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _claim_map()
+    elem = claim_map["elements"][0]
+    elem["evidence_refs"] = [
+        {
+            "evidence_id": "ev-politifact",
+            "relationship": "challenges",
+            "reasoning": "Rated Pants on Fire, directly challenges the claim.",
+        }
+    ]
+    # A prior gate receipt that the basis recompute must NOT destroy.
+    elem["basis"] = {
+        "recital_scope": {
+            "claim_subjects": ["donald trump"],
+            "scoped_count": 1,
+            "scoped": [{"evidence_id": "ev-cbs", "was": "supports"}],
+        }
+    }
+
+    monkeypatch.setattr(
+        analyzer,
+        "_call_llm",
+        _canned_llm(
+            {"elements": [{"element_id": "e3", "additional_refs": [WH_365_REF]}]}
+        ),
+    )
+
+    evidence_list = [e for e in EVIDENCE if e["evidence_id"] == "ev-politifact"] + [
+        WH_365
+    ]
+    await analyzer._complete_unmapped_evidence(claim_map, evidence_list)
+
+    assert _rel(elem, "ev-wh-365") == "context"
+    ip_ids = [
+        e["evidence_id"] for e in elem["basis"]["interested_party"]["scoped"]
+    ]
+    assert "ev-wh-365" in ip_ids
+    # The main pass's receipt survived the basis recompute.
+    recital = elem["basis"]["recital_scope"]
+    assert recital["scoped_count"] == 1
+    assert recital["scoped"][0]["evidence_id"] == "ev-cbs"
+
+
+async def test_coverage_recovery_cannot_bypass_the_gates(monkeypatch):
+    """RECOVERY MAP is the seam the acceptance run's ev-rec-* refs came
+    through — whitehouse.gov supporting a Trump claim, unscoped."""
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _claim_map()
+    elem = claim_map["elements"][0]
+    elem["state"] = None
+
+    monkeypatch.setattr(
+        analyzer,
+        "_call_llm",
+        _canned_llm(
+            {
+                "elements": [
+                    {
+                        "element_id": "e3",
+                        "state": "supported",
+                        "evidence_refs": [WH_365_REF],
+                    }
+                ]
+            }
+        ),
+    )
+
+    await analyzer.map_evidence_to_specific_elements(claim_map, ["e3"], [WH_365])
+
+    assert _rel(elem, "ev-wh-365") == "context"
+    ip_ids = [
+        e["evidence_id"] for e in elem["basis"]["interested_party"]["scoped"]
+    ]
+    assert "ev-wh-365" in ip_ids
+    # With its only directional ref scoped, the element cannot read supported.
+    state = getattr(elem["state"], "value", elem["state"])
+    assert state != "supported"
