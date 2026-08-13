@@ -155,6 +155,20 @@ impression, opened inside a DM with no context:
       we say "evidence landscape"; they don't. What they say is what converts.
 - [ ] The list: 50 valid rows.
 
+## STATE OF PLAY (2026-08-13, end of day — SENDS START TOMORROW MORNING)
+
+**Founder decision: starting in the morning.** Sequence + the definitive send
+set live in `OPEN_WORK.md` 📍 HANDOFF. In one line: founder closes prereq A
+(Zoho mailbox confirm + DKIM TXT — the only DNS gap; MX/SPF/DMARC already
+verified live — + one public profile) and says "approved"; agent runs +
+grades the McSweeney check, drafts five bespoke notes with tagged links,
+delivers a send sheet; founder sends by hand. Send the ORIGINAL records
+(`11f54993`, `7a6a4b91`, `d18d1b02`) — the 2026-08-13 re-runs (two rounds,
+under the new mapping gates + recital rule) confirmed the originals are the
+right artefacts and that the remaining weaknesses are echo (NHS class) and
+rebuttal-retrieval (Scotland/dairy class), both recorded as pipeline work,
+both deliberately parked until strangers exist.
+
 ## STATE OF PLAY (2026-08-12, end of day)
 
 **The list exists: 42 verified rows** (untracked contact map, August section —

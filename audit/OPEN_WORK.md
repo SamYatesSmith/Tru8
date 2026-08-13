@@ -5,9 +5,45 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-13)
+## 🟢 START HERE — next session (updated 2026-08-13, end of day)
 
 **This block is what to do next. Everything below the divider is history.**
+
+### 📍 HANDOFF — exactly where 2026-08-13 stopped: SENDS START IN THE MORNING
+
+**Everything pushed (`3c8d3ff`); working tree holds only the long-HELD reframe
+(reconstructed by hand after the prompt edits, byte-shape-identical 45/+3 —
+not ours, don't touch) and the free-to-ship `cost_report.py` + test.**
+Outreach SOT: `audit/OUTREACH.md`. Send set is FINAL: wildfire `d18d1b02` (A)
+· NHS **ORIGINAL** `11f54993` (A−) · Scotland **ORIGINAL** `7a6a4b91` (C+,
+Tapper only) — re-runs confirmed the originals are the right artefacts; a
+send names a check id, never "the latest run".
+
+**Morning sequence, in order:**
+1. **FOUNDER (prereq A, the only gate):** trueight.com already runs Zoho Mail
+   (MX/SPF/DMARC verified in DNS 2026-08-13) — confirm/create the
+   `sam@trueight.com` mailbox; **add DKIM** (the one DNS gap found — no TXT at
+   the default selector; Zoho admin → domain → DKIM); send one test email and
+   check headers pass; ONE public profile (X/Bluesky/LinkedIn, real name +
+   face + one line + trueight.com). Then say **"approved"** to the batch:
+   Heneghan/Jefferson · Viglione · Seymour · Tapper · McSweeney.
+2. **AGENT (on "approved"):** run the McSweeney heatwave-pollution check
+   (~15p), READ and GRADE it (a C-grade means send four, say so); draft five
+   bespoke two-sentence notes with tagged links (`/r/<id>?src=o-<name>`, tags
+   in the untracked contact map); deliver a send sheet: person · route · note
+   · link.
+3. **FOUNDER sends by hand** from the clean identity. Three of five routes
+   are DMs/X, so the profile unblocks Heneghan/Jefferson + Viglione + Seymour
+   even before DKIM lands. Then the cadence: ~5/week, Monday four numbers.
+
+**Today's shipped state (detail in the blocks below + design doc):** the
+TRU-018F-44AA failure is FIXED and acceptance-proven (interested-party +
+recital gates, merge-path bypass closed, recital prompt rule; corpus
+re-recorded + replay-verified 143/13/5); `tru8-mcp` 1.0.5 on PyPI, verified,
+mirror synced. Remaining founder calls: the held reframe, and (optional,
+unhurried) the MCP registry still advertising 1.0.4. Remaining pipeline items
+(recorded, deliberately NOT actioned): echo-not-recital state-bearing fix
+(NHS class), rebuttal retrieval (Scotland/dairy class), design §10 smalls.
 
 ### 🔴 2026-08-13 — TRU-018F-44AA: "Donald Trump stopped 6 wars" returned *supported all 4*
 
