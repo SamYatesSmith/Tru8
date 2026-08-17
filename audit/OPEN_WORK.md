@@ -5,9 +5,91 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-14)
+## 🟢 START HERE — next session (updated 2026-08-17, end of day)
 
 **This block is what to do next. Everything below the divider is history.**
+
+### 📍 HANDOFF — exactly where 2026-08-17 stopped: START AT PHASE D
+
+**Everything pushed through `e77cb00`.** The quality-first package (5 phases,
+design `audit/2026-08-14_quality_first_design_review.md`, code-verified in
+`audit/2026-08-17_design_review_verification.md`) is **3/5 done — Phases A, B
+and C all shipped, acceptance-proven and pushed today.** All six §5 founder
+decisions are CLOSED, including Phase D confirmed knowingly (it reverses
+signed D1 Option A; scope = ALL claims, universal). Full detail in the dated
+phase blocks below; the one-line versions:
+
+- **A (`91188e2`, `09cd87b`):** bench sees all six gate log lines; Trump
+  claim (TRU-018F-44AA) recorded into the corpus, recital pin mutation-checked.
+- **B (`d1d4bd9`):** strict `>` ties → disputed · factual support floor 3
+  (`support_floor`; the review's "floor 2" contradicted its own description)
+  · recovery basis/weights fixed via `full_evidence` · uncertainty→caveat ·
+  `echo_scope` gate (Shape B, sixth gate, flagged). Lesson: "replay-clean"
+  was WRONG — state changes re-target coverage recovery → cassette drift;
+  5647 re-recorded, matched-pair-attributed to the floor alone.
+- **C (`162bd97`):** `claimant` end-to-end (extract prompt → model → DB
+  column, `claim_claimant` migration → `attach_claim_subjects`; entity
+  typing no longer decides gate arming — the NHS blind spot) · `seen_urls`
+  freshness-fallback REVIVED (dead since PR-B03 2026-02-12) with a
+  mutation-proven test · **re-record #1 of all 10 cassettes** — the fresh
+  Trump pool carries whitehouse.gov, so 018F now pins BOTH gates at
+  tolerance 0 (recital 3/3 · interested_party 1/1), each mutation-checked.
+
+**Bench pass state: `175 ok / 10 warn / 2 fail`** (82CF known-flaky 11/61 ·
+A3E8 `factual_weight_share` 0.0 record-time pool drift — both accepted;
+`backend/tests/replay_corpus/README.md` holds the full history). Test suite
+**3,517 pass** (3,484 + cost_report's 33, shipped `e77cb00`). Migration
+`claim_claimant` is applied locally and ships to prod via `entrypoint.sh`
+on next deploy — verify with `railway ssh` → `alembic current` when convenient.
+
+**▶ TOMORROW = PHASE D, the challenge lane (last build phase).** Build design
+is §1.1 of the 2026-08-14 review + verification doc §2 corrections; prior
+art `audit/2026-07-14_non_sycophancy_invariant.md` §3a. The load-bearing
+specifics, all code-verified 2026-08-17:
+1. New module `app/utils/query_challenge_augmentation.py`, mechanical
+   templates off claim/element text ("criticism of …", "'X' disputed") —
+   NOT a planner-prompt edit. Flag `ENABLE_CHALLENGE_QUERIES`, default True.
+2. **Variant-within-lane, appended LAST** — the F1-D3 hedge keys on
+   positional index 1 (`retrieve.py:425-427`); ⚠️ on a lane the planner gave
+   only ONE query, an appended variant BECOMES position 1 and steals the
+   hedge (verification §2.4) — guard that case. Claim lane cap 3→4 full
+   tier (`runner.py:54` — but ⚠️ `EvidenceRetriever.__init__` defaults 5;
+   the worker override is what makes 3 real, verification §2.2); first
+   element lane gets the variant; quick tier gets NOTHING (cap 1 — nothing
+   appended survives the slice) and **must be declared in
+   `app/core/tier_limitations.py` or the drift guard fails**.
+3. ⚠️ A 4th claim-lane query drops per-query depth 13→10
+   (`CLAIM_LANE_MAX_RESULTS_PER_QUERY` is 40//3 by construction) and breaks
+   `test_element_retrieval_seam.py` assertions — re-pin deliberately.
+4. **Yield tags ship IN the lane commit**: cross-lane dedup is
+   first-writer-wins on `_query_index`, so challenge-lane yield is
+   invisible in the histogram without an accumulating tag (the
+   `_element_ids` pattern) — else Phase D repeats F1's "never fired live"
+   ambiguity at 45p a probe.
+5. **Coverage recovery gets the counter-frame in the SAME phase**
+   (`retrieve_for_elements` bypasses the whole lane seam — hand-built
+   plans, hardcoded `[:2]`, no augmenters; it needs its own edit).
+6. Then **re-record #2** (~25p, approved envelope; reframe patched OUT
+   first — protocol below), replay-verify green, review golden diffs.
+   Acceptance: lane yield non-zero in the histogram; Scotland's Macfarlane
+   589 / dairy's Gid M-K teardown in pool on live probes (if still
+   unfetched → investigate ranking, don't force); Trump + 0005 + 018F
+   tolerance-0 pins hold.
+Then **Phase E**: re-run wildfire/NHS/Scotland/dairy full-tier, grade
+against the ORIGINALS by named check id, update the send set, THEN the
+morning-sequence sends (list + prereq-A founder items in the 2026-08-13
+block below — DKIM TXT + `sam@trueight.com` mailbox + one public profile
+are still founder-owed).
+
+**⚠️ Working-tree protocol (unchanged):** the tree holds ONLY the long-HELD
+mapping-prompt reframe in `claim_map_analyzer.py` (45/+3 — not ours, don't
+touch, don't commit) plus the founder's Syncthing files (`.stfolder/`,
+`.stignore`). The bench runs against the working tree, so before any bench
+run or commit: `git diff backend/app/pipeline/claim_map_analyzer.py >
+<scratchpad>/held_reframe.patch` → `git apply --check` it → `git checkout --`
+the file → work/bench/commit → `git apply` the patch back. **Never bare
+`git checkout --` on a file that also holds YOUR uncommitted edits** — it
+cost one redo today.
 
 ### 📍 2026-08-14 — SENDS HELD FOR QUALITY (founder decision, supersedes the block below)
 
