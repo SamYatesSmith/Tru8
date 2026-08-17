@@ -47,12 +47,25 @@ touched):** the bench now parses all five gate log lines, not just
 `<key>_events`/`<key>_summary` in observations, counter paths + a
 `scope_gates_must_fire` hard invariant in `comparator.py` (failure messages
 name the user's stake), 12 new unit tests mirroring the F1 test file
-(`test_scope_gate_signals.py`), replay-bench unit suite 54/54. Remaining for
-Phase A acceptance, BOTH spends (flag before running): (a) reframe-stashed
-bench replay to confirm baseline 143/13/5 holds; (b) the IP/recital
-must-fire assertions need a corpus claim where those gates fire — none
-exists, so the Trump-shaped claim must be RECORDED into the corpus (~15p
-live + bench verify), then mutation-checked (flags off → red).
+(`test_scope_gate_signals.py`), replay-bench unit suite 54/54.
+
+**✅ PHASE A ACCEPTED same day (both spends founder-approved, ~35p):**
+(a) reframe-stashed replay came back **144/13/4, twice, deterministic** — one
+better than the recorded 143/13/5 and fully attributed: the recorded count
+included 0005's stale temporal pin, which `5ca9691` itself re-pinned 6→2, so
+144/13/4 IS the true post-re-pin baseline; the 4 fails are byte-identical to
+the accepted set (82CF known-flaky 3/66 · 5647 tier_reporting 16 · 0004
+secondaries + domain_set). (b) **`TRU-018F-44AA` recorded into the corpus**
+(focused, "Donald Trump stopped 6 wars"): recital gate fires 2 elements/3
+refs, pinned at tolerance 0 + `scope_gates_must_fire`, replay-verified 22/1/0,
+**mutation-checked** (`ENABLE_RECITAL_SCOPE_GATE=False` → 3 fails naming the
+stake). ⚠️ Interested-party fired ZERO — this recording's pool has no
+whitehouse.gov (run-variance vs the acceptance runs); its must-fire assertion
+is OWED at the first re-record whose pool carries the claimant's organ (Phase
+C and D each re-record everything — check the observation then). **New full-
+bench pass state: 166 ok / 14 warn / 4 fail** (README updated). NEXT: Phase B
+(state behaviour — one golden update: `>` both sides · support floor 2 ·
+recovery basis-staleness · uncertainty→caveat · echo_scope Shape B).
 Survey also found a latent bug: `retrieve.py:2144` `seen_urls.add()` on a dict —
 the freshness-fallback path has been dead since it shipped (fix scheduled
 Phase C, it re-records).

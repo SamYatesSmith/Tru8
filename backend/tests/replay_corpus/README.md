@@ -14,9 +14,15 @@
 > drift guard across the whole corpus to buy a green tick. Its golden is still the
 > 2026-07-21 `fdf3509` capture and is **not** comparable to post-Phase-2 behaviour.
 >
-> So: **`158 ok / 2 warn / 1 fail` is the current PASS state** (was 135/2/1 until
-> `TRU-C1A0-0005` was added on 2026-08-06, which contributes 23 ok). Anything worse is a
-> real regression. Full reasoning in `audit/OPEN_WORK.md`, 2026-07-30 and 2026-08-06.
+> So: **`166 ok / 14 warn / 4 fail` is the current PASS state** (2026-08-17, 10 claims —
+> `TRU-018F-44AA` joined with 22 ok / 1 warn). History: 135/2/1 → 158/2/1 (0005 added
+> 2026-08-06) → RETIRED by the 2026-08-11 corpus restoration → 143/13/5 (recorded
+> 2026-08-13, counting a 0005 pin-fail that its own commit re-pinned — the true
+> post-re-pin state was 144/13/4, verified byte-identical 2026-08-17) → 166/14/4.
+> The 4 fails are attributed and accepted: 82CF known-flaky (3 misses / 66 hits),
+> 5647 `tier_reporting` 16 + 0004 secondaries (Climate/Law vs pinned Finance) +
+> 0004 `domain_set` 0.22 = record-time live drift. Anything worse is a real
+> regression. Full reasoning in `audit/OPEN_WORK.md`, 2026-08-11 → 2026-08-17.
 >
 > The 2 warns are expected too: `TRU-A3E8-3199` factual_weight_share 0.23 and
 > `TRU-C1A0-0001` top_domain_share 0.40, both in the "Mediocre" band, neither a failure.
@@ -45,6 +51,7 @@ anything else. This cost a full 11-minute run to notice on 2026-08-06.
 | TRU-C1A0-0003 | focused (1 claim) | PubMed routing + yield, Health domain, Semantic Scholar keyless 429 |
 | TRU-C1A0-0004 | article (2 claims) | GovInfo routing + yield (Politics/US), GET→POST 400 fix, US jurisdiction |
 | TRU-C1A0-0005 | focused (1 claim) | **F1 temporal scope gate fires** — the only month-pinned claim, so the only one that can exercise the gate at all. See the caveat below. |
+| TRU-018F-44AA | focused (1 claim) | **Recital gate fires** (2 elements / 3 refs, tolerance 0, mutation-checked) — the 2026-08-13 incident claim. ⚠️ Interested-party does NOT fire in this recording (no whitehouse.gov in its pool — run-variance); its must-fire assertion is owed at the first re-record whose pool carries the claimant's organ. |
 
 ### TRU-C1A0-0005 guards the GATE, not the 2026-08-06 extension
 

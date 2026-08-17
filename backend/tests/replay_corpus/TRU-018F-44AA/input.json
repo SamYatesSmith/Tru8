@@ -1,0 +1,15 @@
+{
+  "claim_id": "TRU-018F-44AA",
+  "description": "'Donald Trump stopped 6 wars' — the 2026-08-13 incident claim, recorded so the interested-party + recital gates have a corpus claim that fires them (Phase A of the quality-first package). Named after the incident check.",
+  "tests": [
+    "interested-party gate fires (claimant's own organ scoped to context)",
+    "recital gate fires (press recitals scoped to context)",
+    "the attribution element does not read supported off recitals + whitehouse.gov"
+  ],
+  "input_type": "text",
+  "content": "Donald Trump stopped 6 wars",
+  "url": null,
+  "user_query": null,
+  "entry_mode": "focused",
+  "selected_positions": [0]
+}
