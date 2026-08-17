@@ -62,13 +62,41 @@ refs, pinned at tolerance 0 + `scope_gates_must_fire`, replay-verified 22/1/0,
 stake). ⚠️ Interested-party fired ZERO — this recording's pool has no
 whitehouse.gov (run-variance vs the acceptance runs); its must-fire assertion
 is OWED at the first re-record whose pool carries the claimant's organ (Phase
-C and D each re-record everything — check the observation then). **New full-
-bench pass state: 166 ok / 14 warn / 4 fail** (README updated). NEXT: Phase B
-(state behaviour — one golden update: `>` both sides · support floor 2 ·
-recovery basis-staleness · uncertainty→caveat · echo_scope Shape B).
+C and D each re-record everything — check the observation then).
 Survey also found a latent bug: `retrieve.py:2144` `seen_urls.add()` on a dict —
 the freshness-fallback path has been dead since it shipped (fix scheduled
 Phase C, it re-records).
+
+**✅ PHASE B SHIPPED same day — state behaviour, one attributed golden move.**
+All five items: (1) strict `>` on BOTH dominant rules (a 2× tie is
+close_split → disputed; TRU-018F-44AA's crux boundary); (2) **factual
+support floor `FACTUAL_MIN_WEIGHTED_SUPPORT=3`** — one primary passes, a
+lone reporting/commentary ref reads `unresolved`, rule `support_floor`
+(⚠️ the review's §5 said "floor 2" while DESCRIBING 3 — 2 would let a lone
+reporting ref pass; the described behaviour shipped); (3) recovery basis
+recompute + full-pool tier weights via new `full_evidence` param (runner
+passes merged pool; without it, old leave-in-place kept — a partial-pool
+recompute would be worse than stale); (4) mapper `uncertainty` appended to
+the caveat channel on `supported`; (5) **echo_scope gate, Shape B** — sixth
+gate, appended LAST, in `_SCOPE_RECEIPT_KEYS` + bench matcher, flag
+`ENABLE_ECHO_SCOPE_GATE`, receipt names `original_id`, symmetric, first
+derivative stays directional when its original is uncounted; recovery pools
+carry no chains so it is silent there (safe direction). Tests: 3,480 pass
+(8 old pins re-examined individually: tie pins reversed BY DESIGN with
+dated notes, floor-irrelevant fixtures given tiers). **Bench replay found
+REAL drift on 5647 — the review's "replay-clean" prediction was WRONG for
+claims where states feed coverage recovery** (floored elements → recovery →
+unrecorded queries; matched-pair replay attributed it to the floor alone,
+echo exonerated). 5647 re-recorded live (~5p of the approved re-record
+budget), golden re-derived + reviewed (pool improved: sources 22→29,
+primary 10→14, commentary 7→1 — the floor working), replay-verified 25/0/0.
+**New pass state: 171 ok / 10 warn / 3 fail** (all 3 accepted: 82CF
+known-flaky + 0004 ×2; 5647's old fail retired with its golden). Trump +
+0005 tolerance-0 gate pins held throughout. Also fixed while red: the
+served MCP card + `server.json` still said 1.0.4 vs package 1.0.5 (the
+drift guard caught it; the registry re-publish remains the founder's call).
+NEXT: **Phase C** (claimant arming via extract `claimant` field + the
+`seen_urls` dict bug + its structurally-unfailable test — re-record #1).
 
 The send set, list, and prereq-A founder items below all KEEP — they execute at
 Phase E instead of this morning.

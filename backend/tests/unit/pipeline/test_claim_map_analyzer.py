@@ -358,6 +358,10 @@ class TestEvidenceMapping:
         """All elements get a state after mapping."""
         claim_map = _make_partial_claim_map(2)
         evidence = _make_evidence_list(2)
+        # tier=primary (2026-08-17): e1's lone support must clear the factual
+        # support floor — this test's subject is state ASSIGNMENT.
+        for ev in evidence:
+            ev["tier"] = "primary"
         mapping_payload = {
             "elements": [
                 {
@@ -1018,10 +1022,15 @@ class TestDeriveElementStateWithAuthority:
         assert basis["caveat"] is not None
         assert "outlier.example" in basis["caveat"]
 
-    def test_two_primary_supports_one_primary_challenge_supports_dominant(
+    def test_two_primary_supports_one_primary_challenge_is_a_tie_now(
         self,
     ):
-        # 2 primary supports (6) vs 1 primary challenge (3) → 6 ≥ 2*3 → supported.
+        # 2 primary supports (6) vs 1 primary challenge (3): an EXACT 2× tie.
+        # 2026-08-17 (quality-first Phase B): strict `>` means a tie is not
+        # dominance — close_split → disputed. TRU-018F-44AA's crux element
+        # sat on exactly this `>=` boundary and read `supported` while
+        # overriding an LLM `disputed`. Three primaries against one (9 > 6)
+        # still clears dominance — see the test below.
         elem = {
             "evidence_refs": [
                 self._ref("ev-1", "supports"),
@@ -1035,10 +1044,34 @@ class TestDeriveElementStateWithAuthority:
             {"evidence_id": "ev-3", "tier": "primary", "url": "https://statista.com/x"},
         ]
         state, basis = _derive_element_state_with_authority(elem, evi)
-        assert state == ElementState.supported
+        assert state == ElementState.disputed
+        assert basis["rule_applied"] == "close_split"
         assert basis["weighted_supports"] == 6
         assert basis["weighted_challenges"] == 3
         assert basis["caveat"] is not None
+        assert "mixed" in basis["caveat"]
+
+    def test_three_primary_supports_one_primary_challenge_still_dominant(self):
+        # 3 primary supports (9) vs 1 primary challenge (3) → 9 > 6 →
+        # supported. The TRU-EF20 shape (several authoritative sources vs one
+        # outlier) survives the strict comparator.
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-1", "supports"),
+                self._ref("ev-2", "supports"),
+                self._ref("ev-4", "supports"),
+                self._ref("ev-3", "challenges"),
+            ]
+        }
+        evi = [
+            self._evi("ev-1", "primary"),
+            self._evi("ev-2", "primary"),
+            self._evi("ev-4", "primary"),
+            {"evidence_id": "ev-3", "tier": "primary", "url": "https://statista.com/x"},
+        ]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        assert state == ElementState.supported
+        assert basis["rule_applied"] == "supports_dominant_2x"
         assert "statista.com" in basis["caveat"]
 
     def test_one_one_same_tier_close_split_disputed(self):

@@ -174,7 +174,7 @@ RE_TEMPORAL_SCOPE = re.compile(
 # Keys mirror the basis receipt keys (`_SCOPE_RECEIPT_KEYS`), so a golden
 # assertion and a basis receipt name the same gate the same way.
 RE_SCOPE_GATE = re.compile(
-    r"\[(?P<label>JURISDICTION SCOPE|MEASURE SCOPE|INTERESTED PARTY|RECITAL)\]\s+"
+    r"\[(?P<label>JURISDICTION SCOPE|MEASURE SCOPE|INTERESTED PARTY|RECITAL|ECHO)\]\s+"
     r"elem=(?P<element>\S+?):\s+(?P<scoped>\d+)\s+ref\(s\)\s+scoped to context"
 )
 
@@ -183,6 +183,7 @@ SCOPE_GATE_KEYS = {
     "MEASURE SCOPE": "measure_scope",
     "INTERESTED PARTY": "interested_party",
     "RECITAL": "recital_scope",
+    "ECHO": "echo_scope",
 }
 
 RE_FACTCHECKS = re.compile(

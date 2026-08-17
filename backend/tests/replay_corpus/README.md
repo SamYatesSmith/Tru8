@@ -14,15 +14,20 @@
 > drift guard across the whole corpus to buy a green tick. Its golden is still the
 > 2026-07-21 `fdf3509` capture and is **not** comparable to post-Phase-2 behaviour.
 >
-> So: **`166 ok / 14 warn / 4 fail` is the current PASS state** (2026-08-17, 10 claims —
-> `TRU-018F-44AA` joined with 22 ok / 1 warn). History: 135/2/1 → 158/2/1 (0005 added
-> 2026-08-06) → RETIRED by the 2026-08-11 corpus restoration → 143/13/5 (recorded
-> 2026-08-13, counting a 0005 pin-fail that its own commit re-pinned — the true
-> post-re-pin state was 144/13/4, verified byte-identical 2026-08-17) → 166/14/4.
-> The 4 fails are attributed and accepted: 82CF known-flaky (3 misses / 66 hits),
-> 5647 `tier_reporting` 16 + 0004 secondaries (Climate/Law vs pinned Finance) +
-> 0004 `domain_set` 0.22 = record-time live drift. Anything worse is a real
-> regression. Full reasoning in `audit/OPEN_WORK.md`, 2026-08-11 → 2026-08-17.
+> So: **`171 ok / 10 warn / 3 fail` is the current PASS state** (2026-08-17 Phase B,
+> 10 claims). The 3 fails are attributed and accepted: 82CF known-flaky (3 misses /
+> 66 hits) + 0004 secondaries (Climate/Law vs pinned Finance) + 0004 `domain_set`
+> 0.22 = record-time live drift. History: 135/2/1 → 158/2/1 (0005 added 2026-08-06)
+> → RETIRED by the 2026-08-11 corpus restoration → 143/13/5 (recorded 2026-08-13,
+> counting a 0005 pin-fail its own commit re-pinned; true post-re-pin state 144/13/4,
+> verified byte-identical 2026-08-17) → 166/14/4 (TRU-018F-44AA joined) → 171/10/3.
+> ⚠️ **5647 was re-recorded for Phase B** (its old accepted `tier_reporting` fail is
+> retired with its golden): the factual support floor sends thin-support elements to
+> coverage recovery, which issues queries the 2026-08-11 recording never made —
+> attributed by matched-pair replay (drift with `FACTUAL_MIN_WEIGHTED_SUPPORT` on,
+> none with it 0; echo gate individually exonerated). The recovery-enlarged pool is
+> the floor working: sources 22→29, primary 10→14, commentary 7→1. Anything worse
+> than 171/10/3 is a real regression. `audit/OPEN_WORK.md` 2026-08-11 → 2026-08-17.
 >
 > The 2 warns are expected too: `TRU-A3E8-3199` factual_weight_share 0.23 and
 > `TRU-C1A0-0001` top_domain_share 0.40, both in the "Mediocre" band, neither a failure.

@@ -581,9 +581,31 @@ class Settings(BaseSettings):
     # reporting, or three commentary. Rationale: `all_supports` (>=1 support,
     # 0 challenges) is a sound bar for an ASSERTION but near-zero for "did we
     # find out?" — TRU-4B9D-65EA marked two questions supported off one source
-    # each. GROUNDS-ONLY: factual claims pass 0 and are untouched.
+    # each. GROUNDS-ONLY: factual claims read FACTUAL_MIN_WEIGHTED_SUPPORT.
     # Set 0 to disable the floor without a deploy (rollback lever).
     # Design: audit/2026-07-27_phase1_mechanical_honesty_design.md
+
+    FACTUAL_MIN_WEIGHTED_SUPPORT: int = Field(
+        3, env="FACTUAL_MIN_WEIGHTED_SUPPORT"
+    )  # Quality-first Phase B (2026-08-17). Tier-weighted floor a FACTUAL
+    # element must clear before `supported`: check 83120010 left an element
+    # supported off a single BBC reporting ref. 3 = one primary alone still
+    # suffices (a single primary IS the record for many true claims); a lone
+    # reporting (2) or commentary (1) ref no longer does. Downgrade target is
+    # `unresolved`, receipt rule "support_floor". The design review's §5
+    # nominal "floor 2" contradicted its own approved description — the
+    # described behaviour is what this value encodes.
+    # Set 0 to disable the floor without a deploy (rollback lever).
+    # Design: audit/2026-08-14_quality_first_design_review.md §1.4
+
+    # Echo scope gate (2026-08-17, quality-first Phase B). A directional ref
+    # whose evidence is a DERIVATIVE (corroboration derivation chain) of an
+    # original ALREADY COUNTED on the same side of the same element is
+    # re-labelled `context` with a receipt naming the original — five wire
+    # copies of one story stop counting as five supports (the NHS outreach
+    # record's failure). Symmetric; the first derivative stays directional
+    # when its original is not counted. ROLLBACK: ENABLE_ECHO_SCOPE_GATE=False.
+    ENABLE_ECHO_SCOPE_GATE: bool = Field(True, env="ENABLE_ECHO_SCOPE_GATE")
 
     # ========== TRACK M: EVIDENCE INFRASTRUCTURE ==========
 

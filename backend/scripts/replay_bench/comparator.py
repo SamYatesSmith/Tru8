@@ -119,6 +119,7 @@ _SCOPE_GATE_STAKES = {
         "the claimant's own organ can badge their claim supported again"
     ),
     "recital_scope": ("press recitals of a claim can count as evidence for it again"),
+    "echo_scope": ("five copies of one wire story can count as five supports again"),
 }
 
 
@@ -596,6 +597,8 @@ _COUNTER_PATHS = {
     "interested_party_scoped_elements": ("interested_party_summary", "elements"),
     "recital_scoped_refs": ("recital_scope_summary", "scoped_refs"),
     "recital_scoped_elements": ("recital_scope_summary", "elements"),
+    "echo_scoped_refs": ("echo_scope_summary", "scoped_refs"),
+    "echo_scoped_elements": ("echo_scope_summary", "elements"),
 }
 
 

@@ -923,11 +923,15 @@ class TestMapEvidenceToSpecificElements:
             ]
         }
         analyzer = self._make_analyzer(llm_response)
+        # tier=primary (2026-08-17): the factual support floor (weight >= 3)
+        # would floor a lone tierless ref to `unresolved`; this test's subject
+        # is cross-element ref MERGING, so the fixture clears the floor.
         new_evidence = [
             {
                 "evidence_id": "ev-new-1",
                 "title": "Cross-element article",
                 "snippet": "Content",
+                "tier": "primary",
             }
         ]
 
@@ -1097,8 +1101,15 @@ class TestMapEvidenceToSpecificElements:
             ]
         }
         analyzer = self._make_analyzer(llm_response)
+        # tier=primary (2026-08-17): clears the factual support floor — this
+        # test's subject is the state TRANSITION, not the floor.
         new_evidence = [
-            {"evidence_id": "ev-new-1", "title": "New article", "snippet": "Content"}
+            {
+                "evidence_id": "ev-new-1",
+                "title": "New article",
+                "snippet": "Content",
+                "tier": "primary",
+            }
         ]
 
         await analyzer.map_evidence_to_specific_elements(
@@ -1258,11 +1269,15 @@ class TestRecoverySuccess:
                 "evidence_id": "ev-rec-e2_0_abc",
                 "title": "Jobs report",
                 "snippet": "Unemployment dropped to 4.2%",
+                # tier=primary (2026-08-17): clears the factual support floor —
+                # this test's subject is the full recovery CYCLE, not the floor.
+                "tier": "primary",
             },
             {
                 "evidence_id": "ev-rec-e3_0_def",
                 "title": "CPI data",
                 "snippet": "Inflation at 2.8% year-over-year",
+                "tier": "primary",
             },
         ]
 
@@ -1439,25 +1454,29 @@ class TestRecoverySuccess:
         )
 
         e1 = cm["elements"][0]
-        # Authority-weighted override (V1 acceptance fix 2026-05-08):
-        # 2 supports + 1 challenge with equal weights → supports_dominant_2x
-        # → supported (with caveat noting the 1 disagreeing source). Old
-        # behaviour blindly trusted the LLM's "disputed" — exactly the
-        # pattern that surfaced TRU-EF20's Reform UK 5-seats false dispute.
-        assert e1["state"] == ElementState.supported
+        # 2026-08-17 (quality-first Phase B): 2 supports vs 1 challenge at
+        # equal weights is an EXACT 2× tie, and a tie is not dominance —
+        # strict `>` sends it to close_split → disputed, which here AGREES
+        # with the LLM's own "disputed". This expectation deliberately
+        # reverses the 2026-05-08 pin: TRU-018F-44AA's crux element sat on
+        # exactly this `>=` boundary and read `supported` while overriding
+        # an LLM `disputed`. (TRU-EF20's real shape — several authoritative
+        # supports vs one outlier — still clears strict dominance: 9 > 6.)
+        assert e1["state"] == ElementState.disputed
         assert len(e1["evidence_refs"]) == 3
         # Verify mixed relationships survived validation
         relationships = {r["relationship"] for r in e1["evidence_refs"]}
         assert EvidenceRelationship.supports in relationships
         assert EvidenceRelationship.challenges in relationships
-        # state_derivation captures the override
+        # state_derivation records the tie honestly
         sd = e1.get("basis", {}).get("state_derivation", {})
-        assert sd.get("rule_applied") == "supports_dominant_2x"
+        assert sd.get("rule_applied") == "close_split"
         assert sd.get("llm_state") == "disputed"
-        assert sd.get("caveat") is not None  # caveat surfaces the outlier
+        assert sd.get("caveat") is not None  # caveat surfaces the mixed record
+        assert "mixed" in sd["caveat"]
         assert (
             cm["orientation"]
-            == "Of 1 element examined, retrieved evidence predominantly supports it."
+            == "Of 1 element examined, retrieved evidence both supports and conflicts with it."
         )
 
     @pytest.mark.asyncio
@@ -1474,11 +1493,14 @@ class TestRecoverySuccess:
             ]
         )
 
+        # tier=primary (2026-08-17): clears the factual support floor — this
+        # test's subject is ref PRESERVATION, not the floor.
         new_evidence = [
             {
                 "evidence_id": "ev-rec-e1_0_new",
                 "title": "Federal Register",
                 "snippet": "Policy signed Jan 2024",
+                "tier": "primary",
             },
         ]
 
@@ -1533,16 +1555,20 @@ class TestRecoverySuccess:
         before_orientation = cm["orientation"]
         assert "insufficient" in before_orientation or "lacking" in before_orientation
 
+        # tier=primary (2026-08-17): e2's lone support must clear the factual
+        # support floor — this test's subject is honest ORIENTATION.
         new_evidence = [
             {
                 "evidence_id": "ev-rec-e2_0_rev",
                 "title": "Annual report",
                 "snippet": "Revenue grew from $5M to $10M",
+                "tier": "primary",
             },
             {
                 "evidence_id": "ev-rec-e3_0_emp",
                 "title": "Press release",
                 "snippet": "Headcount grew but margins fell",
+                "tier": "primary",
             },
         ]
 
@@ -2851,3 +2877,138 @@ class TestCapRecoveryItems:
         capped = _cap_recovery_items(items, 4)
         unhinted = sum(1 for ev in capped if ev["evidence_id"] == "ev-abc123")
         assert unhinted == 2  # rotation includes the unhinted group
+
+
+# =============================================================================
+# Quality-first Phase B (2026-08-17): recovery basis recompute over the full pool
+# =============================================================================
+
+
+class TestRecoveryBasisRecompute:
+    """The recovery merge used to leave the main pass's basis untouched, so
+    evidence_count and every breakdown under-reported the merged ref set (the
+    2026-08-13 design's own §10 staleness note). With `full_evidence` supplied
+    (the runner passes the merged pool), the basis is rebuilt over ALL refs;
+    without it, the old leave-in-place behaviour is kept — recomputing from
+    new_evidence alone would strip pre-existing refs' tiers, worse than stale.
+    """
+
+    @pytest.mark.asyncio
+    async def test_basis_reflects_merged_refs_when_full_pool_given(self):
+        existing_ref = {
+            "evidence_id": "ev-main",
+            "relationship": "supports",
+            "reasoning": "Main-pass support",
+        }
+        cm = _make_full_claim_map(
+            [("e1", "unresolved", "Policy enacted in 2024", [existing_ref])]
+        )
+        # Stale main-pass basis, deliberately wrong for the merged set,
+        # carrying a gate receipt that must survive the rebuild.
+        cm["elements"][0]["basis"] = {
+            "evidence_count": 1,
+            "tier_breakdown": {"primary": 1},
+            "temporal_scope": {"scoped_count": 1, "scoped": [{"evidence_id": "x"}]},
+        }
+
+        main_evidence = [
+            {
+                "evidence_id": "ev-main",
+                "title": "Main item",
+                "snippet": "From the main pass",
+                "tier": "primary",
+            }
+        ]
+        new_evidence = [
+            {
+                "evidence_id": "ev-rec-e1_0_new",
+                "title": "Recovery item",
+                "snippet": "Fresh",
+                "tier": "reporting",
+            }
+        ]
+        llm_response = {
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "evidence_refs": [
+                        {
+                            "evidence_id": "ev-rec-e1_0_new",
+                            "relationship": "supports",
+                            "reasoning": "Confirms",
+                        }
+                    ],
+                    "state": "supported",
+                    "uncertainty": None,
+                }
+            ]
+        }
+
+        analyzer = _make_real_analyzer(llm_response)
+        await analyzer.map_evidence_to_specific_elements(
+            claim_map=cm,
+            unresolved_element_ids=["e1"],
+            new_evidence=new_evidence,
+            full_evidence=main_evidence + new_evidence,
+        )
+
+        e1 = cm["elements"][0]
+        basis = e1["basis"]
+        # The basis now reports the MERGED ref set, tiers resolved for both.
+        assert basis["evidence_count"] == 2
+        assert basis["tier_breakdown"] == {"primary": 1, "reporting": 1}
+        # The gate receipt survived the rebuild (invariant #5).
+        assert basis["temporal_scope"]["scoped_count"] == 1
+        # And the state weighed BOTH refs (primary 3 + reporting 2 = 5), not
+        # weight-1 fallbacks — the old new_evidence-only blind spot.
+        assert basis["state_derivation"]["weighted_supports"] == 5
+        assert e1["state"] == ElementState.supported
+
+    @pytest.mark.asyncio
+    async def test_without_full_pool_the_old_basis_is_left_in_place(self):
+        existing_ref = {
+            "evidence_id": "ev-main",
+            "relationship": "supports",
+            "reasoning": "Main-pass support",
+        }
+        cm = _make_full_claim_map(
+            [("e1", "unresolved", "Policy enacted in 2024", [existing_ref])]
+        )
+        stale = {"evidence_count": 1, "tier_breakdown": {"primary": 1}}
+        cm["elements"][0]["basis"] = dict(stale)
+
+        new_evidence = [
+            {
+                "evidence_id": "ev-rec-e1_0_new",
+                "title": "Recovery item",
+                "snippet": "Fresh",
+                "tier": "primary",
+            }
+        ]
+        llm_response = {
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "evidence_refs": [
+                        {
+                            "evidence_id": "ev-rec-e1_0_new",
+                            "relationship": "supports",
+                            "reasoning": "Confirms",
+                        }
+                    ],
+                    "state": "supported",
+                    "uncertainty": None,
+                }
+            ]
+        }
+
+        analyzer = _make_real_analyzer(llm_response)
+        await analyzer.map_evidence_to_specific_elements(
+            claim_map=cm,
+            unresolved_element_ids=["e1"],
+            new_evidence=new_evidence,
+        )
+
+        basis = cm["elements"][0]["basis"]
+        assert basis["evidence_count"] == 1
+        assert basis["tier_breakdown"] == {"primary": 1}

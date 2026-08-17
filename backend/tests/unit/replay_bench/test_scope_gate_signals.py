@@ -42,6 +42,10 @@ RECITAL_LINE = (
     "[RECITAL] elem=e4: 4 ref(s) scoped to context — "
     "reference rests on the claim being made, not established"
 )
+ECHO_LINE = (
+    "[ECHO] elem=e1: 2 ref(s) scoped to context — "
+    "derivative of an original already counted on this side"
+)
 TEMPORAL_LINE = (
     "[TEMPORAL SCOPE] elem=e1: 3 ref(s) scoped to context — element pins 2024-09"
 )
@@ -54,6 +58,7 @@ class TestRegex:
             (MEASURE_LINE, "measure_scope", "e1", "2"),
             (INTERESTED_PARTY_LINE, "interested_party", "e4", "2"),
             (RECITAL_LINE, "recital_scope", "e4", "4"),
+            (ECHO_LINE, "echo_scope", "e1", "2"),
         ):
             m = RE_SCOPE_GATE.search(line)
 

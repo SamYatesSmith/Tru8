@@ -72,12 +72,16 @@ def _make_partial_claim_map(
 
 
 def _make_evidence_list(count: int = 3, prefix: str = "ev") -> list[dict]:
+    # tier=primary (2026-08-17): the factual support floor (weight >= 3)
+    # would floor a lone tierless ref to `unresolved`; this module's subject
+    # is BATCH mapping mechanics, so fixtures clear the floor.
     return [
         {
             "evidence_id": f"{prefix}{i}",
             "title": f"Evidence {i}",
             "snippet": f"Snippet content for evidence {i}",
             "url": f"http://example.com/{i}",
+            "tier": "primary",
         }
         for i in range(1, count + 1)
     ]
@@ -517,8 +521,15 @@ class TestMapEvidenceBatch:
         claim_data = []
         for i in range(3):
             cm = _make_partial_claim_map(f"c{i}", 2)
+            # tier=primary (2026-08-17): a lone tierless ref no longer clears
+            # the factual support floor; this test's subject is batch fan-out.
             ev = [
-                {"evidence_id": f"ev{i}_1", "title": f"Ev {i}", "snippet": "S"},
+                {
+                    "evidence_id": f"ev{i}_1",
+                    "title": f"Ev {i}",
+                    "snippet": "S",
+                    "tier": "primary",
+                },
             ]
             claim_data.append({"claim_map": cm, "evidence": ev})
 
@@ -626,7 +637,15 @@ class TestMapEvidenceBatch:
             {"claim_map": cm_empty, "evidence": []},
             {
                 "claim_map": cm_a,
-                "evidence": [{"evidence_id": "evA1", "title": "A", "snippet": "S"}],
+                # tier=primary (2026-08-17): clears the factual support floor.
+                "evidence": [
+                    {
+                        "evidence_id": "evA1",
+                        "title": "A",
+                        "snippet": "S",
+                        "tier": "primary",
+                    }
+                ],
             },
             {
                 "claim_map": cm_b,

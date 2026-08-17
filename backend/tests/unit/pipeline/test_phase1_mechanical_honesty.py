@@ -163,18 +163,27 @@ def test_floor_does_not_disturb_empty_element():
 # ── The floor selector ───────────────────────────────────────────────────────
 
 
-def test_state_floor_zero_for_factual_claim():
-    assert _state_floor_for(_cm(grounds=False)) == 0
+def test_state_floor_for_factual_claim_is_the_factual_floor():
+    """2026-08-17 (quality-first Phase B): factual claims no longer pass 0 —
+    they carry their own weighted floor with its own receipt rule, so a lone
+    reporting/commentary ref cannot badge `supported` (check 83120010)."""
+    assert _state_floor_for(_cm(grounds=False)) == (
+        settings.FACTUAL_MIN_WEIGHTED_SUPPORT,
+        "support_floor",
+    )
 
 
 def test_state_floor_configured_for_grounds_claim():
-    assert _state_floor_for(_cm(grounds=True)) == settings.GROUNDS_MIN_WEIGHTED_SUPPORT
+    assert _state_floor_for(_cm(grounds=True)) == (
+        settings.GROUNDS_MIN_WEIGHTED_SUPPORT,
+        "grounds_support_floor",
+    )
 
 
 def test_state_floor_zero_disables_the_rule(monkeypatch):
     """Rollback lever: GROUNDS_MIN_WEIGHTED_SUPPORT=0 restores prior behaviour."""
     monkeypatch.setattr(settings, "GROUNDS_MIN_WEIGHTED_SUPPORT", 0)
-    assert _state_floor_for(_cm(grounds=True)) == 0
+    assert _state_floor_for(_cm(grounds=True)) == (0, "grounds_support_floor")
     elem = _elem(refs=[_ref("ev1")])
     state, basis = _derive_element_state_with_authority(
         elem, [_ev("ev1", "commentary")], 0

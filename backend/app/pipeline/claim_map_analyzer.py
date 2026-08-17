@@ -866,27 +866,43 @@ def _display_scope_term(term: str) -> str:
     return _SCOPE_TERM_DISPLAY.get(term, term.title())
 
 
-def _state_floor_for(claim_map: Dict[str, Any]) -> int:
-    """Tier-weighted support floor for this claim's elements (Phase 1, 2026-07-27).
+def _state_floor_for(claim_map: Dict[str, Any]) -> Tuple[int, str]:
+    """Tier-weighted support floor + its receipt rule name (Phase 1, 2026-07-27).
 
     Grounds-routed claims carry QUESTION-shaped elements, for which the
     `all_supports` rule (>=1 support, 0 challenges -> supported) is close to no
     bar at all: TRU-4B9D-65EA badged two questions `supported` off ONE source
-    each while their own summaries said the evidence supplied nothing. Factual
-    claims return 0 and are therefore byte-identical to pre-Phase-1 behaviour.
+    each while their own summaries said the evidence supplied nothing.
 
-    Single source of this decision — the three state-derivation call sites read
-    it rather than each testing `_grounds_applied` themselves.
+    Factual claims gained their own floor 2026-08-17 (quality-first Phase B):
+    check 83120010 left an element `supported` off a single BBC reporting ref.
+    The floor is 3 — ONE primary source (weight 3) still suffices, because a
+    single primary IS the record for many true claims, but a lone reporting
+    (2) or commentary (1) ref no longer does. ⚠️ The design review's §5 said
+    "floor 2" while describing exactly this behaviour; 2 would let a lone
+    reporting ref pass, contradicting its own parenthetical, so the DESCRIBED
+    behaviour is what shipped. Rollback: FACTUAL_MIN_WEIGHTED_SUPPORT=0.
+
+    Returns (floor, rule_name) so the downgrade receipt names which floor
+    fired. Single source of this decision — the three state-derivation call
+    sites unpack it rather than each testing `_grounds_applied` themselves.
     """
     if not _grounds_applied(claim_map):
-        return 0
-    return max(0, int(getattr(settings, "GROUNDS_MIN_WEIGHTED_SUPPORT", 3) or 0))
+        return (
+            max(0, int(getattr(settings, "FACTUAL_MIN_WEIGHTED_SUPPORT", 3) or 0)),
+            "support_floor",
+        )
+    return (
+        max(0, int(getattr(settings, "GROUNDS_MIN_WEIGHTED_SUPPORT", 3) or 0)),
+        "grounds_support_floor",
+    )
 
 
 def _derive_element_state_with_authority(
     elem: ClaimElement,
     evidence_list: List[Dict[str, Any]],
     min_weighted_support: int = 0,
+    floor_rule: str = "grounds_support_floor",
 ) -> Tuple[ElementState, dict]:
     """Override the LLM mapper's state with a tier-weighted majority rule.
 
@@ -901,14 +917,23 @@ def _derive_element_state_with_authority(
       n_supports == 0 AND n_challenges == 0 → unresolved
       n_supports == 0 AND n_challenges  > 0 → disputed
       n_challenges == 0 AND n_supports  > 0 → supported
-      weighted_supports   ≥ 2 × weighted_challenges → supported (caveat if challenges)
-      weighted_challenges ≥ 2 × weighted_supports   → disputed
-      otherwise (close split)                       → disputed
+      weighted_supports   > 2 × weighted_challenges → supported (caveat if challenges)
+      weighted_challenges > 2 × weighted_supports   → disputed
+      otherwise (close split, INCLUDING an exact 2× tie) → disputed
 
-    Then, only when ``min_weighted_support`` > 0 (grounds/question elements —
-    see ``_state_floor_for``): a `supported` state whose weighted supports fall
-    below the floor is downgraded to `unresolved`, rule
-    ``grounds_support_floor``. Default 0 → every other caller is unaffected.
+    STRICT `>` on both dominant rules as of 2026-08-17 (quality-first Phase B):
+    TRU-018F-44AA's crux element sat at an exact 2× tie and the old `>=`
+    handed it `supported`, overriding the LLM's own `disputed`. A tie is not
+    dominance — it falls to `close_split`, whose honest reading is `disputed`.
+    Both sides changed in the same commit: tightening only one would build the
+    asymmetric mechanism invariant #7 forbids (on the challenges side the
+    comparator changes only ``rule_applied`` — close_split is `disputed` too).
+
+    Then, only when ``min_weighted_support`` > 0 (grounds/question elements
+    AND, since 2026-08-17, factual claims — see ``_state_floor_for``): a
+    `supported` state whose weighted supports fall below the floor is
+    downgraded to `unresolved`, rule ``floor_rule``. Default 0 → callers
+    passing no floor are unaffected.
 
     Tier weights: primary=3, reporting=2, commentary=1. Items whose
     evidence_id can't be resolved against ``evidence_list`` default to
@@ -984,20 +1009,20 @@ def _derive_element_state_with_authority(
     elif n_challenges == 0:
         state = ElementState.supported
         rule = "all_supports"
-    elif weighted_supports >= 2 * weighted_challenges:
+    elif weighted_supports > 2 * weighted_challenges:
         state = ElementState.supported
         rule = "supports_dominant_2x"
-    elif weighted_challenges >= 2 * weighted_supports:
+    elif weighted_challenges > 2 * weighted_supports:
         state = ElementState.disputed
         rule = "challenges_dominant_2x"
     else:
         state = ElementState.disputed
         rule = "close_split"
 
-    # Phase 1 mechanical honesty (2026-07-27): a QUESTION-shaped element must
-    # clear a tier-weighted floor before it may read "supported". Applies only
-    # when the caller passes a floor (grounds claims — see `_state_floor_for`);
-    # the default 0 leaves every other path byte-identical.
+    # Phase 1 mechanical honesty (2026-07-27, extended to factual claims
+    # 2026-08-17): an element must clear a tier-weighted floor before it may
+    # read "supported". Applies only when the caller passes a floor (see
+    # `_state_floor_for`); the default 0 leaves every other path byte-identical.
     #
     # Downgrade target is `unresolved`, NOT `contextual`, and that diverges
     # deliberately from the 2026-05-12 rule (SeekerView.tsx:57-60) which keeps
@@ -1010,7 +1035,7 @@ def _derive_element_state_with_authority(
         and weighted_supports < min_weighted_support
     ):
         state = ElementState.unresolved
-        rule = "grounds_support_floor"
+        rule = floor_rule
 
     caveat: Optional[str] = None
     if state == ElementState.supported and n_challenges > 0:
@@ -1097,6 +1122,18 @@ def _derive_element_state_with_authority(
                 "primary_support": has_primary_support,
                 "caveated": caveat == _UNIVERSAL_CAVEAT,
             }
+
+    # Quality-first Phase B (2026-08-17): the mapper's element-level
+    # `uncertainty` used to reach ONLY the print surface, so a `supported`
+    # badge could ship while the mapper's own note undercut it (TRU-018F-44AA
+    # e2: "evidence indicates at least 4 wars, but the claim specifies at
+    # least six" — printed, never surfaced). Append it to the caveat channel,
+    # which already travels to every surface (F3). Appended, never replacing:
+    # a disagreement/scope caveat keeps priority and the uncertainty rides
+    # behind it. State is never changed here — it describes, not adjudicates.
+    elem_uncertainty = elem.get("uncertainty")
+    if state == ElementState.supported and elem_uncertainty:
+        caveat = elem_uncertainty if caveat is None else f"{caveat}; {elem_uncertainty}"
 
     state_basis = {
         "supports_count": n_supports,
@@ -1335,6 +1372,14 @@ class _IndexedEvidence(NamedTuple):
     ev: Dict[str, Any]
     text: str
     country: Optional[str]
+    # The evidence_id of the PRIMARY this item is a derivative of, per the
+    # corroboration engine's pool-wide chains — None when the item is not a
+    # known derivative. Chains live on the primary (`derivation_chain` lists
+    # its derivatives), so `_index_evidence` inverts them once per pool. The
+    # echo gate (2026-08-17) is the only reader. Recovery pools carry no
+    # chains (annotation runs once, post-classify), so there this is always
+    # None and the gate is silent — the safe direction.
+    original_id: Optional[str] = None
 
 
 class _ScopeGate(NamedTuple):
@@ -1364,6 +1409,7 @@ _SCOPE_RECEIPT_KEYS = (
     "measure_scope",
     "interested_party",
     "recital_scope",
+    "echo_scope",
 )
 
 
@@ -1396,6 +1442,19 @@ def _merge_scope_receipts(
 
 def _index_evidence(evidence_list: List[Dict[str, Any]]) -> Dict[str, _IndexedEvidence]:
     """Index evidence by id with the fields the scope gates read."""
+    # Invert the pool's derivation chains once: derivative id → its primary's
+    # id. Computed here so ALL build sites (main pass, completion census,
+    # recovery) inherit it without separate wiring — a list without chains
+    # (recovery's new_evidence) simply yields an empty map.
+    original_of: Dict[str, str] = {}
+    for ev in evidence_list or []:
+        oid = ev.get("evidence_id")
+        if not oid:
+            continue
+        for did in ev.get("derivation_chain") or []:
+            if did and did != oid:
+                original_of.setdefault(did, oid)
+
     index: Dict[str, _IndexedEvidence] = {}
     for ev in evidence_list or []:
         eid = ev.get("evidence_id")
@@ -1407,7 +1466,10 @@ def _index_evidence(evidence_list: List[Dict[str, Any]]) -> Dict[str, _IndexedEv
             if part
         )
         index[eid] = _IndexedEvidence(
-            ev=ev, text=text, country=evidence_country(ev.get("url"))
+            ev=ev,
+            text=text,
+            country=evidence_country(ev.get("url")),
+            original_id=original_of.get(eid),
         )
     return index
 
@@ -2231,7 +2293,7 @@ class ClaimMapAnalyzer:
             # 2026-05-08, after TRU-EF20 surfaced an outlier source
             # flipping settled facts to disputed).
             mech_state, state_basis = _derive_element_state_with_authority(
-                elem, evidence_list, _state_floor_for(claim_map)
+                elem, evidence_list, *_state_floor_for(claim_map)
             )
             state_basis["llm_state"] = raw_state
             elem["basis"]["state_derivation"] = state_basis
@@ -2439,6 +2501,52 @@ class ClaimMapAnalyzer:
                     )
                 )
 
+        # Echo gate (2026-08-17, quality-first Phase B — Shape B of the
+        # design review's §1.3). A directional ref whose evidence is a
+        # DERIVATIVE of an original ALREADY COUNTED on the same side of this
+        # element adds recitation, not corroboration: the NHS outreach record
+        # read `supported` off 1 original + 6 wire copies counted as 6
+        # supports. Appended LAST (I-10): scope-mismatch gates (can this item
+        # speak here at all?) own a ref before the redundancy question is
+        # asked, so a temporal-scoped echo reads `temporal_scope` — the more
+        # informative receipt.
+        #
+        # Independence stays meaningful: when the original is NOT counted on
+        # the side (absent, scoped away earlier in this pass, or mapped the
+        # other way), the derivative is the only carrier of that content and
+        # stays directional — the check below reads the LIVE ref states,
+        # which the driver mutates as it goes. Symmetric by construction:
+        # the side comparison scopes a challenge-echo chain exactly as
+        # readily (five outlets reciting one critical report).
+        if getattr(settings, "ENABLE_ECHO_SCOPE_GATE", True):
+
+            def _echo_fires(item: "_IndexedEvidence", ref: Dict[str, Any]) -> bool:
+                orig = item.original_id
+                if not orig or orig == item.ev.get("evidence_id"):
+                    return False
+                rel = ref.get("relationship")
+                side = getattr(rel, "value", rel)
+                for other in elem.get("evidence_refs") or []:
+                    if other is ref:
+                        continue
+                    if other.get("evidence_id") != orig:
+                        continue
+                    other_rel = other.get("relationship")
+                    if getattr(other_rel, "value", other_rel) == side:
+                        return True
+                return False
+
+            gates.append(
+                _ScopeGate(
+                    key="echo_scope",
+                    label="ECHO",
+                    pins="derivative of an original already counted on this side",
+                    summary={},
+                    fires=_echo_fires,
+                    entry=lambda item, _ref: {"original_id": item.original_id},
+                )
+            )
+
         return gates
 
     def _apply_scope_gates(
@@ -2452,7 +2560,7 @@ class ClaimMapAnalyzer:
         Returns ``{basis_key: receipt}`` for whichever gates fired, so the caller
         can merge it straight into the basis.
 
-        Five mechanical rules share this body because they share everything except
+        Six mechanical rules share this body because they share everything except
         the question they ask: each finds evidence that cannot speak to the element,
         re-labels it `context` (never deletes it), and leaves a receipt. Writing
         them as separate methods duplicated the reference loop, the evidence lookup
@@ -2463,6 +2571,8 @@ class ClaimMapAnalyzer:
           measure          — a different INTERVAL          (check 757f02c2)
           interested-party — the claimant's own organ      (check TRU-018F-44AA)
           recital          — the claim REPORTED, not made  (check TRU-018F-44AA)
+          echo             — a COPY of a source already counted on that side
+                             (NHS outreach record, 2026-08-17)
 
         **Symmetric, all five.** They scope `supports` exactly as they scope
         `challenges`, because evidence that does not bear on an element bears on it
@@ -2473,8 +2583,8 @@ class ClaimMapAnalyzer:
 
         Rollback: ENABLE_TEMPORAL_SCOPE_GATE, ENABLE_JURISDICTION_SCOPE_GATE,
         ENABLE_MEASURE_SCOPE_GATE, ENABLE_INTERESTED_PARTY_GATE,
-        ENABLE_RECITAL_SCOPE_GATE — each independently, plus
-        ENABLE_TEMPORAL_PUBLICATION_RESOLUTION for the inferring half.
+        ENABLE_RECITAL_SCOPE_GATE, ENABLE_ECHO_SCOPE_GATE — each independently,
+        plus ENABLE_TEMPORAL_PUBLICATION_RESOLUTION for the inferring half.
         """
         gates = self._armed_scope_gates(elem, claim_map)
         if not gates:
@@ -2787,7 +2897,7 @@ class ClaimMapAnalyzer:
                     _merge_scope_receipts(prior_receipts, scope_receipts)
                 )
                 mech_state, state_basis = _derive_element_state_with_authority(
-                    elem, evidence_list, _state_floor_for(claim_map)
+                    elem, evidence_list, *_state_floor_for(claim_map)
                 )
                 # Preserve the main pass's llm_state record if present.
                 prior_basis = (
@@ -2851,6 +2961,7 @@ class ClaimMapAnalyzer:
         claim_map: ClaimMap,
         unresolved_element_ids: List[str],
         new_evidence: List[Dict[str, Any]],
+        full_evidence: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
         """Map new evidence to elements, with full cross-element visibility.
 
@@ -2859,10 +2970,19 @@ class ClaimMapAnalyzer:
         for unresolved (target) elements; resolved elements get new refs
         merged but keep their existing state.
 
+        ``full_evidence`` (2026-08-17, quality-first Phase B) is the merged
+        main-pass + recovery pool. When provided, the basis recompute and the
+        state re-derivation below read it, so tier weights resolve for
+        pre-existing refs (they used to fall to weight=1 here) and the basis
+        breakdown blocks stop going stale after recovery. Callers that omit
+        it get the old new_evidence-only behaviour.
+
         Mutates claim_map in place.
         """
         if not new_evidence or not unresolved_element_ids:
             return
+
+        pool = full_evidence if full_evidence else new_evidence
 
         target_set = set(unresolved_element_ids)
         all_elements = claim_map["elements"]
@@ -2945,26 +3065,46 @@ class ClaimMapAnalyzer:
                     # path previously merged recovery refs ungated — the
                     # acceptance run had whitehouse.gov's "365 WINS" release
                     # supporting the causal elements of a Trump claim through
-                    # exactly this seam. The index covers new_evidence only:
-                    # pre-existing refs were gated in the main pass and
-                    # resolve to no-ops here. Receipts merge; this path never
-                    # recomputes the basis, so prior receipts survive in place.
+                    # exactly this seam. The GATE index covers new_evidence
+                    # only: pre-existing refs were gated in the main pass and
+                    # resolve to no-ops here (and recovery items carry no
+                    # derivation chains, so the echo gate is silent on this
+                    # path — the safe direction).
                     if new_refs:
                         scope_receipts = self._apply_scope_gates(
                             elem, recovery_ev_index, claim_map
                         )
-                        if scope_receipts:
-                            basis = elem.setdefault("basis", {})
-                            basis.update(
-                                _merge_scope_receipts(
-                                    {
-                                        k: v
-                                        for k, v in basis.items()
-                                        if k in _SCOPE_RECEIPT_KEYS
-                                    },
-                                    scope_receipts,
-                                )
-                            )
+                        # Basis recomputed over the FULL pool (2026-08-17,
+                        # quality-first Phase B): this path used to leave the
+                        # main pass's basis untouched, so evidence_count,
+                        # every breakdown dict and the support/challenge
+                        # structures under-reported the merged ref set (§10
+                        # staleness). ONLY when the caller supplied the full
+                        # pool — recomputing from new_evidence alone would
+                        # strip pre-existing refs' tiers from the breakdown,
+                        # which is worse than stale. Gate receipts and the
+                        # prior state derivation are carried across the
+                        # rebuild — losing a receipt is losing the record of
+                        # an exclusion (invariant #5); targets get a fresh
+                        # derivation right below.
+                        prior_basis = elem.get("basis") or {}
+                        prior_receipts = {
+                            k: v
+                            for k, v in prior_basis.items()
+                            if k in _SCOPE_RECEIPT_KEYS
+                        }
+                        prior_state_derivation = prior_basis.get("state_derivation")
+                        if full_evidence:
+                            elem["basis"] = _compute_element_basis(elem, pool)
+                        else:
+                            elem["basis"] = dict(prior_basis)
+                        merged_receipts = _merge_scope_receipts(
+                            prior_receipts, scope_receipts
+                        )
+                        if merged_receipts:
+                            elem["basis"].update(merged_receipts)
+                        if prior_state_derivation is not None:
+                            elem["basis"]["state_derivation"] = prior_state_derivation
 
                     is_target = eid in target_set
                     ref_ids = [r.get("evidence_id", "?") for r in new_refs]
@@ -2983,13 +3123,13 @@ class ClaimMapAnalyzer:
                             mapped.get("uncertainty")
                         )
                         # Authority-weighted override (parity with the main
-                        # mapping path). Recovery only sees new_evidence for
-                        # tier lookup; refs that pre-date this round resolve
-                        # to weight=1 (acceptable: the override is still
-                        # majority-rule, just not fully tier-weighted across
-                        # the merged ref set).
+                        # mapping path). Since 2026-08-17 the runner passes
+                        # the merged pool, so tier weights resolve for
+                        # pre-existing refs too (they used to fall to
+                        # weight=1 here — the acknowledged blind spot of the
+                        # new_evidence-only lookup).
                         mech_state, state_basis = _derive_element_state_with_authority(
-                            elem, new_evidence, _state_floor_for(claim_map)
+                            elem, pool, *_state_floor_for(claim_map)
                         )
                         state_basis["llm_state"] = raw_state
                         elem.setdefault("basis", {})["state_derivation"] = state_basis

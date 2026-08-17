@@ -2688,12 +2688,17 @@ async def run_pipeline_phase2(
             unresolved_elements = prep["unresolved_elements"]
             new_evidence = prep["new_evidence"]
 
-            # Focused mapping for unresolved elements only
+            # Focused mapping for unresolved elements only. full_evidence =
+            # the merged pool (2026-08-17): the basis recompute and state
+            # re-derivation need tier lookups for PRE-EXISTING refs too —
+            # new_evidence is only appended to the shared pool after the
+            # mapping call below, so the merge is built here.
             unresolved_ids = [e["element_id"] for e in unresolved_elements]
             await analyzer.map_evidence_to_specific_elements(
                 claim_map=cm,
                 unresolved_element_ids=unresolved_ids,
                 new_evidence=new_evidence,
+                full_evidence=(evidence.get(pos) or []) + new_evidence,
             )
 
             # Add to evidence pool AFTER the mapping attempt (2026-07-22): on
