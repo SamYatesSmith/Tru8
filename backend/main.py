@@ -606,7 +606,12 @@ MCP_SERVER_CARD = {
     "serverInfo": {
         "name": "io.github.SamYatesSmith/tru8",
         "title": "Tru8 Evidence Research",
-        "version": "1.0.4",
+        # Must track the published tru8-mcp package version — the 1.0.5
+        # release (3c8d3ff) missed this line and the drift guard caught it
+        # 2026-08-17. server.json (the registry manifest) is bumped only on a
+        # founder-gated re-publish; this card is what OUR API serves and has
+        # no such gate.
+        "version": "1.0.5",
     },
     # Where the hosted transport actually is. Without this a scanner reading
     # the card has our identity but no endpoint to connect to.
