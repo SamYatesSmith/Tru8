@@ -14,20 +14,21 @@
 > drift guard across the whole corpus to buy a green tick. Its golden is still the
 > 2026-07-21 `fdf3509` capture and is **not** comparable to post-Phase-2 behaviour.
 >
-> So: **`171 ok / 10 warn / 3 fail` is the current PASS state** (2026-08-17 Phase B,
-> 10 claims). The 3 fails are attributed and accepted: 82CF known-flaky (3 misses /
-> 66 hits) + 0004 secondaries (Climate/Law vs pinned Finance) + 0004 `domain_set`
-> 0.22 = record-time live drift. History: 135/2/1 → 158/2/1 (0005 added 2026-08-06)
-> → RETIRED by the 2026-08-11 corpus restoration → 143/13/5 (recorded 2026-08-13,
-> counting a 0005 pin-fail its own commit re-pinned; true post-re-pin state 144/13/4,
-> verified byte-identical 2026-08-17) → 166/14/4 (TRU-018F-44AA joined) → 171/10/3.
-> ⚠️ **5647 was re-recorded for Phase B** (its old accepted `tier_reporting` fail is
-> retired with its golden): the factual support floor sends thin-support elements to
-> coverage recovery, which issues queries the 2026-08-11 recording never made —
-> attributed by matched-pair replay (drift with `FACTUAL_MIN_WEIGHTED_SUPPORT` on,
-> none with it 0; echo gate individually exonerated). The recovery-enlarged pool is
-> the floor working: sources 22→29, primary 10→14, commentary 7→1. Anything worse
-> than 171/10/3 is a real regression. `audit/OPEN_WORK.md` 2026-08-11 → 2026-08-17.
+> So: **`175 ok / 10 warn / 2 fail` is the current PASS state** (2026-08-17 Phase C
+> re-record #1, 10 claims — the `claimant` extract-prompt change re-keyed EVERY
+> cassette, so the whole corpus was re-recorded and replay-verified same day). The
+> 2 fails are attributed and accepted: 82CF known-flaky (11 misses / 61 hits, its
+> documented timing signature) + A3E8 `factual_weight_share` 0.0 (record-time live
+> pool drift — no data/official/academic item mapped on that claim in the fresh
+> pool; same class as 93DD's accepted 2026-08-11 fail). 0004's two long-standing
+> fails cleared with its fresh recording. **TRU-018F-44AA now pins BOTH
+> assertion-evidence gates at tolerance 0** (recital 3/3, interested_party 1/1 —
+> the must-fire debt from the Phase A recording is PAID; both mutation-checked).
+> History: 135/2/1 → 158/2/1 → RETIRED 2026-08-11 → 143/13/5 (2026-08-13; true
+> post-re-pin state 144/13/4) → 166/14/4 (018F joined) → 171/10/3 (Phase B; 5647
+> re-recorded — the factual floor sends thin-support elements to recovery, which
+> issues queries old recordings never made, attributed by matched-pair replay) →
+> 175/10/2. Anything worse is a real regression. `audit/OPEN_WORK.md` 2026-08-17.
 >
 > The 2 warns are expected too: `TRU-A3E8-3199` factual_weight_share 0.23 and
 > `TRU-C1A0-0001` top_domain_share 0.40, both in the "Mediocre" band, neither a failure.

@@ -1,11 +1,12 @@
 {
   "claim_id": "TRU-018F-44AA",
-  "captured_at": "2026-08-17T10:42:58.952707+00:00",
+  "captured_at": "2026-08-17T00:00:00+00:00",
   "captured_with": "119d9fe",
   "captured_with_known_bugs": [],
-  "notes": "The 2026-08-13 incident claim ('Donald Trump stopped 6 wars', check TRU-018F-44AA \u2014 supported-all-4 off the claimant's own press office + press recitals). Recorded 2026-08-17 (Phase A) so the corpus can NOTICE the recital gate stopping: this recording fires it on 2 elements / 3 refs, pinned at tolerance 0. \u26a0\ufe0f The INTERESTED-PARTY gate does NOT fire here \u2014 this recording's pool has no whitehouse.gov item (run-variance vs the 2026-08-13 acceptance runs; the nearest organ, a state.gov archive + StateDept tweet, is recital's catch). An interested_party must-fire assertion is OWED when a re-record (Phase C or D re-records everything) carries the claimant's own organ \u2014 check the observation at each re-record and add it the first time it fires. must_have pins the two named disputing sources (PolitiFact via nbcmiami syndication, PRIO) that the incident showed being outweighed.",
+  "notes": "The 2026-08-13 incident claim ('Donald Trump stopped 6 wars', check TRU-018F-44AA). Re-recorded 2026-08-17 for Phase C (claimant field changes every extract cassette key). BOTH assertion-evidence gates now fire and are pinned at tolerance 0: recital 3 refs / 3 elements, interested_party 1 ref / 1 element \u2014 this recording's pool carries whitehouse.gov, so the must-fire assertion owed since the 2026-08-17 Phase A recording (which lacked the claimant's organ, run-variance) is PAID. must_have pins the two named disputing sources (PolitiFact syndication, PRIO) the incident showed being outweighed. Pins are per-recording.",
   "hard_invariants": {
     "scope_gates_must_fire": [
+      "interested_party",
       "recital_scope"
     ],
     "must_have_url_substrings": [
@@ -33,7 +34,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 18,
+      "value": 14,
       "tolerance": 8
     },
     "claims": {
@@ -41,11 +42,11 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 3,
+      "value": 4,
       "tolerance": 3
     },
     "web_search": {
-      "value": 26,
+      "value": 37,
       "tolerance": 8
     },
     "api_adapters": {
@@ -53,15 +54,15 @@
       "tolerance": 8
     },
     "tier_reporting": {
-      "value": 9,
+      "value": 4,
       "tolerance": 4
     },
     "tier_commentary": {
-      "value": 7,
+      "value": 5,
       "tolerance": 4
     },
     "tier_primary": {
-      "value": 2,
+      "value": 5,
       "tolerance": 4
     },
     "recital_scoped_refs": {
@@ -69,60 +70,71 @@
       "tolerance": 0
     },
     "recital_scoped_elements": {
-      "value": 2,
+      "value": 3,
+      "tolerance": 0
+    },
+    "interested_party_scoped_refs": {
+      "value": 1,
+      "tolerance": 0
+    },
+    "interested_party_scoped_elements": {
+      "value": 1,
       "tolerance": 0
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://2017-2021.state.gov/the-abraham-accords/",
+        "http://larson.house.gov/media-center/press-releases/larson-preparing-legislation-end-trumps-illegal-war-iran",
+        "http://www.trumplibrary.gov/trumps/president-donald-j-trump",
+        "https://apnews.com/article/middle-east-eight-wars-trump-ended-fact-check-ff41789ca242462c1c0ab65eb4ae8c7e",
+        "https://boardofpeace.org/",
         "https://en.wikipedia.org/wiki/Donald_Trump_and_fascism",
         "https://en.wikipedia.org/wiki/Prosecution_of_Donald_Trump_in_New_York",
         "https://en.wikipedia.org/wiki/Second_presidency_of_Donald_Trump",
         "https://en.wikipedia.org/wiki/Security_incidents_involving_Donald_Trump",
         "https://en.wikipedia.org/wiki/Use_of_X_by_Donald_Trump",
-        "https://the1a.org/segments/trump-administration-touts-good-foundation-to-end-war-in-iran/",
+        "https://millercenter.org/president/trump",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC9115435/",
+        "https://trumpwhitehouse.archives.gov/peacetoprosperity/",
         "https://www.axios.com/2025/08/19/trump-ended-wars-stop-ukraine-israel-iran",
         "https://www.bbc.com/news/articles/c5y3599gx4qo",
+        "https://www.bbc.com/news/articles/c77gg5vn44yo",
+        "https://www.brennancenter.org/our-work/research-reports/timeline-trump-administrations-efforts-undermine-elections",
         "https://www.cbsnews.com/news/trump-ended-6-or-7-wars-what-record-shows/",
-        "https://www.cfr.org/articles/behind-trumps-peace-efforts-strategic-focus-critical-minerals",
+        "https://www.cfr.org/articles/guide-trumps-second-term-military-strikes-and-actions",
+        "https://www.cfr.org/articles/guide-trumps-twenty-point-gaza-peace-deal",
+        "https://www.cfr.org/global-conflict-tracker/conflict/war-yemen",
         "https://www.congress.gov/crs-product/RS21405",
-        "https://www.forbes.com/sites/saradorn/2026/04/26/has-trump-actually-solved-9-wars-as-he-claims-no-heres-whats-true/",
+        "https://www.crisisgroup.org/cmt/global/10-conflicts-watch-2026",
+        "https://www.govtrack.us/congress/other-people/donald_trump/412733",
+        "https://www.history.com/this-day-in-history/november-5/trump-wins-second-term",
         "https://www.nbcmiami.com/news/politics/politifact/fact-check-trump-united-nations-speech/3696080/",
-        "https://www.newsweek.com/donald-trump-military-actions-compared-barack-obama-joe-biden-11621586",
-        "https://www.newyorker.com/news/letter-from-trumps-washington/trump-the-self-styled-president-of-peace-abroad-makes-war-a",
-        "https://www.pbs.org/newshour/politics/as-officials-again-say-iran-war-could-soon-end-some-trump-objectives-are-unfulfill",
+        "https://www.pbs.org/newshour/politics/watch-limiting-trumps-authority-with-war-powers-act-is-dangerous-johnson-says",
         "https://www.prio.org/comments/1808",
-        "https://www.rabbinicalassembly.org/about-us/member-news/information-and-resources-related-president-trumps-peace-deal",
-        "https://www.reddit.com/r/facepalm/comments/11pym9f/can_anyone_recall_any_wars_between_2017_and_2021/",
-        "https://www.tandfonline.com/doi/full/10.1080/13698249.2023.2255401",
-        "https://www.warcosts.org/presidents/trump",
-        "https://www.youtube.com/watch?v",
-        "https://x.com/StateDept/status/1978183959553970220"
+        "https://www.statista.com/topics/13125/conflicts-worldwide-2025/?srsltid=AfmBOoq65LnhFsN3a2o3QUxa4MCa96TWqswPW6QNVyFKhWo8",
+        "https://www.usa.gov/presidents",
+        "https://www.wakeuptopolitics.com/p/has-trump-really-ended-six-wars",
+        "https://www.whitehouse.gov/administration/donald-j-trump/",
+        "https://www.whitehouse.gov/presidential-actions/2025/09/restoring-the-united-states-department-of-war/",
+        "https://www.whitehousehistory.org/bios/donald-j-trump",
+        "https://www.youtube.com/watch?v"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "axios.com",
+        "apnews.com",
         "bbc.com",
         "cbsnews.com",
         "cfr.org",
         "congress.gov",
-        "forbes.com",
-        "nbcmiami.com",
-        "newsweek.com",
-        "newyorker.com",
+        "larson.house.gov",
         "pbs.org",
-        "politifact.com",
         "prio.org",
-        "rabbinicalassembly.org",
-        "reddit.com",
-        "tandfonline.com",
-        "the1a.org",
-        "warcosts.org",
-        "x.com"
+        "statista.com",
+        "trumpwhitehouse.archives.gov",
+        "whitehouse.gov"
       ],
       "min_similarity": 0.45
     }

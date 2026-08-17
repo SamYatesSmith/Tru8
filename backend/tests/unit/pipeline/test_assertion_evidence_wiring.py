@@ -306,6 +306,40 @@ def test_the_runner_writes_an_empty_list_when_there_are_no_entities():
 
 
 # ---------------------------------------------------------------------------
+# Phase C (2026-08-17): the extract-stage claimant joins the subject set
+# ---------------------------------------------------------------------------
+# The NHS outreach record's blind spot: "NHS England" was typed
+# PRODUCT-adjacent in key_entities, subjects came out ["gp practices"], and
+# both gates were structurally silent. Entity TYPING must not decide
+# attribution — the claimant field does.
+
+
+def test_the_claimant_arms_the_gates_even_when_entity_typing_missed_it():
+    claim = {
+        "key_entities": [{"text": "GP practices", "type": "PRODUCT"}],
+        "claimant": "NHS England",
+    }
+    claim_map = {}
+    written = attach_claim_subjects(claim, claim_map)
+    assert written == ["nhs england"]
+
+
+def test_a_claimant_that_is_also_a_typed_entity_appears_once():
+    claim = {
+        "key_entities": [{"text": "Donald Trump", "type": "PERSON"}],
+        "claimant": "Donald Trump",
+    }
+    assert attach_claim_subjects(claim, {}) == ["donald trump"]
+
+
+def test_a_blank_or_missing_claimant_changes_nothing():
+    """None/whitespace must not arm the gates — an unattributed claim's safe
+    direction is silence."""
+    assert attach_claim_subjects({"claimant": None}, {}) == []
+    assert attach_claim_subjects({"claimant": "   "}, {}) == []
+
+
+# ---------------------------------------------------------------------------
 # The two post-mapping merge paths — found OPEN by acceptance run 6f88a77f
 # ---------------------------------------------------------------------------
 # The first live acceptance run after the gates shipped had whitehouse.gov's
@@ -376,9 +410,7 @@ async def test_the_completion_census_cannot_bypass_the_gates(monkeypatch):
     await analyzer._complete_unmapped_evidence(claim_map, evidence_list)
 
     assert _rel(elem, "ev-wh-365") == "context"
-    ip_ids = [
-        e["evidence_id"] for e in elem["basis"]["interested_party"]["scoped"]
-    ]
+    ip_ids = [e["evidence_id"] for e in elem["basis"]["interested_party"]["scoped"]]
     assert "ev-wh-365" in ip_ids
     # The main pass's receipt survived the basis recompute.
     recital = elem["basis"]["recital_scope"]
@@ -413,9 +445,7 @@ async def test_coverage_recovery_cannot_bypass_the_gates(monkeypatch):
     await analyzer.map_evidence_to_specific_elements(claim_map, ["e3"], [WH_365])
 
     assert _rel(elem, "ev-wh-365") == "context"
-    ip_ids = [
-        e["evidence_id"] for e in elem["basis"]["interested_party"]["scoped"]
-    ]
+    ip_ids = [e["evidence_id"] for e in elem["basis"]["interested_party"]["scoped"]]
     assert "ev-wh-365" in ip_ids
     # With its only directional ref scoped, the element cannot read supported.
     state = getattr(elem["state"], "value", elem["state"])

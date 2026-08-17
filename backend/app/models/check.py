@@ -218,6 +218,15 @@ class Claim(SQLModel, table=True):
     subject_context: Optional[str] = Field(
         default=None, description="Main subject/topic the claim is about"
     )
+    # Quality-first Phase C (2026-08-17): who MAKES the claim, when the source
+    # attributes it. Arms the interested-party/recital gates via
+    # runner.attach_claim_subjects — must survive the Phase-1→Phase-2 selection
+    # pause, hence a column, not just a dict key.
+    claimant: Optional[str] = Field(
+        default=None,
+        max_length=256,
+        description="Person/org the claim is attributed to; None if unattributed",
+    )
     key_entities: Optional[str] = Field(
         default=None,
         sa_column=Column(JSONB),

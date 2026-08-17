@@ -95,8 +95,32 @@ known-flaky + 0004 ×2; 5647's old fail retired with its golden). Trump +
 0005 tolerance-0 gate pins held throughout. Also fixed while red: the
 served MCP card + `server.json` still said 1.0.4 vs package 1.0.5 (the
 drift guard caught it; the registry re-publish remains the founder's call).
-NEXT: **Phase C** (claimant arming via extract `claimant` field + the
-`seen_urls` dict bug + its structurally-unfailable test — re-record #1).
+**✅ PHASE C SHIPPED same day — claimant arming + the dead fallback revived,
+re-record #1 done.** (1) **`claimant` field end-to-end:** extract prompt
+(OUTPUT FORMAT bullet + an NHS-England-shaped example) + `ExtractedClaim` +
+both boundary dict builds + the claim-merge pass + `Claim.claimant` DB
+column (`claim_claimant` migration, applied locally, ships via entrypoint) +
+both runner persist sites + the DB→dict rebuild + `attach_claim_subjects`
+merges it into subjects (bare-string path, no type filter — entity TYPING no
+longer decides attribution; unit tests incl. the NHS shape: PRODUCT-typed
+entities + claimant "NHS England" → subjects `["nhs england"]`; dairy-class
+None stays silent). (2) **`seen_urls` freshness-fallback bug FIXED, path
+ALIVE again** (dead 2026-02-12→2026-08-17; PR-B03's set→dict conversion
+missed the fallback's `.add()`): full lane bookkeeping mirrored from the
+main loop; the structurally-unfailable test replaced with one that drives
+results THROUGH the fallback — **mutation-checked** (bug restored → test
+fails). (3) **Re-record #1** (~25p, approved envelope): claimant prompt
+re-keys every cassette; all 10 re-recorded + replay-verified. **The fresh
+Trump pool carries whitehouse.gov, so the interested-party must-fire debt
+is PAID: 018F pins BOTH gates at tolerance 0 (recital 3/3, IP 1/1), both
+mutation-checked.** 0004's two long-standing fails cleared. **New pass
+state: 175 ok / 10 warn / 2 fail** (82CF known-flaky 11/61 + A3E8
+factual_weight 0.0 record-time pool drift). Suite 3,484 green.
+NEXT: **Phase D** (challenge lane — `query_challenge_augmentation.py`,
+append-last variants, claim lane 3→4 full tier, coverage-recovery
+counter-frame, accumulating yield tags, tier_limitations declaration —
+re-record #2), then **Phase E** (re-grade all four records, named ids, THEN
+the sends).
 
 The send set, list, and prereq-A founder items below all KEEP — they execute at
 Phase E instead of this morning.

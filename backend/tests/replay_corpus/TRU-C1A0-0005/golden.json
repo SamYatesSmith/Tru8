@@ -68,7 +68,7 @@
       "tolerance": 4
     },
     "temporal_scoped_refs": {
-      "value": 2,
+      "value": 1,
       "tolerance": 0
     }
   },

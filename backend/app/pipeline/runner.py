@@ -193,8 +193,19 @@ def attach_claim_subjects(
     receives, module-level so the seam is testable (the retrieve.py lesson),
     and degrades safely — no subjects means neither gate arms. Not part of the
     signed canonical payload (metadata is not canonicalised).
+
+    Phase C (2026-08-17): the extract stage's `claimant` joins the subject set.
+    Entity typing does not decide attribution — the NHS outreach record had
+    "NHS England" typed PRODUCT-adjacent, subjects came out ["gp practices"],
+    and both gates were structurally silent. `claim_subjects` accepts bare
+    strings (no type filter on strings, by design), lower-cases and dedups, so
+    a claimant that is also a typed PERSON/ORG entity appears once.
     """
-    subjects = interested_party.claim_subjects(claim.get("key_entities"))
+    entities: List[Any] = list(claim.get("key_entities") or [])
+    claimant = claim.get("claimant")
+    if isinstance(claimant, str) and claimant.strip():
+        entities.append(claimant)
+    subjects = interested_party.claim_subjects(entities)
     claim_map.setdefault("metadata", {})["subjects"] = subjects
     return subjects
 
@@ -1182,6 +1193,7 @@ async def run_pipeline_phase1(
                     text=claim_text,
                     position=int(position_val) if position_val is not None else 0,
                     subject_context=claim_data.get("subject_context"),
+                    claimant=claim_data.get("claimant"),
                     key_entities=(
                         claim_data.get("key_entities", [])
                         if claim_data.get("key_entities")
@@ -1405,6 +1417,7 @@ async def run_pipeline_phase2(
                     "significance_score": db_claim.significance_score,
                     "claim_type": db_claim.claim_type,
                     "subject_context": db_claim.subject_context,
+                    "claimant": db_claim.claimant,
                     "key_entities": db_claim.key_entities,
                     "source_title": db_claim.source_title,
                     "source_url": db_claim.source_url,
@@ -3246,6 +3259,7 @@ async def save_check_results_async(
                 text=claim_text,
                 position=int(position_val) if position_val is not None else 0,
                 subject_context=claim_data.get("subject_context"),
+                claimant=claim_data.get("claimant"),
                 key_entities=(
                     claim_data.get("key_entities", [])
                     if claim_data.get("key_entities")

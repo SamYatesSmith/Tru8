@@ -73,6 +73,20 @@ class ExtractedClaim(BaseModel):
         description="Non-binding claim-type hint (currently only 'normative')",
         default=None,
     )
+    # Quality-first Phase C (2026-08-17): WHO makes the claim, when the text
+    # presents it as someone's assertion. Feeds the interested-party/recital
+    # gate arming via runner.attach_claim_subjects — the NHS outreach record
+    # failed because "NHS England" was typed PRODUCT-adjacent in key_entities
+    # and the gates never armed. None when no one in particular asserts it
+    # (reported findings, plain facts) — the gates then stay silent, the safe
+    # direction.
+    claimant: Optional[str] = Field(
+        description=(
+            "The person or organisation making the claim, when the text "
+            "attributes it to them; null for unattributed facts/findings"
+        ),
+        default=None,
+    )
 
     class Config:
         json_schema_extra = {
@@ -455,6 +469,13 @@ For EACH claim, provide:
   - "Tesla", "ExxonMobil", "JWST" are ORG/PRODUCT respectively even when single-word.
   - Currency-prefixed numbers ("$40 billion", "GBP 28 billion") are AMOUNT regardless of currency.
   - Pure years ("2022") are DATE; numbered events ("2024 Paris Olympics") are EVENT.
+- claimant: The person or organisation MAKING the claim, when the source text
+  presents it as their assertion — the speaker of a quote, the body issuing a
+  statement or figures ("NHS England said...", "the White House claims...",
+  "according to the campaign..."). Use the plain name ("NHS England"). Set null
+  when no one in particular asserts it — unattributed facts, study findings
+  reported neutrally, or the article's own voice. When a claimant exists it is
+  usually ALSO a key_entity; include it in both.
 
 GOOD EXAMPLES:
 
@@ -520,6 +541,25 @@ Output: {{
     ]
   }}]
 }}
+(No claimant: the article states the event in its own voice — nobody in the text is asserting it.)
+
+Article Title: "GP Appointments Hit Record"
+Input: "NHS England said GP practices delivered a record 32 million appointments in October 2024."
+Output: {{
+  "claims": [{{
+    "text": "GP practices in England delivered a record 32 million appointments in October 2024",
+    "confidence": 90,
+    "subject_context": "GP appointment numbers",
+    "claimant": "NHS England",
+    "key_entities": [
+      {{"text": "NHS England", "type": "ORG"}},
+      {{"text": "32 million", "type": "AMOUNT"}},
+      {{"text": "October 2024", "type": "DATE"}}
+    ]
+  }}]
+}}
+(Claimant set: the figures are NHS England's own assertion about its own service — the
+claim stands on its say-so until independent evidence is found.)
 
 BAD EXAMPLES TO AVOID:
 
@@ -701,6 +741,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                         "confidence": claim.confidence,
                         "category": claim.category,
                         "subject_context": claim.subject_context,
+                        "claimant": claim.claimant,
                         "key_entities": [
                             {"text": e.text, "type": e.type}
                             for e in (claim.key_entities or [])
@@ -839,6 +880,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                     "confidence": claim.confidence,
                     "category": claim.category,
                     "subject_context": claim.subject_context,
+                    "claimant": claim.claimant,
                     "key_entities": [
                         {"text": e.text, "type": e.type}
                         for e in (claim.key_entities or [])
@@ -1182,6 +1224,13 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             (c.get("subject_context") for c in group if c.get("subject_context")),
             None,
         )
+        # Phase C (2026-08-17): first non-null claimant across the group, same
+        # rule as subject_context — group[0] alone would drop a claimant that
+        # only a later member carried.
+        claimant = next(
+            (c.get("claimant") for c in group if c.get("claimant")),
+            None,
+        )
 
         seen: Set[Tuple[str, str]] = set()
         entities: List[Dict[str, str]] = []
@@ -1221,6 +1270,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                 "confidence": confidence,
                 "category": category,
                 "subject_context": subject_context,
+                "claimant": claimant,
                 "key_entities": entities,
                 "was_merged": True,
                 "merged_from": [c.get("position") for c in group],

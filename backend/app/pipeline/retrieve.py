@@ -2133,6 +2133,20 @@ class EvidenceRetriever:
                                     freshness=fallback_freshness,
                                     country=search_country,
                                 )
+                                # Same lane bookkeeping as the main loop above.
+                                # This branch was DEAD 2026-02-12 → 2026-08-17:
+                                # PR-B03 converted `seen_urls` from set to dict
+                                # and missed this `.add()`, so the first result
+                                # of every fallback query raised AttributeError
+                                # into the except below and the path could
+                                # never return an item. Its test asserted only
+                                # the max_results argument against an empty
+                                # stub, so it stayed green throughout.
+                                fb_element_id = (
+                                    query_element_ids[fb_i]
+                                    if fb_i < len(query_element_ids)
+                                    else None
+                                )
                                 for result in results:
                                     if (
                                         excluded_domain
@@ -2140,16 +2154,24 @@ class EvidenceRetriever:
                                         == excluded_domain
                                     ):
                                         continue
-                                    if result.url not in seen_urls:
-                                        seen_urls.add(result.url)
-                                        result._query_index = queries.index(query)
-                                        result._query_used = query
-                                        result._claim_type = claim_type
-                                        result._freshness = (
-                                            fallback_freshness  # Use fallback freshness
-                                        )
-                                        result._freshness_fallback = fallback_freshness
-                                        unique_search_results.append(result)
+                                    if result.url in seen_urls:
+                                        if fb_element_id:
+                                            seen_urls[result.url]._element_ids.add(
+                                                fb_element_id
+                                            )
+                                        continue
+                                    result._query_index = fb_i
+                                    result._query_used = query
+                                    result._claim_type = claim_type
+                                    result._freshness = (
+                                        fallback_freshness  # Use fallback freshness
+                                    )
+                                    result._freshness_fallback = fallback_freshness
+                                    result._element_ids = (
+                                        {fb_element_id} if fb_element_id else set()
+                                    )
+                                    seen_urls[result.url] = result
+                                    unique_search_results.append(result)
                             except Exception as e:
                                 logger.warning(f"Fallback query failed: {e}")
                         if unique_search_results:

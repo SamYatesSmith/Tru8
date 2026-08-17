@@ -625,6 +625,67 @@ class TestPerLaneRequestSizes:
         assert depths["c1"] == {13}, depths
         assert depths["e1a"] == {5}, depths
 
+    async def test_freshness_fallback_actually_returns_evidence(self, retriever):
+        """The fallback path must be ALIVE, not merely well-parameterised.
+
+        This branch was dead 2026-02-12 → 2026-08-17: PR-B03 converted
+        `seen_urls` from set to dict and missed the fallback's `.add()`, so
+        the first result of every fallback query raised AttributeError into a
+        bare except and the path could never return an item. The test above
+        (then the only coverage) stubbed an EMPTY search and asserted only
+        the max_results argument — evaluated before the fault — so it was
+        structurally incapable of failing. This one drives results THROUGH
+        the fallback and requires them to come out the other side.
+        """
+        calls = []
+
+        async def _fallback_only_search(
+            query, max_results=10, freshness=None, country=None
+        ):
+            calls.append({"query": query, "freshness": freshness})
+            if freshness == "pw":
+                return []  # primary freshness: nothing, forcing the fallback
+            return [
+                SearchResult(
+                    title=query,
+                    url=f"https://example.com/{freshness}/{query}/{i}",
+                    snippet="s",
+                    source="example.com",
+                )
+                for i in range(3)
+            ]
+
+        retriever.evidence_extractor.search_service.search_for_evidence = (
+            _fallback_only_search
+        )
+        retriever.evidence_extractor._extract_from_page = AsyncMock(
+            return_value=EvidenceSnippet(
+                text="content",
+                source="example.com",
+                url="https://example.com/x",
+                title="t",
+                relevance_score=0.5,
+                metadata={},
+            )
+        )
+        plan = {
+            "queries": ["c1", "e1a"],
+            "query_element_ids": [CLAIM_LANE_ELEMENT_ID, "e1"],
+            "element_wired": True,
+            "freshness": "pw",
+        }
+
+        result = await retriever._execute_planned_queries(
+            claim_text=CLAIM_TEXT, query_plan=plan, max_sources=40
+        )
+
+        assert result, (
+            "the freshness-fallback path returned nothing despite the relaxed "
+            "search finding results — the dead branch is back"
+        )
+        # pm succeeded, so the progression must stop there — never reach py.
+        assert not any(c["freshness"] == "py" for c in calls)
+
     async def test_unwired_plan_keeps_the_uniform_share(self, retriever):
         calls = []
         plan = {
