@@ -9,6 +9,8 @@
  * "evidence research" / "analysis", never "fact-checking" or "verdict".
  */
 
+import Link from 'next/link';
+
 interface QA {
   q: string;
   a: string;
@@ -82,6 +84,30 @@ export function PricingFaq() {
             </div>
           ))}
         </dl>
+
+        <div className="max-w-3xl mt-10 pt-8 border-t border-zinc-100">
+          <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
+            Related
+          </p>
+          <ul className="space-y-2.5">
+            <li>
+              <Link
+                href="/developers"
+                className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+              >
+                Developer portal — API keys, endpoints, and response schemas
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog/evidence-research-for-agents"
+                className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+              >
+                Evidence research for AI agents — how the pipeline works in automated workflows
+              </Link>
+            </li>
+          </ul>
+        </div>
       </div>
     </section>
   );

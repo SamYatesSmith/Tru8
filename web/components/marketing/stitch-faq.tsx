@@ -9,6 +9,8 @@
  * "confirm/checked" wording is used instead of "verify a claim".
  */
 
+import Link from 'next/link';
+
 interface QA {
   q: string;
   a: string;
@@ -80,6 +82,30 @@ export function StitchFaq() {
             </div>
           ))}
         </dl>
+
+        <div className="max-w-3xl mt-10 pt-8 border-t border-zinc-100">
+          <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
+            From the blog
+          </p>
+          <ul className="space-y-2.5">
+            <li>
+              <Link
+                href="/blog/first-public-release"
+                className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+              >
+                Tru8 — A First Public Release: what Tru8 is and why it exists
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog/evidence-research-for-agents"
+                className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+              >
+                Evidence Research for AI Agents and Developer Tools
+              </Link>
+            </li>
+          </ul>
+        </div>
       </div>
     </section>
   );
