@@ -5,11 +5,62 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-13, end of day)
+## 🟢 START HERE — next session (updated 2026-08-14)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### 📍 HANDOFF — exactly where 2026-08-13 stopped: SENDS START IN THE MORNING
+### 📍 2026-08-14 — SENDS HELD FOR QUALITY (founder decision, supersedes the block below)
+
+The founder held the sends: the recipients are the product's sharpest potential
+customers, they will run their OWN checks, and the three recorded issue classes
+(implicit-claimant arming · rebuttal retrieval · run-variance — plus the fourth
+the docs already name, **echo not state-bearing**) are live in the pipeline they
+would hit. The quality-work ban is lifted for this package.
+
+**Design review WRITTEN, awaiting founder decisions:**
+`audit/2026-08-14_quality_first_design_review.md` — full interaction map (10
+interactions incl. cassette economics, held-reframe adjacency, the
+`_SCOPE_RECEIPT_KEYS` trap, challenge-lane yield measurability) + a 5-phase
+sequence (A observability → B state behaviour incl. echo_scope gate → C claimant
+arming, re-record #1 → D challenge lane, re-record #2 → E re-grade + send). Six
+founder decisions listed in its §5 gate Phase B. Prior art: the challenge lane
+was designed 2026-07-14 §3a and never built. ⚠️ **Verified 2026-08-17: "its
+pull-back trigger has fired" was WRONG** — the 07-15 §15.8 probe ran and did
+NOT fire the trigger as written, and the founder SIGNED D1 Option A 2026-07-16
+(reactive backstop; Option B, the scoped lane, rejected). Phase D therefore
+re-opens a signed decision on the new Scotland/dairy evidence and needs
+explicit founder acknowledgment + a universal-vs-normative-only scope choice.
+Full code verification of the review (24/26 claims stand; `_element_is_starved`
+refuted as characterised; build-detail corrections):
+`audit/2026-08-17_design_review_verification.md`.
+
+**✅ 2026-08-17 — ALL SIX §5 DECISIONS CLOSED (founder):** recommendations
+accepted wholesale (echo Shape B · `>` both sides · floor 2 · claim lane 3→4 ·
+claimant via extract · sequence + spend approved), and **Phase D explicitly
+confirmed knowing it reverses signed D1 Option A: challenge lane for ALL
+claims (universal), not normative-only.** Build starts at Phase A.
+
+**🔨 Phase A instrumentation BUILT 2026-08-17 (replay-clean, no pipeline code
+touched):** the bench now parses all five gate log lines, not just
+`[TEMPORAL SCOPE]` — one generic matcher over the shared-driver line
+(`capture.py`, keys = `_SCOPE_RECEIPT_KEYS` names), per-gate
+`<key>_events`/`<key>_summary` in observations, counter paths + a
+`scope_gates_must_fire` hard invariant in `comparator.py` (failure messages
+name the user's stake), 12 new unit tests mirroring the F1 test file
+(`test_scope_gate_signals.py`), replay-bench unit suite 54/54. Remaining for
+Phase A acceptance, BOTH spends (flag before running): (a) reframe-stashed
+bench replay to confirm baseline 143/13/5 holds; (b) the IP/recital
+must-fire assertions need a corpus claim where those gates fire — none
+exists, so the Trump-shaped claim must be RECORDED into the corpus (~15p
+live + bench verify), then mutation-checked (flags off → red).
+Survey also found a latent bug: `retrieve.py:2144` `seen_urls.add()` on a dict —
+the freshness-fallback path has been dead since it shipped (fix scheduled
+Phase C, it re-records).
+
+The send set, list, and prereq-A founder items below all KEEP — they execute at
+Phase E instead of this morning.
+
+### 📍 HANDOFF — exactly where 2026-08-13 stopped (superseded above): sends were to start in the morning
 
 **Everything pushed (`3c8d3ff`); working tree holds only the long-HELD reframe
 (reconstructed by hand after the prompt edits, byte-shape-identical 45/+3 —

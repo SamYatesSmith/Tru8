@@ -98,6 +98,66 @@ def compare_hard_invariants(obs: Dict[str, Any], hard: Dict[str, Any]) -> List[D
     if temporal_periods is not None:
         out.extend(_check_temporal_scope(obs, temporal_periods))
 
+    gates_must_fire = hard.get("scope_gates_must_fire")
+    if gates_must_fire is not None:
+        out.extend(_check_scope_gates_fire(obs, gates_must_fire))
+
+    return out
+
+
+# The consequence each gate exists to prevent, quoted when it stops firing —
+# so a red bench line says what the USER would get wrong, not just which
+# regex went quiet.
+_SCOPE_GATE_STAKES = {
+    "jurisdiction_scope": (
+        "another country's official source can dispute a country-scoped claim again"
+    ),
+    "measure_scope": (
+        "a rate over the wrong interval can support/challenge the claim again"
+    ),
+    "interested_party": (
+        "the claimant's own organ can badge their claim supported again"
+    ),
+    "recital_scope": ("press recitals of a claim can count as evidence for it again"),
+}
+
+
+def _check_scope_gates_fire(
+    obs: Dict[str, Any], gate_keys: Sequence[str]
+) -> List[Diff]:
+    """Named scope gates must still fire on this corpus claim (2026-08-17).
+
+    Same argument as `_check_temporal_scope`: firing is a boolean structural
+    signal that cannot drift without code changing, and a corpus where a gate
+    fires is the only thing that can notice the gate stopping. `gate_keys`
+    are basis receipt keys (jurisdiction_scope / measure_scope /
+    interested_party / recital_scope).
+    """
+    out: List[Diff] = []
+    for key in gate_keys:
+        events = obs.get(f"{key}_events") or []
+        scoped_refs = sum(int(e.get("scoped", 0)) for e in events)
+        fired = bool(events)
+        out.append(
+            Diff(
+                level="ok" if fired else "failure",
+                signal=f"scope_gate:{key}",
+                expected="gate fires at least once on this claim",
+                observed=(
+                    f"{scoped_refs} ref(s) scoped on {len(events)} element(s)"
+                    if fired
+                    else "never fired"
+                ),
+                message=(
+                    f"{key} gate fired"
+                    if fired
+                    else (
+                        f"the {key} gate stopped scoping — "
+                        + _SCOPE_GATE_STAKES.get(key, "its receipts are gone")
+                    )
+                ),
+            )
+        )
     return out
 
 
@@ -527,6 +587,15 @@ _COUNTER_PATHS = {
     # F1 temporal scope gate (2026-08-06)
     "temporal_scoped_refs": ("temporal_scope_summary", "scoped_refs"),
     "temporal_scoped_elements": ("temporal_scope_summary", "elements"),
+    # The four other scope gates (2026-08-17) — same vocabulary as temporal.
+    "jurisdiction_scoped_refs": ("jurisdiction_scope_summary", "scoped_refs"),
+    "jurisdiction_scoped_elements": ("jurisdiction_scope_summary", "elements"),
+    "measure_scoped_refs": ("measure_scope_summary", "scoped_refs"),
+    "measure_scoped_elements": ("measure_scope_summary", "elements"),
+    "interested_party_scoped_refs": ("interested_party_summary", "scoped_refs"),
+    "interested_party_scoped_elements": ("interested_party_summary", "elements"),
+    "recital_scoped_refs": ("recital_scope_summary", "scoped_refs"),
+    "recital_scoped_elements": ("recital_scope_summary", "elements"),
 }
 
 

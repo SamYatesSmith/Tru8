@@ -156,6 +156,35 @@ RE_TEMPORAL_SCOPE = re.compile(
     r"scoped to context\s+\S+\s+element pins (?P<period>\d{4}-\d{2})"
 )
 
+# The four OTHER scope gates (Phase A, 2026-08-17). All five gates share one
+# driver (`claim_map_analyzer._apply_scope_gates`) and emit an identically
+# shaped line differing only in label and pins text:
+#   [JURISDICTION SCOPE] elem=e2: 1 ref(s) scoped to context — claim pins GB
+#   [MEASURE SCOPE] elem=e1: 2 ref(s) scoped to context — element measures ...
+#   [INTERESTED PARTY] elem=e4: 2 ref(s) scoped to context — claim subjects: ...
+#   [RECITAL] elem=e4: 4 ref(s) scoped to context — reference rests on ...
+#
+# WHY: the bench watched only [TEMPORAL SCOPE], so the other four gates had
+# receipts but no drift signal — a change that silently stopped one firing
+# would still show green (the exact blindness F1's matcher exists to prevent,
+# recorded as interaction I-6 of the 2026-08-14 design review). One generic
+# matcher keyed on label; TEMPORAL SCOPE deliberately excluded — it keeps its
+# own matcher and golden vocabulary untouched.
+#
+# Keys mirror the basis receipt keys (`_SCOPE_RECEIPT_KEYS`), so a golden
+# assertion and a basis receipt name the same gate the same way.
+RE_SCOPE_GATE = re.compile(
+    r"\[(?P<label>JURISDICTION SCOPE|MEASURE SCOPE|INTERESTED PARTY|RECITAL)\]\s+"
+    r"elem=(?P<element>\S+?):\s+(?P<scoped>\d+)\s+ref\(s\)\s+scoped to context"
+)
+
+SCOPE_GATE_KEYS = {
+    "JURISDICTION SCOPE": "jurisdiction_scope",
+    "MEASURE SCOPE": "measure_scope",
+    "INTERESTED PARTY": "interested_party",
+    "RECITAL": "recital_scope",
+}
+
 RE_FACTCHECKS = re.compile(
     r"Found (?P<count>\d+) fact-checks for claim position (?P<position>\d+)"
 )
@@ -225,6 +254,12 @@ class Observation:
     # F1 temporal scope gate events (2026-08-06). Shape per entry:
     #   {"element": str, "scoped": int, "period": "YYYY-MM"}
     temporal_scope_events: List[Dict[str, Any]] = field(default_factory=list)
+    # The four other scope gates (2026-08-17), keyed by basis receipt key
+    # (jurisdiction_scope / measure_scope / interested_party / recital_scope).
+    # Shape per entry: {"element": str, "scoped": int}
+    scope_gate_events: Dict[str, List[Dict[str, Any]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         d: Dict[str, Any] = {
@@ -280,6 +315,17 @@ class Observation:
                 ),
             },
         }
+        # The four other gates get the same events + summary vocabulary as
+        # temporal, flat and per-gate, so goldens address them identically
+        # (`<key>_events`, `<key>_summary.scoped_refs`). A gate that never
+        # fired reads as a zero, not a missing key.
+        for key in SCOPE_GATE_KEYS.values():
+            events = list(self.scope_gate_events.get(key, []))
+            d[f"{key}_events"] = events
+            d[f"{key}_summary"] = {
+                "elements": len(events),
+                "scoped_refs": sum(int(e.get("scoped", 0)) for e in events),
+            }
         return d
 
 
@@ -536,6 +582,18 @@ class PipelineCaptureHandler(logging.Handler):
             }
         )
 
+    def _match_scope_gate(self, msg: str) -> None:
+        m = RE_SCOPE_GATE.search(msg)
+        if not m:
+            return
+        key = SCOPE_GATE_KEYS[m.group("label")]
+        self.obs.scope_gate_events[key].append(
+            {
+                "element": m.group("element"),
+                "scoped": int(m.group("scoped")),
+            }
+        )
+
     # Order matters only for shared regex prefixes; each matcher is independent.
     _matchers = [
         _match_classifier_inject,
@@ -558,4 +616,5 @@ class PipelineCaptureHandler(logging.Handler):
         _match_b3_quality,
         _match_domain_cap,
         _match_temporal_scope,
+        _match_scope_gate,
     ]
