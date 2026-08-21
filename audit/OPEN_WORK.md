@@ -29,13 +29,13 @@ wildfire ORIGINAL `d18d1b02` · NHS ORIGINAL `11f54993` · Scotland NEW `5d69fc7
 dairy HOLD.** Also proven in passing: `claim_claimant` migration is live in prod
 (every re-run wrote the column).
 
-**Founder-owed before any send (prereq A — updated 2026-08-21):**
-✅ **DKIM DONE** — `zoho._domainkey` shows **Verified** in the Zoho admin console
-(screenshot-confirmed 2026-08-21); no new selector needed. Remaining: ⏳ one test
-send from `sam@trueight.com` to a Gmail address showing `DKIM: PASS` in Show
-original (proves DKIM end-to-end AND that the mailbox works — closes two items
-in one test) · ⏳ one public profile. The NHS optional re-run was taken 2026-08-21
-(`7ed3e0ad`): TTE still unretrieved — settled, the ORIGINAL `11f54993` is the send.
+**Prereq A — CLOSED except one item (2026-08-21):**
+✅ **DKIM + mailbox PROVEN end-to-end** — live test send from `sam@trueight.com`
+to Gmail, headers show `dkim=pass` (selector `zoho`, d=trueight.com) + `spf=pass`
++ `dmarc=pass`. Nothing left on the email side. ⏳ **Remaining: ONE public
+profile** (LinkedIn or X naming the founder + Tru8) — then the send sheet gets
+drafted. The NHS optional re-run was taken 2026-08-21 (`7ed3e0ad`): TTE still
+unretrieved — settled, the ORIGINAL `11f54993` is the send.
 
 ---
 
