@@ -134,6 +134,8 @@ backend/tests/replay_corpus/*/observation.json
 #     housekeeping one. Delete this line to include it.
 audit/_archive/
 audit/2026-06-18_outreach_contact_map.md
+# Send sheets carry the same named third parties — same privacy rule.
+audit/*_send_sheet.md
 
 
 # A/B mapping harness (scripts + run artefacts, kept untracked)
