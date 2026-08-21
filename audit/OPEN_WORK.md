@@ -5,11 +5,50 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-20, end of day)
+## 🟢 START HERE — next session (updated 2026-08-21, end of day)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ PHASE E RE-GRADE DONE 2026-08-21 — SENDS ARE THE ONLY REMAINING STEP.
+### ▶▶ THE MACHINE IS FULLY LOADED — the next action is the FOUNDER'S HAND, not a build.
+
+**Everything that gated the first outreach round closed 2026-08-21:**
+- **Phase E re-grade DONE** (table below) — quality package fully closed A→E.
+- **Prereq A CLOSED, all three items:** DKIM/SPF/DMARC all `pass` proven on a
+  live send from `sam@trueight.com` to Gmail · mailbox works (same test) ·
+  LinkedIn headline now reads "Founder, Tru8 (trueight.com) · Director, Chantry
+  Studios" (browser-verified).
+- **Send sheet COMPLETE: `audit/2026-08-21_send_sheet.md`** (untracked —
+  privacy rule now in .gitignore as `audit/*_send_sheet.md`). Five bespoke
+  notes, five graded records, tagged links, read-before-send checks, send order:
+  1. TTE (Heneghan/Jefferson) — ORIGINAL `11f54993` (A−), tag `o-tte`
+  2. Viglione — ORIGINAL `d18d1b02` (A), `o-viglione`
+  3. Seymour — same record, `o-seymour`
+  4. Tapper — **NEW** `5d69fc71-d52c-450a-8625-a5498460a03a` (B−), `o-tapper`
+  5. McSweeney — **NEW** `6fe1a7e8-c3c8-4a20-a263-fb77080bf6ed` (B), `o-mcsweeney`
+
+**Tomorrow, in order:**
+1. **Founder:** read each `/r/` page once (read-before-send rule; per-note checks
+   are in the send sheet), then send the five notes by hand via the routes listed.
+2. **Agent:** once sends go out, watch `?src=` attribution for visits (analytics /
+   `scripts/mcp_usage.py` pattern); log first-touch results in `audit/OUTREACH.md`.
+3. Round two prep only after round-one signal: Macfarlane + Gid M-K remain
+   excluded until their records can carry the rebuttals (retrieval limit, known).
+
+**Also settled today (do not re-open):** NHS second re-run `7ed3e0ad` — TTE still
+unretrieved, run-variance; the ORIGINAL `11f54993` is the send, question closed.
+McSweeney's record graded B: the claim's two halves behave differently (aerosols
+supported-with-conflict, "not climate change" disputed) — his factcheck's own
+structure; his piece entered via a Reddit mirror, disclosed in the note.
+**Spend today: 6 full-tier checks, 90p agent-balance transfer, ~7p real.**
+Bonus proof: `claim_claimant` migration is LIVE in prod (every check wrote it).
+
+**Tree state at close:** all doc work committed and pushed. Still in the tree,
+deliberately: held mapping reframe in `claim_map_analyzer.py` (45/+3, NOT ours),
+`.stfolder/`/`.stignore` (founder's Syncthing).
+
+---
+
+### ▶ history: PHASE E RE-GRADE DONE 2026-08-21 (details)
 
 **Four full-tier re-runs executed 2026-08-21 (~60p agent transfer, ~5p real), graded
 against the originals by named check id. The A/B/C mechanisms fired visibly and
