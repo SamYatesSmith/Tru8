@@ -169,6 +169,18 @@ right artefacts and that the remaining weaknesses are echo (NHS class) and
 rebuttal-retrieval (Scotland/dairy class), both recorded as pipeline work,
 both deliberately parked until strangers exist.
 
+## THIRD RE-GRADE 2026-08-21 (post quality package A/B/C — echo gate, support floor, strict ties, claimant arming)
+| Record | Re-run check | Grade | Movement |
+|---|---|---|---|
+| Wildfire | `fa08cff7-ed8c-470e-9767-8ea0d51e4579` | **A−** | Holds disputed 2/2; Ridley tweet correctly `context` as claim-recital. Russia/GWIS crux no longer named in uncertainty — the ORIGINAL `d18d1b02` names it, so send the original. |
+| NHS 29% | `cad4c621-3ca8-46f4-ae73-c403bfce1a9a` | **B+** | Echo gate fired on all 3 elements: 4 press derivatives of NHS England's release scoped to context, supports 7→1, `sole_domain: england.nhs.uk` receipted. The echo problem is now STATE-BEARING and fixed. Run-variance dropped TTE from the pool, so no provenance note — original `11f54993` (A−) remains the send. |
+| Scotland 48p | `5d69fc71-d52c-450a-8625-a5498460a03a` | **B− (up from C+)** | Recital gate armed (subjects: scottish government); Macfarlane's 587 post scoped supports→context on all 3 elements. Modelled-estimate caveat on every element. Still zero challenges, 589 still unretrieved. **SWAP the Tapper send to this record.** |
+| Dairy | `48e8c12d-8d4e-4f6a-9a5f-91a599fcc3aa` | **C+ (up from C−), HOLD** | Echo gate scoped 5 derivatives of the trial. New named limit: the same trial surfaces as ~4 distinct primary records (PubMed/OpenAlex/journal) that derivation chains cannot link, so weighted support stays high. Teardown still absent. Not sendable to Gid M-K. |
+
+**Send set after this round: wildfire ORIGINAL `d18d1b02` · NHS ORIGINAL `11f54993` ·
+Scotland NEW `5d69fc71-d52c-450a-8625-a5498460a03a` (re-tag Tapper's link) · dairy HOLD.**
+Nothing reads `supported` off echoes any more; every scoping carries a receipt.
+
 ## STATE OF PLAY (2026-08-12, end of day)
 
 **The list exists: 42 verified rows** (untracked contact map, August section —

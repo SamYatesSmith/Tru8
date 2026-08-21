@@ -9,7 +9,33 @@
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ START AT PHASE E — RE-GRADE, THEN SEND. The quality package is CLOSED.
+### ▶▶ PHASE E RE-GRADE DONE 2026-08-21 — SENDS ARE THE ONLY REMAINING STEP.
+
+**Four full-tier re-runs executed 2026-08-21 (~60p agent transfer, ~5p real), graded
+against the originals by named check id. The A/B/C mechanisms fired visibly and
+are receipted in the records:**
+
+| Record | Re-run id | Grade (was) | What the mechanisms did |
+|---|---|---|---|
+| Wildfire | `fa08cff7-ed8c-470e-9767-8ea0d51e4579` | **A− (A)** | Holds disputed 2/2. Ridley tweet now correctly `context` as "recital of the claim itself" (original had it as a challenge). Loss: Russia/GWIS crux no longer named in uncertainty — **send the ORIGINAL `d18d1b02`**, which names it. |
+| NHS 29% | `cad4c621-3ca8-46f4-ae73-c403bfce1a9a` | **B+ (A−)** | **Echo gate fired on all 3 elements** — 4 press derivatives of NHS England's release scoped to context, supports 7→1, receipt says `sole_domain: england.nhs.uk`. The 08-14 failure ("supported off echoed copies") is dead. But run-variance dropped TTE from the pool, so the unpublished-evaluation/OSR provenance note is gone — **the ORIGINAL `11f54993` is still the better artefact for Heneghan/Jefferson**. |
+| Scotland 48p | `5d69fc71-d52c-450a-8625-a5498460a03a` | **B− (C+)** | **Recital gate armed** (subjects: scottish government) — Macfarlane's 587 critique post scoped supports→context on all 3 elements (it was miscounted as support before). Modelled-estimate-not-outturn caveat on every element. Still zero challenges; post 589 still unretrieved (Phase D limit, known). **Swap the send to `5d69fc71`** — a grade up with receipts, Tapper only. |
+| Dairy | `48e8c12d-8d4e-4f6a-9a5f-91a599fcc3aa` | **C+ (C−), still HOLD** | Echo gate scoped 5 derivatives of the J. Nutrition trial on both elements. Remaining structural limit: the SAME trial appears as ~4 distinct primary records (PubMed/OpenAlex/journal), which derivation chains cannot link — weighted support stays high. Gid M-K teardown still absent. Not sendable to him. |
+
+**Verdict on the package:** honest-failure mode confirmed — nothing reads `supported`
+off echoes any more, and every scoping has a receipt. NHS target (≥A− on a NEW
+record) missed on run-variance (TTE unretrieved), not mechanism failure. **Send set:
+wildfire ORIGINAL `d18d1b02` · NHS ORIGINAL `11f54993` · Scotland NEW `5d69fc71` ·
+dairy HOLD.** Also proven in passing: `claim_claimant` migration is live in prod
+(every re-run wrote the column).
+
+**Founder-owed before any send (unchanged, prereq A):** DKIM TXT ·
+`sam@trueight.com` mailbox · one public profile. Optional founder call: one more
+NHS re-run (~15p) to try to recover the TTE provenance note on a new record.
+
+---
+
+### ▶ superseded 2026-08-21: the original Phase E instruction (kept for context)
 
 **The 5-phase quality-first package is finished: A, B, C SHIPPED; D ABANDONED
 and DELETED after measurement; E is all that remains.** Do not start by
