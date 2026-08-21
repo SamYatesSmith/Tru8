@@ -5,19 +5,61 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-17, end of day)
+## 🟢 START HERE — next session (updated 2026-08-20, end of day)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### 📍 HANDOFF — exactly where 2026-08-17 stopped: START AT PHASE D
+### ▶▶ START AT PHASE E — RE-GRADE, THEN SEND. The quality package is CLOSED.
 
-**Everything pushed through `e77cb00`.** The quality-first package (5 phases,
-design `audit/2026-08-14_quality_first_design_review.md`, code-verified in
-`audit/2026-08-17_design_review_verification.md`) is **3/5 done — Phases A, B
-and C all shipped, acceptance-proven and pushed today.** All six §5 founder
-decisions are CLOSED, including Phase D confirmed knowingly (it reverses
-signed D1 Option A; scope = ALL claims, universal). Full detail in the dated
-phase blocks below; the one-line versions:
+**The 5-phase quality-first package is finished: A, B, C SHIPPED; D ABANDONED
+and DELETED after measurement; E is all that remains.** Do not start by
+re-reading the Phase D design — it is dead, and §"PHASE D ABANDONED" below
+records exactly which four mechanisms were tried so they are not tried again.
+
+**Phase E, concretely:**
+1. Re-run wildfire / NHS / Scotland / dairy at **full tier**, ~6p, recording the
+   **named check id** for each (never "latest run" — run-variance is severe,
+   see the bench warning below).
+2. Grade each against its ORIGINAL by named id. Targets from the 08-14 review:
+   NHS ≥ A− on a NEW record · Scotland ≥ B · dairy re-assessed · wildfire holds A.
+3. Update the send set, then run the morning-sequence sends.
+
+**What changed under Phase E's feet, and why the grades should move even though
+Phase D died:** the NHS/Trump failures were never only "the rebuttal was
+missing". They were *"the report said **supported** when it should not have"* —
+off echoed copies of one story, off the claimant's own press office, off a
+single thin source. **Phases A/B/C fixed that half and it is live:** echo gate,
+factual support floor 3, strict `>` ties, claimant arming. The system's failure
+mode is now `unresolved` + a Seeker gap, not a false `supported`. Missing a
+rebuttal is a coverage limit and can be said plainly to a recipient; badging
+thin evidence `supported` was a false statement, and that is gone.
+
+**Residual risk to state honestly in any send:** a claim where a rebuttal exists,
+we do not find it, AND there is enough genuine support to pass the floor — it
+reads supported and the reader is not told what is missing. Narrower than it was
+this morning, but real.
+
+**⚠️ UNCOMMITTED IN THE TREE RIGHT NOW (2026-08-20 close):**
+- `audit/OPEN_WORK.md` (this file) — modified
+- `audit/2026-08-20_phase_d_code_appraisal.md` — untracked, NEW
+- `audit/2026-08-20_independent_source_lane_design_review.md` — untracked, NEW
+- `backend/app/pipeline/claim_map_analyzer.py` (45/+3) — **the long-HELD mapping
+  reframe. NOT ours. Do not commit it, do not revert it.**
+- `.stfolder/`, `.stignore` — the founder's Syncthing files, leave alone.
+
+The three audit files should be committed. **No backend code changed today that
+survives** — Phase D was removed in full and verified to leave zero leftovers
+(`git status` shows no backend `.py` modified other than the held reframe).
+
+**Founder-owed before any send (unchanged, prereq A):** DKIM TXT record ·
+`sam@trueight.com` mailbox · one public profile.
+
+---
+
+**History of the package (A/B/C detail, then the Phase D post-mortem):**
+Everything through `e77cb00` is pushed. Design
+`audit/2026-08-14_quality_first_design_review.md`, code-verified in
+`audit/2026-08-17_design_review_verification.md`. The one-line versions:
 
 - **A (`91188e2`, `09cd87b`):** bench sees all six gate log lines; Trump
   claim (TRU-018F-44AA) recorded into the corpus, recital pin mutation-checked.
@@ -42,22 +84,121 @@ A3E8 `factual_weight_share` 0.0 record-time pool drift — both accepted;
 `claim_claimant` is applied locally and ships to prod via `entrypoint.sh`
 on next deploy — verify with `railway ssh` → `alembic current` when convenient.
 
-**▶ TOMORROW = PHASE D, the challenge lane (last build phase).** Build design
+**🔴🔴 PHASE D ABANDONED AND DELETED 2026-08-20 — DO NOT ATTEMPT A QUERY-SIDE
+REBUTTAL LANE AGAIN WITHOUT READING
+`audit/2026-08-20_independent_source_lane_design_review.md` §9.**
+
+**Three query mechanisms were built or tested and all failed against the three
+claims that motivated the phase** (Scotland/Macfarlane, dairy/Gid M-K,
+wildfire/Carbon Brief):
+
+| Mechanism | Result on the 3 motivating claims |
+|---|---|
+| Counter-frame wording (`criticism OR limitations`) | 0/3. Topic-level words fetch critiques of the SUBJECT — on a CPI claim it returned RPI-vs-CPI methodology essays and displaced the September 2024 ONS bulletin |
+| Counter-frame wording v2 (`"false claim" OR misleading OR debunked`) | 0/3. Four rare AND-ed terms are too restrictive: 1–4 results/claim, mostly Facebook/Instagram |
+| Independent-platform `site:` targeting | 0/3. **Did not even surface the dairy rebuttal, which IS on Substack** — the author framed it "heart health" while the claim is about weight gain |
+| Claimant-anchored ("response to <claimant>") | **rank 1** — but at a `linkedin.com` URL, which is on the runtime blocklist; the canonical `futureeconomy.scot` post never ranks |
+
+**Root cause, and why no wording fixes it:** a rebuttal is published later, on a
+smaller domain, in its author's framing. Search ranks by authority and word
+match, so a rebuttal is structurally the last thing to rank. **This is a
+discovery problem, not a phrasing problem.**
+
+**Also established (do not re-derive):**
+- **The replay bench CANNOT verify a change of this size.** Two identical
+  flag-off recordings of `TRU-018F-44AA` differed by **25 of 40 URLs**. A 2–3
+  slot change is invisible in 62% churn. Verify by issuing the query and reading
+  the results (pence, seconds), never by whole-pool bench diffs.
+- **Any commentary-sourced lane is a sycophancy hazard by arithmetic:**
+  commentary weight is 1, `FACTUAL_MIN_WEIGHTED_SUPPORT` is 3, so a ceiling of 3
+  lets a lane badge an element `supported` on its own. Any future lane needs a
+  ceiling of **2**.
+- `_apply_domain_concentration_cap` does **not** protect against a single
+  blogger flooding a lane: it only demotes primary/reporting, and blog sources
+  arrive as commentary already.
+- Well-indexed rebuttals need no feature — the plain query already returns
+  Carbon Brief at rank 1.
+- A claim with no person claimant (dairy, `subjects: []`) has nothing to anchor
+  on under any mechanism tested.
+
+**The only live thread for a future attempt:** claimant-anchoring reached rank 1
+and was blocked by *domain policy*, not retrieval. Resolving a blocked social
+post to the canonical article it links to would convert that into a usable
+source. That is a link-resolution build, not a query build. **Phase C already
+ships the `claimant` field it would need.**
+
+**Code fully removed** (`retrieve.py`, `runner.py`, `workers/pipeline.py`,
+`config.py`, `tier_limitations.py`, 2 test files, 1 new module — verified zero
+leftovers). Corpus restored to baseline; goldens untouched; held reframe
+SHA-verified intact. Spend: ~45p across one full re-record, a matched pair, a
+control run and ~20 direct search probes.
+
+<details><summary>Superseded build record (kept for the traps it documents)</summary>
+
+**PHASE D BUILT BUT NOT SHIPPABLE — re-record #2 run 2026-08-20, bench
+`131 ok / 19 warn / 13 fail` vs `175/10/2`. DO NOT SHIP; DO NOT SEND (Phase E
+stays blocked).** The counter-frame wording retrieves critiques of the METRIC
+rather than disputes of the CLAIM: `factual_weight_share` fell below floor on
+THREE independent claims, `TRU-C1A0-0005` lost the off-period source its
+temporal-gate hard invariant requires (gate never fired), and `TRU-018F-44AA`'s
+Phase C tolerance-0 recital pins drifted. Two cassettes do not replay at all
+(5647, 0004) — a fresh recording is not a working recording, again. **Corpus
+restored to baseline; reframe restored SHA-verified; no goldens touched;
+recording preserved at `scratchpad/phaseD_recording/`.** Full analysis + the
+four things that must change: `audit/2026-08-20_phase_d_code_appraisal.md` §9.
+
+**✅ PHASE D CODE BUILT 2026-08-20** — full record + what the build corrected in
+the appraisal: `audit/2026-08-20_phase_d_code_appraisal.md` §8. Shipped behind
+two switches (`settings.ENABLE_CHALLENGE_QUERIES` kill-switch +
+`PipelineConfig.enable_challenge_queries` for the tier receipt). **36 new
+tests, 5/5 mutations caught, full suite re-run.** Reserved-slot insertion at
+index 2 (NOT append-last), claim lane cap 3→5, element lane 2→3 on the
+challenge-bearing lane, fourth parallel array `query_is_challenge` +
+`_challenge_hit` accumulating tag + `[CHALLENGE LANE]` yield line, counter-frame
+on BOTH coverage-recovery branches, `no_challenge_queries` slug.
+**Cost is +3 queries/claim (13→16, +23%), not the +2 first estimated.**
+⚠️ **STILL OWED before Phase E: re-record #2 (~25p, NOT run — needs founder
+go-ahead) and live acceptance.** The counter-frame changes query strings, so
+every corpus claim fails `cassette_drift` until re-recorded; a bench run before
+that only re-confirms known drift. Patch the held reframe OUT first.
+
+</details>
+
+**▶ SUPERSEDED — the original Phase D plan (kept for the traps it names):** Build design
 is §1.1 of the 2026-08-14 review + verification doc §2 corrections; prior
 art `audit/2026-07-14_non_sycophancy_invariant.md` §3a. The load-bearing
 specifics, all code-verified 2026-08-17:
 1. New module `app/utils/query_challenge_augmentation.py`, mechanical
    templates off claim/element text ("criticism of …", "'X' disputed") —
    NOT a planner-prompt edit. Flag `ENABLE_CHALLENGE_QUERIES`, default True.
-2. **Variant-within-lane, appended LAST** — the F1-D3 hedge keys on
-   positional index 1 (`retrieve.py:425-427`); ⚠️ on a lane the planner gave
-   only ONE query, an appended variant BECOMES position 1 and steals the
-   hedge (verification §2.4) — guard that case. Claim lane cap 3→4 full
-   tier (`runner.py:54` — but ⚠️ `EvidenceRetriever.__init__` defaults 5;
-   the worker override is what makes 3 real, verification §2.2); first
-   element lane gets the variant; quick tier gets NOTHING (cap 1 — nothing
-   appended survives the slice) and **must be declared in
-   `app/core/tier_limitations.py` or the drift guard fails**.
+2. ⚠️ **SUPERSEDED 2026-08-20 — "appended LAST, cap 3→4" DOES NOT FIRE on the
+   claims Phase D exists to fix. Read `audit/2026-08-20_phase_d_code_appraisal.md`
+   BEFORE building.** Proven by running the real augmenter + real merge, not
+   inferred: the claim lane has three writers (planner ≤2, hard cap
+   `query_planner.py:571` · date anchor 1:1, adds nothing · class augmenter
+   +1, or **+2** when domain ∈ {Politics,Finance,Health,Law} AND jurisdiction
+   ∈ {UK,US,EU}) feeding a `[:lane_cap]` slice at `retrieve.py:477`. That is
+   **5 offered into 4** — so on Politics/UK, Health/UK, Politics/US the
+   appended challenge query is **truncated away, always**. Trump · NHS ·
+   Scotland are exactly that class: three of the four Phase E re-grade
+   records would issue ZERO challenge queries and read as "Serper ranked it
+   low" — the F1 never-fired-live ambiguity, reproduced. **Element lanes are
+   worse: `min(cap, ELEMENT_LANE_MAX_QUERIES)` pins them at 2 (`:474-476`),
+   so the variant NEVER survives at planner=2, and at planner=1 it lands on
+   index 1 and eats the hedge — no case works.** The real invariant is
+   `index >= 2`, not "last". **Fix: insert at index 2, claim lane cap 3→5,
+   element cap 2→3 on the challenge-bearing lane only** (+2 Serper/claim,
+   fetch cap unchanged at 40 — frame diversity inside a fixed budget). Also
+   revives a **dead path found while measuring**: the jurisdiction-official
+   `site:` query has been built-then-truncated on every wired claim since the
+   cap landed, invisible because `EvidenceRetriever()` defaults to cap 5
+   (`:526`) so direct-construction unit tests never see the production cap.
+   ⚠️ **`tier_limitations` line was wrong**: `max_queries_per_element` is
+   ALREADY slugged (`:43`), so the cap change needs no new declaration — but
+   `undeclared_reductions()` iterates `vars(DEFAULT_CONFIG)`, so a bare
+   `settings.ENABLE_CHALLENGE_QUERIES` env flag is **invisible to the guard**
+   and would breach invariant #5 with a green CI. Ship it as a
+   `PipelineConfig` field + slug, not a settings flag alone.
 3. ⚠️ A 4th claim-lane query drops per-query depth 13→10
    (`CLAIM_LANE_MAX_RESULTS_PER_QUERY` is 40//3 by construction) and breaks
    `test_element_retrieval_seam.py` assertions — re-pin deliberately.
@@ -65,7 +206,15 @@ specifics, all code-verified 2026-08-17:
    first-writer-wins on `_query_index`, so challenge-lane yield is
    invisible in the histogram without an accumulating tag (the
    `_element_ids` pattern) — else Phase D repeats F1's "never fired live"
-   ambiguity at 45p a probe.
+   ambiguity at 45p a probe. ⚠️ **Corrected 2026-08-20: the pattern is
+   right, the array is not.** `_element_ids` accumulates the LANE id, and a
+   challenge variant inside c0 carries `element_id == "c0"` — identical to
+   the base query, so `_lane_histogram` renders the hit as plain `c0`.
+   Needs a **fourth parallel array** (`query_is_challenge`) threaded
+   `_merge_element_plans` (`:464-466` builds three side-by-side) →
+   `query_plan` → `execute_planned_queries` → histogram, plus a
+   `_challenge_hit` set on the dedup path at `:2091-2094` exactly as
+   `_element_ids.add()` is.
 5. **Coverage recovery gets the counter-frame in the SAME phase**
    (`retrieve_for_elements` bypasses the whole lane seam — hand-built
    plans, hardcoded `[:2]`, no augmenters; it needs its own edit).
