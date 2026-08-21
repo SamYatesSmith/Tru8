@@ -177,6 +177,11 @@ both deliberately parked until strangers exist.
 | Scotland 48p | `5d69fc71-d52c-450a-8625-a5498460a03a` | **B− (up from C+)** | Recital gate armed (subjects: scottish government); Macfarlane's 587 post scoped supports→context on all 3 elements. Modelled-estimate caveat on every element. Still zero challenges, 589 still unretrieved. **SWAP the Tapper send to this record.** |
 | Dairy | `48e8c12d-8d4e-4f6a-9a5f-91a599fcc3aa` | **C+ (up from C−), HOLD** | Echo gate scoped 5 derivatives of the trial. New named limit: the same trial surfaces as ~4 distinct primary records (PubMed/OpenAlex/journal) that derivation chains cannot link, so weighted support stays high. Teardown still absent. Not sendable to Gid M-K. |
 
+**Second NHS attempt 2026-08-21 (`7ed3e0ad-b08e-4f50-9197-0cb964c6c17f`, 15p): TTE still
+not retrieved — run-variance did not recover the provenance note (and a Reddit comment
+counted as support this time). Echo gate fired with receipts again. Verdict: stop
+chasing; the ORIGINAL `11f54993` is the send. Question settled, no further re-runs.**
+
 **Send set after this round: wildfire ORIGINAL `d18d1b02` · NHS ORIGINAL `11f54993` ·
 Scotland NEW `5d69fc71-d52c-450a-8625-a5498460a03a` (re-tag Tapper's link) · dairy HOLD.**
 Nothing reads `supported` off echoes any more; every scoping carries a receipt.
