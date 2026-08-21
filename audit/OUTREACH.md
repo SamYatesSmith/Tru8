@@ -182,6 +182,17 @@ not retrieved — run-variance did not recover the provenance note (and a Reddit
 counted as support this time). Echo gate fired with receipts again. Verdict: stop
 chasing; the ORIGINAL `11f54993` is the send. Question settled, no further re-runs.**
 
+**McSweeney check RUN 2026-08-21 (`6fe1a7e8-c3c8-4a20-a263-fb77080bf6ed`, 15p, grade B):**
+the claim splits into two elements that behave differently — aerosol-contribution
+`supported` with a conflicting-evidence note, "not climate change" `disputed` on
+all challenges (WWA-led) — the exact structure of his factcheck. Known seam,
+disclosed in the note: his factcheck entered the pool via a Reddit mirror, not
+carbonbrief.org. **ALL FIVE NOTES DRAFTED — send sheet complete at
+`audit/2026-08-21_send_sheet.md` (untracked, privacy rule). Prereq A CLOSED
+2026-08-21: DKIM/SPF/DMARC pass proven on a live send, LinkedIn headline now
+names Founder, Tru8 (trueight.com) — verified in browser. Nothing gates the
+sends but the founder's hand.**
+
 **Send set after this round: wildfire ORIGINAL `d18d1b02` · NHS ORIGINAL `11f54993` ·
 Scotland NEW `5d69fc71-d52c-450a-8625-a5498460a03a` (re-tag Tapper's link) · dairy HOLD.**
 Nothing reads `supported` off echoes any more; every scoping carries a receipt.
