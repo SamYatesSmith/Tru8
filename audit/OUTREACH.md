@@ -248,6 +248,30 @@ rebuttals of mainstream claims don't reach the evidence pool — the exact
 failure both weak records share. Never send a record to a disputant whose own
 rebuttal it missed.
 
+## ADVERSARIAL VERIFICATION ROUND (2026-08-24) — the TTE note was wrong four ways before it was right
+
+Founder-ordered pressure test: three parallel agents verified every claim in
+the first send against the recipients' own pages and the LIVE `/r/11f54993`
+record. **Four drafter faults fixed in the send sheet:** Jefferson is **Dr,
+not Professor**; "OSR referral" escalated their own words ("shared our
+concerns with") — now quotes their framing; "maps *every* source" literally
+false (filter cascade + caps); the central paragraph described the record's
+DATA, not its RENDERED page — the e3 provenance note (unpublished NHS England
+evaluation + OSR) renders nowhere on the web page, only in the PDF + JSON, and
+per-source derivation tracing does not exist on the page (aggregate flag
+only). Rewritten to what a reader sees, plus an honest-seam paragraph (their
+piece maps `context`; elements read `supported`; Gaps lens says "WELL
+COVERED"). **Rule for every future note: draft from the rendered `/r/` page,
+never from the data or grading notes — and verify titles.** Same pass owed on
+the other four notes before their send days (all carry a milder "each
+source... each part" overstatement).
+
+**Send schedule (founder, 2026-08-24): Day 1 Tue 25 Aug — TTE, Viglione,
+Seymour · Day 2 Wed 26 Aug — Tapper, McSweeney.** Reply guard: the 29% is
+phone-queuing reduction, never "missed appointments". Product gaps found by
+the pass are on the OPEN_WORK register (uncertainty rendering = approved
+frontend fix; derivation persistence + gaps-vs-caveats = parked pipeline work).
+
 ## The cadence
 
 - **5 sends/week for 10 weeks. Every message bespoke.** Each ≈ 20 min: find

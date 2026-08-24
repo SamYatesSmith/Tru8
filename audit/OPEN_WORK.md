@@ -5,11 +5,61 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-21, end of day)
+## 🟢 START HERE — next session (updated 2026-08-24, end of day)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ THE MACHINE IS FULLY LOADED — the next action is the FOUNDER'S HAND, not a build.
+### ▶▶ SEND WEEK. Day 1 is Tue 25 Aug (TTE · Viglione · Seymour), Day 2 is Wed 26 Aug (Tapper · McSweeney). Founder decision 2026-08-24: all five over these two days.
+
+**What happened 2026-08-24:** the TTE email was ADVERSARIALLY VERIFIED by
+three parallel agents (recipient facts · live `/r/` page vs email text ·
+product-statement accuracy) and REWRITTEN in the send sheet. Four faults were
+the drafter's, all fixed: **Jefferson is Dr, not Professor** (their own About
+page); "OSR referral" → their exact wording ("the concerns you shared with the
+OSR"); "maps *every* source" softened (filter cascade + caps make it literally
+false); the central paragraph rewritten to what the page RENDERS, not what the
+data contains, plus an honest-seam paragraph (their piece maps as `context`,
+elements read `supported`). **Final verified text: `audit/2026-08-21_send_sheet.md`
+(untracked). Reply guard: the 29% is a reduction in phone QUEUING, never say
+"missed appointments" — that is a different NHS App statistic.**
+
+**Tomorrow, in order:**
+1. **Agent — pressure pass on Viglione + Seymour notes FIRST** (same 3-agent
+   method), before the Day-1 sends. Tapper + McSweeney can wait for Day 2
+   morning. Known issue in all four: the "each source's relationship to each
+   part" sentence needs the same softening TTE got.
+2. **Agent — Fix 1 build (design APPROVED by founder 2026-08-24, unbuilt):**
+   render element `uncertainty` in the `/r/` roster (`web/components/
+   evidence-views/ElementList.tsx`), grey `EvidenceQualityNote` idiom (mono
+   10px zinc-500, `NOTE ·` prefix), roster rows only, Seeker's null/"n/a"
+   filter, clamp to ~2 lines. NO amber (no-verdict colour lock). Verify live
+   on `/r/11f54993` before the TTE send if it deploys in time — but the email
+   already says "downloadable record", so it is **send-safe without the fix;
+   never let the build delay the sends.** While in there: check whether F3
+   scope caveats (`state_derivation.caveat`) also render nowhere on `/r/`;
+   report only, don't expand scope.
+3. **Founder — Day 1 sends by hand** (read each `/r/` page first; per-note
+   checks in the send sheet).
+4. **Agent — watch `?src=` attribution** (analytics / `scripts/
+   signup_sources.py`), log first-touch in `audit/OUTREACH.md`.
+
+**Product gaps found 2026-08-24 (register — parked, pipeline-work rule stands):**
+1. ~~Element `uncertainty` invisible on `/r/`~~ → Fix 1 above (frontend,
+   approved, in scope now because it is presentation, not pipeline).
+2. **Derivation tracing aggregate-only — WITHDRAWN as frontend work after
+   design review:** per-source chains are never persisted (`runner.py:2295`
+   annotates in-memory; payload carries only `derivation: {originals,
+   derivative_count}` — `shared/types/index.ts:258`). Naming the original
+   needs backend persistence; inferring it in the frontend would breach
+   no-hidden-curation. Parked with pipeline work.
+3. **Gaps lens reads "WELL COVERED" on a claim propped by 6 echoes of one
+   unpublished evaluation** — gaps logic ignores provenance caveats. Parked.
+
+**Durable drafting rule (cost us 4 email fixes): describe the RENDERED page,
+never the underlying data — and verify recipient titles.** The e3 provenance
+note the email originally pointed at exists only in the PDF + JSON.
+
+### ▶ history (2026-08-21): THE MACHINE IS FULLY LOADED — superseded by the 2026-08-24 block above
 
 **Everything that gated the first outreach round closed 2026-08-21:**
 - **Phase E re-grade DONE** (table below) — quality package fully closed A→E.
