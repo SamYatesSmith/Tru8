@@ -150,6 +150,31 @@ export default function AboutPage() {
             </div>
           </div>
 
+          {/* From the blog — internal linking for crawlers and readers who want more depth */}
+          <div className="mt-16 md:mt-20">
+            <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
+              From the blog
+            </p>
+            <ul className="space-y-2.5">
+              <li>
+                <Link
+                  href="/blog/first-public-release"
+                  className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+                >
+                  A first public release — what Tru8 launched with, and why
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/blog/evidence-research-for-agents"
+                  className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+                >
+                  Evidence research for AI agents — the same pipeline through an API and MCP server
+                </Link>
+              </li>
+            </ul>
+          </div>
+
           {/* Mono metadata footer */}
           <div className="mt-12 pt-6 border-t border-zinc-100">
             <span className="font-mono text-[10px] tracking-widest uppercase text-zinc-500">
