@@ -573,28 +573,38 @@ class Settings(BaseSettings):
         5, env="MAX_CONCURRENT_AGENT_ANALYSES"
     )  # Separate pool for agent-initiated pipelines (O-03)
     MAPPING_GOOGLE_MODEL: str = Field(
-        "gemini-3.7-flash", env="MAPPING_GOOGLE_MODEL"
+        "gemini-3.5-flash-lite", env="MAPPING_GOOGLE_MODEL"
     )  # Google model for evidence mapping (highest-stakes call).
     # Migrated off gemini-2.5-flash 2026-08-25 (2.5 retires 16 October 2026).
     #
-    # WHY THE FLASH TIER AND NOT THE CHEAPER FLASH-LITE: mapping is the only
-    # stage that puts the user's claim in the prompt, so it is where invariant #7
-    # is won or lost, and the Google tier gap on exactly that failure is large —
-    # PARROT follow rate 2.5-Flash-Lite 50.7% vs 2.5-Flash 17.2%. Today's
-    # bulk=Lite / mapping=Flash split exists for that reason. Migrating mapping
-    # DOWN a tier to save 0.56x would be trading the product for money on the one
-    # call that is the product. So the default preserves the tier, and
-    # scripts/model_premise_probe.py may justify demoting it to
-    # gemini-3.5-flash-lite on a measured premise-adoption number — evidence
-    # earns the saving; it is not assumed.
+    # WHY A LITE-TIER MODEL ON THE HIGHEST-STAKES CALL — this was NOT the
+    # default choice, and it is not a cost decision. Mapping is the only stage
+    # that puts the user's claim in the prompt, so it is where invariant #7 is
+    # won or lost, and PARROT reports a 3x within-vendor tier gap on exactly that
+    # failure (2.5-Flash-Lite 50.7% follow rate vs 2.5-Flash 17.2%). On that
+    # basis this shipped as gemini-3.7-flash — tier-preserving, erring safe.
     #
-    # ⚠️ Thinking cannot be fully disabled on any Gemini 3 model. 3.7-flash takes
-    # low/medium/high only — no "off", no "minimal" — so MAPPING_THINKING_BUDGET=0
-    # now means thinkingLevel="low" (see google_ai._GEMINI3_THINKING_FLOOR), not
-    # thinking off. The M1 latency win (35-50s -> 11-15s) is partly given back
-    # here; that is a known, accepted cost of the retirement, not a regression.
-    # ⚠️ Introductory pricing ($0.75/$3.75) ENDS 31 Dec 2026 — both rates DOUBLE
-    # on 1 Jan 2027. See cost_constants.GEMINI3_FLASH_STANDARD_FROM_2027.
+    # Then we MEASURED it instead of reasoning about it.
+    # scripts/model_premise_probe.py, 2026-08-25, 3 frozen pools x 3 repeats x
+    # {claim shown, claim withheld}: premise adoption came out at +0.11 elements
+    # for 3.5-flash-lite against a 2.5-flash baseline of -0.44 and that
+    # baseline's own run-to-run noise of 1.00. A PARROT-sized effect would have
+    # shown as adopt approaching +1 on ~3 elements. It did not appear.
+    # 3.5-flash-lite was also the MOST self-consistent arm (spread 0.33 vs 0.67
+    # vs 1.00), which matters for the replay corpus.
+    #
+    # So the Lite tier is here on evidence, and the saving is a consequence
+    # rather than the reason: 1.84x instead of 2.40x, ~4.6s per mapping call
+    # instead of ~10.3s (and faster than 2.5-flash is in production today), and
+    # thinkingLevel="minimal" measures 0 thought tokens — so MAPPING_THINKING_BUDGET=0
+    # keeps working and the M1 latency lever survives the migration intact.
+    # 3.7-flash could not have done that: its floor is "low", it 400s on
+    # "minimal", and it still spends ~70 thought tokens billed at output rate.
+    #
+    # ⚠️ The probe rules out a LARGE adoption effect at n=3 pools, not a small
+    # one. If mapping quality is ever suspected, re-run the probe with more pools
+    # BEFORE blaming anything else — and gemini-3.7-flash is the rollback, as an
+    # env var, no code change.
     MAPPING_THINKING_BUDGET: Optional[int] = Field(
         None, env="MAPPING_THINKING_BUDGET"
     )  # Thinking-token cap for mapping calls only. None = omit thinkingConfig
