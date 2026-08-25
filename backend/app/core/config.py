@@ -573,8 +573,28 @@ class Settings(BaseSettings):
         5, env="MAX_CONCURRENT_AGENT_ANALYSES"
     )  # Separate pool for agent-initiated pipelines (O-03)
     MAPPING_GOOGLE_MODEL: str = Field(
-        "gemini-3.5-flash-lite", env="MAPPING_GOOGLE_MODEL"
+        "gemini-3.7-flash", env="MAPPING_GOOGLE_MODEL"
     )  # Google model for evidence mapping (highest-stakes call).
+    #
+    # ⛔ DO NOT MOVE THIS TO gemini-3.5-flash-lite. Measured 2026-08-25,
+    # scripts/recital_repeat_probe.py, frozen pool, 5 repeats per model:
+    #
+    #     model                  recital of the claim labelled as
+    #     gemini-2.5-flash       context   10/10
+    #     gemini-3.5-flash-lite  SUPPORTS  10/10   <-- invariant #7 breach
+    #     gemini-3.7-flash       context    5/5
+    #
+    # The evidence item is Matt Ridley's tweet, which IS the claim being checked.
+    # 3.5-flash-lite counts it as SUPPORT for the claim, every time, on identical
+    # input. That is the TRU-018F-44AA failure: "X claimed Y" is never evidence
+    # of Y. It is 100% reproducible, not a bad roll.
+    #
+    # ⚠️ Why the premise-adoption probe cleared 3.5-flash-lite earlier the same
+    # day: that probe counts `supported` ELEMENT STATES, and this failure hides
+    # below state. Here 12 challenges swamp the 1 bogus support, so the element
+    # still reads disputed and the probe sees nothing. It only surfaces when the
+    # support side is thin — which is exactly when it does the most damage.
+    # A clean premise-adoption score is NOT evidence a model handles recitals.
     # Migrated off gemini-2.5-flash 2026-08-25 (2.5 retires 16 October 2026).
     #
     # WHY A LITE-TIER MODEL ON THE HIGHEST-STAKES CALL — this was NOT the
