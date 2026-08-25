@@ -35,6 +35,73 @@ _MAX_RETRIES = 5
 _BASE_DELAY = 2.0  # seconds; grows with jittered exponential backoff
 _MAX_DELAY = 30.0  # cap per-retry wait
 
+# ---------------------------------------------------------------------------
+# Thinking control — the 2.5 → 3.x migration seam (2026-08-25)
+# ---------------------------------------------------------------------------
+# Gemini 2.5 takes ``thinkingConfig.thinkingBudget`` (an int; 0 = thinking OFF).
+# Gemini 3.x REJECTS that field with a hard 400 and takes ``thinkingLevel``
+# (a string) instead. Both directions were verified LIVE on 2026-08-01:
+#   gemini-3.5-flash-lite + thinkingBudget=0  -> 400 "invalid argument"
+#   gemini-3.5-flash-lite + thinkingLevel     -> 200
+#   gemini-2.5-flash      + thinkingBudget=0  -> 200 (thoughtsTokenCount=2)
+#   gemini-2.5-flash      + thinkingLevel     -> 400 "not supported for this model"
+#
+# This matters more than it looks: ``call_google_ai_with_usage`` returns None on
+# any terminal non-429/503 WITHOUT retry, and every mapping caller then falls
+# through to the OpenAI path. A model-string change without this branch would be
+# loud in the logs and invisible in the product.
+#
+# ⚠️ Thinking cannot be fully DISABLED on any Gemini 3 model. ``minimal`` is
+# Google's documented migration target for ``thinking_budget=0`` and explicitly
+# "does not guarantee that thinking is off". Models differ in the floor they
+# accept, so it is a per-model table rather than one constant — 3.7-flash
+# documents only low/medium/high and 400s on anything lower.
+_GEMINI3_THINKING_FLOOR: Dict[str, str] = {
+    "gemini-3.5-flash-lite": "minimal",  # live-verified 200, 2026-08-01
+}
+# "low" is accepted by every 3.x model tested and is the safe default for a
+# model we have not probed. Erring high costs latency and thinking tokens; erring
+# low costs a 400 and a silent fallback, which is far worse.
+_GEMINI3_DEFAULT_FLOOR = "low"
+# A budget > 0 means the caller asked for SOME thinking (the rollback path from
+# MAPPING_THINKING_BUDGET=0 → =1024). There is no token-budget equivalent on
+# 3.x, so it maps to the lowest level that is unambiguously "thinking on".
+_GEMINI3_SOME_THINKING = "low"
+
+
+def _is_gemini_3(model: str) -> bool:
+    """True for Gemini 3.x model ids, which take thinkingLevel not thinkingBudget.
+
+    Matches on the ``gemini-3`` prefix so unreleased 3.x point versions are
+    handled correctly the moment they exist — the failure mode of guessing wrong
+    here is a hard 400 on every call, so it is deliberately inclusive.
+    """
+    return (model or "").strip().lower().startswith("gemini-3")
+
+
+def _thinking_config(
+    model: str, thinking_budget: Optional[int]
+) -> Optional[Dict[str, Any]]:
+    """Build the provider-correct ``thinkingConfig`` block, or None to omit it.
+
+    ``None`` budget means "omit entirely" so the API applies its own default and
+    the request body stays byte-identical for replay-bench cassettes. That
+    byte-identity is why the 2.5 branch below is untouched: every existing
+    cassette was recorded against it.
+    """
+    if thinking_budget is None:
+        return None
+    if not _is_gemini_3(model):
+        # Gemini 2.5 and earlier — unchanged, byte-identical to pre-2026-08-25.
+        return {"thinkingBudget": int(thinking_budget)}
+    if int(thinking_budget) > 0:
+        return {"thinkingLevel": _GEMINI3_SOME_THINKING}
+    level = _GEMINI3_THINKING_FLOOR.get(
+        (model or "").strip().lower(), _GEMINI3_DEFAULT_FLOOR
+    )
+    return {"thinkingLevel": level}
+
+
 # Shared HTTP client — lazily created, reused for connection pooling.
 _client: Optional[httpx.AsyncClient] = None
 _client_lock = asyncio.Lock()
@@ -330,8 +397,10 @@ async def call_google_ai_with_usage(
     # `is not None` deliberately: 0 is a real value (thinking OFF), None means
     # omit the field so the API applies its default (dynamic thinking) and the
     # request body stays byte-identical for replay-bench cassettes.
-    if thinking_budget is not None:
-        generation_config["thinkingConfig"] = {"thinkingBudget": int(thinking_budget)}
+    # The 2.5 vs 3.x field split lives in `_thinking_config` — see its note.
+    _thinking = _thinking_config(model, thinking_budget)
+    if _thinking is not None:
+        generation_config["thinkingConfig"] = _thinking
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": generation_config,

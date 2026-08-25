@@ -2,10 +2,13 @@
 
 GROUND TRUTH is the raw token + count data captured by the pipeline and persisted
 on ``Check.cost_telemetry``. The prices below are a DERIVED view used only for a
-convenience ``estimated_cost_usd`` field. They are UNVERIFIED placeholders —
-because the raw data is stored, any check's cost can be recomputed once real rates
-are confirmed. Do NOT treat the estimate as authoritative for the P5 pricing
-decision; treat the raw data as the input and re-derive from verified rates.
+convenience ``estimated_cost_usd`` field. Because the raw data is stored, any
+check's cost can be recomputed when rates change — correct a price here and every
+historical check reprices, with no backfill and no migration.
+
+As of 2026-08-25 the LLM rates are VERIFIED against vendor pages; the SEARCH
+rates are still placeholders taken from list pricing rather than our invoices.
+Treat an LLM figure as sound and a search figure as indicative.
 
 TWO KNOWN LIMITATIONS (do not oversell this data):
   1. LLM tokens cover the analyzer + classifier + distiller stages only — the
@@ -22,22 +25,54 @@ VERIFY before relying on the numbers:
   - Google Gemini:  https://ai.google.dev/gemini-api/docs/pricing
   - OpenAI:         https://openai.com/api/pricing
   - Search providers (Serper/Brave/SerpAPI): their dashboards
-Last set: 2026-06-15 (placeholders).
+Last set: 2026-08-25 — LLM rates verified against vendor pages; search rates
+  still placeholders (see SEARCH_PRICING_USD_PER_UNIT).
 """
 
 from typing import Any, Dict, Iterable, Optional
 
-PRICING_VERSION = "2026-06-15-UNVERIFIED"
+PRICING_VERSION = "2026-08-25-LLM-VERIFIED-SEARCH-UNVERIFIED"
 
 # USD per 1,000,000 tokens. Keys are matched as case-insensitive substrings of
 # the model name recorded in telemetry (so "gemini-2.5-flash-thinking" matches
-# the "gemini-2.5-flash" entry). UNVERIFIED — confirm against official pricing.
+# the "gemini-2.5-flash" entry).
+#
+# ✅ LLM RATES VERIFIED 2026-08-25 against vendor primary sources
+# (ai.google.dev/gemini-api/docs/pricing, developers.openai.com/api/docs/pricing).
+# They had been carrying an UNVERIFIED stamp since 2026-06-15 while being exactly
+# right — which is its own hazard: an accurate number nobody trusts gets
+# re-derived by hand every time it is needed. SEARCH rates below remain
+# genuinely unverified; they are the ones to treat with suspicion.
 LLM_PRICING_USD_PER_1M: Dict[str, Dict[str, float]] = {
+    # --- Gemini 2.5 — RETIRES 16 OCTOBER 2026 ---------------------------------
     "gemini-2.5-flash-lite": {"input": 0.10, "output": 0.40},
     "gemini-2.5-flash": {"input": 0.30, "output": 2.50},
     "gemini-2.5-pro": {"input": 1.25, "output": 10.00},
+    # --- Gemini 3.x — migration candidates ------------------------------------
+    # ⚠️ Google DELETED the price point we were on. There is no cheap Gemini 3
+    # tier: the nearest equivalent to 2.5-flash-lite costs 3x input / 6x output.
+    # Cost rises on every available migration path. Longest key wins the
+    # substring match below, so "gemini-3.5-flash-lite" is matched before
+    # "gemini-3.5-flash" would be.
+    "gemini-3.5-flash-lite": {"input": 0.30, "output": 2.50},
+    "gemini-3.6-flash": {"input": 0.75, "output": 3.75},
+    "gemini-3.7-flash": {"input": 0.75, "output": 3.75},
+    # --- OpenAI ---------------------------------------------------------------
+    "gpt-5.6-luna": {"input": 0.20, "output": 1.20},
+    "gpt-5.4-mini": {"input": 0.75, "output": 4.50},
+    "gpt-5-mini": {"input": 0.25, "output": 2.00},
+    "gpt-5-nano": {"input": 0.05, "output": 0.40},
     "gpt-4o-mini": {"input": 0.15, "output": 0.60},
     "gpt-4o": {"input": 2.50, "output": 10.00},
+}
+
+# ⚠️ 3.6/3.7-flash are on INTRODUCTORY pricing that ENDS 31 DECEMBER 2026.
+# From 1 January 2027 both DOUBLE to $1.50 input / $7.50 output. If either is in
+# production on that date, this table starts understating cost by 2x overnight
+# and nothing will fail — the estimate simply goes quiet and wrong.
+GEMINI3_FLASH_STANDARD_FROM_2027: Dict[str, Dict[str, float]] = {
+    "gemini-3.6-flash": {"input": 1.50, "output": 7.50},
+    "gemini-3.7-flash": {"input": 1.50, "output": 7.50},
 }
 _DEFAULT_LLM = "gemini-2.5-flash-lite"
 
