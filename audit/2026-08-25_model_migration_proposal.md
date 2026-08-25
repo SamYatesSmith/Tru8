@@ -1,7 +1,34 @@
 # Model migration proposal — replacing Gemini 2.5 before 16 October 2026
 
-**Date:** 2026-08-25 · **Status:** REVISED after design review, awaiting founder decision
+**Date:** 2026-08-25 · **Status:** ✅ SHIPPED AND LIVE-VERIFIED IN PRODUCTION (`e5467ce`)
 **Deadline:** 52 days. Every primary LLM stage is on a model that retires.
+
+---
+
+## 0a. OUTCOME — shipped 2026-08-25, both models on `gemini-3.5-flash-lite`
+
+Prod healthy on `e5467ce`. `/verify/{id}` returns `valid: true` on live checks
+signed with the **pre-migration** fingerprint `e4714656cddf` while the server now
+computes `4750b56a2a22` — proving the fingerprint fix works, since without it
+every historic check would read `data_modified`.
+
+**Mapping went to Flash-Lite, which is NOT what §5 recommended.** §5 argued for
+the tier-preserving `3.7-flash` on PARROT grounds. The premise-adoption probe
+then measured that concern directly and did not reproduce it (+0.11 elements
+against a baseline of −0.44 and baseline noise of 1.00), while Flash-Lite came in
+cheaper (1.84× vs 2.40×), faster (4.6s vs 10.3s per mapping call — faster than
+2.5-flash ran in production), most self-consistent of the three arms, and the
+only candidate keeping thinking genuinely off (0 thought tokens).
+
+**Three recommendations in this document were overturned by measurement in a
+single day** — Luna by the long-context finding, the "hard 400" premise by the
+live thinking probe, and `3.7-flash` by the premise probe. The pattern is the
+document's real lesson: every reversal came from measuring something that had
+been reasoned about confidently. `scripts/model_premise_probe.py` exists so the
+next mapping-model question starts with a number.
+
+⚠️ Rollback is `MAPPING_GOOGLE_MODEL=gemini-3.7-flash` on Railway — env var, no
+code change. n=3 pools rules out a large adoption effect, not a small one.
 
 ---
 

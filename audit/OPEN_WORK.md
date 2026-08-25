@@ -124,8 +124,35 @@ designed 2026-08-01 and never built:** identical pool run twice, with and withou
 the `Claim:` line, delta in `supported` badges both valence directions. Invariant
 #7 as one number; no public benchmark runs it.
 
-**✅ THE SWITCH IS MADE 2026-08-25 (`9c49389`) — `GOOGLE_LLM_MODEL=gemini-3.5-flash-lite`,
-`MAPPING_GOOGLE_MODEL=gemini-3.7-flash`.** Bulk moves down the obvious path;
+### ✅✅ MIGRATION COMPLETE AND LIVE-VERIFIED IN PRODUCTION 2026-08-25 (`e5467ce`)
+
+**The whole pipeline is off the retiring Gemini 2.5 family.** Prod healthy on
+`e5467ce`, 12/12 poll samples, no flapping. **Both models are now
+`gemini-3.5-flash-lite`** — `GOOGLE_LLM_MODEL` set as a Railway env var by the
+founder; `MAPPING_GOOGLE_MODEL` deliberately **left unset on Railway** so the
+code default governs it. `MAPPING_THINKING_BUDGET=0` **stays** — the new code
+translates it to `thinkingLevel: "minimal"`, measured at **0 thought tokens**, so
+the M1 latency lever survives the migration intact.
+
+**✅ `/verify/{id}` LIVE-VERIFIED — and the proof is the fingerprint, not the tick.**
+Two prod checks (`5d69fc71…`, `6fe1a7e8…`) return `valid: true`, both signed with
+pipeline fingerprint **`e4714656cddf`**. Computed locally: pre-migration config
+hashes to `e4714656cddf`, post-migration to `4750b56a2a22`. They differ — so
+**without the `9c49389` fix, verification would have recomputed from current
+settings and returned `data_modified` on every check ever signed.** It returns
+valid against the OLD fingerprint, which is the fix doing exactly its job.
+⚠️ **The route is `/verify/{id}` with NO `/api/v1` prefix** (`main.py:571` mounts
+it prefix-less) and it needs the **full UUID** — the short `/r/` slug (e.g.
+`11f54993`) correctly returns `not_found`.
+
+⚠️ **Ordering lesson, recorded because it nearly bit:** the founder's FIRST
+redeploy carried the new env var on the OLD code, which had no fingerprint fix —
+that window broke public verification for every historic record. **Env var
+changes that feed `compute_pipeline_fingerprint()` must land AFTER the code, not
+before.**
+
+**history — the switch as first shipped (`9c49389`): `MAPPING_GOOGLE_MODEL=gemini-3.7-flash`,
+superseded same day by `e5467ce` on the probe result.** Bulk moves down the obvious path;
 **mapping deliberately stays a TIER ABOVE the bulk**, as today, because it is the
 only stage carrying the user's claim in the prompt and the Google tier gap on
 exactly that failure is large (PARROT 50.7% Lite vs 17.2% Flash). Demoting
