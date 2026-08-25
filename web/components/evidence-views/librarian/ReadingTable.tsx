@@ -86,7 +86,7 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
       </div>
 
       {/* Title */}
-      <div className="text-sm font-medium text-zinc-900 mb-1">
+      <div className="text-sm font-medium text-zinc-900 mb-1 leading-snug break-words">
         {cleanTitle(evidence.title) || 'Untitled source'}
       </div>
 

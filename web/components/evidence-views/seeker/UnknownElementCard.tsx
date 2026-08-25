@@ -6,6 +6,7 @@ import { ElementStateBadge } from '@/components/claim-map/element-state-badge';
 import { ElementBadge } from '../ElementBadge';
 import { GapHighlight } from './GapHighlight';
 import { BountyField } from './BountyField';
+import { cleanTitle } from '../shared-utils';
 
 interface UnknownElementCardProps {
   element: ClaimElement;
@@ -27,10 +28,6 @@ const RELATIONSHIP_LABELS: Record<string, string> = {
   context: 'context',
 };
 
-function truncateTitle(title: string, maxLen = 40): string {
-  if (title.length <= maxLen) return title;
-  return title.slice(0, maxLen) + '\u2026';
-}
 
 export function UnknownElementCard({
   element,
@@ -112,13 +109,23 @@ export function UnknownElementCard({
             return (
               <span
                 key={ref.evidenceId}
-                className="inline-flex items-center gap-1.5 border border-zinc-200 bg-white px-2 py-0.5 text-[10px]"
+                className="inline-flex max-w-full items-center gap-1.5 border border-zinc-200 bg-white px-2 py-0.5 text-[10px]"
               >
-                <span className="font-mono lowercase text-zinc-600">
+                <span className="shrink-0 font-mono lowercase text-zinc-600">
                   {RELATIONSHIP_LABELS[ref.relationship] || ref.relationship}
                 </span>
-                <span className="text-zinc-300">·</span>
-                <span className="text-zinc-500">{truncateTitle(title)}</span>
+                <span className="shrink-0 text-zinc-300">·</span>
+                {/* Let the chip breathe with the viewport rather than cutting
+                    at a fixed character count — a 40-char slice showed the same
+                    stub on a 1440px desktop as on a phone. CSS truncates only
+                    when it actually has to, and the full title stays reachable
+                    on hover. */}
+                <span
+                  className="truncate text-zinc-500 max-w-[14rem] sm:max-w-[22rem] lg:max-w-[34rem]"
+                  title={cleanTitle(title) || title}
+                >
+                  {cleanTitle(title) || title}
+                </span>
               </span>
             );
           })}

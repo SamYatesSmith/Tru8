@@ -77,7 +77,7 @@ export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, relat
           {evidence.evidenceType && <TypeStamp type={evidence.evidenceType} />}
         </div>
         <div className="flex-grow min-w-0">
-          <div className="text-sm font-medium text-zinc-900 mb-1">
+          <div className="text-sm font-medium text-zinc-900 mb-1 leading-snug break-words">
             {cleanTitle(evidence.title) || 'Untitled source'}
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

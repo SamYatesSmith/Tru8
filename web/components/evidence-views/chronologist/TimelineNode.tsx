@@ -59,7 +59,7 @@ export function TimelineNode({
       {/* Tooltip — edge-aware positioning */}
       <div className={`absolute bottom-full ${tooltipAlign} mb-2 hidden group-hover:block z-20 pointer-events-none`}>
         <div className="bg-zinc-900 text-white px-3 py-2 max-w-[220px] whitespace-normal">
-          <p className="font-mono text-[10px] font-medium truncate">{cleanTitle(evidence.title) || 'Untitled'}</p>
+          <p className="font-mono text-[10px] font-medium line-clamp-3 break-words">{cleanTitle(evidence.title) || 'Untitled'}</p>
           <div className="flex items-center gap-1.5 mt-1">
             <span className="font-mono text-[9px] text-zinc-400">{domain}</span>
             <span className="font-mono text-[9px] text-zinc-600">&middot;</span>

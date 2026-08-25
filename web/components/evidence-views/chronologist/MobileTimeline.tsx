@@ -69,7 +69,7 @@ export function MobileTimeline({ items, clusters, undated, onCardClick }: Mobile
                     }}
                   />
                   <div className="min-w-0">
-                    <p className="text-[11px] font-medium text-zinc-900 truncate">
+                    <p className="text-[11px] font-medium text-zinc-900 line-clamp-2 break-words">
                       {cleanTitle(item.evidence.title) || 'Untitled'}
                     </p>
                     <span className="font-mono text-[9px] text-zinc-400">
@@ -100,7 +100,7 @@ export function MobileTimeline({ items, clusters, undated, onCardClick }: Mobile
               onClick={() => onCardClick(ev)}
               className="block w-full text-left border border-zinc-100 hover:border-zinc-300 p-2 mb-1 transition-colors"
             >
-              <p className="text-[11px] font-medium text-zinc-900 truncate">{cleanTitle(ev.title) || 'Untitled'}</p>
+              <p className="text-[11px] font-medium text-zinc-900 line-clamp-2 break-words">{cleanTitle(ev.title) || 'Untitled'}</p>
               <div className="flex items-center gap-1.5 mt-1">
                 <span className="font-mono text-[9px] text-zinc-400">{extractDomain(ev.url)}</span>
               </div>

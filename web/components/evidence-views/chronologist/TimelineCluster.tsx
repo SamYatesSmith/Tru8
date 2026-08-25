@@ -68,7 +68,7 @@ export function TimelineCluster({ count, items, dominantColor, onNodeClick, sele
             {count} sources on {formatShortDate(items[0].date)}
           </p>
           {items.slice(0, 3).map((item, i) => (
-            <p key={i} className="font-mono text-[10px] truncate">{cleanTitle(item.evidence.title) || 'Untitled'}</p>
+            <p key={i} className="font-mono text-[10px] line-clamp-2 break-words">{cleanTitle(item.evidence.title) || 'Untitled'}</p>
           ))}
           {items.length > 3 && (
             <p className="font-mono text-[9px] text-zinc-500 mt-1">+{items.length - 3} more &middot; Click to expand</p>

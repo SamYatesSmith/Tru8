@@ -12,22 +12,40 @@ export function extractDomain(url: string): string {
 
 /**
  * Tidy an evidence title for display. Search providers (Serper/Google) hand us
- * titles already truncated with a trailing ellipsis, often followed by a
- * redundant " - Site" / " | Site" suffix (we show the domain separately). We
- * can't recover the dropped words, but we can strip the lazy trailing "…" and
- * the orphaned site suffix so a title reads "…triggered seismicity" cleanly
- * rather than "…triggered seismicity … - Science". Clean titles (no ellipsis)
- * are left untouched — this only removes a dangling truncation marker.
+ * titles already cut at ~54 characters with a trailing ellipsis, often followed
+ * by a redundant " - Site" / " | Site" suffix (we show the domain separately).
+ *
+ * We drop the orphaned site suffix but KEEP a single "…" (2026-08-25). Deleting
+ * the marker made a provider-truncated title read as a deliberate full stop —
+ * "Britain braces for unprecedented water restrictions as" looks like a whole
+ * headline rather than the fragment it is, and the reader has no way to tell a
+ * complete title from a cut one. That is hidden curation of the display
+ * (invariant #5: every exclusion has a receipt); the ellipsis IS the receipt.
+ *
+ * Measured on the replay corpus: 34.3% of provider titles (209/609) arrive
+ * already truncated, median 54 chars — so this is the common case, not an edge.
+ *
+ * We cannot recover the dropped words here. That is the fetcher's job
+ * (`EvidenceExtractor._extract_title_from_html`, og:title → twitter:title →
+ * <title>), which cannot run when the page blocks us and retrieval falls back
+ * to the search snippet (`retrieve.py` snippet-fallback path). What this can do
+ * is not pretend the fragment is the whole thing.
+ *
+ * Clean titles (no ellipsis) are returned untouched.
  */
 export function cleanTitle(title?: string | null): string {
   if (!title) return '';
-  return title
+  const out = title
     .trim()
-    // trailing "… - Site" / "... | Site" (ellipsis + orphaned site suffix)
-    .replace(/\s*(?:\.{2,}|…)\s*[-|–—]\s*[^-|–—]+$/, '')
-    // bare trailing ellipsis
-    .replace(/\s*(?:\.{2,}|…)\s*$/, '')
+    // trailing "… - Site" / "... | Site" — keep the marker, drop the suffix
+    .replace(/\s*(?:\.{2,}|…)\s*[-|–—]\s*[^-|–—]+$/, '…')
+    // normalise any trailing "..." / " …" to one tight "…"
+    .replace(/\s*(?:\.{2,}|…)\s*$/, '…')
     .trim();
+  // A title that is nothing but a truncation marker carries no information —
+  // let the caller's "Untitled source" fallback take over. (Deliberately not a
+  // \p{L} class: this tsconfig targets pre-ES6, where the /u flag won't compile.)
+  return /[^\s.…]/.test(out) ? out : '';
 }
 
 export function formatShortDate(date: Date): string {
