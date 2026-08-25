@@ -124,11 +124,47 @@ designed 2026-08-01 and never built:** identical pool run twice, with and withou
 the `Claim:` line, delta in `supported` badges both valence directions. Invariant
 #7 as one number; no public benchmark runs it.
 
-**FOUNDER DECISION NEEDED: (1) approve the Google path, (2) approve the two-arm
-mapping probe (a few pence).** No spend approval needed beyond that — the
-migration is config plus one branch. `OPENAI_API_KEY` is still dead (401) but is
-**no longer a blocker** on the corrected path; it only gates the deferred Luna
-work and remains the reason the OpenAI *fallback* is inoperative locally.
+**✅ SHIPPED 2026-08-25 — the migration seam and its acceptance test are BUILT.
+No model string has changed; the switch is still a gated decision.**
+- **`95b36b4` — the thinking branch (`google_ai.py`).** 2.5 takes
+  `thinkingBudget`, 3.x rejects it with a **hard 400** and takes `thinkingLevel`.
+  The 2.5 branch is **byte-identical** (every cassette was recorded against it).
+  Per-model floor table, because 3.7-flash documents only low/medium/high and
+  **400s on `minimal`** while 3.5-flash-lite accepts it — an unprobed model
+  defaults to `low`, since erring high costs latency and erring low costs a 400
+  and a silent fallback. Gates: **3,314 unit tests pass / 0 fail**, mutation
+  matrix **3/3 FIRE**, tree SHA-verified restored.
+- **`95b36b4` — `cost_constants.py` restamped.** LLM rates **verified** against
+  vendor pages (they were right all along under an `UNVERIFIED` label since June
+  — an accurate number nobody trusts gets re-derived by hand every time).
+  Gemini 3.x + current OpenAI rows added, with the **1 Jan 2027 doubling** of
+  3.6/3.7-flash recorded beside them. Search rates remain genuinely unverified.
+- **`72674b5` — `scripts/model_premise_probe.py`.** The acceptance test.
+  Withholds the claim rather than deleting the line (deleting changes prompt
+  SHAPE and would confound the result). Reports self-disagreement beside the
+  delta — a delta inside the noise band is not a finding. **Guarded against its
+  own worst failure:** if the model override attribute is ever renamed every arm
+  runs the same model and reports a beautifully clean result, so it checks
+  `get_models_used()` and refuses to score an unapplied arm. Defaults to
+  `--dry-run`; **~81p** for the three-arm sweep.
+
+**⚠️ AFFORDABILITY — asked and answered, but only the SHAPE is certain.** At
+current volume the migration costs **~40p/month** (roughly 30 founder checks:
+$0.61 → $1.12). It is not a spend question, it is a unit-economics question, and
+unit economics only bite when subscribers exist. At Console full utilisation
+(200 checks, 10p/check) margin goes **84% → ~71%** (1.84×) or **~62%** (2.40×) on
+counted stages. **The local DB CANNOT confirm this** — it is dev data (1024
+failed / 4 completed, **zero search-metered checks**), so `cost_report` returns
+"cannot answer yet". ⚠️ **Search is the largest variable cost and is still
+UNMEASURED in every figure quoted.** The real number needs prod: `railway ssh`
+then `python -m scripts.cost_report` (memory: `railway run` cannot reach the prod
+DB). **Until that runs, treat every margin here as a ceiling.**
+
+**FOUNDER DECISION NEEDED: (1) approve the Google path, (2) approve the ~81p
+probe run, (3) run `cost_report` on prod so the margin stops being an estimate.**
+`OPENAI_API_KEY` is still dead (401) but is **no longer a blocker** — it only
+gates the deferred Luna work and remains why the OpenAI *fallback* is inoperative
+locally.
 
 ### ▶ history (2026-08-21): THE MACHINE IS FULLY LOADED — superseded by the 2026-08-24 block above
 
