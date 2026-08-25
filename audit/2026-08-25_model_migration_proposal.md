@@ -141,6 +141,51 @@ on 2026-08-01 as accepting `thinkingLevel:"minimal"` returning 200.
 
 ---
 
+## 3b. MEASURED 2026-08-25 — thinking behaviour is NOT uniform across Gemini 3
+
+Probed live against all three models rather than inferred from one. This
+corrects the 2026-08-01 record and changes the mapping trade-off.
+
+| model | bare `thinkingBudget=0` | `thinkingLevel` | thought tokens at floor |
+|---|---|---|---|
+| `gemini-3.5-flash-lite` | **400** "invalid argument" | `minimal` → 200 | **0** |
+| `gemini-3.7-flash` | **200 — SILENTLY IGNORED**, thinking ran anyway (83) | `low` → 200 · `minimal` → **400** | **~70** |
+| `gemini-2.5-flash` (today) | 200 | `low` → **400** | 0 |
+
+**Two different failure modes, and the quiet one is worse.** On `3.5-flash-lite`
+a bare budget is a hard 400 — loud, though it would still fall silently to the
+OpenAI path because `call_google_ai_with_usage` returns `None` on a terminal
+non-429/503 without retry. On `3.7-flash` the same field returns **200 and is
+discarded**: thinking runs, bills at the output rate, and a thinking-off config
+becomes a placebo nothing surfaces.
+
+⚠️ **The 2026-08-01 probe checked `3.5-flash-lite` only and concluded a silent
+ignore had been ruled out. It had been ruled out on one model of three.** This is
+the same shape as every other finding in this document: a claim verified on one
+instance and quoted forward as general.
+
+### What this does to the mapping decision
+
+Only **`3.5-flash-lite` preserves the M1 latency lever** — 0 thought tokens at
+`minimal`, identical to `2.5-flash` at `thinkingBudget=0` today. `3.7-flash`
+cannot: its lowest accepted level still spends ~70 thought tokens per call,
+billed as output, on top of costing 2.5× more per token.
+
+So the mapping choice is now a genuine three-way tension, not a simple
+tier-preservation argument:
+
+| | tier (PARROT) | thinking-off | cost |
+|---|---|---|---|
+| `gemini-3.7-flash` | ✅ Flash, matches today | ❌ ~70 thoughts/call | 2.40× |
+| `gemini-3.5-flash-lite` | ⚠️ Lite — the tier PARROT scores worst | ✅ 0 thoughts | 1.84× |
+
+**Shipped default is `3.7-flash`** (tier-preserving; erring toward the cheaper
+model on the honesty-critical call is the wrong default). The premise-adoption
+probe in §6 is what may justify demoting it — and if it does, the demotion buys
+back both the money *and* the latency lever.
+
+---
+
 ## 4. Costed options
 
 Split estimate derived from the $0.0203 baseline: **mapping ~12,000 in / 4,750
