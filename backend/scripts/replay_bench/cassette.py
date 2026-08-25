@@ -58,6 +58,7 @@ import base64
 import gzip
 import hashlib
 import json
+import os
 import re
 import threading
 from pathlib import Path
@@ -65,6 +66,11 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qsl, urlencode
 
 import httpx
+
+
+# Set while a cassette is patched in. Read by best-effort, non-signature
+# network work (see title_recovery) so replay stays deterministic.
+CASSETTE_ACTIVE_ENV = "TRU8_CASSETTE_ACTIVE"
 
 
 # Query-string params and headers that carry credentials. Excluded from the
@@ -255,11 +261,20 @@ class HttpxCassette:
                 HttpxCassette._orig_send_sync = httpx.Client.send
                 httpx.Client.send = _patched_send_sync  # type: ignore[assignment]
             HttpxCassette._depth += 1
+        # Advertise that a deterministic replay is in progress. Stages whose
+        # network calls are NOT part of the pipeline's behavioural signature
+        # (e.g. best-effort archive lookups) opt out on this, so they neither
+        # register as cassette misses nor need re-recording to stay green.
+        # Pipeline stages must NOT consult this — a stage that behaves
+        # differently under replay makes the bench measure the wrong thing.
+        os.environ[CASSETTE_ACTIVE_ENV] = "1"
         return self
 
     def __exit__(self, *_exc) -> None:
         with HttpxCassette._patch_lock:
             HttpxCassette._depth -= 1
+            if HttpxCassette._depth == 0:
+                os.environ.pop(CASSETTE_ACTIVE_ENV, None)
             if HttpxCassette._depth == 0 and HttpxCassette._orig_send is not None:
                 httpx.AsyncClient.send = HttpxCassette._orig_send  # type: ignore[assignment]
                 HttpxCassette._orig_send = None
