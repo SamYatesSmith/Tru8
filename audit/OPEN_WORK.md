@@ -5,7 +5,7 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-24, end of day)
+## 🟢 START HERE — next session (updated 2026-08-25, end of day)
 
 **This block is what to do next. Everything below the divider is history.**
 
@@ -58,6 +58,84 @@ elements read `supported`). **Final verified text: `audit/2026-08-21_send_sheet.
 **Durable drafting rule (cost us 4 email fixes): describe the RENDERED page,
 never the underlying data — and verify recipient titles.** The e3 provenance
 note the email originally pointed at exists only in the PDF + JSON.
+
+### ✅ SHIPPED 2026-08-25 — Evidence headlines were arriving pre-cut. Fixed at three layers; two decisions left.
+
+**Symptom** (founder screenshot, `/r/` reporting sources): titles stopped
+mid-sentence — *"Britain braces for unprecedented water restrictions as"*,
+*"UK planners warn water restrictions could be extended to"*. It read as a hard
+character cap in the frontend. **It was not one — we cap nothing.**
+
+**The real chain, measured on the replay corpus (609 titles / 350 results):**
+1. Serper/Google hand us titles **already cut at ~54 chars — 43.1% (151/350)**
+   arrive pre-truncated with a trailing ellipsis.
+2. `_extract_title_from_html` (og:title→twitter:title→`<title>`) already repairs
+   them — **50/55 (91%)** — but *only when the page fetch returns 200*.
+3. When the fetch fails, retrieval falls back to the search snippet and the cut
+   title survives. **`evidence.py` + `pdf_evidence.py` sent NO HTTP headers at
+   all**, so we announced ourselves as `python-httpx/<version>`.
+4. Frontend `cleanTitle()` then **stripped the trailing "…"**, turning a visible
+   fragment into what looks like a deliberate, complete headline.
+
+**MEASURED — use these numbers, do not re-derive them:**
+
+| lever | result |
+|---|---|
+| no headers (what we sent before) | **3/82** |
+| self-identifying `Tru8Bot` UA | **24/82** |
+| Chrome-impersonating UA | 25/82 |
+| Wayback on the 58 still blocked | snapshot 69%, **headline 47%** |
+| headline inside a 403 body | **0/96 — never happens** |
+| URL slug | 12.5%, and **unfaithful** |
+
+**DECISION — use the honest `Tru8Bot` UA; do NOT impersonate Chrome.** One URL
+separates them (24 vs 25), and **sec.gov serves the identifying UA while 403ing
+the Chrome one** — its policy requires callers to declare themselves.
+Impersonation buys ~1% and costs us primary sources. Settled; don't revisit.
+
+**REJECTED — URL-slug recovery.** A slug is SEO text, not the headline:
+lowercase, punctuation-stripped, and sometimes a *different* headline
+(*"UK weather: Temperature plummets to -23C, the lowest for…"* → *"uk weather
+extreme freeze could cause travel meltdown across"*). It would misrepresent a
+source under its own name. **Do not re-attempt.**
+
+**Shipped (5 commits):** frontend keeps the "…" (the marker IS the receipt —
+invariant #5) and clamps proportionately instead of by character count;
+`app/utils/browser_headers.py` used by `evidence.py:451` + `pdf_evidence.py:54`;
+`app/services/title_recovery.py` (Wayback, wired *after* filtering in
+`_retrieve_evidence_for_single_claim` so no call is spent on unseen evidence);
+cassette exports `TRU8_CASSETTE_ACTIVE`. Flags `ENABLE_TITLE_RECOVERY`,
+`TITLE_RECOVERY_MAX_PER_CLAIM`. Recovery only ever *lengthens*, only on visibly
+truncated titles, and always writes `title_basis` / `title_original`.
+
+**⚠️ THE BENCH CANNOT VERIFY THIS CHANGE — do not read a green run as proof.**
+Cassettes replay the recorded 403s regardless of what headers the request
+carries, and title recovery opts out of replay by design (else every corpus
+claim goes red on unrecorded archive.org requests). A bench run proves only
+that nothing *else* in `retrieve.py` regressed. Verified **live** instead:
+3 previously-403 URLs now fetch and yield real headlines through the shipped
+code, a 2.9MB BoE PDF downloads, Wayback recovered NEJM + congress.gov with
+receipts, and a complete control title was left untouched.
+
+**NEXT SESSION — open items from this work:**
+1. **Replay bench NOT run** (~$0.25, ~10 min). ⚠️ **The held mapping reframe is
+   NO LONGER in the tree** (verified 2026-08-25) — the long-standing bench
+   blocker is gone. Run it as a regression check on `retrieve.py`, not as
+   validation of the headline fix.
+2. **FOUNDER DECISION, UNMADE:** should evidence fetching inherit `ingest.py`'s
+   **4-UA retry-on-403 rotation**? It would raise recovery further, but
+   multiplies fetch volume across 40 slots/check. Evidence currently makes
+   **one polite attempt**.
+3. `backend/.env` holds a live `sk_live_` key. **NOT a leak** — gitignored,
+   never committed, and no real key appears anywhere in git history (verified
+   2026-08-25). The config guard discards it in dev. Swap to `sk_test_` only
+   to silence the startup warning.
+
+**Durable:** *a title that stops cleanly is worse than one that ends in "…" —
+deleting the truncation marker is hidden curation of the display.* And: **the
+frontend was innocent; the data arrived broken.** Before blaming a render, check
+what the pipeline actually stored.
+
 
 ### 🔴 OPEN 2026-08-25 — MODEL MIGRATION PROPOSAL ON THE TABLE. 52 days to 16 Oct.
 
