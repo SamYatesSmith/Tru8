@@ -171,6 +171,75 @@ upgrade, not the full tier.
 
 ---
 
+## 4b. Can we afford it at 1,000 subscribers? — the question that actually matters
+
+The current-volume answer (~40p/month) is true and useless. Here is the scaled one.
+
+**⚠️ Utilisation is MODELLED, not measured. We have zero paying subscribers using
+the product, so nobody knows what "the expected amount" is.** Everything below is
+arithmetic on stated assumptions, and the assumption that moves the answer most
+is the one we have no data for. Re-run this the moment real usage exists.
+
+### Per-check cost, both cost centres
+
+Search is derived from the real lane caps, not guessed: claim lane 3 queries x 13
+results (**2 Serper credits each**, over the 10-result threshold) + 5 element
+lanes x 2 queries x 5 results (1 credit each) = **16 credits per claim**, ~2.5
+claims per check. LLM is the counted stages x1.5 to cover the ~40% that telemetry
+misses.
+
+| | LLM | search | total | pence |
+|---|---|---|---|---|
+| today, Serper **entry** tier | $0.0304 | $0.0400 | $0.0704 | **5.50p** |
+| today, Serper **top** tier | $0.0304 | $0.0120 | $0.0424 | **3.32p** |
+| post-migration, entry tier | $0.0560 | $0.0400 | $0.0960 | **7.50p** |
+| post-migration, **top** tier | $0.0560 | $0.0120 | $0.0680 | **5.32p** |
+
+**Serper's volume tier is worth more than the entire model decision.** Moving from
+entry to top pricing saves 2.8p/check; the whole Gemini migration costs 2.0p. At
+1,000 users x 50 checks that is ~2,000,000 credits/month — firmly top-tier
+volume, but it has to be *procured*, not assumed.
+
+### 1,000 Console subscribers at £20/mo = £20,000/month revenue
+
+Serper at top tier, post-migration at 1.84x.
+
+| checks/user/mo | checks/mo | COGS today | COGS after | margin today | margin after | delta |
+|---|---|---|---|---|---|---|
+| 20 (10% of cap) | 20,000 | £663 | £1,063 | 97% | **95%** | £400 |
+| 50 (25% of cap) | 50,000 | £1,658 | £2,658 | 92% | **87%** | £1,000 |
+| 100 (50% of cap) | 100,000 | £3,316 | £5,316 | 83% | **73%** | £1,999 |
+| 200 (the full cap) | 200,000 | £6,633 | £10,632 | 67% | **47%** | £3,999 |
+
+### The answer
+
+**Yes — comfortably, and the 200-check cap is what makes it safe.**
+
+| | break-even checks/mo for one £20 subscriber | headroom to the cap |
+|---|---|---|
+| today | 603 | 3.0x |
+| post-migration | **376** | **1.9x** |
+
+A subscriber who consumes **every check the plan allows is still profitable**, at
+47% gross margin. That is the worst case the product can be made to produce, and
+it survives. At any realistic utilisation the migration costs **£400-£1,000/month
+against £20,000 of revenue** — one to five points of gross margin.
+
+**What this does change:** the cap stops being a formality. Pre-migration it sat
+at 3x break-even and could have been raised without much thought; post-migration
+it sits at 1.9x. **Do not raise the 200-check cap, and do not add an unlimited
+tier, without re-running this table.** That is the real constraint the migration
+imposes — not affordability, but the loss of half the headroom that made the cap
+uncontroversial.
+
+**Two costs deliberately excluded**, both of which dwarf the migration at low
+utilisation: **Stripe fees** (~50p per subscriber/month = **£500/month** at 1,000
+subs, comparable to the entire migration delta at 20 checks/user) and hosting.
+Neither is affected by the model choice, but neither should be forgotten when
+"gross margin" is quoted at anyone.
+
+---
+
 ## 5. Corrected recommendation — simplest and safest that clears the deadline
 
 **Stay on Google. Change two env vars. Change nothing else.**

@@ -148,17 +148,33 @@ No model string has changed; the switch is still a gated decision.**
   `get_models_used()` and refuses to score an unapplied arm. Defaults to
   `--dry-run`; **~81p** for the three-arm sweep.
 
-**⚠️ AFFORDABILITY — asked and answered, but only the SHAPE is certain.** At
-current volume the migration costs **~40p/month** (roughly 30 founder checks:
-$0.61 → $1.12). It is not a spend question, it is a unit-economics question, and
-unit economics only bite when subscribers exist. At Console full utilisation
-(200 checks, 10p/check) margin goes **84% → ~71%** (1.84×) or **~62%** (2.40×) on
-counted stages. **The local DB CANNOT confirm this** — it is dev data (1024
-failed / 4 completed, **zero search-metered checks**), so `cost_report` returns
-"cannot answer yet". ⚠️ **Search is the largest variable cost and is still
-UNMEASURED in every figure quoted.** The real number needs prod: `railway ssh`
-then `python -m scripts.cost_report` (memory: `railway run` cannot reach the prod
-DB). **Until that runs, treat every margin here as a ceiling.**
+**✅ AFFORDABILITY AT SCALE — modelled 2026-08-25, §4b of the proposal. YES, and
+the 200-check cap is what makes it safe.** 1,000 Console subs = £20,000/mo.
+
+| checks/user/mo | margin today | margin after | delta |
+|---|---|---|---|
+| 20 (10% of cap) | 97% | **95%** | £400 |
+| 50 (25% of cap) | 92% | **87%** | £1,000 |
+| 200 (full cap) | 67% | **47%** | £3,999 |
+
+**Break-even per £20 subscriber: 603 → 376 checks/month. Cap is 200, so headroom
+falls 3.0× → 1.9×.** A subscriber consuming EVERY check the plan allows is still
+profitable at 47%. ⚠️ **THE REAL CONSTRAINT THE MIGRATION IMPOSES IS NOT COST —
+it is that the cap stops being a formality. DO NOT raise the 200-check cap or add
+an unlimited tier without re-running §4b.**
+
+⚠️ **Serper's volume tier is worth MORE than the entire model decision** — entry
+→ top saves 2.8p/check; the whole Gemini migration costs 2.0p. 1,000 users × 50
+checks ≈ **2M credits/month**, firmly top-tier volume, but it must be *procured*,
+not assumed. Search derived from real lane caps (claim lane 13 results = **2**
+credits over Serper's 10 threshold; 16 credits/claim).
+
+⚠️ **Utilisation is MODELLED, not measured — zero paying subscribers use the
+product, so nobody knows the expected amount.** Excluded and non-trivial: Stripe
+~50p/sub/mo = **£500/mo at 1,000 subs**, comparable to the migration delta at low
+utilisation. **The local DB cannot confirm any of it** (dev data: 1024 failed / 4
+completed, **zero search-metered checks**). Prod: `railway ssh` →
+`python -m scripts.cost_report` (`railway run` cannot reach the prod DB).
 
 **FOUNDER DECISION NEEDED: (1) approve the Google path, (2) approve the ~81p
 probe run, (3) run `cost_report` on prod so the margin stops being an estimate.**
