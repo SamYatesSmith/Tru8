@@ -39,29 +39,40 @@ _MAX_DELAY = 30.0  # cap per-retry wait
 # Thinking control — the 2.5 → 3.x migration seam (2026-08-25)
 # ---------------------------------------------------------------------------
 # Gemini 2.5 takes ``thinkingConfig.thinkingBudget`` (an int; 0 = thinking OFF).
-# Gemini 3.x REJECTS that field with a hard 400 and takes ``thinkingLevel``
-# (a string) instead. Both directions were verified LIVE on 2026-08-01:
-#   gemini-3.5-flash-lite + thinkingBudget=0  -> 400 "invalid argument"
-#   gemini-3.5-flash-lite + thinkingLevel     -> 200
-#   gemini-2.5-flash      + thinkingBudget=0  -> 200 (thoughtsTokenCount=2)
-#   gemini-2.5-flash      + thinkingLevel     -> 400 "not supported for this model"
+# Gemini 3.x takes ``thinkingLevel`` (a string) instead. MEASURED LIVE 2026-08-25
+# — and the failure is NOT uniform, which is the point of this table:
 #
-# This matters more than it looks: ``call_google_ai_with_usage`` returns None on
-# any terminal non-429/503 WITHOUT retry, and every mapping caller then falls
-# through to the OpenAI path. A model-string change without this branch would be
-# loud in the logs and invisible in the product.
+#   model                  bare thinkingBudget=0        thinkingLevel
+#   ---------------------  ---------------------------  ----------------------
+#   gemini-3.5-flash-lite  400 "invalid argument"       minimal -> 200, 0 thoughts
+#   gemini-3.7-flash       200, SILENTLY IGNORED,       low     -> 200, 70 thoughts
+#                          thinking still ran (83)      minimal -> 400
+#   gemini-2.5-flash       200, 0 thoughts              low     -> 400
 #
-# ⚠️ Thinking cannot be fully DISABLED on any Gemini 3 model. ``minimal`` is
-# Google's documented migration target for ``thinking_budget=0`` and explicitly
-# "does not guarantee that thinking is off". Models differ in the floor they
-# accept, so it is a per-model table rather than one constant — 3.7-flash
-# documents only low/medium/high and 400s on anything lower.
+# ⚠️ TWO DIFFERENT FAILURES, and the quiet one is worse. On 3.5-flash-lite a bare
+# budget is a hard 400 — loud, and since ``call_google_ai_with_usage`` returns
+# None on a terminal non-429/503 WITHOUT retry, every mapping caller would fall
+# silently to the OpenAI path. On 3.7-flash the same field returns 200 and is
+# DISCARDED: thinking runs anyway and bills at the output rate, so a thinking-off
+# config becomes a placebo that nothing surfaces. (The 2026-08-01 probe checked
+# 3.5-flash-lite only and concluded a silent ignore had been ruled out. It had
+# not — it was ruled out on one model of three.)
+#
+# ⚠️ Thinking cannot be fully DISABLED on any Gemini 3 model, but the floors are
+# not equal: 3.5-flash-lite at ``minimal`` really does report 0 thought tokens,
+# while 3.7-flash's lowest accepted level still spends ~70. That difference is
+# the M1 latency lever, and only one of these models keeps it.
 _GEMINI3_THINKING_FLOOR: Dict[str, str] = {
-    "gemini-3.5-flash-lite": "minimal",  # live-verified 200, 2026-08-01
+    # live-verified 2026-08-25: 200, thoughtsTokenCount == 0
+    "gemini-3.5-flash-lite": "minimal",
+    # live-verified 2026-08-25: "minimal" -> 400 "Thinking level MINIMAL is not
+    # supported for this model". Listed explicitly rather than left to the
+    # default so the measurement is recorded where someone would look for it.
+    "gemini-3.7-flash": "low",
 }
-# "low" is accepted by every 3.x model tested and is the safe default for a
-# model we have not probed. Erring high costs latency and thinking tokens; erring
-# low costs a 400 and a silent fallback, which is far worse.
+# "low" is accepted by every 3.x model tested and is the safe default for a model
+# we have not probed. Erring high costs latency and thinking tokens; erring low
+# costs a 400 — and on some models a SILENT no-op — which is far worse.
 _GEMINI3_DEFAULT_FLOOR = "low"
 # A budget > 0 means the caller asked for SOME thinking (the rollback path from
 # MAPPING_THINKING_BUDGET=0 → =1024). There is no token-budget equivalent on
