@@ -10,6 +10,8 @@ from typing import Optional, Dict, Any, List
 from io import BytesIO
 import httpx
 
+from app.utils.browser_headers import binary_fetch_headers
+
 logger = logging.getLogger(__name__)
 
 # ── Peak-memory guards (2026-07-23, check 46406547 outage) ──────────────────
@@ -51,7 +53,12 @@ class PDFEvidenceExtractor:
         try:
             # Download PDF — streamed, hard byte cap (memory guard 1)
             logger.info(f"Downloading PDF: {url}")
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
+            # Same identification as the HTML evidence fetch — a PDF host that
+            # rejects "python-httpx/<version>" blocks us just as readily, and a
+            # blocked primary-source PDF is a silently lost citation.
+            async with httpx.AsyncClient(
+                timeout=self.timeout, headers=binary_fetch_headers()
+            ) as client:
                 async with client.stream("GET", url) as response:
                     response.raise_for_status()
                     declared = int(response.headers.get("content-length") or 0)

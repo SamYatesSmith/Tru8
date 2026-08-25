@@ -11,6 +11,7 @@ import bleach
 from bs4 import BeautifulSoup
 from app.services.search import SearchResult, SearchService
 from app.utils.date_provenance import derive_date_basis
+from app.utils.browser_headers import browser_headers
 from app.utils.url_utils import extract_domain
 from app.utils.domain_status_tracker import get_domain_tracker, DomainStatus
 from app.utils.encoding import fix_mojibake
@@ -448,8 +449,16 @@ class EvidenceExtractor:
                         logger.info(f"⛔ Skipping blocked domain: {domain}")
                         return None
 
+                # Identify ourselves. With no headers httpx sends
+                # "python-httpx/<version>", which publishers reject on sight:
+                # 3/82 of the corpus's blocked URLs succeeded that way vs 24/82
+                # with this header set. A 403 here is not cosmetic — retrieval
+                # falls back to the search snippet, degrading evidence TEXT as
+                # well as the title. See app/utils/browser_headers.py.
                 async with httpx.AsyncClient(
-                    timeout=self.timeout, follow_redirects=True
+                    timeout=self.timeout,
+                    follow_redirects=True,
+                    headers=browser_headers(),
                 ) as client:
                     response = await client.get(search_result.url)
                     response.raise_for_status()
