@@ -272,6 +272,51 @@ phone-queuing reduction, never "missed appointments". Product gaps found by
 the pass are on the OPEN_WORK register (uncertainty rendering = approved
 frontend fix; derivation persistence + gaps-vs-caveats = parked pipeline work).
 
+## ADVERSARIAL VERIFICATION ROUND 2 (2026-08-25) — Viglione + Seymour, both wrong before sending
+
+Same method as the TTE pass. Both notes had send-blocking errors. Both rewritten
+in the send sheet (untracked — recipient data). Reasoning kept here.
+
+**Error 1, in both notes: they said the record shows the GWIS/Russia dataset
+problem. It does not appear on the page.** That reasoning is held in element
+`uncertainty`, which has no frontend surface (the gap found 2026-08-24; the fix
+is approved and unbuilt). This is the TTE failure one note later — drafted from
+the data, not the rendered page. Worst possible version of it here, because
+Viglione co-wrote that dataset analysis and would look for it.
+
+**Error 2, Viglione only: the note said Ridley's tweet was marked as a recital
+rather than evidence. The linked record showed the opposite** — `Matt Ridley
+(@mattwridley) on X · 01 · challenges`. The tweet making the claim was mapped as
+challenging it. The recital behaviour belongs to the re-run, not the original;
+the note was written from one record and linked to another.
+
+**Record swapped, reversing the 2026-08-21 decision.** That decision kept the
+ORIGINAL `d18d1b02` because it "names the Russia/GWIS crux". It names it only in
+`uncertainty`, which does not render — so the original's sole advantage was
+invisible to every reader, while the re-run's advantage (Ridley correctly scoped
+to context) is visible. Both notes now use the re-run `fa08cff7`.
+
+Trade-off accepted and recorded: the re-run is thinner — 5 of 13 sources bear
+directly vs 10 of 14, and it loses the World Weather Attribution study and the
+JRC data. For a factchecker, thin is better than visibly wrong.
+
+**Error 3, Seymour: "useful ammunition for your writing" removed.** He is an
+avowedly Marxist writer and the claim circulates on the right. Offering
+ammunition frames Tru8 as a partisan weapon, which contradicts invariant #7 and
+the "organises, doesn't decide" line the Viglione note closes on.
+
+**Also corrected:** "each source's relationship" softened (17 reviewed, 13
+organised); the "EFFIS" label removed (the page never carried it); Robert
+McSweeney credited as co-author of the factcheck — he is a separate recipient
+with a different record, and the two notes must not read as templated.
+
+**Recipient facts verified:** Giuliana Viglione is Associate editor at Carbon
+Brief (since Jan 2026, PhD Caltech); Robert McSweeney is Senior science editor;
+Seymour's "Welcome to the Pyrocene" (5 Aug, New Statesman) confirmed live.
+
+**Standing rule, now twice-proven: draft from the rendered page, and check the
+note is describing the record it actually links to.**
+
 ## The cadence
 
 - **5 sends/week for 10 weeks. Every message bespoke.** Each ≈ 20 min: find
