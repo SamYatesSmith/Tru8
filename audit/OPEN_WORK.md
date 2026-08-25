@@ -124,8 +124,37 @@ designed 2026-08-01 and never built:** identical pool run twice, with and withou
 the `Claim:` line, delta in `supported` badges both valence directions. Invariant
 #7 as one number; no public benchmark runs it.
 
-**✅ SHIPPED 2026-08-25 — the migration seam and its acceptance test are BUILT.
-No model string has changed; the switch is still a gated decision.**
+**✅ THE SWITCH IS MADE 2026-08-25 (`9c49389`) — `GOOGLE_LLM_MODEL=gemini-3.5-flash-lite`,
+`MAPPING_GOOGLE_MODEL=gemini-3.7-flash`.** Bulk moves down the obvious path;
+**mapping deliberately stays a TIER ABOVE the bulk**, as today, because it is the
+only stage carrying the user's claim in the prompt and the Google tier gap on
+exactly that failure is large (PARROT 50.7% Lite vs 17.2% Flash). Demoting
+mapping to save 0.56× would trade the product for money on the one call that IS
+the product. The probe may earn that saving back on a measured number.
+⚠️ **Rollback is an env var, no code change**, and works until 16 Oct.
+⚠️ **Prod may pin these as Railway env vars — if so, changing the default does
+NOTHING and prod stays on the retiring models. FOUNDER MUST CHECK.**
+
+**🔴 MEASURED LIVE 2026-08-25 — the 2026-08-01 thinking record was RIGHT ABOUT ONE
+MODEL AND WRONG AS A GENERALISATION (`bb0a7b8`):**
+
+| model | bare `thinkingBudget=0` | `thinkingLevel` | thoughts at floor |
+|---|---|---|---|
+| `3.5-flash-lite` | **400** | `minimal` ✓ | **0** |
+| `3.7-flash` | **200 — SILENTLY IGNORED, thinking ran anyway (83)** | `low` ✓ · `minimal` **400** | **~70** |
+| `2.5-flash` | 200 | `low` **400** | 0 |
+
+**Two failure modes and the quiet one is worse:** a 400 is loud; 3.7-flash
+returns 200, DISCARDS the field and bills you for thinking you asked not to have
+— a placebo nothing surfaces. The 08-01 probe tested `3.5-flash-lite` alone and
+declared silent-ignore ruled out; it was ruled out on one model of three.
+⚠️ **Only `3.5-flash-lite` preserves the M1 latency lever (0 thoughts).**
+`3.7-flash` spends ~70 thought tokens at its lowest accepted level, billed as
+output, on top of costing 2.5× more per token. **So demoting mapping would buy
+back the money AND the latency** — which is now a real argument, and exactly what
+the probe exists to settle.
+
+**✅ ALSO SHIPPED — the migration seam and its acceptance test.**
 - **`95b36b4` — the thinking branch (`google_ai.py`).** 2.5 takes
   `thinkingBudget`, 3.x rejects it with a **hard 400** and takes `thinkingLevel`.
   The 2.5 branch is **byte-identical** (every cassette was recorded against it).
