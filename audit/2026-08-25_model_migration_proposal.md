@@ -1,7 +1,32 @@
 # Model migration proposal — replacing Gemini 2.5 before 16 October 2026
 
-**Date:** 2026-08-25 · **Status:** PROPOSAL, awaiting founder decision
+**Date:** 2026-08-25 · **Status:** REVISED after design review, awaiting founder decision
 **Deadline:** 52 days. Every primary LLM stage is on a model that retires.
+
+---
+
+## 0. Design review outcome — the first recommendation was WRONG, and is withdrawn
+
+The first version of this document recommended moving the **whole pipeline to
+`gpt-5.6-luna`** on the grounds that it was cost-neutral, an intelligence rise,
+and zero new integration. Reviewed against the code and the benchmark sources on
+the same day. **All three grounds are false or overstated. Five defects, one
+fatal.** Recorded in full because the reasoning was wrong in ways worth not
+repeating.
+
+| # | defect | severity |
+|---|---|---|
+| 1 | **Luna fails at long context — 41.3% vs Terra's 72.5%.** The distiller is a **22,275-token** task and the pipeline's largest consumer (60% of all input). The proposal put the biggest stage on the model's measured weakness. | **FATAL** |
+| 2 | **"Cost-neutral" was overstated.** $0.0200 vs $0.0203 covers only the 3 stages that report tokens. The ~40% uncounted input runs on `2.5-flash-lite` today and would move to Luna at **2× input / 3× output with no offsetting saving**. Whole-pipeline is a rise, not neutral. | HIGH |
+| 3 | **The intelligence claim was measured at the wrong operating point.** Intelligence Index 51-52 is **Luna (max)**. The proposal runs at `reasoning_effort:"none"`. No published score exists at `none`. Citing one to justify the other is not evidence. | HIGH |
+| 4 | **"Zero new integration" was wrong.** `evidence_distiller.py` has **no OpenAI path at all**. And the existing `_call_openai` (`claim_map_analyzer.py`) is a hand-rolled httpx POST that sends `max_tokens` (deprecated, incompatible with reasoning models) and `temperature`, uses loose `response_format: {"type":"json_object"}` instead of a strict schema, and **has no `reasoning_effort` parameter at all** — so on the code we actually have, thinking cannot be turned off. **The entire latency argument rested on a parameter the codebase cannot send.** | HIGH |
+| 5 | **The PARROT argument was sibling substitution** — `gpt-5-mini`/`gpt-5` were measured; `gpt-5.6-luna` and `gpt-5.4-mini` were not. This is the exact error the 2026-08-01 audit warned about ("sibling substitution actively misleads"). The vendor-level pattern is weaker evidence than it was presented as. | MEDIUM |
+
+**What survives review:** the §2 stage analysis, the §3 prices, the §4 relative
+costs, the §6 test design, and the finding that **Gemini 3.7 Flash is the wrong
+answer** (unchanged — same price as 3.6, no thinking-off, TTFT alone exceeds our
+mapping stage). What does not survive is the vendor switch as a *deadline*
+project. **See §5 for the corrected recommendation.**
 
 ---
 
@@ -70,9 +95,17 @@ the user asserts a wrong one) says why:
 | GPT-5 | 3.6% |
 
 **Read the counter-signal, not just the ordering: OpenAI's *cheap* tier beat
-Google's *large* one.** Tier risk is not uniform across vendors — which reframes
-the whole migration. "Stay on a Lite tier" is dangerous on Google and not
-obviously dangerous on OpenAI.
+Google's *large* one.** Tier risk is not uniform across vendors.
+
+⚠️ **But do not lean on this table to choose a model — it does not name any
+candidate we can actually buy.** Every row is a *previous-generation sibling* of
+a live model. The 2026-08-01 audit established that sibling substitution actively
+misleads (`2.5-flash-lite` ranks BETTER than `2.5-flash` on Vectara HHEM and 3×
+WORSE on PARROT). The first version of this document used these numbers to argue
+for `gpt-5.6-luna` and `gpt-5.4-mini`, **neither of which PARROT measured** — that
+was defect #5 in §0. What the table legitimately supports is one narrow claim:
+**within-vendor tier gaps are large on Google**, which is why our own Flash /
+Flash-Lite split exists and why mapping deserves its own probe. Nothing more.
 
 ---
 
@@ -114,16 +147,16 @@ Split estimate derived from the $0.0203 baseline: **mapping ~12,000 in / 4,750
 out**, bulk ~25,047 in / 5,749 out. Console sells 200 checks for £20, so **10p
 (~$0.125) of revenue per check** at full utilisation.
 
-| # | bulk | mapping | $/check | x today | Console margin |
-|---|---|---|---|---|---|
-| 0 | `2.5-flash-lite` | `2.5-flash` | $0.0203 | 1.00x | 84% |
-| **D** | **`gpt-5.6-luna`** | **`gpt-5.6-luna`** | **$0.0200** | **0.99x** | **84%** |
-| A | `3.5-flash-lite` | `3.5-flash-lite` | $0.0374 | 1.84x | 70% |
-| C | `gpt-5.6-luna` | `gemini-3.7-flash` | $0.0387 | 1.91x | 69% |
-| **E** | **`gpt-5.6-luna`** | **`gpt-5.4-mini`** | **$0.0423** | **2.08x** | **66%** |
-| F | `gpt-5.6-luna` | `claude-haiku-4-5` | $0.0477 | 2.35x | 62% |
-| B | `3.5-flash-lite` | `gemini-3.7-flash` | $0.0487 | 2.40x | 61% |
-| G | `gpt-5.6-luna` | `claude-sonnet-5` | $0.0834 | 4.11x | 33% |
+| # | bulk | mapping | $/check | x today | Console margin | verdict |
+|---|---|---|---|---|---|---|
+| 0 | `2.5-flash-lite` | `2.5-flash` | $0.0203 | 1.00x | 84% | today — retires 16 Oct |
+| D | `gpt-5.6-luna` | `gpt-5.6-luna` | $0.0200 | 0.99x | 84% | ⛔ **withdrawn** — §0 defects 1-4 |
+| **A** | **`3.5-flash-lite`** | **`3.5-flash-lite`** | **$0.0374** | **1.84x** | **70%** | ✅ **RECOMMENDED floor** |
+| C | `gpt-5.6-luna` | `gemini-3.7-flash` | $0.0387 | 1.91x | 69% | inherits Luna's defects |
+| E | `gpt-5.6-luna` | `gpt-5.4-mini` | $0.0423 | 2.08x | 66% | deferred to Nov (§5) |
+| F | `gpt-5.6-luna` | `claude-haiku-4-5` | $0.0477 | 2.35x | 62% | no Anthropic client |
+| **B** | **`3.5-flash-lite`** | **`gemini-3.7-flash`** | **$0.0487** | **2.40x** | **61%** | ✅ **if the probe earns it** |
+| G | `gpt-5.6-luna` | `claude-sonnet-5` | $0.0834 | 4.11x | 33% | too thin |
 
 **Every margin above is a CEILING.** Search spend is excluded, and telemetry
 covers analyzer + classifier + distiller only — extract, relevance scorer, query
@@ -138,49 +171,89 @@ upgrade, not the full tier.
 
 ---
 
-## 5. Proposal
+## 5. Corrected recommendation — simplest and safest that clears the deadline
 
-### Step 1 — move the whole pipeline to `gpt-5.6-luna`. Cost-neutral.
+**Stay on Google. Change two env vars. Change nothing else.**
 
-$0.0200/check against today's $0.0203. **Not a compromise to fit a budget — an
-intelligence increase on nine of ten stages**, since everything except mapping
-runs on `2.5-flash-lite` today and Artificial Analysis puts Luna (Intelligence
-Index 52) at or above **Gemini 3.5 Flash** — a tier above the Flash-Lite class we
-would otherwise be migrating to.
+```
+GOOGLE_LLM_MODEL   = gemini-2.5-flash-lite  →  gemini-3.5-flash-lite
+MAPPING_GOOGLE_MODEL = gemini-2.5-flash     →  (probe decides: 3.5-flash-lite or 3.7-flash)
+```
 
-What it buys:
+Cost: **$0.0374/check on the counted stages, 1.84×, ~70% Console margin** if both
+land on `3.5-flash-lite`. Up to 2.40× if the probe promotes mapping to `3.7-flash`.
 
-- **`reasoning_effort:"none"` genuinely exists.** The only candidate that keeps
-  the latency lever. Worst case on speed is *maintained*, which is the bar set.
-- **Google retirement risk leaves the critical path entirely.**
-- **Single-vendor exposure ends.** Google becomes the fallback — including for
-  the distiller and `extract.py:1125`, which today have **no fallback at all**.
-- 1.05M context, vision (OCR path), structured outputs, cutoff Feb 2026.
-- The OpenAI client already exists in the codebase. Zero new integration.
+### Why this is the right shape under "simple and safe"
 
-### Step 2 — spend margin on mapping only, and only on a measured number.
+- **No new integration anywhere.** Same REST surface, same client, same auth, same
+  `google_ai.py`. The distiller — which has no OpenAI path and is 60% of input —
+  keeps working untouched.
+- **Both risky unknowns are already closed by our own live probes** (2026-08-01,
+  not vendor claims): `thinkingLevel:"minimal"` returns 200 on
+  `gemini-3.5-flash-lite`, and the flat `responseMimeType`/`responseSchema` we
+  send **still works on 3.x**, enums included. Nothing about structured output
+  needs building.
+- **The prompt family is unchanged.** `MAPPING_PROMPT` and its force-calibration
+  reframe were tuned against Gemini behaviour. ForceBench's finding — the prompt
+  moved violations 47.2% → 24.5%, more than any model choice did — says the prompt
+  is the bigger lever, and a vendor change throws away that tuning.
+- **No announced retirement** on `gemini-3.5-flash-lite`.
+- **One thing to get right, not ten:** `google_ai.py:333-334` needs a
+  `thinking_level` branch in the same commit as the model string, or every call
+  400s. That is the whole build.
 
-If the probe in section 6 shows Luna cannot hold invariant #7 on the mapping
-call, promote **that one stage** to `gpt-5.4-mini` (option E): **$0.0423/check,
-2.08x, 66% Console margin retained**. Same vendor, same client, same auth — a
-config change, not a build.
+⚠️ **Not `gemini-3.1-flash-lite`, despite it being Google's named replacement for
+our Flash-Lite** — it already carries a **7 May 2027** shutdown and its own
+successor, i.e. migrating twice.
 
-This is the honest way to take the founder's "narrow the margin for intelligence"
-instinct: spend it where the product lives, after a number says it is needed,
-rather than across ten stages on a guess.
+### The honest cost story
+
+**Google deleted the price point we were on.** There is no cheap Gemini 3 tier:
+`2.5-flash-lite` was $0.10/$0.40 and the nearest Gemini 3 equivalent is
+$0.30/$2.50 — 3× input, 6× output. **Costs rise on every available path**,
+including doing nothing (doing nothing ends in the pipeline not running). The
+question is only how much, at what risk.
+
+⚠️ **Every ratio in §4 is measured on the counted stages only. Whole-pipeline
+ratios are WORSE for every candidate**, because the ~40% uncounted input all sits
+on the cheapest model we run today and has no expensive stage to offset against.
+The direction is certain; the magnitude is not, because output tokens for those
+stages have never been measured. **Do not quote a whole-pipeline figure until
+`cost_constants.py` counts every stage.**
+
+### Where the founder's "spend margin on intelligence" instinct should land
+
+**On mapping, and only on mapping** — it is the only call carrying the user's
+claim in the prompt (`claim_map_analyzer.py:1474`), so it is where invariant #7
+is won or lost. Everything else is plumbing. Run the §6 probe with two arms —
+`3.5-flash-lite` and `3.7-flash` — and let the premise-adoption number decide.
+That is a 0.56× cost step (1.84× → 2.40×) bought on evidence.
+
+### Deferred, NOT rejected: `gpt-5.6-luna` as a cost project
+
+Luna is genuinely interesting — $0.20/$1.20, real `reasoning_effort:"none"`,
+1.05M context — but it is a **cost-reduction project for after the deadline**,
+not a deadline project. Before it can be considered it needs, in order:
+1. `OPENAI_API_KEY` restored (dead, 401).
+2. The OpenAI client rebuilt: `max_completion_tokens`, `reasoning_effort`, strict
+   `json_schema`, and an OpenAI path written for the distiller and `extract.py:1125`.
+3. **A long-context measurement on the distiller task specifically**, given the
+   41.3% figure. If Luna fails there, the distiller stays on Gemini and the
+   three-model split has to justify its own complexity.
+
+None of that is 52-day work alongside send week. **Do it in November, on measured
+numbers, with the deadline already behind us.**
 
 ### What I am recommending against, and why
 
-- **`gemini-3.7-flash` anywhere** — costs 3.7x more than Luna on the mapping call,
-  cannot turn thinking off, and sits in the model family that PARROT scores worst
-  on the exact failure mode our product exists to avoid.
-- **`gemini-3.5-flash-lite` for the bulk** — 45% dearer than Luna and less capable.
-  Its only advantage is REST-surface continuity, which is worth less than a
-  vendor change is worth.
-- **Claude on mapping (F/G)** — plausible on quality, but there is no Anthropic
-  client in the codebase (`ANTHROPIC_API_KEY` is deprecated at `config.py:59`),
-  so it is a new integration under a 52-day deadline. Revisit if the probe rules
-  out both OpenAI tiers.
+- **`gemini-3.7-flash` for the bulk** — 2.5× the price of `3.5-flash-lite`, and it
+  cannot turn thinking off, so it is slower *and* dearer on nine stages that do
+  not need the intelligence. Viable for mapping alone, if the probe earns it.
+- **A vendor switch as a deadline project** — see §0. The integration is real, the
+  latency lever does not exist in our code today, and the one benchmark that bears
+  on our largest stage says the candidate is weak at it.
+- **Claude (options F/G)** — no Anthropic client exists (`ANTHROPIC_API_KEY`
+  deprecated at `config.py:59`). Same objection as Luna, plus a new SDK.
 
 ---
 
@@ -224,39 +297,60 @@ attribution or sycophancy score. Established 2026-08-01, re-confirmed today.
 
 ---
 
-## 7. Build items — none of these are optional
+## 7. Build items for the corrected (Google) path
 
-1. **`OPENAI_API_KEY` is dead locally (401).** Today it is the fallback; under
-   this proposal it is **primary**. Nothing can be evaluated until it is live.
-   **This is the first blocker and it is a founder action.**
-2. **`PRIMARY_LLM_PROVIDER` controls no routing** — it only feeds the manifest
-   hash. The Google-first cascade is hardcoded in five files (`query_planner.py`,
-   `claim_map_analyzer.py:1797`, `evidence_classifier.py:838`, `claim_selector.py`,
-   `relevance_scorer.py:648`). Inverting primary/fallback is a real change.
-3. **`evidence_distiller.py` and `extract.py:1125` have no fallback.** Moving them
-   to OpenAI without adding Google as fallback swaps one single point of failure
-   for another. Add the inverse path in the same commit.
-4. **Manifest fingerprint.** `manifest_signer.py:39-46` hashes the model settings,
+**Mandatory, in this order:**
+
+1. **`google_ai.py:333-334` needs a `thinking_level` branch, in the same commit as
+   the model string.** A lone `thinkingBudget` is a **hard 400** on 3.x, and
+   `google_ai.py:254-256` returns `None` on any non-429/503 **without retry** — so
+   mapping would fall silently to a dead OpenAI key. Loud in logs, invisible in
+   product. This is the single highest-risk line in the migration.
+2. **Manifest fingerprint.** `manifest_signer.py:39-46` hashes the model settings,
    so any change makes `GET /verify/{id}` return `{"valid": false, "reason":
    "data_modified"}` **for every historic check**. Nothing errors — the public
-   verification endpoint simply starts lying. Must be resolved as part of the
-   migration, not after. Prod state of `MANIFEST_SIGNING_ENABLED` unverified.
-5. **Temperature.** `DECOMPOSITION_TEMPERATURE=0.2` / `ANALYZER_TEMPERATURE=0.2`
-   pin determinism the replay corpus rests on. Reasoning models typically reject
-   `temperature`; confirm behaviour at `reasoning_effort:"none"` before assuming.
+   verification endpoint simply starts lying. Resolve as part of the migration,
+   not after. Prod state of `MANIFEST_SIGNING_ENABLED` is unverified.
+3. **Temperature.** `temperature` is advised removed on 3.x (low values "may lead
+   to looping or degraded performance"), but `DECOMPOSITION_TEMPERATURE=0.2` /
+   `ANALYZER_TEMPERATURE=0.2` pin the determinism the replay corpus rests on.
+   Decide deliberately; do not let it change by default.
+4. **Re-record the replay corpus after the swap.** Cassettes are invalidated by
+   construction. This is the *post*-migration regression net, not the pre-flight
+   check — the §6 probe is the pre-flight check. Sequence them in that order.
+
+**Fold in while there (cheap, unblocked, and already wrong today):**
+
+5. **`cost_constants.py` says `UNVERIFIED`** but its 2.5 rates match Google's
+   published page exactly. Restamp, add the 3.x rows, and **wire the uncounted
+   stages into telemetry** — until that lands, no whole-pipeline cost figure can
+   be quoted honestly (see §5).
 6. **`LLM_RELEVANCE_MODEL` is pinned to `gpt-4o-mini-2024-07-18`** — a dated pin
-   that already points at the old generation. Fold into the same pass.
-7. **If any Gemini path survives**, `google_ai.py:333-334` needs a `thinking_level`
-   branch **in the same commit as the model string**, or every call 400s.
+   pointing at the previous generation, on a dead local key.
+
+**Only if Luna is ever revisited (§5, deferred):** `OPENAI_API_KEY` restored;
+`PRIMARY_LLM_PROVIDER` made to actually route (it feeds only the manifest hash —
+the cascade is hardcoded in `query_planner.py`, `claim_map_analyzer.py:1797`,
+`evidence_classifier.py:838`, `claim_selector.py`, `relevance_scorer.py:648`);
+OpenAI paths written for `evidence_distiller.py` and `extract.py:1125`; and the
+`_call_openai` body rebuilt (`max_completion_tokens`, `reasoning_effort`, strict
+`json_schema`).
 
 ---
 
 ## 8. Decision needed from the founder
 
-1. **Approve Step 1** (whole pipeline to `gpt-5.6-luna`, cost-neutral). — the ask
-2. **Restore `OPENAI_API_KEY`** — blocks all evaluation, including Step 2.
-3. **Note only:** Step 2 (mapping to `gpt-5.4-mini`, 2.08x, 66% margin) is a
-   config change to be taken *after* the probe, not now.
+1. **Approve the Google path** — `GOOGLE_LLM_MODEL=gemini-3.5-flash-lite`, build
+   the `thinking_level` branch, handle the manifest fingerprint. ← the ask
+2. **Approve the mapping probe** — two arms, `3.5-flash-lite` vs `3.7-flash`, on
+   the frozen pools. Cost is a few pence of API spend. The premise-adoption number
+   decides whether mapping costs us 1.84× or 2.40×.
+3. **Note only:** Luna is deferred to November as a cost project, not rejected.
+   It needs a restored key, a rebuilt OpenAI client, and a long-context
+   measurement on the distiller before it can be considered.
+
+**Not asked for now:** any spend approval. The probe is pence; the migration is
+config plus one branch.
 
 ---
 

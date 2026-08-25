@@ -74,25 +74,46 @@ current mapping stage (11-15s)**. Faster generation (371-389 tok/s vs 274) does
 not help: we never spent our time generating tokens. It is a **regression against
 `gemini-3.5-flash-lite`**, which does accept `minimal`.
 
-**RECOMMENDED — Step 1: whole pipeline → `gpt-5.6-luna`. $0.0200/check vs today's
-$0.0203 — cost-NEUTRAL, and an intelligence rise on 9 of 10 stages** (everything
-but mapping runs on `2.5-flash-lite` today; AA puts Luna at or above Gemini 3.5
-*Flash*). Only candidate with a genuine `reasoning_effort:"none"`, so the latency
-lever survives. Ends single-vendor exposure, gives the **fallback-less** distiller
-and `extract.py:1125` a fallback for the first time, and the OpenAI client already
-exists — zero new integration.
+**⛔ THE FIRST RECOMMENDATION (whole pipeline → `gpt-5.6-luna`) WAS WRONG AND IS
+WITHDRAWN — design-reviewed the same day, five defects, one fatal.** Recorded in
+§0 of the doc because the reasoning was wrong in ways worth not repeating:
+**(1) FATAL — Luna fails at long context, 41.3% vs Terra 72.5%, and the distiller
+is a 22,275-token task carrying 60% of all input**, i.e. the proposal put the
+biggest stage on the model's measured weakness. (2) "Cost-neutral" covered only
+the 3 stages that report tokens; the ~40% uncounted input sits on flash-lite today
+and would move at 2×/3× **with no offsetting saving**. (3) The Intelligence Index
+52 is **Luna (max)** — the proposal ran at `reasoning_effort:"none"`, a different
+operating point with no published score. (4) "Zero new integration" was false:
+the distiller has **no OpenAI path at all**, and `_call_openai` is a hand-rolled
+httpx POST sending `max_tokens` + `temperature` with **no `reasoning_effort`
+parameter** — so **the latency lever the whole case rested on cannot be sent by
+our code today**. (5) The PARROT argument was sibling substitution — the exact
+error the 2026-08-01 audit warned about; neither recommended model was measured.
 
-**Step 2, AFTER a number, not now: mapping only → `gpt-5.4-mini`** ($0.0423/check,
-2.08×, **66% Console margin retained**). This is where "narrow the margin for
-intelligence" should be spent — the mapping call is the only one carrying the
-user's claim in the prompt (`claim_map_analyzer.py:1474`), so it is where
-invariant #7 is won or lost.
+**✅ CORRECTED RECOMMENDATION — simplest and safest that clears the deadline:
+STAY ON GOOGLE, change two env vars, change nothing else.**
+`GOOGLE_LLM_MODEL=gemini-3.5-flash-lite` (**not** `3.1-flash-lite` — it carries a
+7 May 2027 shutdown, i.e. migrating twice), mapping decided by probe between
+`3.5-flash-lite` (1.84×, ~70% Console margin) and `3.7-flash` (2.40×, 61%). No new
+integration; the fallback-less distiller keeps working untouched; both risky
+unknowns are already closed by **our own live probes** (`minimal` → 200, and the
+flat `responseSchema` still works on 3.x). The whole build is **one branch at
+`google_ai.py:333-334`** — without it every call 400s and falls silently to a dead
+OpenAI key. Manifest fingerprint must be handled in the same commit or
+`/verify/{id}` says `data_modified` for **every historic check**.
 
-⚠️ **PARROT reframes the whole migration and it is not the obvious reading:**
-Gemini-2.5-Flash-**Lite** 50.7% follow rate · 2.5-Flash 17.2% · Claude Sonnet 4.5
-10.8% · **GPT-5-Mini 6.3%** · GPT-5 3.6%. **OpenAI's cheap tier beat Google's
-large one** — tier risk is NOT uniform across vendors, so "stay off a Lite tier"
-is a Google-specific rule, not a general one.
+**Luna is DEFERRED to November as a cost project, not rejected** — needs the key
+restored, the OpenAI client rebuilt (`max_completion_tokens`, `reasoning_effort`,
+strict `json_schema`, plus paths written for the distiller and `extract.py:1125`),
+and a long-context measurement on the distiller task specifically.
+
+⚠️ **The honest cost story: Google DELETED the price point we were on.** There is
+no cheap Gemini 3 tier — `2.5-flash-lite` was $0.10/$0.40, the nearest Gemini 3
+equivalent is $0.30/$2.50 (3× in, 6× out). **Cost rises on every available path.**
+⚠️ **Every ratio is counted-stages-only; whole-pipeline is WORSE for every
+candidate** because the uncounted ~40% all sits on the cheapest model today with
+nothing to offset it. **Do not quote a whole-pipeline figure until
+`cost_constants.py` counts every stage.**
 
 ⚠️ **THE REPLAY BENCH CANNOT VERIFY THIS** — model strings are cassette keys, the
 25-of-40 URL churn swamps the signal, and it cannot run while the held reframe is
@@ -103,12 +124,11 @@ designed 2026-08-01 and never built:** identical pool run twice, with and withou
 the `Claim:` line, delta in `supported` badges both valence directions. Invariant
 #7 as one number; no public benchmark runs it.
 
-**⛔ FIRST BLOCKER, FOUNDER ACTION: `OPENAI_API_KEY` is dead locally (401).**
-Under this proposal it is PRIMARY. Nothing can be evaluated until it is live.
-Also owed in the same pass: manifest fingerprint (`manifest_signer.py:39-46`
-changes → `/verify/{id}` says `data_modified` for **every historic check**),
-`PRIMARY_LLM_PROVIDER` routes nothing (cascade hardcoded in 5 files), and the
-`temperature` question on reasoning models.
+**FOUNDER DECISION NEEDED: (1) approve the Google path, (2) approve the two-arm
+mapping probe (a few pence).** No spend approval needed beyond that — the
+migration is config plus one branch. `OPENAI_API_KEY` is still dead (401) but is
+**no longer a blocker** on the corrected path; it only gates the deferred Luna
+work and remains the reason the OpenAI *fallback* is inoperative locally.
 
 ### ▶ history (2026-08-21): THE MACHINE IS FULLY LOADED — superseded by the 2026-08-24 block above
 
