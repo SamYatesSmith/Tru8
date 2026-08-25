@@ -6,6 +6,7 @@ import re
 from typing import List, Dict, Any, Optional, Tuple, Union
 import os
 from app.services.search import SearchService, SearchResult, JURISDICTION_TO_COUNTRY
+from app.services.title_recovery import recover_truncated_titles
 from app.services.evidence import (
     EvidenceExtractor,
     EvidenceSnippet,
@@ -1930,9 +1931,23 @@ class EvidenceRetriever:
                             f"stage={stage} reason='{reason}' url={url_short}"
                         )
 
+                # Repair provider-truncated headlines on the evidence that
+                # actually survives to the screen. Runs here, after filtering,
+                # so archive calls are never spent on items the user will not
+                # see. Never fatal: on any failure the provider's title stands.
+                shown_evidence = final_evidence[: self.max_sources_per_claim]
+                if settings.ENABLE_TITLE_RECOVERY:
+                    try:
+                        await recover_truncated_titles(
+                            shown_evidence,
+                            limit=settings.TITLE_RECOVERY_MAX_PER_CLAIM,
+                        )
+                    except Exception as e:
+                        logger.debug(f"[TITLE RECOVERY] skipped: {e}")
+
                 # Return top evidence along with raw evidence metadata
                 return {
-                    "filtered_evidence": final_evidence[: self.max_sources_per_claim],
+                    "filtered_evidence": shown_evidence,
                     "raw_evidence": raw_evidence,
                     "pre_weighting_evidence": pre_weighting_snapshot,
                     "claim_position": claim_position,

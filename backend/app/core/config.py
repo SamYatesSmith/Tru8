@@ -426,6 +426,15 @@ class Settings(BaseSettings):
     # False restores today's behaviour byte-for-byte (rollback, no deploy).
     ENABLE_ELEMENT_ATOMICITY: bool = Field(True, env="ENABLE_ELEMENT_ATOMICITY")
 
+    # 2026-08-25: recover headlines the search provider handed us pre-cut.
+    # Serper truncates at ~54 chars (43% of results); the page's own og:title
+    # normally fixes it, but a blocked fetch leaves the stub on screen looking
+    # like a complete headline. For those, a Wayback snapshot yields a usable
+    # title 47% of the time. Only lengthens, only on visibly-truncated titles,
+    # always with a receipt. False disables the extra archive calls entirely.
+    ENABLE_TITLE_RECOVERY: bool = Field(True, env="ENABLE_TITLE_RECOVERY")
+    TITLE_RECOVERY_MAX_PER_CLAIM: int = Field(12, env="TITLE_RECOVERY_MAX_PER_CLAIM")
+
     # F1 (2026-08-05): scope evidence about a DIFFERENT period out of the state
     # count. Production check 618efbc4 returned "UK CPI below 2% in September
     # 2024" — a true, ONS-sourced claim — as `disputed`, on figures from June,
