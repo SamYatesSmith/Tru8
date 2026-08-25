@@ -158,29 +158,134 @@ def _assess(
     return _SILENT, None
 
 
+#: Minimum normalised length before a claim is ELIGIBLE to match on at all.
+#: Short claims share wording with ordinary prose and would over-fire.
+_MIN_CLAIM_CHARS = 40
+#: Minimum length of the MATCH itself. Deliberately lower than the eligibility
+#: floor: conflating the two was a real bug (2026-08-25). The gate is handed the
+#: NORMALISED claim ("The year 2026 will be the quietest year for wildfires in
+#: Europe"), not the words a reciting source actually copies, so a genuine
+#: recital matches a long shared phrase rather than the whole string — 35 of 52
+#: chars on the case that motivated this. A 40-char match floor silently missed
+#: it while the ratio said 67%.
+_MIN_MATCH_CHARS = 28
+#: Share of the claim that must appear contiguously in the evidence.
+_RESTATEMENT_RATIO = 0.6
+
+
+def _squash(text: Optional[str]) -> str:
+    """Lowercase, keep only a-z0-9, drop ALL whitespace.
+
+    Dropping whitespace is deliberate, not lazy: the tweet that motivated this
+    path writes "wild fires" where the claim writes "wildfires". Any
+    word-boundary comparison misses that; a despaced character comparison does
+    not.
+    """
+    return re.sub(r"[^a-z0-9]+", "", (text or "").lower())
+
+
+def _longest_common_run(a: str, b: str) -> int:
+    """Length of the longest contiguous substring shared by a and b."""
+    if not a or not b:
+        return 0
+    # Rolling DP over one row — a and b are a claim and a snippet, so this is
+    # thousands of ops, not millions.
+    prev = [0] * (len(b) + 1)
+    best = 0
+    for i in range(1, len(a) + 1):
+        cur = [0] * (len(b) + 1)
+        ai = a[i - 1]
+        for j in range(1, len(b) + 1):
+            if ai == b[j - 1]:
+                cur[j] = prev[j - 1] + 1
+                if cur[j] > best:
+                    best = cur[j]
+        prev = cur
+    return best
+
+
+def claim_restatement_match(
+    evidence_text: Optional[str], claim_text: Optional[str]
+) -> Optional[Dict[str, str]]:
+    """Receipt entry when the evidence simply RESTATES the claim, else None.
+
+    The subject-anchored path above cannot reach a claim that names nobody:
+    `recital_match` needs distinctive subject tokens, and a claim like "2026 is
+    the quietest year for wildfires in Europe" has none, so the gate never
+    armed. That left a prompt rule as the only defence — and prompt rules are
+    model-shaped, which is exactly what NF-11 says not to rely on. Measured
+    2026-08-25: on identical input, gemini-2.5-flash labelled the reciting
+    tweet `context` 10/10 while gemini-3.5-flash-lite labelled it `supports`
+    10/10. Same code, same prompt, opposite answer.
+
+    This path asks a question that needs no subject at all: does this source
+    just say the claim back? A near-verbatim restatement of the claim is
+    evidence that the claim was made, never that it is true.
+
+    Deliberately HIGH PRECISION, LOW RECALL. It catches verbatim and
+    near-verbatim recitals and nothing cleverer. Paraphrase is left to the
+    prompt half — this is the mechanical floor, not the whole judgement, and
+    over-firing would hide genuine evidence (invariant #7 cuts both ways).
+
+    The verification veto still applies first, so a factcheck that quotes the
+    claim in order to demolish it is untouched — which is how Carbon Brief's
+    "Factcheck: No, Europe is not having its 'quietest' year" stays a challenge.
+    """
+    if not evidence_text or not claim_text:
+        return None
+    if _VETO.search(evidence_text):
+        return None
+
+    claim_sq = _squash(claim_text)
+    if len(claim_sq) < _MIN_CLAIM_CHARS:
+        return None
+    ev_sq = _squash(evidence_text)
+    if not ev_sq:
+        return None
+
+    run = _longest_common_run(claim_sq, ev_sq)
+    if run < max(_MIN_MATCH_CHARS, int(len(claim_sq) * _RESTATEMENT_RATIO)):
+        return None
+
+    return {
+        "marker": "restates the claim",
+        "excerpt": (evidence_text or "").strip()[:_EXCERPT_CHARS],
+        "found_in": "evidence",
+        "matched_chars": str(run),
+        "claim_chars": str(len(claim_sq)),
+    }
+
+
 def recital_match(
     reasoning: Optional[str],
     evidence_text: Optional[str],
     tokens: List[Tuple[str, str]],
+    claim_text: Optional[str] = None,
 ) -> Optional[Dict[str, str]]:
     """The receipt entry if this reference rests on recital, else None.
 
     The reasoning is authoritative when it speaks in either direction; the
     evidence text is consulted only when the reasoning is silent both ways.
+    When the claim names no subject, the subject-anchored path cannot run at
+    all — `claim_text` then carries the whole gate via
+    `claim_restatement_match`.
     """
-    if not tokens:
-        return None
-    patterns = _subject_patterns(tokens)
+    if tokens:
+        patterns = _subject_patterns(tokens)
 
-    verdict, entry = _assess(reasoning, patterns)
-    if verdict == _VETOED:
-        return None
-    if verdict == _FIRE and entry is not None:
-        entry["found_in"] = "reasoning"
-        return entry
+        verdict, entry = _assess(reasoning, patterns)
+        if verdict == _VETOED:
+            return None
+        if verdict == _FIRE and entry is not None:
+            entry["found_in"] = "reasoning"
+            return entry
 
-    verdict, entry = _assess(evidence_text, patterns)
-    if verdict == _FIRE and entry is not None:
-        entry["found_in"] = "evidence"
-        return entry
-    return None
+        verdict, entry = _assess(evidence_text, patterns)
+        if verdict == _FIRE and entry is not None:
+            entry["found_in"] = "evidence"
+            return entry
+
+    # Subject-free fallback. Runs when the claim names nobody, and also when it
+    # names someone but the attribution wording never appeared — a source can
+    # recite a claim without naming who made it.
+    return claim_restatement_match(evidence_text, claim_text)

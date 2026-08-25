@@ -273,7 +273,10 @@ Respond with JSON only:
 
 Rules:
 - Only use evidence_ids from the provided list. Do NOT invent IDs.
-- relationship must be exactly one of: supports, challenges, context.
+- relationship must be exactly one of: supports, challenges, context. \
+"supports" means the evidence WARRANTS the element AS STATED — at its asserted \
+scope, specificity and strength — not merely that the evidence is consistent \
+with it or on the same topic.
 - reasoning is REQUIRED on every evidence_ref. One sentence: what the evidence \
 says and why the relationship applies. Cite specific figures, dates, or entities.
 - state must be exactly one of: supported, disputed, unresolved.
@@ -306,6 +309,20 @@ map such evidence "context". If the source independently verifies or contradicts
 part of the claim, map THAT finding directionally — the direction comes from the \
 verification, never from the recital. A claimant's own statement is never evidence \
 for its own content, whatever the source's tier.
+- MODALITY MATCH: An element asserts its content at a particular STRENGTH. Evidence \
+supports it only if the evidence carries that same strength — not the same topic at a \
+weaker one. A source reporting an association ("linked to", "may contribute to", "is \
+associated with") does NOT support an element asserting causation or certainty \
+("caused", "drove", "will"); map it "context". The test runs BOTH ways: do not demand \
+proof an element never claimed. An element stated tentatively ("may have contributed") \
+IS supported by evidence of a plausible association. Match the asserted strength — do \
+not raise or lower the bar.
+- NOT A SCEPTICISM DIAL: The scope, specificity and modality checks are strength-\
+MATCHING tests, not reasons to withhold support. Where evidence does carry the element's \
+asserted scope, specificity and strength, map it "supports" plainly. An element with \
+strong, unchallenged evidence MUST read "supported". Under-crediting genuine support \
+distorts the record exactly as much as over-crediting weak support — where the evidence \
+is one-sided, the element should look one-sided.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
 - STATE-BEARING COMPLETENESS: An element's state (supported / disputed / unresolved) \
@@ -524,7 +541,10 @@ Respond with JSON only:
 Rules:
 - One entry per claim_index. Do NOT skip any claims.
 - Only use evidence_ids from the provided evidence for THAT claim. Do NOT mix across claims.
-- relationship must be exactly one of: supports, challenges, context.
+- relationship must be exactly one of: supports, challenges, context. \
+"supports" means the evidence WARRANTS the element AS STATED — at its asserted \
+scope, specificity and strength — not merely that the evidence is consistent \
+with it or on the same topic.
 - reasoning is REQUIRED on every evidence_ref. One sentence: what the evidence \
 says and why the relationship applies. Cite specific figures, dates, or entities.
 - state must be exactly one of: supported, disputed, unresolved.
@@ -557,6 +577,20 @@ map such evidence "context". If the source independently verifies or contradicts
 part of the claim, map THAT finding directionally — the direction comes from the \
 verification, never from the recital. A claimant's own statement is never evidence \
 for its own content, whatever the source's tier.
+- MODALITY MATCH: An element asserts its content at a particular STRENGTH. Evidence \
+supports it only if the evidence carries that same strength — not the same topic at a \
+weaker one. A source reporting an association ("linked to", "may contribute to", "is \
+associated with") does NOT support an element asserting causation or certainty \
+("caused", "drove", "will"); map it "context". The test runs BOTH ways: do not demand \
+proof an element never claimed. An element stated tentatively ("may have contributed") \
+IS supported by evidence of a plausible association. Match the asserted strength — do \
+not raise or lower the bar.
+- NOT A SCEPTICISM DIAL: The scope, specificity and modality checks are strength-\
+MATCHING tests, not reasons to withhold support. Where evidence does carry the element's \
+asserted scope, specificity and strength, map it "supports" plainly. An element with \
+strong, unchallenged evidence MUST read "supported". Under-crediting genuine support \
+distorts the record exactly as much as over-crediting weak support — where the evidence \
+is one-sided, the element should look one-sided.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
 - STATE-BEARING COMPLETENESS: An element's state (supported / disputed / unresolved) \
@@ -641,6 +675,11 @@ that the claim was made, not its content — label it "context". A \
 claimant's own statement is never evidence for its own content. If \
 the source independently verifies or contradicts part of the claim, \
 label THAT finding directionally.
+- Evidence must match the element's asserted STRENGTH. A source reporting \
+an association ("linked to", "may contribute") does NOT support an element \
+asserting causation or certainty — label it "context". The test runs both \
+ways: do not demand proof a tentatively-stated element never claimed. Where \
+evidence does carry the asserted strength, label it "supports" plainly.
 - Use "context" only for items that frame an element without \
 confirming or contradicting it, and keep context SPARSE — only where \
 it genuinely helps interpret the supports/challenges evidence. Do not \
@@ -653,7 +692,10 @@ unmapped), not force-fitted.
 explaining the relationship.
 - Omit elements that have no additional refs — don't return empty \
 additional_refs arrays.
-- relationship must be exactly one of: supports, challenges, context.
+- relationship must be exactly one of: supports, challenges, context. \
+"supports" means the evidence WARRANTS the element AS STATED — at its asserted \
+scope, specificity and strength — not merely that the evidence is consistent \
+with it or on the same topic.
 """
 
 
@@ -2455,9 +2497,28 @@ class ClaimMapAnalyzer:
 
         # Both 2026-08-13 gates arm on the claim's subject set (key_entities
         # PERSON/ORG, written onto metadata by runner.attach_claim_subjects —
-        # the attach_claim_jurisdiction pattern). No subjects → neither arms,
-        # the safe direction.
+        # the attach_claim_jurisdiction pattern).
+        #
+        # ⚠️ "No subjects → neither arms, the safe direction" was WRONG for the
+        # recital gate, and it cost us (2026-08-25). The gate was built for
+        # TRU-018F-44AA ("Trump stopped 6 wars"), which names a subject, and
+        # every test supplies one — 63 tests across four files, not one covering
+        # the empty case. A claim naming nobody ("2026 is the quietest year for
+        # wildfires in Europe") disarmed it completely, leaving a PROMPT rule as
+        # the only defence against a claim citing itself. Prompt rules are
+        # model-shaped: on identical input gemini-2.5-flash scoped the reciting
+        # tweet to context 10/10, gemini-3.5-flash-lite called it `supports`
+        # 10/10. Silent, and it survived two model generations because the old
+        # model happened to comply.
+        #
+        # The interested-party gate still needs subjects — it asks whether the
+        # SOURCE is the subject, which is meaningless without one. The recital
+        # gate does not: "does this source just restate the claim?" needs only
+        # the claim.
         subjects = claim_subjects((claim_map.get("metadata") or {}).get("subjects"))
+        claim_text_for_recital = (
+            claim_map.get("normalised_claim") or claim_map.get("claim_text") or ""
+        )
 
         if subjects and getattr(settings, "ENABLE_INTERESTED_PARTY_GATE", True):
             gates.append(
@@ -2477,27 +2538,30 @@ class ClaimMapAnalyzer:
                 )
             )
 
-        if (
-            subjects
-            and getattr(settings, "ENABLE_RECITAL_SCOPE_GATE", True)
-            and not element_asserts_attribution(elem.get("description"))
-        ):
-            tokens = distinctive_tokens(subjects)
-            if tokens:
+        if getattr(
+            settings, "ENABLE_RECITAL_SCOPE_GATE", True
+        ) and not element_asserts_attribution(elem.get("description")):
+            tokens = distinctive_tokens(subjects) if subjects else []
+            # Arms on EITHER signal. Tokens drive the subject-anchored path;
+            # the claim text drives the restatement path. Requiring both was
+            # the defect — a claim with no named subject silently opted out.
+            if tokens or len(claim_text_for_recital or "") >= 20:
                 gates.append(
                     _ScopeGate(
                         key="recital_scope",
                         label="RECITAL",
                         pins="reference rests on the claim being made, not established",
-                        summary={"claim_subjects": subjects},
-                        fires=lambda item, ref, _t=tokens: recital_match(
-                            ref.get("reasoning"), item.text, _t
-                        )
-                        is not None,
-                        entry=lambda item, ref, _t=tokens: recital_match(
-                            ref.get("reasoning"), item.text, _t
-                        )
-                        or {},
+                        summary={
+                            "claim_subjects": subjects,
+                            "subject_free": not tokens,
+                        },
+                        fires=lambda item, ref, _t=tokens, _c=claim_text_for_recital: (
+                            recital_match(ref.get("reasoning"), item.text, _t, _c)
+                            is not None
+                        ),
+                        entry=lambda item, ref, _t=tokens, _c=claim_text_for_recital: (
+                            recital_match(ref.get("reasoning"), item.text, _t, _c) or {}
+                        ),
                     )
                 )
 
