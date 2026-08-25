@@ -59,6 +59,57 @@ elements read `supported`). **Final verified text: `audit/2026-08-21_send_sheet.
 never the underlying data — and verify recipient titles.** The e3 provenance
 note the email originally pointed at exists only in the PDF + JSON.
 
+### 🔴 OPEN 2026-08-25 — MODEL MIGRATION PROPOSAL ON THE TABLE. 52 days to 16 Oct.
+
+**Full proposal: `audit/2026-08-25_model_migration_proposal.md`.** Prices
+re-verified against all three vendors today.
+
+**Founder's question — Gemini 3.7 Flash — answered: NO, on both axes.** It is
+priced **identically to 3.6 Flash** ($0.75/$3.75 intro → $1.50/$7.50 on
+1 Jan 2027), so it is not a new cost option, it is the tier we already priced at
+3.65×. And it **cannot** deliver the speed-up: thinking levels are low/medium/high
+with **no `off` and no `minimal`**, default medium — `MAPPING_THINKING_BUDGET=0`
+has no successor on it. Measured TTFT 12.64s at high effort **exceeds our entire
+current mapping stage (11-15s)**. Faster generation (371-389 tok/s vs 274) does
+not help: we never spent our time generating tokens. It is a **regression against
+`gemini-3.5-flash-lite`**, which does accept `minimal`.
+
+**RECOMMENDED — Step 1: whole pipeline → `gpt-5.6-luna`. $0.0200/check vs today's
+$0.0203 — cost-NEUTRAL, and an intelligence rise on 9 of 10 stages** (everything
+but mapping runs on `2.5-flash-lite` today; AA puts Luna at or above Gemini 3.5
+*Flash*). Only candidate with a genuine `reasoning_effort:"none"`, so the latency
+lever survives. Ends single-vendor exposure, gives the **fallback-less** distiller
+and `extract.py:1125` a fallback for the first time, and the OpenAI client already
+exists — zero new integration.
+
+**Step 2, AFTER a number, not now: mapping only → `gpt-5.4-mini`** ($0.0423/check,
+2.08×, **66% Console margin retained**). This is where "narrow the margin for
+intelligence" should be spent — the mapping call is the only one carrying the
+user's claim in the prompt (`claim_map_analyzer.py:1474`), so it is where
+invariant #7 is won or lost.
+
+⚠️ **PARROT reframes the whole migration and it is not the obvious reading:**
+Gemini-2.5-Flash-**Lite** 50.7% follow rate · 2.5-Flash 17.2% · Claude Sonnet 4.5
+10.8% · **GPT-5-Mini 6.3%** · GPT-5 3.6%. **OpenAI's cheap tier beat Google's
+large one** — tier risk is NOT uniform across vendors, so "stay off a Lite tier"
+is a Google-specific rule, not a general one.
+
+⚠️ **THE REPLAY BENCH CANNOT VERIFY THIS** — model strings are cassette keys, the
+25-of-40 URL churn swamps the signal, and it cannot run while the held reframe is
+in the tree. **The rig we need already exists:** `mapping_budget_sweep.py` (frozen
+pools, k repeats, self-agreement variance floor) needs a `--models` axis — a
+parameter change, not a build. **Acceptance test = the premise-adoption probe
+designed 2026-08-01 and never built:** identical pool run twice, with and without
+the `Claim:` line, delta in `supported` badges both valence directions. Invariant
+#7 as one number; no public benchmark runs it.
+
+**⛔ FIRST BLOCKER, FOUNDER ACTION: `OPENAI_API_KEY` is dead locally (401).**
+Under this proposal it is PRIMARY. Nothing can be evaluated until it is live.
+Also owed in the same pass: manifest fingerprint (`manifest_signer.py:39-46`
+changes → `/verify/{id}` says `data_modified` for **every historic check**),
+`PRIMARY_LLM_PROVIDER` routes nothing (cascade hardcoded in 5 files), and the
+`temperature` question on reasoning models.
+
 ### ▶ history (2026-08-21): THE MACHINE IS FULLY LOADED — superseded by the 2026-08-24 block above
 
 **Everything that gated the first outreach round closed 2026-08-21:**
