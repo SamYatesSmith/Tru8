@@ -115,8 +115,17 @@ class Settings(BaseSettings):
         "google", env="PRIMARY_LLM_PROVIDER"
     )  # "google" or "openai"
     GOOGLE_LLM_MODEL: str = Field(
-        "gemini-2.5-flash-lite", env="GOOGLE_LLM_MODEL"
-    )  # Gemini model for all LLM calls
+        "gemini-3.5-flash-lite", env="GOOGLE_LLM_MODEL"
+    )  # Gemini model for all LLM calls EXCEPT mapping (see MAPPING_GOOGLE_MODEL).
+    # Migrated off gemini-2.5-flash-lite 2026-08-25: the whole 2.5 family retires
+    # 16 October 2026. NOT gemini-3.1-flash-lite despite it being Google's named
+    # replacement — it already carries a 7 May 2027 shutdown, i.e. migrating twice.
+    # ⚠️ Google deleted the price point: 2.5-flash-lite was $0.10/$0.40, this is
+    # $0.30/$2.50. There is no cheap Gemini 3 tier; cost rises on every path.
+    # Thinking control changes shape with the family — google_ai._thinking_config
+    # sends thinkingLevel here and thinkingBudget on 2.5. A 3.x model with a bare
+    # thinkingBudget is a hard 400. Rollback to "gemini-2.5-flash-lite" works
+    # until the retirement date and needs no code change.
     GOOGLE_FACTCHECK_API_KEY: str = Field("", env="GOOGLE_FACTCHECK_API_KEY")
     FOOTBALL_DATA_API_KEY: str = Field(
         "", env="FOOTBALL_DATA_API_KEY"
@@ -564,8 +573,28 @@ class Settings(BaseSettings):
         5, env="MAX_CONCURRENT_AGENT_ANALYSES"
     )  # Separate pool for agent-initiated pipelines (O-03)
     MAPPING_GOOGLE_MODEL: str = Field(
-        "gemini-2.5-flash", env="MAPPING_GOOGLE_MODEL"
-    )  # Google model for evidence mapping (highest-stakes call)
+        "gemini-3.7-flash", env="MAPPING_GOOGLE_MODEL"
+    )  # Google model for evidence mapping (highest-stakes call).
+    # Migrated off gemini-2.5-flash 2026-08-25 (2.5 retires 16 October 2026).
+    #
+    # WHY THE FLASH TIER AND NOT THE CHEAPER FLASH-LITE: mapping is the only
+    # stage that puts the user's claim in the prompt, so it is where invariant #7
+    # is won or lost, and the Google tier gap on exactly that failure is large —
+    # PARROT follow rate 2.5-Flash-Lite 50.7% vs 2.5-Flash 17.2%. Today's
+    # bulk=Lite / mapping=Flash split exists for that reason. Migrating mapping
+    # DOWN a tier to save 0.56x would be trading the product for money on the one
+    # call that is the product. So the default preserves the tier, and
+    # scripts/model_premise_probe.py may justify demoting it to
+    # gemini-3.5-flash-lite on a measured premise-adoption number — evidence
+    # earns the saving; it is not assumed.
+    #
+    # ⚠️ Thinking cannot be fully disabled on any Gemini 3 model. 3.7-flash takes
+    # low/medium/high only — no "off", no "minimal" — so MAPPING_THINKING_BUDGET=0
+    # now means thinkingLevel="low" (see google_ai._GEMINI3_THINKING_FLOOR), not
+    # thinking off. The M1 latency win (35-50s -> 11-15s) is partly given back
+    # here; that is a known, accepted cost of the retirement, not a regression.
+    # ⚠️ Introductory pricing ($0.75/$3.75) ENDS 31 Dec 2026 — both rates DOUBLE
+    # on 1 Jan 2027. See cost_constants.GEMINI3_FLASH_STANDARD_FROM_2027.
     MAPPING_THINKING_BUDGET: Optional[int] = Field(
         None, env="MAPPING_THINKING_BUDGET"
     )  # Thinking-token cap for mapping calls only. None = omit thinkingConfig

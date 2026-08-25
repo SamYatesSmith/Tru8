@@ -74,12 +74,31 @@ def build_canonical_data(
     executed_tier: Optional[str],
     landscape: Optional[Dict[str, Any]],
     orientation_basis: Optional[Dict[str, Any]] = None,
+    pipeline_fingerprint: Optional[str] = None,
 ) -> dict:
     """Build deterministic canonical payload from decision-critical fields.
 
     This is the SINGLE SOURCE OF TRUTH for what gets hashed.
     Both signing (from response dict) and verification (from DB rows)
     MUST call this function to ensure consistency.
+
+    ``pipeline_fingerprint`` (2026-08-25): pass the value stored on the manifest
+    when VERIFYING; omit it when SIGNING, so it is computed from live settings.
+
+    Why this parameter exists — it is the difference between a verification
+    endpoint that works after a model migration and one that silently lies.
+    Every other field in this payload is a property OF THE CHECK, read back from
+    stored data. ``pipeline_fingerprint`` was the sole exception: recomputed from
+    whatever the SERVER is configured with at the moment of the request. So the
+    hash of a two-month-old check changed the instant a model string changed,
+    and ``GET /verify/{id}`` returned ``data_modified`` — accusing us of
+    tampering — for every check ever signed. Nothing raised; the endpoint just
+    started giving a confident wrong answer.
+
+    Tamper detection is unaffected. The fingerprint is still inside the signed
+    payload, so altering the stored value changes the canonical hash and fails
+    verification exactly as before. Reading it back is what makes it behave like
+    every other signed field rather than like server state.
 
     Includes (stable, decision-critical):
       - check_id
@@ -167,7 +186,13 @@ def build_canonical_data(
         "evidence_meta": dict(sorted(all_evidence_meta.items())),
         "landscape": landscape or {},
         "executed_tier": executed_tier,
-        "pipeline_fingerprint": compute_pipeline_fingerprint(),
+        # None => signing path (or a pre-2026-08-25 manifest with no stored
+        # value, which falls back to the old behaviour rather than breaking).
+        "pipeline_fingerprint": (
+            pipeline_fingerprint
+            if pipeline_fingerprint is not None
+            else compute_pipeline_fingerprint()
+        ),
     }
     if orientation_basis:
         canon["orientation_basis"] = orientation_basis

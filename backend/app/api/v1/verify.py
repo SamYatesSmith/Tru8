@@ -130,6 +130,11 @@ async def verify_check(check_id: str, request: Request):
             executed_tier=check.executed_tier,
             landscape=landscape,
             orientation_basis=orientation_basis,
+            # Verify against the fingerprint THIS check was signed with, not the
+            # server's current one — otherwise every historic check reads
+            # `data_modified` the moment a model string changes. See
+            # build_canonical_data's note.
+            pipeline_fingerprint=stored.get("pipeline_fingerprint"),
         )
         current_hash = compute_canonical_hash(canonical_data)
 
