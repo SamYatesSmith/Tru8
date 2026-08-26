@@ -24,6 +24,7 @@ from app.core.correlation import CorrelationIdMiddleware
 from app.core.tracing import setup_tracing
 from app.api.v1 import (
     checks,
+    comparisons,
     users,
     auth,
     health,
@@ -555,6 +556,11 @@ app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(checks.router, prefix="/api/v1/checks", tags=["checks"])
+# COMPARE tab (2026-08-26): same /checks prefix, separate module. Create is
+# Clerk-session-only; the /public list variant serves /r/.
+app.include_router(
+    comparisons.router, prefix="/api/v1/checks", tags=["comparisons"]
+)
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"])
 app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
 app.include_router(api_keys.router, prefix="/api/v1/api-keys", tags=["api-keys"])

@@ -16,6 +16,7 @@ from .webhook import Webhook
 from .agent_transaction import AgentTransaction
 from .usage_event import UsageEvent
 from .claim_consensus import ClaimConsensus
+from .claim_comparison import ClaimComparison
 
 # EVERY table-backed model MUST be imported here, not merely defined.
 # entrypoint.sh bootstraps a fresh database with `from app.models import *`
@@ -50,4 +51,5 @@ __all__ = [
     "AgentTransaction",
     "UsageEvent",
     "ClaimConsensus",
+    "ClaimComparison",
 ]
