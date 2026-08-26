@@ -155,8 +155,22 @@ entities (`key_entities` = 2 generic nouns), and The Working Out (per-ref
 the software to work; they don't care how or why** — which retired the whole
 transparency family).
 
-**Open: tab label only.** Everything else is settled. **NEXT STEP = DESIGN
-REVIEW, then build, then verify. Nothing is built.**
+**✅ BUILT 2026-08-26 — five commits, `102bf19..ccb202e`, NOT yet live-verified.**
+Backend (table + migration + article_reader + comparison service + 3 endpoints
++ 28 tests) · types/api-client/analytics · the compare/ view (7 components) ·
+atomic swap + deep-link translation with notice · deletion + copy retirement.
+**All suites green at commit: backend 3,330 · web 111 · tsc · prod build.**
+Label settled: `COMPARE` / *"Where do two sources differ?"*.
+
+**⏳ VERIFY OWED (the founder's gate: /loop + verify) — the live half of the
+acceptance criteria (§16) is UNRUN:** migration on a real DB (docker was DOWN
+all session — `alembic upgrade head` has never executed this migration) · a
+real comparison end-to-end · `/verify/{id}` still valid on a check WITH
+comparisons (the manifest trap) · known-403 stored-text path + receipt ·
+suggestion absent on a 0-opposed claim · keyboard-only pass · replay bench
+(touches no pipeline stage, so ANY movement is a real regression) · **the
+premise-adoption probe** (only the structural half is pinned by tests — the
+live half, identical pair ± claim line, is the actual acceptance gate).
 
 ### 🗄 SUPERSEDED 2026-08-26 — the INDEPENDENCE proposal (measurements still live)
 
