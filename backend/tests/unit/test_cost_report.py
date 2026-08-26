@@ -155,6 +155,22 @@ class TestSearchPricing:
 
 
 class TestStageAttribution:
+    def test_row_costs_prices_thinking_tokens(self):
+        stage = {
+            "input_tokens": 1000,
+            "output_tokens": 500,
+            "thinking_tokens": 400,
+            "models_used": {"map": "gemini-3.7-flash"},
+        }
+        blob = telemetry(by_stage={"analyzer": stage})
+        blob["llm"]["thinking_tokens"] = 400
+        bare_stage = {k: v for k, v in stage.items() if k != "thinking_tokens"}
+        bare = telemetry(by_stage={"analyzer": bare_stage})
+        with_think = row_costs(blob)
+        without = row_costs(bare)
+        assert with_think["llm_usd"] > without["llm_usd"]
+        assert with_think["thinking_tokens"] == 400
+
     def test_a_stage_is_priced_at_the_model_it_used(self):
         # The whole point of the F4b question: the same tokens cost different
         # money depending which model ran them, so a stage priced at the default

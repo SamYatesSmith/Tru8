@@ -100,6 +100,7 @@ class PipelineMetrics:
     llm_calls: int = 0
     llm_input_tokens: Optional[int] = None
     llm_output_tokens: Optional[int] = None
+    llm_thinking_tokens: Optional[int] = None
     web_search_calls: int = 0
     api_adapter_calls: int = 0
     wall_time_seconds: float = 0.0
@@ -130,6 +131,8 @@ class PipelineMetrics:
             d["llm_input_tokens"] = self.llm_input_tokens
         if self.llm_output_tokens is not None:
             d["llm_output_tokens"] = self.llm_output_tokens
+        if self.llm_thinking_tokens is not None:
+            d["llm_thinking_tokens"] = self.llm_thinking_tokens
         if self.by_stage is not None:
             d["by_stage"] = self.by_stage
         return d
@@ -149,6 +152,12 @@ def _accumulate_tokens(
     )
     bucket["input_tokens"] += usage.get("input_tokens", 0)
     bucket["output_tokens"] += usage.get("output_tokens", 0)
+    # Same guarded pattern as ClaimMapAnalyzer._accumulate: the key appears
+    # only when a thinking model ran, so the dict shape is unchanged otherwise.
+    if usage.get("thinking_tokens"):
+        bucket["thinking_tokens"] = bucket.get("thinking_tokens", 0) + usage.get(
+            "thinking_tokens", 0
+        )
 
 
 def attach_claim_jurisdiction(
@@ -256,6 +265,7 @@ def extract_pipeline_metrics(
     token_usage = final_result.get("llm_token_usage", {})
     llm_input_tokens = token_usage.get("input_tokens") or None
     llm_output_tokens = token_usage.get("output_tokens") or None
+    llm_thinking_tokens = token_usage.get("thinking_tokens") or None
 
     # Phase 1.3: per-stage breakdown — populated by the runner when each
     # LLM-using component completes. None means no component reported (e.g.
@@ -267,6 +277,7 @@ def extract_pipeline_metrics(
         llm_calls=llm_calls,
         llm_input_tokens=llm_input_tokens,
         llm_output_tokens=llm_output_tokens,
+        llm_thinking_tokens=llm_thinking_tokens,
         web_search_calls=raw_sources,  # Each raw source came from a search call
         api_adapter_calls=api_adapter_calls,
         wall_time_seconds=final_result.get("processing_time_ms", 0) / 1000.0,

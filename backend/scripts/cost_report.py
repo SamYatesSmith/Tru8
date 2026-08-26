@@ -178,8 +178,9 @@ def row_costs(telemetry: Optional[Dict[str, Any]]) -> Dict[str, Any]:
 
     in_tok = _int(llm.get("input_tokens"))
     out_tok = _int(llm.get("output_tokens"))
+    think_tok = _int(llm.get("thinking_tokens"))
     by_stage = llm.get("by_stage")
-    llm_usd = estimate_llm_cost_usd(in_tok, out_tok, by_stage)
+    llm_usd = estimate_llm_cost_usd(in_tok, out_tok, by_stage, thinking_tokens=think_tok)
 
     units = search.get("billable_units_by_provider")
     metered = isinstance(units, dict)
@@ -196,6 +197,7 @@ def row_costs(telemetry: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         "metered": metered,
         "input_tokens": in_tok,
         "output_tokens": out_tok,
+        "thinking_tokens": think_tok,
         "llm_calls": _int(llm.get("calls")),
         "by_stage": by_stage if isinstance(by_stage, dict) else {},
         "queries_by_provider": search.get("queries_by_provider") or {},
@@ -248,6 +250,7 @@ def build_report(rows: List[Dict[str, Any]], gbp_usd: float) -> Dict[str, Any]:
                     "checks": 0,
                     "input_tokens": 0,
                     "output_tokens": 0,
+                    "thinking_tokens": 0,
                     "calls": 0,
                     "usd": 0.0,
                     "models": Counter(),
@@ -256,6 +259,7 @@ def build_report(rows: List[Dict[str, Any]], gbp_usd: float) -> Dict[str, Any]:
             agg["checks"] += 1
             agg["input_tokens"] += _int(stage.get("input_tokens"))
             agg["output_tokens"] += _int(stage.get("output_tokens"))
+            agg["thinking_tokens"] += _int(stage.get("thinking_tokens"))
             agg["calls"] += _int(stage.get("calls"))
             agg["usd"] += _stage_cost_usd(stage)
             models = stage.get("models_used")
@@ -312,6 +316,7 @@ def build_report(rows: List[Dict[str, Any]], gbp_usd: float) -> Dict[str, Any]:
                 "checks": s["checks"],
                 "input_tokens": s["input_tokens"],
                 "output_tokens": s["output_tokens"],
+                "thinking_tokens": s["thinking_tokens"],
                 "calls": s["calls"],
                 "models": dict(s["models"].most_common()),
             }
@@ -432,14 +437,15 @@ def render(report: Dict[str, Any]) -> str:
         out.append("--- WHERE THE LLM SPEND GOES ---")
         out.append(
             f"  {'stage':<22}{'share':>7}{'USD':>10}{'in tok':>10}{'out tok':>9}"
-            f"{'calls':>7}  models"
+            f"{'think tok':>11}{'calls':>7}  models"
         )
-        out.append(f"  {'-' * 84}")
+        out.append(f"  {'-' * 95}")
         for s in report["stages"]:
             models = ", ".join(f"{k}×{v}" for k, v in s["models"].items()) or "-"
             out.append(
                 f"  {s['stage']:<22}{s['share'] * 100:>6.1f}%{s['usd']:>10.5f}"
-                f"{s['input_tokens']:>10}{s['output_tokens']:>9}{s['calls']:>7}  {models}"
+                f"{s['input_tokens']:>10}{s['output_tokens']:>9}"
+                f"{s['thinking_tokens']:>11}{s['calls']:>7}  {models}"
             )
 
     if report["search_providers"]:

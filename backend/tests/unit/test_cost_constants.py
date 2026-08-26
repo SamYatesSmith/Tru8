@@ -102,6 +102,21 @@ def test_no_by_stage_uses_default_model():
     assert cost == pytest.approx(round(expected, 6))
 
 
+def test_thinking_tokens_priced_at_output_rate():
+    # A stage's reasoning tokens cost exactly their count at that stage's
+    # output rate — nothing more, nothing at the input rate.
+    stage = {
+        "input_tokens": 80_000,
+        "output_tokens": 15_000,
+        "models_used": {"map": "gemini-3.7-flash"},
+    }
+    without = estimate_llm_cost_usd(80_000, 15_000, {"analyzer": stage})
+    with_think = estimate_llm_cost_usd(
+        80_000, 15_000, {"analyzer": {**stage, "thinking_tokens": 10_000}}
+    )
+    assert with_think - without == pytest.approx(10_000 * 3.75 / 1e6)
+
+
 # --- build_cost_telemetry ------------------------------------------------------
 
 
@@ -118,6 +133,13 @@ def test_build_basic_shape_and_honest_naming():
     assert out["estimated_cost_usd"]["search"] is None
     assert "llm_partial" in out["estimated_cost_usd"]
     assert out["timing"]["wall_time_ms"] == 42_000
+
+
+def test_build_cost_telemetry_stores_thinking_tokens():
+    out = build_cost_telemetry(
+        {"llm_token_usage": {"input_tokens": 1, "output_tokens": 1, "thinking_tokens": 7}}
+    )
+    assert out["llm"]["thinking_tokens"] == 7
 
 
 def test_build_persists_stage_timings_rounded():

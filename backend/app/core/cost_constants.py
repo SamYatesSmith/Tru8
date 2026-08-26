@@ -132,11 +132,19 @@ def _rate(model: Optional[str]) -> Dict[str, float]:
     return LLM_PRICING_USD_PER_1M[_DEFAULT_LLM]
 
 
-def _cost(input_tokens: int, output_tokens: int, model: Optional[str]) -> float:
+def _cost(
+    input_tokens: int,
+    output_tokens: int,
+    model: Optional[str],
+    thinking_tokens: int = 0,
+) -> float:
+    # Google bills thought tokens (thoughtsTokenCount) at the output-token rate;
+    # they are reported separately from candidatesTokenCount, never inside it.
     r = _rate(model)
-    return (input_tokens / 1_000_000) * r["input"] + (output_tokens / 1_000_000) * r[
-        "output"
-    ]
+    return (
+        (input_tokens / 1_000_000) * r["input"]
+        + ((output_tokens + thinking_tokens) / 1_000_000) * r["output"]
+    )
 
 
 def _priciest(models: Iterable[str]) -> Optional[str]:
@@ -154,6 +162,7 @@ def estimate_llm_cost_usd(
     input_tokens: int,
     output_tokens: int,
     by_stage: Optional[Dict[str, Any]] = None,
+    thinking_tokens: int = 0,
 ) -> float:
     """Model-aware LLM cost estimate.
 
@@ -161,31 +170,37 @@ def estimate_llm_cost_usd(
     used (so a Flash-thinking mapping stage isn't under-counted at Flash-Lite
     rates), then cost any residual tokens not attributed to a stage at the
     default rate. Falls back to default-model pricing on the totals.
+    Thinking (reasoning) tokens are priced at the output rate.
     """
     if not by_stage or not isinstance(by_stage, dict):
-        return round(_cost(input_tokens, output_tokens, _DEFAULT_LLM), 6)
+        return round(
+            _cost(input_tokens, output_tokens, _DEFAULT_LLM, thinking_tokens), 6
+        )
 
     cost = 0.0
-    seen_in = seen_out = 0
+    seen_in = seen_out = seen_think = 0
     for stage in by_stage.values():
         if not isinstance(stage, dict):
             continue
         si = int(stage.get("input_tokens", 0) or 0)
         so = int(stage.get("output_tokens", 0) or 0)
+        st = int(stage.get("thinking_tokens", 0) or 0)
         models = stage.get("models_used") or {}
         model = (
             _priciest(models.values())
             if isinstance(models, dict) and models
             else _DEFAULT_LLM
         )
-        cost += _cost(si, so, model)
+        cost += _cost(si, so, model, st)
         seen_in += si
         seen_out += so
+        seen_think += st
 
     rem_in = max(0, int(input_tokens) - seen_in)
     rem_out = max(0, int(output_tokens) - seen_out)
-    if rem_in or rem_out:
-        cost += _cost(rem_in, rem_out, _DEFAULT_LLM)
+    rem_think = max(0, int(thinking_tokens) - seen_think)
+    if rem_in or rem_out or rem_think:
+        cost += _cost(rem_in, rem_out, _DEFAULT_LLM, rem_think)
     return round(cost, 6)
 
 
@@ -198,6 +213,7 @@ def build_cost_telemetry(results: Dict[str, Any]) -> Dict[str, Any]:
     tok = results.get("llm_token_usage") or {}
     in_tok = int(tok.get("input_tokens", 0) or 0)
     out_tok = int(tok.get("output_tokens", 0) or 0)
+    think_tok = int(tok.get("thinking_tokens", 0) or 0)
     by_stage = results.get("llm_usage_by_stage")
 
     metrics = results.get("pipeline_metrics") or {}
@@ -210,7 +226,7 @@ def build_cost_telemetry(results: Dict[str, Any]) -> Dict[str, Any]:
     api_adapters_with_results = int(metrics.get("api_adapter_calls", 0) or 0)
 
     # PARTIAL — captured LLM stages only (limitation #1 in module docstring).
-    llm_cost = estimate_llm_cost_usd(in_tok, out_tok, by_stage)
+    llm_cost = estimate_llm_cost_usd(in_tok, out_tok, by_stage, thinking_tokens=think_tok)
 
     # Measured search spend (2026-08-03). None for checks that predate metering.
     search_meter = results.get("search_meter")
@@ -235,6 +251,7 @@ def build_cost_telemetry(results: Dict[str, Any]) -> Dict[str, Any]:
         "llm": {
             "input_tokens": in_tok,
             "output_tokens": out_tok,
+            "thinking_tokens": think_tok,
             "calls": llm_calls,
             "by_stage": by_stage,
             "coverage": "analyzer+classifier+distiller only; excludes extract/relevance-scorer/query",

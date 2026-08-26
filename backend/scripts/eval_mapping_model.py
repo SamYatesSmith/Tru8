@@ -2,8 +2,8 @@
 
 Runs the same mapping prompt through multiple models on identical inputs and
 records structured results for comparison. Models tested:
-  - gemini-2.5-flash-lite  (cheapest, fastest)
-  - gemini-2.5-flash       (thinking model, current production mapping model)
+  - gemini-3.5-flash-lite  (cheapest available 3.x tier)
+  - gemini-3.7-flash       (current production mapping model)
   - gpt-4o                 (OpenAI flagship, current fallback)
 
 Usage:
@@ -287,6 +287,11 @@ async def call_google_model(
         "input_tokens": usage_meta.get("promptTokenCount", 0),
         "output_tokens": usage_meta.get("candidatesTokenCount", 0),
     }
+    # Mirror of app/services/google_ai.py: thoughtsTokenCount is reported
+    # separately from candidatesTokenCount and billed at the output rate.
+    thoughts = usage_meta.get("thoughtsTokenCount", 0)
+    if thoughts:
+        usage["thinking_tokens"] = thoughts
 
     try:
         text = result["candidates"][0]["content"]["parts"][0]["text"]
@@ -601,12 +606,12 @@ async def run_evaluation(
         (
             "flash_lite",
             call_google_model,
-            {"model": "gemini-2.5-flash-lite", "timeout": 120},
+            {"model": "gemini-3.5-flash-lite", "timeout": 120},
         ),
         (
             "flash_thinking",
             call_google_model,
-            {"model": "gemini-2.5-flash", "timeout": 120},
+            {"model": "gemini-3.7-flash", "timeout": 120},
         ),
         ("gpt4o", call_openai_model, {"model": "gpt-4o", "timeout": 60}),
     ]
@@ -796,12 +801,10 @@ def _print_comparison_summary(all_results: Dict[str, List[Dict]]) -> None:
     print("COMPARISON SUMMARY")
     print(f"{'='*70}")
 
-    # Pricing per 1M tokens (March 2026)
-    PRICING = {
-        "gemini-2.5-flash-lite": {"input": 0.10, "output": 0.40},
-        "gemini-2.5-flash": {"input": 0.30, "output": 2.50},
-        "gpt-4o": {"input": 2.50, "output": 10.00},
-    }
+    # Priced from the shared table so this summary and the product's own cost
+    # figures cannot drift apart; _rate falls back to the default model's row
+    # for a name it does not know rather than pricing it at zero.
+    from app.core.cost_constants import _rate
 
     for label, results in all_results.items():
         valid_results = [
@@ -812,17 +815,20 @@ def _print_comparison_summary(all_results: Dict[str, List[Dict]]) -> None:
             continue
 
         model_name = valid_results[0]["model"]
-        pricing = PRICING.get(model_name, {"input": 0, "output": 0})
+        pricing = _rate(model_name)
 
         total_in = sum(r.get("usage", {}).get("input_tokens", 0) for r in valid_results)
         total_out = sum(
             r.get("usage", {}).get("output_tokens", 0) for r in valid_results
         )
+        total_think = sum(
+            r.get("usage", {}).get("thinking_tokens", 0) for r in valid_results
+        )
         total_time = sum(r.get("wall_time_seconds", 0) for r in valid_results)
         avg_time = total_time / len(valid_results)
 
         total_cost = (total_in / 1_000_000 * pricing["input"]) + (
-            total_out / 1_000_000 * pricing["output"]
+            (total_out + total_think) / 1_000_000 * pricing["output"]
         )
         avg_cost = total_cost / len(valid_results)
 
@@ -846,7 +852,8 @@ def _print_comparison_summary(all_results: Dict[str, List[Dict]]) -> None:
         print(f"  Claims:     {len(valid_results)}")
         print(f"  Avg time:   {avg_time:.1f}s")
         print(
-            f"  Tokens:     {total_in:,} in + {total_out:,} out = {total_in + total_out:,} total"
+            f"  Tokens:     {total_in:,} in + {total_out:,} out + {total_think:,} think"
+            f" = {total_in + total_out + total_think:,} total"
         )
         print(f"  Total cost: ${total_cost:.4f}  (avg ${avg_cost:.4f}/call)")
         print(
@@ -872,7 +879,9 @@ def _print_comparison_summary(all_results: Dict[str, List[Dict]]) -> None:
             t = r.get("wall_time_seconds", 0)
             usage = r.get("usage", {})
             print(
-                f"    {r['claim_id']}: states={states}, refs={refs}, {t:.1f}s, {usage.get('input_tokens', 0)}+{usage.get('output_tokens', 0)} tok"
+                f"    {r['claim_id']}: states={states}, refs={refs}, {t:.1f}s, "
+                f"{usage.get('input_tokens', 0)}+{usage.get('output_tokens', 0)}"
+                f"+{usage.get('thinking_tokens', 0)}think tok"
             )
 
 

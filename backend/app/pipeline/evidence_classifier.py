@@ -887,6 +887,12 @@ class EvidenceClassifier:
         if usage:
             self._token_usage["input_tokens"] += usage.get("input_tokens", 0)
             self._token_usage["output_tokens"] += usage.get("output_tokens", 0)
+            # Same guarded pattern as ClaimMapAnalyzer._accumulate: present only
+            # when a thinking model ran, so the dict shape is otherwise unchanged.
+            if usage.get("thinking_tokens"):
+                self._token_usage["thinking_tokens"] = self._token_usage.get(
+                    "thinking_tokens", 0
+                ) + usage.get("thinking_tokens", 0)
 
     async def _call_google(self, user_prompt: str) -> tuple:
         """Classify via Google Gemini API."""

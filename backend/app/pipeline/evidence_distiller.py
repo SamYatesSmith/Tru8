@@ -243,6 +243,12 @@ class EvidenceDistiller:
         if usage:
             self._token_usage["input_tokens"] += usage.get("input_tokens", 0)
             self._token_usage["output_tokens"] += usage.get("output_tokens", 0)
+            # Same guarded pattern as ClaimMapAnalyzer._accumulate: present only
+            # when a thinking model ran, so the dict shape is otherwise unchanged.
+            if usage.get("thinking_tokens"):
+                self._token_usage["thinking_tokens"] = self._token_usage.get(
+                    "thinking_tokens", 0
+                ) + usage.get("thinking_tokens", 0)
 
     @staticmethod
     def _cleanup_full_text(items: List[Dict[str, Any]]) -> None:
