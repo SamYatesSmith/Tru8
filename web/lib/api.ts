@@ -360,6 +360,48 @@ class ApiClient {
   }
 
   /**
+   * GET /api/v1/checks/{check_id}/claims/{claim_id}/comparisons
+   * COMPARE tab: stored comparisons + budget. Collisions arrive computed
+   * from the LIVE claim map (never stored server-side).
+   */
+  async getComparisons(checkId: string, claimId: string, token?: string | null) {
+    return this.request<import('@shared/types').ComparisonListResponse>(
+      `/api/v1/checks/${checkId}/claims/${claimId}/comparisons`,
+      {},
+      token
+    );
+  }
+
+  /**
+   * GET /api/v1/checks/public/{check_id}/claims/{claim_id}/comparisons
+   * COMPARE on /r/: stored comparisons only, read-only, no auth, no budget.
+   */
+  async getPublicComparisons(checkId: string, claimId: string) {
+    return this.request<import('@shared/types').ComparisonListResponse>(
+      `/api/v1/checks/public/${checkId}/claims/${claimId}/comparisons`
+    );
+  }
+
+  /**
+   * POST /api/v1/checks/{check_id}/claims/{claim_id}/comparisons
+   * Run (or serve cached) one comparison. 409 = budget exhausted,
+   * 422 = invalid pair, 502 = fetch/model failure (not charged).
+   */
+  async createComparison(
+    checkId: string,
+    claimId: string,
+    evidenceA: string,
+    evidenceB: string,
+    token?: string | null
+  ) {
+    return this.request<import('@shared/types').CreateComparisonResponse>(
+      `/api/v1/checks/${checkId}/claims/${claimId}/comparisons`,
+      { method: 'POST', body: JSON.stringify({ evidenceA, evidenceB }) },
+      token
+    );
+  }
+
+  /**
    * POST /api/v1/checks/{check_id}/claims/{claim_id}/research-gaps
    * Start re-search for ALL gap elements in a claim (1 credit)
    */

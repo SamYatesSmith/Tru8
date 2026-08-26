@@ -93,6 +93,11 @@ export type AnalyticsEvent =
   | 'evidence_expanded' // a supports/challenges evidence item expanded
   | 'receipt_opened' // the excluded-evidence / receipts disclosure opened
   | 'view_opened' // a profession view switched to (property: view)
+  // COMPARE tab (2026-08-26; design audit/2026-08-26_compare_tab_design.md)
+  | 'comparison_run' // Compare pressed and a result returned (props: claimId, cached, budgetUsed)
+  | 'comparison_suggested_used' // the suggest-a-pair button filled the slots (property: claimId)
+  | 'comparison_failed' // fetch/model failure, not charged (props: claimId, reason)
+  | 'comparison_viewed_readonly' // /r/ visitor saw stored comparisons (property: claimId)
   | 'share_clicked' // a share button clicked (property: platform)
   | 'export_clicked' // PDF evidence record downloaded (Phase 2; property: surface)
   // Pricing page (P3 packaging, 2026-06-24; all carry property: surface)

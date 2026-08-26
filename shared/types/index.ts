@@ -241,6 +241,10 @@ export type EvidenceRelationship = 'supports' | 'challenges' | 'context';
 export interface EvidenceRef {
   evidenceId: string;
   relationship: EvidenceRelationship;
+  // The mapper's own sentence for why this source sits against this element
+  // in this direction. Present on every ref since Track B (measured 100%,
+  // avg 178 chars) — typed late (2026-08-26); no current UI reads it.
+  reasoning?: string;
 }
 
 // Mechanical, no-LLM structural summary of the evidence on ONE side
@@ -301,6 +305,58 @@ export interface ClaimMap {
     // checks. Inner keys stay snake_case.
     grounds?: { applied: boolean; converged: boolean; element_count: number };
   };
+}
+
+// --- COMPARE tab (2026-08-26) ---
+// Design: audit/2026-08-26_compare_tab_design.md. The user picks two shown
+// sources; one model call returns three prose fields. Collisions are
+// COMPUTED per request from the live claim map — never stored — so they can
+// never go stale against the map beside them.
+
+// What the model actually read for a side: the whole article ('full') or
+// the pipeline's stored text ('stored' — fetch blocked/unusable; ~38% of
+// comparisons, measured). Load-bearing for the receipt line.
+export type ComparisonBasis = 'full' | 'stored';
+
+export type CollisionVerdict = 'opposed' | 'aligned' | 'only_a' | 'only_b';
+
+export interface CollisionRow {
+  elementId: string;
+  a: EvidenceRelationship | null;
+  b: EvidenceRelationship | null;
+  // A sort key — the UI prints the two relationships themselves. 'opposed'
+  // is reserved for exactly {supports, challenges}.
+  verdict: CollisionVerdict;
+}
+
+export interface Comparison {
+  id: string;
+  evidenceA: string;
+  evidenceB: string;
+  summaryA: string;
+  summaryB: string;
+  divergence: string;
+  basisA: ComparisonBasis;
+  basisB: ComparisonBasis;
+  wordsA?: number | null;
+  wordsB?: number | null;
+  collisions: CollisionRow[];
+  createdAt: string | null;
+}
+
+export interface ComparisonBudget {
+  used: number;
+  limit: number;
+}
+
+export interface ComparisonListResponse {
+  comparisons: Comparison[];
+  budget?: ComparisonBudget; // absent on the public /r/ variant
+}
+
+export interface CreateComparisonResponse extends Comparison {
+  cached: boolean;
+  budget: ComparisonBudget;
 }
 
 // --- Seeker Explore Mode ---
