@@ -5,22 +5,13 @@ import { TierStamp } from './TierStamp';
 import { TypeStamp } from './TypeStamp';
 import { FactCheckRating } from '../FactCheckRating';
 import { DateHint } from '../DateHint';
-import { cleanTitle } from '../shared-utils';
+import { cleanTitle, getFaviconUrl } from '../shared-utils';
 
 function extractDomain(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, '');
   } catch {
     return url;
-  }
-}
-
-function getFaviconUrl(url: string): string {
-  try {
-    const hostname = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
-  } catch {
-    return '';
   }
 }
 

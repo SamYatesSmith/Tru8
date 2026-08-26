@@ -7,22 +7,9 @@ import { EvidenceMap, type ElementMapping } from './EvidenceMap';
 import { GapIndicator } from './GapIndicator';
 import { ElementBadge } from '../ElementBadge';
 import { DateHint } from '../DateHint';
-import { cleanTitle } from '../shared-utils';
+import { cleanTitle, getFaviconUrl } from '../shared-utils';
 
 // --- Mobile helpers ---
-
-function getDomain(url: string): string {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return '';
-  }
-}
-
-function getFaviconUrl(url: string): string {
-  const domain = getDomain(url);
-  return domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=32` : '';
-}
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return '';

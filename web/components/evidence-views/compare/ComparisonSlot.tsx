@@ -4,7 +4,7 @@ import type { Evidence, EvidenceTier } from '@shared/types';
 import { TierBadge } from '../TierBadge';
 import { TypeBadge } from '../TypeBadge';
 import { DateHint } from '../DateHint';
-import { cleanTitle, extractDomain } from '../shared-utils';
+import { cleanTitle, extractDomain, getFaviconUrl } from '../shared-utils';
 
 /**
  * One of the two comparison slots. Slots are A and B — deliberately NOT
@@ -24,11 +24,6 @@ const TIER_BORDER_COLOURS: Record<EvidenceTier, string> = {
   reporting: '#3F3F46',
   commentary: '#A1A1AA',
 };
-
-function getFaviconUrl(url: string): string {
-  const domain = extractDomain(url);
-  return domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=32` : '';
-}
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return '';

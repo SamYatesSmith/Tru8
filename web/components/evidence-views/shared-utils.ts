@@ -65,7 +65,11 @@ export function formatDateStr(dateStr?: string): string {
 export function getFaviconUrl(url: string): string {
   try {
     const hostname = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+    // sz=64 though icons render at 12-16px: retina displays paint 2-3 device
+    // px per CSS px, and Google's service upscales a 16px source to smaller
+    // sz values — both read as the pixelation reported 2026-08-26. 64 is the
+    // largest size the service reliably serves; the browser downscales crisply.
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
   } catch {
     return '';
   }

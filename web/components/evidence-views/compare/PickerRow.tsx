@@ -2,7 +2,7 @@
 
 import type { Evidence, EvidenceTier } from '@shared/types';
 import { ElementRefs } from '../ElementRefs';
-import { cleanTitle, extractDomain } from '../shared-utils';
+import { cleanTitle, extractDomain, getFaviconUrl } from '../shared-utils';
 
 /**
  * One selectable source in the picker. Click places it in the next empty
@@ -18,11 +18,6 @@ const TIER_BORDER_COLOURS: Record<EvidenceTier, string> = {
   reporting: '#3F3F46',
   commentary: '#A1A1AA',
 };
-
-function getFaviconUrl(url: string): string {
-  const domain = extractDomain(url);
-  return domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=32` : '';
-}
 
 interface PickerRowProps {
   evidence: Evidence;

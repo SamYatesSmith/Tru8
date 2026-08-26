@@ -1,5 +1,6 @@
 'use client';
 
+import { getFaviconUrl } from '../shared-utils';
 import { useMemo, useState, useCallback } from 'react';
 import { Evidence, EvidenceTier, EvidenceType } from '@shared/types';
 
@@ -39,15 +40,6 @@ function getDomain(url: string): string {
     return new URL(url).hostname.replace(/^www\./, '');
   } catch {
     return url;
-  }
-}
-
-function getFaviconUrl(url: string): string {
-  try {
-    const hostname = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
-  } catch {
-    return '';
   }
 }
 

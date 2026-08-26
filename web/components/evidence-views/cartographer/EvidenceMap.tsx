@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Evidence, EvidenceTier, ClaimElement } from '@shared/types';
 import { DateHint } from '../DateHint';
-import { cleanTitle } from '../shared-utils';
+import { cleanTitle, getFaviconUrl } from '../shared-utils';
 import {
   forceSimulation,
   forceX,
@@ -59,19 +59,6 @@ const MIN_BAND_HEIGHT = 80;
 const PADDING = { top: 44, right: 48, bottom: 72, left: 110 };
 
 // --- Helpers ---
-
-function getDomain(url: string): string {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return '';
-  }
-}
-
-function getFaviconUrl(url: string): string {
-  const domain = getDomain(url);
-  return domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
-}
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return '';
