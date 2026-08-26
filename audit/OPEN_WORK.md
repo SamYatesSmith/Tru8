@@ -5,11 +5,56 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-25, end of day)
+## 🟢 START HERE — next session (updated 2026-08-26, end of day)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ SEND WEEK. Day 1 is Tue 25 Aug (TTE · Viglione · Seymour), Day 2 is Wed 26 Aug (Tapper · McSweeney). Founder decision 2026-08-24: all five over these two days.
+### ▶▶ WHERE 2026-08-26 ENDED: COMPARE tab SHIPPED (replaced SOURCES). Sends are PAUSED by founder decision. Bench is DEAD (not ours).
+
+**1. COMPARE is live in production** (`f8733df` deployed, health-watched
+through the flip). Built → design-reviewed → live-verified in one day; the
+full record is the two 2026-08-26 entries below and
+`audit/2026-08-26_compare_tab_design.md` (canonical — its §16 is the
+acceptance table). **Still open on it, in order:**
+   - **Founder hands-on pass, NEVER DONE** (Clerk wall — agents cannot sign
+     in): dashboard interactive COMPARE on the MMR check
+     (`/dashboard/check/e348f4a0-…` — measured 0 opposed pairs, so
+     **Suggest-a-pair must be ABSENT**) + the §16 #10 keyboard-only pass.
+   - **Prod migration UNCONFIRMED:** `railway ssh` → `python -m alembic
+     current` → expect `claim_comparison (head)` (M-06 lesson: green deploy
+     ≠ table exists; the public comparisons GET selecting from the table is
+     the endpoint-level proof).
+   - **One real prod comparison** (~0.2p) — charge-side + Railway env are
+     only provable there.
+   - Cosmetic, founder's call: nav "COMPARE" (marketing /compare) now shares
+     a word with the lens tab.
+
+**2. 🔴 THE REPLAY BENCH IS DEAD — 0 ok / 10 fail, every claim, total
+cassette drift. NOT a COMPARE regression** (identical failure at two
+pre-COMPARE commits). **Attributed by experiment:** pinning the old model
+strings (`GOOGLE_LLM_MODEL=gemini-2.5-flash-lite
+MAPPING_GOOGLE_MODEL=gemini-2.5-flash`) took TRU-93DD-F4B7 from **0 hits →
+38 hits** — the 2026-08-25 model migration changed every cassette key.
+Residual ~16 misses = post-08-17 prompt changes (recital gate `7cd71b4`,
+mapping revert `8e43b8e`). **Owed: full corpus re-record on CURRENT models +
+golden review. Until paid, the drift guard protects nothing.** Do NOT
+re-diagnose this from scratch — the attribution is done.
+
+**3. ▶▶ SENDS: PAUSED, founder decision 2026-08-26 in-session:** *"WE ARE NOT
+GOING TO DO THE SENDS UNTIL WE RESOLVE THIS SOURCE TAB ISSUE, ALONGSIDE OTHER
+NOTED ISSUES I FOUND LAST NIGHT WHEN MY PARTNER WAS VIEWING THE SITE."*
+COMPARE resolves the source-tab issue. **⚠️ The OTHER partner findings were
+NEVER ENUMERATED — the founder deferred listing them. ASK FOR THE LIST before
+assuming the send gate is clear.** Everything in the send-week block below
+(TTE text verified, Fix 1 approved-unbuilt, etc.) still stands — it is
+paused, not cancelled.
+
+**4. Housekeeping done 2026-08-26:** Syncthing fully removed (repo files +
+`.git` conflict copy; founder deleted the AppData/Downloads pieces). Local
+dev servers (uvicorn :8000, next :3000) were left running for the founder's
+hands-on pass — stale by next session.
+
+### ▶▶ SEND WEEK (PAUSED — see item 3 above). Day 1 was Tue 25 Aug (TTE · Viglione · Seymour), Day 2 Wed 26 Aug (Tapper · McSweeney). Founder decision 2026-08-24: all five over these two days.
 
 **What happened 2026-08-24:** the TTE email was ADVERSARIALLY VERIFIED by
 three parallel agents (recipient facts · live `/r/` page vs email text ·
