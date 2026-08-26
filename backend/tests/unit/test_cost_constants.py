@@ -88,18 +88,31 @@ def test_model_aware_cost_no_residual():
 
 
 def test_residual_tokens_costed_at_default():
-    # totals exceed by_stage sums → 10k in / 2k out residual at default (flash-lite)
+    # totals exceed by_stage sums → 10k in / 2k out residual at the default
+    # (gemini-3.5-flash-lite, the production model — 0.30/2.50)
     by_stage = _results()["llm_usage_by_stage"]
     cost = estimate_llm_cost_usd(120_000, 20_000, by_stage)
     base = (80_000 * 0.30 + 15_000 * 2.50) / 1e6 + (30_000 * 0.10 + 3_000 * 0.40) / 1e6
-    residual = (10_000 * 0.10 + 2_000 * 0.40) / 1e6
+    residual = (10_000 * 0.30 + 2_000 * 2.50) / 1e6
     assert cost == pytest.approx(round(base + residual, 6))
 
 
 def test_no_by_stage_uses_default_model():
     cost = estimate_llm_cost_usd(100_000, 10_000, None)
-    expected = (100_000 * 0.10 + 10_000 * 0.40) / 1e6
+    expected = (100_000 * 0.30 + 10_000 * 2.50) / 1e6
     assert cost == pytest.approx(round(expected, 6))
+
+
+def test_default_llm_tracks_the_production_model():
+    # Drift guard: unattributed tokens are priced at _DEFAULT_LLM, so it must
+    # name the model production actually runs (config.py GOOGLE_LLM_MODEL's
+    # code default, not env — CI must not depend on the environment). When a
+    # model migration changes config.py and forgets this constant, the cost
+    # estimate goes quietly wrong; this failure is the loud version.
+    from app.core.config import Settings
+
+    fields = getattr(Settings, "model_fields", None) or Settings.__fields__
+    assert _DEFAULT_LLM == fields["GOOGLE_LLM_MODEL"].default
 
 
 def test_thinking_tokens_priced_at_output_rate():
@@ -137,7 +150,13 @@ def test_build_basic_shape_and_honest_naming():
 
 def test_build_cost_telemetry_stores_thinking_tokens():
     out = build_cost_telemetry(
-        {"llm_token_usage": {"input_tokens": 1, "output_tokens": 1, "thinking_tokens": 7}}
+        {
+            "llm_token_usage": {
+                "input_tokens": 1,
+                "output_tokens": 1,
+                "thinking_tokens": 7,
+            }
+        }
     )
     assert out["llm"]["thinking_tokens"] == 7
 

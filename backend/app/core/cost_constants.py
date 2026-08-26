@@ -74,7 +74,15 @@ GEMINI3_FLASH_STANDARD_FROM_2027: Dict[str, Dict[str, float]] = {
     "gemini-3.6-flash": {"input": 1.50, "output": 7.50},
     "gemini-3.7-flash": {"input": 1.50, "output": 7.50},
 }
-_DEFAULT_LLM = "gemini-2.5-flash-lite"
+# The rate applied wherever no model was recorded: unknown model names, stages
+# without models_used, no-by_stage rows, and residual tokens. Must name the
+# production default (config.py GOOGLE_LLM_MODEL — a drift guard test pins the
+# pair), because a stale default silently reprices unattributed tokens at a
+# retired model's cheaper rate and nothing fails. Known trade: the few
+# no-by_stage rows from 2026-06-15→07-02 genuinely ran on 2.5-flash-lite and
+# now reprice ~3-6x high — accepted, this model fails pessimistic (see the
+# search entry-tier choice below for the same reasoning).
+_DEFAULT_LLM = "gemini-3.5-flash-lite"
 
 # USD per BILLABLE UNIT, per search provider. A "unit" is what the provider
 # actually charges for, which is not always one request: Serper bills 2 credits
@@ -141,10 +149,9 @@ def _cost(
     # Google bills thought tokens (thoughtsTokenCount) at the output-token rate;
     # they are reported separately from candidatesTokenCount, never inside it.
     r = _rate(model)
-    return (
-        (input_tokens / 1_000_000) * r["input"]
-        + ((output_tokens + thinking_tokens) / 1_000_000) * r["output"]
-    )
+    return (input_tokens / 1_000_000) * r["input"] + (
+        (output_tokens + thinking_tokens) / 1_000_000
+    ) * r["output"]
 
 
 def _priciest(models: Iterable[str]) -> Optional[str]:
@@ -226,7 +233,9 @@ def build_cost_telemetry(results: Dict[str, Any]) -> Dict[str, Any]:
     api_adapters_with_results = int(metrics.get("api_adapter_calls", 0) or 0)
 
     # PARTIAL — captured LLM stages only (limitation #1 in module docstring).
-    llm_cost = estimate_llm_cost_usd(in_tok, out_tok, by_stage, thinking_tokens=think_tok)
+    llm_cost = estimate_llm_cost_usd(
+        in_tok, out_tok, by_stage, thinking_tokens=think_tok
+    )
 
     # Measured search spend (2026-08-03). None for checks that predate metering.
     search_meter = results.get("search_meter")
