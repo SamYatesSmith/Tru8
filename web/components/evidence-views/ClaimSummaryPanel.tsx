@@ -56,10 +56,10 @@ const TYPE_LABELS: Record<string, string> = {
 
 // Stance display — neutral palette (no verdict colour). Differentiated by tonal
 // weight + icon + word + position only. Orange is reserved for interaction.
-const STANCE_META: Record<EvidenceRelationship, { label: string; band: string; glyph: React.ReactNode }> = {
-  supports: { label: 'Supports', band: 'bg-zinc-800 text-white', glyph: <Plus size={13} /> },
-  context: { label: 'Context', band: 'bg-zinc-300 text-zinc-800', glyph: <Dot size={16} /> },
-  challenges: { label: 'Challenges', band: 'bg-zinc-600 text-white', glyph: <Minus size={13} /> },
+const STANCE_META: Record<EvidenceRelationship, { label: string; fill: string; glyph: React.ReactNode }> = {
+  supports: { label: 'Supports', fill: 'bg-zinc-800', glyph: <Plus size={13} /> },
+  context: { label: 'Context', fill: 'bg-zinc-300', glyph: <Dot size={16} /> },
+  challenges: { label: 'Challenges', fill: 'bg-zinc-600', glyph: <Minus size={13} /> },
 };
 
 interface ClaimSummaryPanelProps {
@@ -263,42 +263,61 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
             <SectionTitle>
               {barTotal < evidenceCount ? `${barTotal} of ${evidenceCount} sources mapped` : 'Sources mapped'}
             </SectionTitle>
-            {nav && <span className="font-mono text-[10px] text-zinc-400">click a band &rarr;</span>}
+            {nav && <span className="font-mono text-[10px] text-zinc-400">click a bar &rarr;</span>}
           </div>
-          <div className="flex w-full h-10 overflow-hidden border border-zinc-200">
+          {/* Three labelled bars, one per stance, on a shared scale (longest =
+              the largest count). Label + count sit OUTSIDE the fill so a skewed
+              distribution can never clip them off screen — the 2026-08-26
+              partner finding that retired the single stacked band. A zero
+              stance renders as an empty track rather than vanishing: absence
+              is information, and a one-sided claim should look one-sided. */}
+          <div className="space-y-1.5">
             {STANCE_ORDER.map((s) => {
               const n = counts[s];
-              if (n === 0) return null;
               const meta = STANCE_META[s];
-              // flex-grow proportional (not explicit width%) so bands fill the
-              // track exactly and the dominant band is never clipped on a skew.
-              const flex = { flexGrow: n, flexBasis: 0 } as const;
-              const inner = (
-                <>
-                  <span className="shrink-0">{meta.glyph}</span>
-                  <span className="truncate text-xs font-medium tracking-wide">{meta.label} {n}</span>
-                </>
+              const maxCount = Math.max(counts.supports, counts.context, counts.challenges, 1);
+              const track = (
+                <span className="flex-1 h-7 border border-zinc-200 min-w-0">
+                  {n > 0 && (
+                    <span
+                      className={`block h-full min-w-[3px] ${meta.fill}`}
+                      style={{ width: `${(n / maxCount) * 100}%` }}
+                    />
+                  )}
+                </span>
               );
-              return nav ? (
+              const label = (
+                <span className={`flex items-center gap-1.5 w-24 md:w-28 shrink-0 text-xs font-medium ${n > 0 ? 'text-zinc-700' : 'text-zinc-400'}`}>
+                  <span className="shrink-0">{meta.glyph}</span>
+                  {meta.label}
+                </span>
+              );
+              const count = (
+                <span className={`w-7 shrink-0 text-right font-mono text-xs ${n > 0 ? 'text-zinc-700' : 'text-zinc-400'}`}>{n}</span>
+              );
+              return nav && n > 0 ? (
                 <button
                   key={s}
                   onClick={() => goStance(s)}
-                  style={flex}
                   title={`${meta.label} — ${n} ${n === 1 ? 'source' : 'sources'}`}
                   aria-label={`Show the ${n} ${meta.label.toLowerCase()} sources`}
-                  className={`group flex items-center gap-1.5 px-2 min-w-[1.5rem] cursor-pointer transition-all hover:ring-2 hover:ring-inset hover:ring-[var(--accent)] ${meta.band}`}
+                  className="group flex items-center gap-2 w-full cursor-pointer [&>span:nth-child(2)]:transition-all hover:[&>span:nth-child(2)]:ring-1 hover:[&>span:nth-child(2)]:ring-inset hover:[&>span:nth-child(2)]:ring-[var(--accent)]"
                 >
-                  {inner}
+                  {label}
+                  {track}
+                  {count}
                 </button>
               ) : (
-                <span key={s} style={flex} className={`flex items-center gap-1.5 px-2 min-w-[1.5rem] ${meta.band}`}>
-                  {inner}
-                </span>
+                <div key={s} className="flex items-center gap-2 w-full">
+                  {label}
+                  {track}
+                  {count}
+                </div>
               );
             })}
           </div>
           <p className="mt-1.5 text-[11px] text-zinc-400">
-            Proportions describe the sources gathered — not a verdict on the claim.
+            Bar lengths compare the sources gathered — not a verdict on the claim.
             {bandSum > barTotal && ' Some sources address more than one side.'}
           </p>
         </div>
@@ -402,16 +421,23 @@ function PointCard({ kind, title, url, nav, onOpen }: { kind: EvidenceRelationsh
   // "Most relevant", not "strongest" — ranked by topical relevance, which carries
   // NO source authority (invariant), so "strongest" would overclaim evidential weight.
   const adj = kind === 'supports' ? 'supporting' : kind === 'challenges' ? 'challenging' : 'context';
-  const body = (
-    <>
+  // Two distinct affordances (2026-08-26 partner finding), so the card is a
+  // plain div — a link inside a button is invalid HTML. The domain visits the
+  // source (works on /r/ too, same idiom as the fallback rows); "see in
+  // evidence" locates it in the grid (dashboard/nav only).
+  return (
+    <div className="border border-zinc-200 p-4">
       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-600">
         {meta.glyph} Most relevant {adj} source
       </span>
       <p className="mt-1.5 text-sm text-zinc-900 leading-snug">{cleanTitle(title)}</p>
-      {/* Domain left, "see in evidence →" pinned far-right so the clickable
-          aligns with the other right-edge affordances (not quashed by the domain). */}
       <div className="mt-2 flex items-center justify-between gap-3">
-        <span className="inline-flex items-center gap-1 text-xs text-zinc-500 min-w-0">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-[var(--accent)] transition-colors min-w-0"
+        >
           <img
             src={getFaviconUrl(url)}
             alt=""
@@ -422,21 +448,19 @@ function PointCard({ kind, title, url, nav, onOpen }: { kind: EvidenceRelationsh
             onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
           />
           <span className="truncate">{extractDomain(url)}</span>
-        </span>
+          <ArrowUpRight size={12} className="shrink-0" />
+        </a>
         {nav && (
-          <span className="shrink-0 inline-flex items-center gap-1 text-xs text-zinc-500 group-hover:text-[var(--accent)] transition-colors">
+          <button
+            type="button"
+            onClick={onOpen}
+            className="shrink-0 inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-[var(--accent)] transition-colors cursor-pointer"
+          >
             see in evidence <ArrowRight size={12} />
-          </span>
+          </button>
         )}
       </div>
-    </>
-  );
-  return nav ? (
-    <button onClick={onOpen} className="text-left border border-zinc-200 hover:border-[var(--accent)] transition-colors p-4 group">
-      {body}
-    </button>
-  ) : (
-    <div className="border border-zinc-200 p-4">{body}</div>
+    </div>
   );
 }
 
