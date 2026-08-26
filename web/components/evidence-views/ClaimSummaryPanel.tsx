@@ -75,7 +75,7 @@ interface ClaimSummaryPanelProps {
   /**
    * Switch the active lens (summary-as-navigation). The panel fires
    * `view_opened {source:'summary'}` itself; the client switches the lens +
-   * scrolls. Lens values match ViewSelector (`librarian`, `correspondent`,
+   * scrolls. Lens values match ViewSelector (`librarian`, `compare`,
    * `chronologist`, `seeker`, `cartographer`, `projectionist`).
    */
   onNavigate?: (view: string, params?: { rel?: EvidenceRelationship[]; element?: string }) => void;

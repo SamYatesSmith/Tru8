@@ -29,7 +29,7 @@ const CONSOLE_FEATURES = [
   {
     n: '02',
     key: 'All six views',
-    desc: 'Evidence, Sources, Timeline, Gaps, Map and Video.',
+    desc: 'Evidence, Compare, Timeline, Gaps, Map and Video.',
   },
   {
     n: '03',

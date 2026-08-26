@@ -14,7 +14,7 @@ import { ScreenshotScrollLightbox, type ScreenshotSlide } from './screenshot-scr
  * "The summary, then the lenses." — the results summary LEADS (labelled THE
  * SUMMARY, deliberately unnumbered so it never reads as a seventh view), then
  * the four strongest lenses as LENS 01–04. Large alternating clickable panels
- * with the existing lightbox — the layout the founder kept. Sources + Video
+ * with the existing lightbox — the layout the founder kept. Compare + Video
  * are named in the quiet strip below, so "six" stays honest without six heavy
  * panels. Screenshots refreshed in C4 (post-C2 summary redesign).
  */
@@ -44,7 +44,7 @@ interface Panel {
  *  founder captured fresh screenshots (summary-digest{,-full}.png plus
  *  re-shot Evidence/Map/Timeline). Gaps is NOT panelled (founder decision:
  *  the capture check had no gaps to show) — it is named in the
- *  "Also inside the console" strip alongside Sources and Video.
+ *  "Also inside the console" strip alongside Compare and Video.
  *
  *  RECAPTURED 2026-08-04. Two defects were fixed together:
  *
@@ -200,8 +200,8 @@ export function StitchProductPreview() {
           <span className="text-zinc-600">Gaps</span>
           <span>— what&rsquo;s missing, with targeted re-search</span>
           <span aria-hidden="true">·</span>
-          <span className="text-zinc-600">Sources</span>
-          <span>— outlet by outlet</span>
+          <span className="text-zinc-600">Compare</span>
+          <span>— two sources, side by side</span>
           <span aria-hidden="true">·</span>
           <span className="text-zinc-600">Video</span>
           <span>— what&rsquo;s said on camera</span>

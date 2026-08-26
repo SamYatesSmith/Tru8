@@ -59,6 +59,142 @@ elements read `supported`). **Final verified text: `audit/2026-08-21_send_sheet.
 never the underlying data — and verify recipient titles.** The e3 provenance
 note the email originally pointed at exists only in the PDF + JSON.
 
+### 🟡 OPEN 2026-08-26 — SOURCES tab → **COMPARE**. Design approved in principle, NOT built.
+
+**Full design: `audit/2026-08-26_compare_tab_design.md`.** User picks two sources
+from the claim's evidence, presses Compare; **one** model call reads both
+articles and returns summary A, summary B, and where they diverge — plus a
+mechanical element-aligned collision table. **Only we can build that table**
+(it needs decomposition), which is the differentiator.
+
+**⚠️ THE LOAD-BEARING DECISION: the USER picks the pairing, never Tru8.** An
+earlier version had us selecting the counter-position article — that is
+invariant #7 in reverse, manufacturing two-sidedness, and on a false claim it
+would be the worst thing we could ship. **Do not make the suggestion button the
+default.**
+
+**Measured, and these numbers drove the design — do not re-derive:** opposing
+pairs per claim **50 / 0 / 4 / 0** (so **~half of claims have NO opposition** —
+a normal outcome, not an error state); relationship mix `context` **33** >
+`supports` **26** > `challenges` **14** (**which is why slot B must accept a
+CONTEXTUALISING source** — challenge-only would be dead on half of claims); and
+**only 10% of evidence has `full` article text** (35% distilled, 29% snippet),
+which is why the fetch happens **at Compare time, not pipeline time**.
+
+**⚠️ MANIFEST TRAP:** the signed payload includes per-evidence `content_basis`
+(`manifest_signer.py:108,172-174`). If the Compare fetch updates that row
+`snippet`→`full`, **`/verify/{id}` returns `data_modified` for that check
+forever.** Comparisons write to their OWN table and touch nothing the manifest
+signs. **The cache IS the counter** (order-independent key, else A/B and B/A
+double-count and cache neither).
+
+**Founder decisions made:** free, **3 per check, +1 per re-search**
+(accumulating; cached re-views and failed runs never count) · **dashboard-only
+to CREATE; `/r/` shows cached ones read-only**, never API/MCP · suggestion
+button exists but is **absent, not disabled**, when no opposing pair exists.
+
+**⚠️ WE COMPARE POSITIONS, NOT ARTICLES (founder, 2026-08-26).** An article
+covers far more than the claim, so a general summary of it is mostly irrelevant
+and the divergence field drifts off-topic. Full text goes IN; a **claim-scoped
+position** comes OUT, scoped by the **element descriptions** (neutral,
+question-shaped) — never the claim text, which resolves the premise-adoption
+risk. **Non-negotiable UI line: *"Compared on the questions in this claim, not on
+the articles as a whole."*** Without it we print a partial characterisation of a
+piece under its publisher's name — the truncated-headline defect again.
+
+**⚠️ WE READ THE WHOLE ARTICLE — passage selection REJECTED, measured 2026-08-26
+(88 live fetches).** Founder objection upheld: summarising selected paragraphs
+characterises a source's position from fragments under its own name. **The
+measurement made it free to comply:** median article is **811 words**, so cost
+scales with actual tokens and the cap almost never binds — reading 100% of the
+sample (32k rail) costs **0.262p/comparison, 1.05p for the full budget**, only
+**0.09p more** than truncating at 4k, and still under the ~1.18p a check costs.
+**The over-cap tail was ONS bulletins, PMC papers, a GAO report and Wikipedia —
+not one argumentative news piece**, so selection would only ever have fired
+where fragmenting is least defensible. One fallback path only: can't read whole
+→ stored text, labelled. ⚠️ **That path is COMMON: 66% HTTP 200 / 62% usable
+text, so ~38% of comparisons run on stored text** — the labelling receipt is
+load-bearing, not decorative.
+
+**Design-review fixes (3 defects in the spec, all written in):** **collisions
+are COMPUTED ON READ, never stored** (re-search/coverage recovery re-maps
+elements — the same staleness already logged for basis blocks) · **syndication +
+no-overlap pre-flight warning** (free, protects the budget) · **concurrency lock
+on the sorted pair key** (double-click otherwise charges twice and races). Plus:
+**the tab HIDES ITSELF** on `/r/` with no stored comparisons and on any claim
+with <2 shown sources — `hiddenTabs` already exists (VIDEO uses it).
+
+**COST superseded — see above. Earlier estimate** (`gemini-3.5-flash-lite` $0.30/$2.50 per M,
+vendor-verified): **0.16p typical, 0.28p long-form** per comparison. ⚠️ **The
+number that matters is budget exposure:** a check costs ~1.18p, and 4
+comparisons at the original 8k cap = **1.88p, MORE than the check itself** — so
+the per-article cap was **halved to 4k tokens** (→ 1.12p, parity). ⚠️ That 1.18p
+baseline is itself an **undercount** (`cost_constants.py` counts analyzer +
+classifier + distiller only), so Compare's real share is smaller than the ratio
+implies — do not quote the ratio as if the baseline were complete.
+
+**⚠️ ~70% of previously-blocked URLs still 403 even with the `Tru8Bot` UA** — so
+**every summary must declare which text it was built from** (`△ READ · full
+article` / `snippet only`), or we re-ship the fragment-as-whole defect fixed
+2026-08-25.
+
+**Sweep done — the swap is CHEAP:** only 2 files import the view, **zero
+backend**, **zero tests** on any correspondent component; a 1-for-1 replacement
+keeps ~20 "six views" copy claims correct (**replace, don't remove**).
+**`?view=correspondent` deep links are live and silently fall back to
+`librarian`** — needs a translation, not an alias. Independently broken today:
+`pricing-faq.tsx:26` (breaches the action-names lock AND describes the old
+Interpreter); `CLAUDE.md:149` stale twice. Dead code: `CorrespondentView`'s
+`scope="check"` branch.
+
+**Rejected first, with measurements — see the superseded doc so nobody
+re-attempts them:** echo/derivation (**8%** of sides, repetition **0%**),
+diagnostic value/ACH (**0–10%**), independence/concentration (already shipped),
+entities (`key_entities` = 2 generic nouns), and The Working Out (per-ref
+`reasoning`, **100%** populated, killed on the founder's filter: **users want
+the software to work; they don't care how or why** — which retired the whole
+transparency family).
+
+**Open: tab label only.** Everything else is settled. **NEXT STEP = DESIGN
+REVIEW, then build, then verify. Nothing is built.**
+
+### 🗄 SUPERSEDED 2026-08-26 — the INDEPENDENCE proposal (measurements still live)
+
+**Full design: `audit/2026-08-26_sources_tab_replacement_design.md`.** Trigger:
+cold read by the founder's partner — *"feels redundant."* Verified: **SOURCES is
+the one tab where you cannot open a source** (`SourceCard.tsx:118-124` renders
+titles as plain text; the only `Visit source →` is on EVIDENCE, in
+`ReadingTable.tsx:137-146`). 4 of its 7 signals duplicate other tabs.
+
+**Two datasets we compute, sign, and have NEVER rendered:** six scope-gate
+receipts per element (in `basis`, typed `unknown`) and `queryPlan` including
+zero-yield queries. Zero frontend readers for either.
+
+**⚠️ THE PRESSURE TEST OVERTURNED THE FIRST DESIGN — measured, not assumed.**
+The derivation/echo story I recommended as *the* differentiator is **the rarest
+signal we produce**: `originals > 0` on **8% of evidence sides**, repetition
+clusters **0%** (2 captured checks, 13 sides); echo gate **2/10** corpus claims.
+On ~80% of checks the headline would read *"10 sources → 10 originals"* — a
+non-statement dressed as an insight. **Concentration is the only
+always-populated, always-varied signal** (top-domain share 0.08→0.60, domains
+5→21, 10/10 claims); scope receipts fire **4/10**, twice as often as derivation.
+So: spine = concentration + sole-source; derivation and scope receipts become
+**conditional bands**. 8 proposed elements → 4 kept, 2 conditional, 1 deferred,
+2 cut.
+
+⚠️ **Sample A is 2 checks on ONE topic, dated 9 July, pre-F7-regold** (which
+raised primary tiers corpus-wide and plausibly raises the originals rate).
+`sole_domain` is absent from those captures — its zeros are a **capture
+artefact** and were discarded, not reported. **Re-measure on 20+ production
+checks before building the conditional bands** (`railway ssh`, not `railway run`).
+
+**Blocking:** founder approval on direction · frontend-only v1 vs waiting for
+`derivation_chain` persistence · whether to re-measure first. **Deep-link
+hazard:** `?view=correspondent` is URL-persisted; replacing the tab needs an
+alias or those links fail silently. Reference sweep commissioned — its results
+land as §8 of the design doc and are a **prerequisite, not a follow-up**.
+**Timing: presentation work, not pipeline work — but not send-week work either.**
+
 ### ✅ SHIPPED 2026-08-25 — Evidence headlines were arriving pre-cut. Fixed at three layers; two decisions left.
 
 **Symptom** (founder screenshot, `/r/` reporting sources): titles stopped

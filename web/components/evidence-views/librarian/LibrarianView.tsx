@@ -108,7 +108,7 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
     // Show all classified evidence in the landscape; only truly-excluded
     // items (extraction failures, duplicates, satire) drop out. Unmapped
     // items appear in the heatmap/ledger with no element badge — matches
-    // Cartographer + Chronologist + Correspondent filtering and the
+    // Cartographer + Chronologist filtering and the
     // "no hidden curation" invariant.
     const isVisibleInLandscape = (ev: Evidence) =>
       ev.receiptStatus !== 'excluded';

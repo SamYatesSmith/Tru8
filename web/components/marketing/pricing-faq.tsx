@@ -23,7 +23,7 @@ const PRICING_FAQS: ReadonlyArray<QA> = [
   },
   {
     q: 'What does a check return?',
-    a: 'Six structured views of the same evidence set: a Map of element relationships, a Librarian ledger of every source by tier and type, a Correspondent view for element-by-element analysis, a Timeline of when evidence appeared, a Projectionist view of video evidence, and a Seeker report of what could not be found. Every record is signed and exportable as PDF, CSV or JSON.',
+    a: 'Six structured views of the same evidence set: the classified Evidence ledger of every source by tier and type, a side-by-side Compare of any two sources, a Timeline of when evidence appeared, a Gaps report of what could not be found, a Map of element relationships, and Video context. Every record is signed and exportable as PDF, CSV or JSON.',
   },
   {
     q: 'Does Tru8 issue a verdict?',

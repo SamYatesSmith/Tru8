@@ -140,18 +140,18 @@ Two incident classes closed in one day (design doc `audit/2026-07-23_hang_proofi
 - **Hang-proofing** (`c7b4d4d`): ONE owner of a pipeline task's lifetime — the task itself; streams report, never control. W1 task-level watchdog on all 6 task sites (`app/core/watchdog.py`; `PIPELINE_WATCHDOG_SECONDS=300` / `RESEARCH_WATCHDOG_SECONDS=150`; breach → existing `handle_pipeline_failure` fail+refund, then re-raise so streams never announce "completed" for a failed check; re-search breach terminates the Redis status, parent check stays completed). W2 boot-time stale sweep (`inflight.sweep_stale_checks`, lifespan startup; `check.processing_started_at` column ages paused-then-resumed article checks correctly; excludes `waiting_for_selection`) — OOM strandings self-heal on next boot. W3 `progress.events()` stream bound is connection-only (the old branch cancelled the pipeline AND claimed a refund it never made — defect D3, dead). W4 frontend 45s calm stall notice.
 Worst case for a user: failed honestly, credit returned, told plainly.
 
-## Six Profession Views
+## Six Views (labels are actions, not professions — user-facing since D-R1)
 
-| View | Question | Level | Source |
+| Tab | Question | Level | Source |
 |------|----------|-------|--------|
-| Cartographer | Shape of the conversation? | Overview + Detail | Dagre cascade layout |
-| Librarian | Full set, clearly labelled? | Overview + Detail | Tier×Type heatmap + ledger + receipts |
-| Correspondent | Answer this sub-question? | Detail only | Disposition panel with element focus (renamed from Interpreter for audience reasons) |
-| Projectionist | What's said on camera? | Overview + Detail | YouTube video cards |
-| Chronologist | When did evidence appear? | Overview + Detail | Pure SVG timeline |
-| Seeker | What don't we know? | Detail only | Unknowns ledger + bounty text + re-search |
+| MAP (cartographer) | Shape of the conversation? | Overview + Detail | Dagre cascade layout |
+| EVIDENCE (librarian) | Full set, clearly labelled? | Overview + Detail | Tier×Type heatmap + ledger + receipts |
+| COMPARE (compare) | Where do two sources differ? | Detail only | **Replaced SOURCES/correspondent 2026-08-26** — user picks two shown sources, ONE model call returns summaryA/summaryB/divergence + a mechanical collision table computed on READ from evidence_refs (never stored). Budget 3/check +1 per re-search; the `claim_comparison` row count IS the spend. Design: `audit/2026-08-26_compare_tab_design.md`. ⚠️ `?view=correspondent` deep links translate to librarian WITH a notice in both hosts |
+| VIDEO (projectionist) | What's said on camera? | Overview + Detail | YouTube video cards |
+| TIMELINE (chronologist) | When did evidence appear? | Overview + Detail | Pure SVG timeline |
+| GAPS (seeker) | What don't we know? | Detail only | Unknowns ledger + bounty text + re-search |
 
-Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librarian), URL-persisted view state (`?view=`), auto-archive links.
+Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librarian), URL-persisted view state (`?view=`), auto-archive links. COMPARE hides itself (<2 shown sources anywhere; no stored comparisons on `/r/`) — absent, not disabled, like VIDEO.
 
 ## Key Files
 
@@ -205,7 +205,7 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 ### Frontend
 | Directory / File | Purpose |
 |------------------|---------|
-| `web/components/evidence-views/` | All 6 profession views + shared components (ViewSelector, TierBadge, TypeBadge) |
+| `web/components/evidence-views/` | All 6 views + shared components (ViewSelector, TierBadge, TypeBadge) |
 | `web/components/claim-selection/` | Pipeline break claim selection UI |
 | `web/components/claim-map/` | Base ClaimMap components (Track C, re-themed) |
 | `web/components/marketing/` | Stitch landing page components (Hero, Process, Features, Pricing, Video) |

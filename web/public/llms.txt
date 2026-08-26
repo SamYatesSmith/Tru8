@@ -41,4 +41,4 @@ Compatible with Claude, GPT, Gemini, and any MCP-capable agent.
 
 ## Human console
 
-Tru8 Console — https://www.trueight.com/research — the same evidence record in a browser, with six ways to read it: the classified evidence set, a citation map, a publication timeline, source diversity, named gaps, and on-camera video context.
+Tru8 Console — https://www.trueight.com/research — the same evidence record in a browser, with six ways to read it: the classified evidence set, a side-by-side comparison of any two sources, a citation map, a publication timeline, named gaps, and on-camera video context.
