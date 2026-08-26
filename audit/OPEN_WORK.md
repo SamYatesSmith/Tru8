@@ -162,15 +162,52 @@ atomic swap + deep-link translation with notice · deletion + copy retirement.
 **All suites green at commit: backend 3,330 · web 111 · tsc · prod build.**
 Label settled: `COMPARE` / *"Where do two sources differ?"*.
 
-**⏳ VERIFY OWED (the founder's gate: /loop + verify) — the live half of the
-acceptance criteria (§16) is UNRUN:** migration on a real DB (docker was DOWN
-all session — `alembic upgrade head` has never executed this migration) · a
-real comparison end-to-end · `/verify/{id}` still valid on a check WITH
-comparisons (the manifest trap) · known-403 stored-text path + receipt ·
-suggestion absent on a 0-opposed claim · keyboard-only pass · replay bench
-(touches no pipeline stage, so ANY movement is a real regression) · **the
-premise-adoption probe** (only the structural half is pinned by tests — the
-live half, identical pair ± claim line, is the actual acceptance gate).
+**✅ LIVE-VERIFIED 2026-08-26 (the /loop pass) — every machine-checkable §16
+criterion ran against the real DB, real fetches, real model:**
+- **Migration** ✅ `claim_comparison (head)`, unique pair constraint present.
+- **End-to-end** ✅ MMR claim: both articles fetched whole (3,606 + 1,528
+  words), one call (`gemini-3.5-flash-lite`, 7,169 in / 247 out ≈ **0.2p** —
+  matches the estimate), attributed prose, budget 0→1, **reversed-order rerun
+  = cache hit, same row, budget unmoved.**
+- **Manifest trap** ✅ `/verify` `valid:true` BEFORE and AFTER a comparison on
+  a signed check (`41de5b86`). (⚠️ incidental: some older checks store JSON
+  `null` in `manifest` — verify reads them as `not_found`; pre-existing.)
+- **Stored-text path** ✅ fired twice on real blocked fetches (`stored/stored`
+  and `stored/full`), produced and charged correctly — **and both receipt
+  variants render on ONE live /r/ screen**: *"△ READ · stored extract — the
+  publisher blocked our fetch"* beside *"△ READ · full article (1,558
+  words)"*, with the non-negotiable scoping line under them.
+- **Premise-adoption probe (live)** ✅ same pair ± claim line: shipped prompt
+  says *"argues/asserts"* throughout; the claim-line variant slips into
+  **"proving that MMR vaccination does not increase autism risk"** — the
+  fingerprint, live, and we are on the right side of it.
+- **Deep link** ✅ `?view=correspondent` on /r/ lands on Evidence WITH the
+  notice. **Tab absence** ✅ COMPARE absent on a no-comparisons /r/ report;
+  present on the one with a stored comparison.
+- **Bench** ✅ *for COMPARE*: identical total-drift at `fa6bbe2` AND `7cd71b4`
+  (pre-COMPARE, pre-headline) — **no movement attributable to this build.**
+
+**🔴 FOUND BY THE VERIFY, NOT OURS: THE REPLAY BENCH IS DEAD AGAIN — 0 ok /
+0 warn / 10 fail, all cassette_drift (43-44 misses, ~0 hits, every claim).**
+Attributed by experiment, not reasoning: pinning
+`GOOGLE_LLM_MODEL=gemini-2.5-flash-lite MAPPING_GOOGLE_MODEL=gemini-2.5-flash`
+took TRU-93DD-F4B7 from **0 hits → 38 hits** — the 2026-08-25 model migration
+changed every cassette key, exactly as its own entry predicted ("model strings
+are cassette keys"). Residual 16 misses = post-08-17 prompt changes (recital
+gate `7cd71b4`, mapping revert `8e43b8e`). **The corpus needs a full re-record
+on the CURRENT models + a golden review — this debt belongs to the migration
+work, and until it is paid the bench guards nothing.**
+
+**REMAINING — founder-at-keyboard only (Clerk sign-in wall, credentials are
+not mine to enter; both servers left RUNNING, localhost:8000 + :3000):**
+1. Dashboard interactive pass on the MMR check
+   (`/dashboard/check/e348f4a0-…`): slots, click-to-place, Compare press,
+   budget line, and **suggestion button ABSENT** (this claim measured
+   0 opposed pairs — the natural fixture).
+2. **Keyboard-only pass** (§16 #10): place, compare, read result.
+3. Cosmetic note: the nav "COMPARE" (marketing /compare page) now shares a
+   word with the lens tab — different contexts, founder's call whether it
+   matters.
 
 ### 🗄 SUPERSEDED 2026-08-26 — the INDEPENDENCE proposal (measurements still live)
 
