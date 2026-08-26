@@ -8,7 +8,8 @@ import { ViewSelector, ViewGuide, EvidenceMetaStrip } from '@/components/evidenc
 import { ClaimSectionStack } from '@/components/evidence-views/overview';
 import { CartographerView } from '@/components/evidence-views/cartographer';
 import { LibrarianView } from '@/components/evidence-views/librarian';
-import { CorrespondentView } from '@/components/evidence-views/correspondent';
+import { CompareView } from '@/components/evidence-views/compare';
+import { apiClient } from '@/lib/api';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
 import { ChronologistView } from '@/components/evidence-views/chronologist';
 import { SeekerView } from '@/components/evidence-views/seeker';
@@ -22,19 +23,77 @@ interface PublicReportClientProps {
   highlightView?: string;
 }
 
-const VALID_DETAIL_VIEWS = ['cartographer', 'librarian', 'correspondent', 'seeker', 'projectionist', 'chronologist'];
+// 'correspondent' (the retired Sources view) deliberately absent: those deep
+// links translate to librarian with a notice (COMPARE design §14.3) — the
+// Evidence ledger absorbed the source-list job.
+const VALID_DETAIL_VIEWS = ['cartographer', 'librarian', 'compare', 'seeker', 'projectionist', 'chronologist'];
 
 export function PublicReportClient({ check, highlightClaim, highlightView }: PublicReportClientProps) {
   const [copied, setCopied] = useState(false);
   const [activeClaimIndex, setActiveClaimIndex] = useState(0);
   const [claimView, setClaimView] = useState<string>(
-    highlightView && VALID_DETAIL_VIEWS.includes(highlightView) ? highlightView : 'librarian'
+    highlightView === 'correspondent'
+      ? 'librarian'
+      : highlightView && VALID_DETAIL_VIEWS.includes(highlightView)
+        ? highlightView
+        : 'librarian'
   );
+  // A shared ?view=correspondent link landed here — say so rather than
+  // silently swapping lenses.
+  const [sourcesViewNotice, setSourcesViewNotice] = useState<boolean>(
+    highlightView === 'correspondent'
+  );
+  // Stored comparisons per claim id, to decide COMPARE tab visibility
+  // (§12.2b: a cold /r/ reader cannot create, so an empty tab is a dead
+  // end — hide it, absent not disabled). null = not yet known → hidden.
+  const [comparisonCounts, setComparisonCounts] = useState<Record<string, number>>({});
   const claimDetailRef = useRef<HTMLDivElement>(null);
 
   const claims = check.claims || [];
   const [videos, setVideos] = useState<any[]>(check.videos || []);
   const isSingleClaim = claims.length === 1;
+
+  // COMPARE tab visibility: one public GET per claim (cached in state) for
+  // its stored-comparison count. CompareView re-fetches on open — that
+  // second request only happens when the tab is actually used.
+  useEffect(() => {
+    const activeClaim = claims[activeClaimIndex];
+    if (!activeClaim || comparisonCounts[activeClaim.id] !== undefined) return;
+    let cancelled = false;
+    apiClient
+      .getPublicComparisons(check.id, activeClaim.id)
+      .then((data) => {
+        if (cancelled) return;
+        setComparisonCounts((prev) => ({
+          ...prev,
+          [activeClaim.id]: (data.comparisons || []).length,
+        }));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setComparisonCounts((prev) => ({ ...prev, [activeClaim.id]: 0 }));
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeClaimIndex, check.id]);
+
+  // If the active claim has no comparisons while COMPARE is selected (claim
+  // navigation), snap to the default lens rather than showing a hidden tab's
+  // empty content.
+  useEffect(() => {
+    const activeClaim = claims[activeClaimIndex];
+    if (
+      claimView === 'compare' &&
+      activeClaim &&
+      comparisonCounts[activeClaim.id] !== undefined &&
+      (comparisonCounts[activeClaim.id] || 0) === 0
+    ) {
+      setClaimView('librarian');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeClaimIndex, claimView, comparisonCounts]);
 
   // Re-poll for videos when the cached SSR render had none for the active claim.
   // Video recs are written by a fire-and-forget task ~1s after the check
@@ -340,11 +399,34 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
 
             {/* 6b: Per-Claim View Selector */}
             <div ref={lensSectionRef} className="scroll-mt-4" />
+            {/* Translated ?view=correspondent deep link — the Sources view is
+                retired; silent fallback would land the reader on the wrong
+                lens unexplained (COMPARE design §14.3). */}
+            {sourcesViewNotice && (
+              <div className="flex items-start gap-2 mb-4 border-l-2 border-zinc-300 pl-3 py-1">
+                <span className="text-[11px] text-zinc-600 flex-grow">
+                  The Sources view has been replaced. You&rsquo;re seeing Evidence.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSourcesViewNotice(false)}
+                  className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors shrink-0 cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
             <ViewSelector
               mode="detail"
               activeTab={claimView}
               onTabChange={(tab: string) => { setClaimView(tab); updateUrlViewParam(tab); }}
-              hiddenTabs={activeClaim && videos.filter((v: any) => v.claimId === activeClaim.id).length === 0 ? ['projectionist'] : []}
+              hiddenTabs={[
+                ...(activeClaim && videos.filter((v: any) => v.claimId === activeClaim.id).length === 0 ? (['projectionist'] as const) : []),
+                // COMPARE on /r/ is read-only: hide unless this claim has
+                // stored comparisons (§12.2b — a cold reader cannot create,
+                // so an empty tab is a dead end, not an invitation).
+                ...((activeClaim && (comparisonCounts[activeClaim.id] || 0) > 0) ? [] : (['compare'] as const)),
+              ]}
             />
             <ViewGuide activeView={claimView} />
 
@@ -366,8 +448,8 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                     focusElementId={evidenceFilter.element}
                   />
                 )}
-                {claimView === 'correspondent' && (
-                  <CorrespondentView scope="claim" claims={[activeClaim]} />
+                {claimView === 'compare' && (
+                  <CompareView claim={activeClaim} checkId={check.id} readOnly />
                 )}
                 {claimView === 'projectionist' && (
                   <ProjectionistView

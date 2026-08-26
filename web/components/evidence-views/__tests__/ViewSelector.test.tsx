@@ -12,8 +12,9 @@ describe('ViewSelector', () => {
   it('renders all 6 view tabs', () => {
     render(<ViewSelector {...defaultProps} />);
     // Plain-language labels lead (D-R1); the profession is the subtitle flavour.
+    // COMPARE replaced SOURCES 2026-08-26 (audit/2026-08-26_compare_tab_design.md).
     expect(screen.getByText('EVIDENCE')).toBeInTheDocument();
-    expect(screen.getByText('SOURCES')).toBeInTheDocument();
+    expect(screen.getByText('COMPARE')).toBeInTheDocument();
     expect(screen.getByText('TIMELINE')).toBeInTheDocument();
     expect(screen.getByText('GAPS')).toBeInTheDocument();
     // MAP is the active tab → its label also appears in the mobile caption,

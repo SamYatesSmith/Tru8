@@ -7,8 +7,8 @@ const VIEW_GUIDES: Record<string, string> = {
     'This map shows how evidence flows from sources to claims. Nodes are grouped by source tier\u2009—\u2009primary (orange), reporting (dark grey), commentary (grey). Lines connect evidence to the claim elements they address.',
   librarian:
     'Your complete evidence library, classified by source tier (rows) and content type (columns). Click any heatmap cell to filter. The ledger below shows every source with its full classification.',
-  correspondent:
-    'Your source diversity report. See which domains contributed evidence, how concentrated or diverse they are, and where single-source coverage may need attention.',
+  compare:
+    'Pick two sources and compare them. Tru8 reads both and shows where their positions differ — and which parts of the claim they disagree on. Compared on the questions in this claim, not on the articles as a whole.',
   seeker:
     'Gaps in the evidence landscape. Elements without evidence appear first. Use re-search to find additional sources for any element (1 credit per search). When fully covered, explore related claims others have investigated.',
   projectionist:

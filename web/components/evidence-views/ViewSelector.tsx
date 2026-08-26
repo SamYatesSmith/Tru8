@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { capture } from '@/lib/analytics';
 
-export type ViewTab = 'cartographer' | 'librarian' | 'correspondent' | 'seeker' | 'projectionist' | 'chronologist';
+export type ViewTab = 'cartographer' | 'librarian' | 'compare' | 'seeker' | 'projectionist' | 'chronologist';
 
 interface ViewSelectorProps {
   mode: 'overview' | 'detail';
@@ -33,13 +33,15 @@ const DETAIL_ONLY_TOOLTIPS: Record<string, string> = {
 // Action label leads; the SUBTITLE is the QUESTION each lens answers (the value
 // signpost — NN/g information scent; fixes the bare "VIDEO" format-label). The
 // profession is internal only (kept in this comment, not user-facing):
-//   librarian=Evidence · correspondent=Sources · chronologist=Timeline ·
-//   seeker=Gaps · cartographer=Map · projectionist=Video.
-// `value` strings are unchanged — ?view= deep links stay stable. Order leads
-// with Evidence (the recommended default lens).
+//   librarian=Evidence · chronologist=Timeline · seeker=Gaps ·
+//   cartographer=Map · projectionist=Video. COMPARE replaced the Sources/
+//   correspondent view 2026-08-26 (design: audit/2026-08-26_compare_tab_design.md);
+//   old ?view=correspondent deep links translate to librarian in both hosts.
+// `value` strings are otherwise unchanged — ?view= deep links stay stable.
+// Order leads with Evidence (the recommended default lens).
 export const ALL_TABS: { value: ViewTab; label: string; subtitle: string }[] = [
   { value: 'librarian', label: 'EVIDENCE', subtitle: 'What does the evidence say?' },
-  { value: 'correspondent', label: 'SOURCES', subtitle: 'Is the full set here?' },
+  { value: 'compare', label: 'COMPARE', subtitle: 'Where do two sources differ?' },
   { value: 'chronologist', label: 'TIMELINE', subtitle: 'When did it appear?' },
   { value: 'seeker', label: 'GAPS', subtitle: "What don't we know yet?" },
   { value: 'cartographer', label: 'MAP', subtitle: 'Shape of the debate?' },

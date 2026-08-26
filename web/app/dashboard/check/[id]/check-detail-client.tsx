@@ -21,7 +21,7 @@ import { CartographerView } from '@/components/evidence-views/cartographer';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
 import { ChronologistView } from '@/components/evidence-views/chronologist';
 import { ClaimSummaryPanel } from '@/components/evidence-views/ClaimSummaryPanel';
-import { CorrespondentView } from '@/components/evidence-views/correspondent';
+import { CompareView } from '@/components/evidence-views/compare';
 import { SeekerView } from '@/components/evidence-views/seeker';
 import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
 import { capture } from '@/lib/analytics';
@@ -67,11 +67,21 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     // If a claim is focused, read ?view= as the claim-level tab
     if (initialClaim !== undefined || isSingleClaim) {
       const viewParam = searchParams?.get('view');
-      const validViews = ['cartographer', 'librarian', 'correspondent', 'seeker', 'projectionist', 'chronologist'];
+      // 'correspondent' (the retired Sources view) deliberately absent:
+      // those deep links translate to librarian with a notice (§14.3 of the
+      // COMPARE design) — the Evidence ledger absorbed the source-list job.
+      const validViews = ['cartographer', 'librarian', 'compare', 'seeker', 'projectionist', 'chronologist'];
+      if (viewParam === 'correspondent') return 'librarian';
       return viewParam && validViews.includes(viewParam) ? viewParam : 'librarian';
     }
     return 'librarian';
   });
+  // A shared ?view=correspondent link landed here — say so rather than
+  // silently swapping lenses (the cut-title rule: never let a substitution
+  // pass as the thing itself).
+  const [sourcesViewNotice, setSourcesViewNotice] = useState<boolean>(
+    () => searchParams?.get('view') === 'correspondent'
+  );
 
 
   // Fresh submission: animate progress to 100% then reveal results
@@ -216,6 +226,19 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
       handleClaimTabChange('librarian');
     }
   }, [claimView, claimVideosLoading, claimVideos.length, handleClaimTabChange]);
+
+  // Same for COMPARE: hidden when the focused claim has fewer than two shown
+  // sources (§12.2b) — claim navigation must not leave a hidden tab active.
+  useEffect(() => {
+    if (claimView !== 'compare' || !focusedClaim) return;
+    const shownCount = (focusedClaim.evidence || []).filter(
+      (ev: any) => (ev.receiptStatus || 'shown') === 'shown'
+    ).length;
+    if (shownCount < 2) {
+      handleClaimTabChange('librarian');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claimView, focusedClaim?.id, handleClaimTabChange]);
 
   // Check for upgrade query param
   useEffect(() => {
@@ -523,11 +546,37 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
               </div>
 
               <div ref={lensSectionRef} className="scroll-mt-4" />
+              {/* Translated ?view=correspondent deep link — the Sources view
+                  is retired; silent fallback would land the reader on the
+                  wrong lens unexplained (COMPARE design §14.3). */}
+              {sourcesViewNotice && (
+                <div className="flex items-start gap-2 mb-4 border-l-2 border-zinc-300 pl-3 py-1">
+                  <span className="text-[11px] text-zinc-600 flex-grow">
+                    The Sources view has been replaced. You&rsquo;re seeing Evidence.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSourcesViewNotice(false)}
+                    className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors shrink-0 cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
               <ViewSelector
                 mode="detail"
                 activeTab={claimView}
                 onTabChange={handleClaimTabChange}
-                hiddenTabs={!claimVideosLoading && claimVideos.length === 0 ? ['projectionist'] : []}
+                hiddenTabs={[
+                  ...(!claimVideosLoading && claimVideos.length === 0 ? (['projectionist'] as const) : []),
+                  // COMPARE needs two shown sources to compare (§12.2b);
+                  // absent, not disabled — nothing to do is not an error.
+                  ...(((focusedClaim.evidence || []).filter(
+                    (ev: any) => (ev.receiptStatus || 'shown') === 'shown'
+                  ).length < 2)
+                    ? (['compare'] as const)
+                    : []),
+                ]}
               />
               <ViewGuide activeView={claimView} />
 
@@ -546,8 +595,8 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                   focusElementId={evidenceFilter.element}
                 />
               )}
-              {claimView === 'correspondent' && (
-                <CorrespondentView scope="claim" claims={[focusedClaim]} />
+              {claimView === 'compare' && (
+                <CompareView claim={focusedClaim} checkId={checkId} token={token} />
               )}
               {claimView === 'projectionist' && (
                 <ProjectionistView
