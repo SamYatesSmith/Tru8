@@ -28,6 +28,32 @@ acceptance table). **Still open on it, in order:**
      only provable there.
    - Cosmetic, founder's call: nav "COMPARE" (marketing /compare) now shares
      a word with the lens tab.
+   - **🔴 FOUND 2026-08-26 (founder's local hands-on pass): the 2nd comparison
+     401s on a stale Clerk token — DIAGNOSED, unfixed.**
+     `check-detail-client.tsx:259` mints the token ONCE on mount
+     (`getToken().then(setToken)`) and hands it to `CompareView` as a prop;
+     Clerk JWTs expire after ~60s, so any comparison started more than a
+     minute after page load fails 401. Every other call site in the same file
+     fetches `await getToken()` fresh per request — CompareView is the only
+     stale consumer. **Fix: pass the `getToken` function, fetch inside
+     `runCompare`** (and the mount-time GET at `CompareView.tsx:174` while
+     in there). Ruled out with evidence: article size (32k rail never binds —
+     Wikipedia pages extract 35–79k chars vs 128k), the model path (exact
+     repro of the MMR wiki pair, 26.6k tokens on gemini-3.5-flash-lite:
+     200/STOP/2.3s), Sentry (handled path, no event).
+   - **🟡 OPENED 2026-08-26: comparison failures are near-undiagnosable and
+     the error copy misleads** (founder call: log now, improve later). A
+     failed run leaves NO trace — no row, no Sentry (handled 502), no local
+     PostHog (key unset), true cause only in a transient logger line; the 401
+     above needed a live repro to diagnose. Owed:
+     (1) the 401 renders as "The comparison failed — try again", false twice
+     over (the comparison never ran; retrying the same dead token cannot
+     help); (2) `comparison.py` collapses timeout / 429-exhaustion / non-200
+     / JSON-parse into ONE code `model_failed` — carry the sub-cause in
+     `ComparisonError.detail` + one structured WARNING (claim_id, pair, code)
+     at the raise site; (3) `CompareView.tsx:292` says "Neither source could
+     be read" when the backend raises on EITHER side failing, and never names
+     which source.
 
 **2. 🔴 THE REPLAY BENCH IS DEAD — 0 ok / 10 fail, every claim, total
 cassette drift. NOT a COMPARE regression** (identical failure at two
