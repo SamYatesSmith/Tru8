@@ -34,7 +34,9 @@ interface CompareViewProps {
   claim: Claim;
   checkId: string;
   readOnly?: boolean;
-  token?: string | null;
+  /** Fetched per request — Clerk tokens expire in ~60s, so a token captured
+   *  at mount 401s on any comparison started later (found 2026-08-26). */
+  getToken?: () => Promise<string | null>;
 }
 
 const TIER_ORDER: Record<string, number> = {
@@ -43,7 +45,7 @@ const TIER_ORDER: Record<string, number> = {
   commentary: 2,
 };
 
-export function CompareView({ claim, checkId, readOnly, token }: CompareViewProps) {
+export function CompareView({ claim, checkId, readOnly, getToken }: CompareViewProps) {
   const [slotIds, setSlotIds] = useState<(string | null)[]>([null, null]);
   const [focusedSlot, setFocusedSlot] = useState<0 | 1 | null>(null);
   const [machine, setMachine] = useState<MachineState>('idle');
@@ -171,7 +173,9 @@ export function CompareView({ claim, checkId, readOnly, token }: CompareViewProp
     let cancelled = false;
     const load = readOnly
       ? apiClient.getPublicComparisons(checkId, claim.id)
-      : apiClient.getComparisons(checkId, claim.id, token);
+      : (getToken ? getToken() : Promise.resolve(null)).then((t) =>
+          apiClient.getComparisons(checkId, claim.id, t)
+        );
     load
       .then((data) => {
         if (cancelled) return;
@@ -187,7 +191,7 @@ export function CompareView({ claim, checkId, readOnly, token }: CompareViewProp
     return () => {
       cancelled = true;
     };
-  }, [checkId, claim.id, readOnly, token]);
+  }, [checkId, claim.id, readOnly, getToken]);
 
   // ---- state machine ------------------------------------------------------
 
@@ -261,12 +265,13 @@ export function CompareView({ claim, checkId, readOnly, token }: CompareViewProp
     setMachine('running');
     setErrorText(null);
     try {
+      const freshToken = getToken ? await getToken() : null;
       const result = await apiClient.createComparison(
         checkId,
         claim.id,
         idA,
         idB,
-        token
+        freshToken
       );
       setActiveResult(result);
       setBudget(result.budget);
@@ -299,7 +304,7 @@ export function CompareView({ claim, checkId, readOnly, token }: CompareViewProp
         });
       }
     }
-  }, [idA, idB, machine, cachedForPair, checkId, claim.id, token]);
+  }, [idA, idB, machine, cachedForPair, checkId, claim.id, getToken]);
 
   // ---- read-only (/r/) ----------------------------------------------------
 

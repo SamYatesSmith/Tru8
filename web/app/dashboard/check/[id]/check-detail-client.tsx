@@ -596,7 +596,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                 />
               )}
               {claimView === 'compare' && (
-                <CompareView claim={focusedClaim} checkId={checkId} token={token} />
+                <CompareView claim={focusedClaim} checkId={checkId} getToken={getToken} />
               )}
               {claimView === 'projectionist' && (
                 <ProjectionistView

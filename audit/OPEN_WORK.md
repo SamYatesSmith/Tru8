@@ -28,17 +28,18 @@ acceptance table). **Still open on it, in order:**
      only provable there.
    - Cosmetic, founder's call: nav "COMPARE" (marketing /compare) now shares
      a word with the lens tab.
-   - **🔴 FOUND 2026-08-26 (founder's local hands-on pass): the 2nd comparison
-     401s on a stale Clerk token — DIAGNOSED, unfixed.**
-     `check-detail-client.tsx:259` mints the token ONCE on mount
-     (`getToken().then(setToken)`) and hands it to `CompareView` as a prop;
-     Clerk JWTs expire after ~60s, so any comparison started more than a
-     minute after page load fails 401. Every other call site in the same file
-     fetches `await getToken()` fresh per request — CompareView is the only
-     stale consumer. **Fix: pass the `getToken` function, fetch inside
-     `runCompare`** (and the mount-time GET at `CompareView.tsx:174` while
-     in there). Ruled out with evidence: article size (32k rail never binds —
-     Wikipedia pages extract 35–79k chars vs 128k), the model path (exact
+   - **✅ FIXED 2026-08-26 (was: 2nd comparison 401s on a stale Clerk token,
+     found in the founder's local hands-on pass).**
+     `check-detail-client.tsx:259` mints a token ONCE on mount for SSE and
+     also handed it to `CompareView` as a prop; Clerk JWTs expire after ~60s,
+     so any comparison started more than a minute after page load failed 401
+     (rendered as the generic "comparison failed — try again", which retrying
+     could never fix). CompareView now takes the `getToken` FUNCTION and
+     fetches per request (create + mount-time GET) — the same pattern as the
+     file's four other call sites. Typecheck clean; interactive re-test is
+     part of the founder's hands-on pass (Clerk wall). Ruled out with
+     evidence before the token was found: article size (32k rail never
+     binds — Wikipedia extracts 35–79k chars vs 128k), the model path (exact
      repro of the MMR wiki pair, 26.6k tokens on gemini-3.5-flash-lite:
      200/STOP/2.3s), Sentry (handled path, no event).
    - **🟡 OPENED 2026-08-26: comparison failures are near-undiagnosable and
