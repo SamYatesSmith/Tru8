@@ -9,7 +9,13 @@
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ WHERE 2026-08-27 ENDED: bench ALIVE again · `DISTIL_MODEL` migration gap found and fixed · blocklist timeout ban removed · SEND GATE CLEAR. The blockers left are all things only the founder can do (Railway login, Clerk hands-on pass) plus the sends themselves.
+### ▶▶ WHERE 2026-08-27 ENDED — READ ITEM 7 FIRST. Five things shipped and were PROD-VERIFIED; one new open question outranks them all.
+
+**Shipped + verified today:** bench ALIVE again (`c960d8b`, `97548bb`) · `DISTIL_MODEL` was still on retiring Gemini 2.5 and is fixed (`2c6fd02`), **confirmed live in the running Railway container** · blocklist no longer bans a site for being slow (`7800ce9`) · COMPARE's prod table + a real stored comparison verified · the "partner findings were never given" claim was WRONG and is corrected (item 3).
+
+**The live question (item 7):** pressure-testing a real outreach record showed tier sets weight, so a specialist factcheck counts HALF a general news story. Founder's read — correct — is that this is a pipeline issue no prompt can fix. **Viglione is HELD, Seymour is sendable.** No patching tier weights to unblock a send.
+
+**Founder-only, still open:** COMPARE hands-on pass (Clerk wall — do TWO comparisons a minute apart, one alone does not prove the 401 fix) · the sends themselves.
 
 **1. COMPARE is live in production** (`f8733df` deployed, health-watched
 through the flip). Built → design-reviewed → live-verified in one day; the
@@ -69,7 +75,7 @@ acceptance table). **Still open on it, in order:**
    - **Confound recorded, not hidden:** WeatherAPI returned 400 throughout (the LOCAL key lacks history access), so `93DD-F4B7`'s weather-adapter numbers are degraded versus an environment with a full key.
    - **The 9 remaining fails are real observations, not confusion:** thin pools (`unique_domains`, `factual_weight_share`, `top_domain_share` on 93DD / A3E8 / B4A3 / 0005), `018F`'s recital count 3→1, and `0005` losing the `gianlucabenigno.substack.com` source. **Owed:** pay the two must-fire debts at a future recording whose pool carries the trap.
 
-**3. ✅ THE SEND GATE IS CLEAR — every condition of the 2026-08-26 pause is met (corrected 2026-08-27).**
+**3. ✅ THE SEND GATE IS CLEAR — every condition of the 2026-08-26 pause is met (corrected 2026-08-27). ⚠️ NOT a green light for all five: a SEPARATE hold was placed on Viglione at sign-off the same day — see item 7. Seymour is sendable.**
 The pause was: *"WE ARE NOT GOING TO DO THE SENDS UNTIL WE RESOLVE THIS SOURCE
 TAB ISSUE, ALONGSIDE OTHER NOTED ISSUES I FOUND LAST NIGHT WHEN MY PARTNER WAS
 VIEWING THE SITE."* All of it is resolved:
@@ -94,9 +100,11 @@ VIEWING THE SITE."* All of it is resolved:
 
    **So: sends are unblocked.** Everything in the send-week block below (TTE text
    adversarially verified, Fix 1 approved-unbuilt but explicitly send-safe without
-   it) stands and is ready to execute. Day 1 = TTE · Viglione · Seymour, Day 2 =
-   Tapper · McSweeney; the pressure-pass on the Viglione + Seymour notes is still
-   owed BEFORE their sends.
+   it) stands. ⚠️ **The 2026-08-24 roster does NOT: see item 7.** As of sign-off
+   2026-08-27 the position is — **TTE: ready** (verified 2026-08-24) · **Seymour:
+   ready**, pressure-passed against the stored record · **Viglione: HELD** on the
+   tier-weight labelling, not on accuracy · **Tapper + McSweeney: still owed a
+   pressure pass** before they go anywhere.
 
 **4. Housekeeping done 2026-08-26:** Syncthing fully removed (repo files +
 `.git` conflict copy; founder deleted the AppData/Downloads pieces). Local
@@ -184,7 +192,83 @@ own load-bearing findings**, which killed two of the three.
 
 **6. ⏳ OWED, FOUNDER, needs Railway: check whether `DISTIL_MODEL` is pinned as an env var.** The 2026-08-25 model migration missed this third model setting (it was still `gemini-2.5-flash-lite`); the default is fixed 2026-08-27, but a Railway pin would override it and leave prod on a model that retires 16 Oct. `railway variables` -> unset it or set `gemini-3.5-flash-lite`. Full record at the migration entry below.
 
-### ▶▶ SEND WEEK (PAUSED — see item 3 above). Day 1 was Tue 25 Aug (TTE · Viglione · Seymour), Day 2 Wed 26 Aug (Tapper · McSweeney). Founder decision 2026-08-24: all five over these two days.
+**7. 🔴 OPEN, AND IT IS THE LIVE QUESTION AT SIGN-OFF 2026-08-27 — tier sets weight, so evidential DISTANCE is the only thing that counts and RIGOUR has no channel. Found by pressure-testing a real outreach record. Founder's read, and it is correct: "if the output is not properly associating quality with correctness, that is a pipeline issue, not a manipulation of the prompt."**
+
+   **How it surfaced.** The founder asked for the claim behind the Viglione +
+   Seymour sends so they could run it live. Both notes point at ONE record —
+   `trueight.com/r/fa08cff7-ed8c-470e-9767-8ea0d51e4579`, claim submitted
+   2026-08-21 as text/focused/full: *"2026 is the quietest year for wildfires in
+   Europe by some distance"*. Every specific sentence in both notes was verified
+   against the stored record and **holds**: e1 0 supports / 4 challenges, e2 0
+   supports / 9 challenges, orientation *"challenges all 2, with none
+   supporting"*, and Ridley's tweet mapped `context` on both elements. **The
+   record's ANSWER is sound. What is wrong is how it LABELS the sources.**
+
+   **The mechanism** (`claim_map_analyzer.py:873`):
+   `_STATE_TIER_WEIGHTS = {"primary": 3, "reporting": 2, "commentary": 1}`.
+   Tier measures distance from the underlying data, and weight derives from tier
+   alone. So in this record **Carbon Brief's specialist factcheck (commentary,
+   weight 1) counts for HALF a Guardian/Time/UN news write-up (reporting,
+   weight 2)** on the same question. Domain experts reading the dataset are
+   outweighed 2:1 by general reporting about the season.
+
+   **Two aggravating findings in the same record, both live:**
+   - **`is_factcheck = False` on the Carbon Brief item.** The column exists and
+     did not fire on an actual factcheck — so the one signal that could separate
+     specialist verification from an opinion column is sitting unused.
+   - **`hannahritchie.substack.com` was classified `commentary/opinion` by
+     `classification_method = blog_platform_floor`, NOT by the model** — the hard
+     domain override recorded this same morning (item 5, Correction B). Her
+     content was never assessed. She is a data scientist (Our World in Data), and
+     the record is addressed to data journalists.
+
+   ⚠️ **What is NOT wrong, so the next agent does not "fix" a working mechanism:**
+   Ridley's tweet is `context` on BOTH elements — it contributes **zero** to the
+   state. The pipeline already refuses to treat a claim's own assertion as
+   evidence for it. The founder's fear that "their work is no more important than
+   trash BS challenging it" does not hold: the trash is not challenging anything,
+   it is the claim, and it is excluded from the count. Carbon Brief `challenges`
+   and counts. **The defect is the WEIGHT given to rigour, not the handling of
+   the tweet.**
+
+   **▶▶ SEND DECISION TAKEN 2026-08-27 (supersedes the flat "all five" plan):**
+   - **Seymour — SENDABLE.** New Statesman writer; the labelling issue is
+     invisible from where he stands and the conclusion is sound.
+   - **Viglione — HELD, and NOT on the record's accuracy.** She is Associate
+     Editor **at Carbon Brief**: the one recipient positioned to notice that her
+     own outlet's factcheck is filed as commentary at half the weight of a news
+     story. She is also the most valuable feedback on the list, which is exactly
+     why she should not receive an own-goal in the first thing she sees.
+   - **Do NOT patch tier weights to unblock a send.** Founder's call, taken at
+     sign-off.
+
+   **The design question owed, unscoped:** *should evidential distance be the
+   only thing that sets weight?* Giving rigour a channel must not turn tiers back
+   into credibility scores — **invariant #6 ("classify, don't score") forbids
+   that**, and outlet scoring is the thing Tru8 exists not to do. Candidate
+   threads, none decided: make `is_factcheck` actually fire and carry meaning;
+   let `evidence_type` (`analysis` / `academic` vs `opinion`) modulate weight
+   where tier cannot; revisit `blog_platform_floor` (already CLOSED as code work
+   on 2026-08-27 for the *sycophancy* reason — reopening it needs the arithmetic
+   in item 5 #3 answered, not ignored).
+
+   **Two lesser record faults found in the same pass, worth fixing before any
+   send that uses `fa08cff7`:**
+   - The extracted claim **dropped "by some distance"** — stored claim is *"2026
+     is the quietest year for wildfires in Europe"*. A factchecker will notice
+     the claim was silently narrowed.
+   - Both elements badge **`disputed`** while both notes say *"come out
+     challenged"*. The orientation sentence covers it, but "disputed" reads as
+     *contested/unclear* — nearly the opposite impression for a claim that is in
+     fact refuted.
+
+   ⚠️ **A LIVE RE-RUN WILL NOT REPRODUCE `fa08cff7`** (founder asked to demo it
+   from screen): different models since 2026-08-25, ~62% pool churn between
+   identical runs, and six more days of coverage. Demo live if useful, but **keep
+   the emails pointed at `fa08cff7`** — every verified sentence is verified
+   against that record and no other.
+
+### ▶▶ SEND WEEK — GATE CLEAR (item 3), but the roster CHANGED at sign-off 2026-08-27: **Viglione is HELD on item 7** (tier-weight labelling, not record accuracy) while **Seymour is SENDABLE**. TTE unchanged. Tapper + McSweeney un-reassessed since 2026-08-24 and still owed a pressure pass. The original 2026-08-24 plan below (all five across Tue 25 / Wed 26 Aug) is HISTORY — read item 7 before sending anyone.
 
 **What happened 2026-08-24:** the TTE email was ADVERSARIALLY VERIFIED by
 three parallel agents (recipient facts · live `/r/` page vs email text ·
@@ -199,10 +283,14 @@ elements read `supported`). **Final verified text: `audit/2026-08-21_send_sheet.
 "missed appointments" — that is a different NHS App statistic.**
 
 **Tomorrow, in order:**
-1. **Agent — pressure pass on Viglione + Seymour notes FIRST** (same 3-agent
-   method), before the Day-1 sends. Tapper + McSweeney can wait for Day 2
-   morning. Known issue in all four: the "each source's relationship to each
-   part" sentence needs the same softening TTE got.
+1. ~~**Agent — pressure pass on Viglione + Seymour notes FIRST**~~ **DONE
+   2026-08-27**, against the STORED RECORD rather than by re-reading the prose:
+   every specific sentence in both notes holds (counts, orientation, the
+   Ridley-as-context claim, Seymour's source list). It also found what became
+   **item 7**, which HELD Viglione. **Seymour's note is cleared to send.**
+   Tapper + McSweeney are still un-pressure-passed. Known issue still open in
+   all remaining notes: the "each source's relationship to each part" sentence
+   needs the same softening TTE got.
 2. **Agent — Fix 1 build (design APPROVED by founder 2026-08-24, unbuilt):**
    render element `uncertainty` in the `/r/` roster (`web/components/
    evidence-views/ElementList.tsx`), grey `EvidenceQualityNote` idiom (mono
