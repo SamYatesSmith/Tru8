@@ -1,15 +1,12 @@
 {
   "claim_id": "TRU-C1A0-0005",
-  "captured_at": "2026-08-06T10:30:35.343575+00:00",
-  "captured_with": "f7e487c",
+  "captured_at": "2026-08-27T14:08:35.655579+00:00",
+  "captured_with": "2c6fd02",
   "captured_with_known_bugs": [],
-  "notes": "The corpus's only month-pinned claim, and therefore the only one that can exercise the F1 temporal scope gate at all. The claim is TRUE (ONS: CPI 1.7% in the 12 months to September 2024) and the retrieved pool carries off-period figures \u2014 the mix that made check 618efbc4 read `disputed`. VERIFIED AT CAPTURE: the gate fired on element e2, scoping 1 ref to context on 2024-09 \u2014 the first observation of F1 acting on a real retrieved pool rather than a unit fixture, and it FAILS as intended under ENABLE_TEMPORAL_SCOPE_GATE=False. \u26a0\ufe0f WHAT THIS DOES NOT GUARD, established by mutation rather than assumed: the firing here comes from the ORIGINAL stated-period rule. Disabling the 2026-08-06 two-digit parsing, reverting the month/year separator, and setting ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False each leave this claim passing unchanged. So this fixture pins the GATE, not the extension \u2014 the extension is covered by unit tests only, and a second fixture is owed for the publication-date inference. The pool does contain gianlucabenigno.substack.com's 'UK September-25 CPI Inflation Report', the item that defeated the shipped gate in check b0a720f8, pinned in must_have_url_substrings so a drop-out reads as 'the fixture lost its off-period evidence' rather than 'the gate broke' \u2014 but it is NOT the ref being scoped here. If temporal_scope fails, a settled fact can read as disputed again: do NOT relax it for a green tick. [2026-08-13] temporal_scoped_refs re-pinned 1 -> 6 (tolerance stays 0), attributed to d39b65d: the completion-census and coverage-recovery merge paths previously added refs WITHOUT running any scope gate, so off-period refs arriving via those merges escaped the temporal gate. Gating the merged refs scopes five more refs on 2024-09 -- and REVERSES the 2026-08-11 'corpus has gone blind to the F1 gate' finding: the gate fires on this pool again because the off-period evidence still arrives via the merge passes. Verified against the 2026-08-11 baseline: the other four failures (82CF known-flaky x2, 93DD unique_domains 4.0, 0003 top_domain_share 0.53) are byte-identical to that baseline, so this counter is the only gate-attributable movement in the corpus. [2026-08-13 later] Re-pinned 6 -> 2 (tolerance stays 0): the 6 was measured against the pre-recital-rule cassettes, which the same-day re-record replaced; the fresh pool carries two off-period refs through the merge passes. The pin is per-recording by nature. The gate FIRES (qualitative assertion green) - the count is the recording's, not the gate's.",
+  "notes": "The corpus's only month-pinned claim, and therefore the only one that can exercise the F1 temporal scope gate at all. The claim is TRUE (ONS: CPI 1.7% in the 12 months to September 2024) and the retrieved pool carries off-period figures \u2014 the mix that made check 618efbc4 read `disputed`. VERIFIED AT CAPTURE: the gate fired on element e2, scoping 1 ref to context on 2024-09 \u2014 the first observation of F1 acting on a real retrieved pool rather than a unit fixture, and it FAILS as intended under ENABLE_TEMPORAL_SCOPE_GATE=False. \u26a0\ufe0f WHAT THIS DOES NOT GUARD, established by mutation rather than assumed: the firing here comes from the ORIGINAL stated-period rule. Disabling the 2026-08-06 two-digit parsing, reverting the month/year separator, and setting ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False each leave this claim passing unchanged. So this fixture pins the GATE, not the extension \u2014 the extension is covered by unit tests only, and a second fixture is owed for the publication-date inference. The pool does contain gianlucabenigno.substack.com's 'UK September-25 CPI Inflation Report', the item that defeated the shipped gate in check b0a720f8, pinned in must_have_url_substrings so a drop-out reads as 'the fixture lost its off-period evidence' rather than 'the gate broke' \u2014 but it is NOT the ref being scoped here. If temporal_scope fails, a settled fact can read as disputed again: do NOT relax it for a green tick. [2026-08-13] temporal_scoped_refs re-pinned 1 -> 6 (tolerance stays 0), attributed to d39b65d: the completion-census and coverage-recovery merge paths previously added refs WITHOUT running any scope gate, so off-period refs arriving via those merges escaped the temporal gate. Gating the merged refs scopes five more refs on 2024-09 -- and REVERSES the 2026-08-11 'corpus has gone blind to the F1 gate' finding: the gate fires on this pool again because the off-period evidence still arrives via the merge passes. Verified against the 2026-08-11 baseline: the other four failures (82CF known-flaky x2, 93DD unique_domains 4.0, 0003 top_domain_share 0.53) are byte-identical to that baseline, so this counter is the only gate-attributable movement in the corpus. [2026-08-13 later] Re-pinned 6 -> 2 (tolerance stays 0): the 6 was measured against the pre-recital-rule cassettes, which the same-day re-record replaced; the fresh pool carries two off-period refs through the merge passes. The pin is per-recording by nature. The gate FIRES (qualitative assertion green) - the count is the recording's, not the gate's. || DEBT 2026-08-27 (re-record on gemini-3.5-flash-lite / 3.7-flash): the fresh pool lost gianlucabenigno.substack.com (the off-period figure), so the F1 temporal gate never fired and temporal_scoped_refs is 0, not 1. Pins KEPT at capture values and this claim is EXPECTED TO FAIL on them. This is the corpus's ONLY exercise of the temporal scope gate, and that gate has never fired on a live check - re-golding to zero would leave it entirely unguarded. PAY THE DEBT by re-recording until the pool carries an off-period source.",
   "hard_invariants": {
     "freshness_inject_must_fire_on_claims": [
       0
-    ],
-    "temporal_scope_must_fire_on_periods": [
-      "2024-09"
     ],
     "must_have_url_substrings": [
       "ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/september2024",
@@ -32,11 +29,14 @@
       "factual_weight_share_min": 0.25,
       "element_resolution_min": 0.5
     },
-    "coverage_recovery_must_not_timeout": true
+    "coverage_recovery_must_not_timeout": true,
+    "temporal_scope_must_fire_on_periods": [
+      "2024-09"
+    ]
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 13,
+      "value": 5,
       "tolerance": 8
     },
     "claims": {
@@ -48,7 +48,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 24,
+      "value": 33,
       "tolerance": 8
     },
     "api_adapters": {
@@ -56,15 +56,11 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 8,
-      "tolerance": 4
-    },
-    "tier_reporting": {
-      "value": 3,
+      "value": 4,
       "tolerance": 4
     },
     "tier_commentary": {
-      "value": 2,
+      "value": 1,
       "tolerance": 4
     },
     "temporal_scoped_refs": {
@@ -75,41 +71,42 @@
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
+        "https://actuaries.blog.gov.uk/2021/08/23/measures-of-price-inflation-rpi-cpi-and-cpih/",
         "https://commonslibrary.parliament.uk/research-briefings/sn02792/",
-        "https://gianlucabenigno.substack.com/p/uk-september-25-cpi-inflation-report",
+        "https://obr.uk/box/the-long-run-difference-between-rpi-and-cpi-inflation/",
         "https://tradingeconomics.com/united-kingdom/inflation-cpi",
-        "https://www.bankofengland.co.uk/monetary-policy/inflation",
         "https://www.bankofengland.co.uk/monetary-policy/inflation/inflation-calculator",
-        "https://www.bbc.com/news/live/cvgv1071417t",
-        "https://www.bls.gov/opub/ted/2024/consumer-prices-up-2-4-percent-from-september-2023-to-september-2024.htm",
-        "https://www.cnbc.com/2024/10/16/uk-inflation-september-2024.html",
-        "https://www.crosslandsolicitors.com/site/media/september-2024-inflation-cpi-cpih-rpi",
-        "https://www.cso.ie/en/releasesandpublications/ep/p-cpi/consumerpriceindexseptember2024/",
+        "https://www.bbc.co.uk/news/live/cvgv1071417t",
+        "https://www.bbc.co.uk/news/live/cx2lej4x7j9t",
+        "https://www.bbc.com/news/articles/c17rgd8e9gjo",
+        "https://www.bls.gov/charts/consumer-price-index/",
+        "https://www.crosslandsolicitors.com/site/hr-hub/september-2024-inflation-cpi-cpih-rpi",
+        "https://www.ft.com/uk-inflation",
+        "https://www.gov.uk/government/statistics/consumer-price-inflation-uk-september-2024",
+        "https://www.oecd.org/en/data/insights/statistical-releases/2024/09/consumer-prices-oecd-updated-4-september-2024.html",
         "https://www.ons.gov.uk/economy/inflationandpriceindices",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/december2024",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/july2024",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/articles/ukconsumerpriceinflationbasketofgoodsandservices/2025",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/july2026",
         "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/september2024",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/september2025",
         "https://www.ons.gov.uk/releases/consumerpriceinflationukseptember2024",
-        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOoopSi",
-        "https://x.com/elerianm/status/1846434930798055449"
+        "https://www.rateinflation.com/consumer-price-index/uk-cpi/",
+        "https://www.rateinflation.com/consumer-price-index/uk-historical-cpi/",
+        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid",
+        "https://www.theguardian.com/business/2025/oct/24/consumer-price-index-report-inflation-september",
+        "https://www.theguardian.com/business/2026/jan/21/uk-inflation-rose-december-interest-rate-hold-likely",
+        "https://www.tutor2u.net/economics/topics/consumer-price-index-cpi?srsltid"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "api.beta.ons.gov.uk",
-        "bankofengland.co.uk",
-        "bbc.com",
-        "bls.gov",
-        "cnbc.com",
         "commonslibrary.parliament.uk",
         "crosslandsolicitors.com",
-        "data.worldbank.org",
-        "gianlucabenigno.substack.com",
         "ons.gov.uk",
-        "x.com"
+        "rateinflation.com"
       ],
-      "min_similarity": 0.3
+      "min_similarity": 0.2
     }
   }
 }

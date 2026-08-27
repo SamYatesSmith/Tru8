@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-C1A0-0001",
-  "captured_at": "2026-07-30T08:49:24.294772+00:00",
-  "captured_with": "61d75c9",
+  "captured_at": "2026-08-27T14:08:05.541119+00:00",
+  "captured_with": "2c6fd02",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -30,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 16,
+      "value": 8,
       "tolerance": 8
     },
     "claims": {
@@ -42,22 +42,18 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 29,
+      "value": 43,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 4,
+      "value": 5,
       "tolerance": 8
     },
-    "tier_primary": {
-      "value": 11,
-      "tolerance": 5
-    },
-    "tier_commentary": {
-      "value": 1,
+    "tier_reporting": {
+      "value": 4,
       "tolerance": 4
     },
-    "tier_reporting": {
+    "tier_primary": {
       "value": 4,
       "tolerance": 4
     }
@@ -67,39 +63,48 @@
       "golden": [
         "https://commonslibrary.parliament.uk/research-briefings/cbp-9428/",
         "https://commonslibrary.parliament.uk/research-briefings/sn02792/",
+        "https://fred.stlouisfed.org/series/CPIAUCSL",
         "https://news.sky.com/story/office-for-national-statistics-adds-vinyl-gluten-free-bread-and-air-fryers-to-typical-shoppin",
-        "https://retailtimes.co.uk/retail-sales-fall-0-4-in-february-latest-data-from-office-for-national-statistics-shows/",
+        "https://obr.uk/forecasts-in-depth/the-economy-forecast/inflation/",
         "https://tradingeconomics.com/united-kingdom/inflation-cpi",
+        "https://tradingeconomics.com/united-states/inflation-cpi",
+        "https://www.aljazeera.com/news/2022/11/16/uk-inflation-hits-11-1-percent-highest-in-41-years",
         "https://www.bankofengland.co.uk/monetary-policy/inflation/inflation-calculator",
         "https://www.bbc.com/news/articles/c17rgd8e9gjo",
         "https://www.blackenterprise.com/ons-losses-case-to-force-employees-to-be-in-office/",
+        "https://www.bls.gov/cpi/",
+        "https://www.bls.gov/news.release/archives/cpi_11102022.pdf",
+        "https://www.bls.gov/news.release/cpi.nr0.htm",
         "https://www.cnbc.com/2022/11/16/uk-inflation-hits-new-41-year-high-as-food-and-energy-prices-continue-to-soar.html",
-        "https://www.crosslandsolicitors.com/site/media/October-2022-inflation-data-CPI-CPIH-RPI",
+        "https://www.ft.com/content/06d172a6-5583-49f1-a2a3-76fb65091b4d?syn-25a6b1a6",
+        "https://www.ft.com/content/1fcc250c-c1c5-4820-a5f4-4e48662a73aa?syn-25a6b1a6",
+        "https://www.ft.com/content/28a7e7f9-6f9f-48ad-9e17-640a14ce70b9?syn-25a6b1a6",
+        "https://www.ft.com/content/7a9c6019-bd0b-44b4-9a2d-db02ee881266?syn-25a6b1a6",
+        "https://www.ft.com/content/8916354a-4c7c-4df6-8c9e-2303f883855d?syn-25a6b1a6",
         "https://www.minneapolisfed.org/about-us/monetary-policy/inflation-calculator/consumer-price-index-1913-",
+        "https://www.oecd.org/en/data/indicators/inflation-cpi.html",
         "https://www.ons.gov.uk/economy/inflationandpriceindices",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/april2026",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/articles/newestimatesofcoreinflationuk/2022",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/july2026",
         "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2022",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2024",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2023",
         "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/previousreleases",
-        "https://www.ons.gov.uk/releases/consumerpriceinflationukoctober2022",
-        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOoree6"
+        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid",
+        "https://www.theguardian.com/business/2022/dec/14/uk-inflation-falls-food-and-energy-prices",
+        "https://www.theguardian.com/business/2022/nov/16/uk-inflation-rate-energy-price-rises",
+        "https://www.theguardian.com/business/article/2024/aug/14/revealed-how-uks-poor-paid-price-of-cheapflation-in-cost-of-liv"
       ],
-      "min_similarity": 0.35
+      "min_similarity": 0.4
     },
     "domain_set": {
       "golden": [
-        "api.beta.ons.gov.uk",
-        "bankofengland.co.uk",
-        "bbc.com",
         "cnbc.com",
         "commonslibrary.parliament.uk",
-        "crosslandsolicitors.com",
-        "data.worldbank.org",
+        "ft.com",
         "ons.gov.uk",
-        "statista.com",
-        "tradingeconomics.com"
+        "theguardian.com"
       ],
-      "min_similarity": 0.3
+      "min_similarity": 0.2
     }
   }
 }

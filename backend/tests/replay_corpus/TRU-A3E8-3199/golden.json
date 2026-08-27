@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-A3E8-3199",
-  "captured_at": "2026-07-30T08:49:04.864205+00:00",
-  "captured_with": "61d75c9",
+  "captured_at": "2026-08-27T14:07:22.035834+00:00",
+  "captured_with": "2c6fd02",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -35,23 +35,23 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 1,
+      "value": 2,
       "tolerance": 3
     },
     "web_search": {
-      "value": 23,
+      "value": 25,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 5,
+      "value": 3,
       "tolerance": 8
     },
     "tier_commentary": {
-      "value": 8,
+      "value": 4,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 2,
+      "value": 6,
       "tolerance": 4
     },
     "tier_primary": {
@@ -62,38 +62,44 @@
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://doi.org/10.1111/brv.70065",
+        "https://doi.org/10.1186/s40462-024-00498-2",
         "https://doi.org/10.1371/journal.pone.0306813",
-        "https://en.wikipedia.org/wiki/Greenland_shark",
+        "https://doi.org/10.3389/fmars.2025.1667683",
+        "https://en.wikipedia.org/wiki/Dangerous_Reef",
         "https://en.wikipedia.org/wiki/Megalodon",
-        "https://en.wikipedia.org/wiki/Pacific_sleeper_shark",
-        "https://news.sky.com/story/extraordinary-and-poorly-understood-the-mediterraneans-great-white-sharks-13552002",
+        "https://en.wikipedia.org/wiki/Orca_types_and_populations",
+        "https://en.wikipedia.org/wiki/Shark_finning",
+        "https://en.wikipedia.org/wiki/Whale_shark",
+        "https://extapps.dec.ny.gov/fs/programs/dfw/SWAP2025/Sharks,%20Skates,%20and%20Rays/White%20shark.pdf",
+        "https://metro.co.uk/2026/08/03/great-white-sharks-already-uk-venture-north-29287696/",
         "https://thedailyjaws.com/news/could-jaws-be-living-in-uk-waters",
+        "https://timesofindia.indiatimes.com/science/as-uk-oceans-warm-up-experts-warn-great-white-sharks-are-already-lurking-off",
+        "https://www.bbc.com/news/articles/crk5705rm5mo",
         "https://www.gbif.org/species/165636544",
         "https://www.gbif.org/species/206230133",
-        "https://www.peirceshark.com/great-whites-in-british-waters/",
+        "https://www.mdpi.com/2077-1312/13/9/1704",
         "https://www.plymouth.ac.uk/discover/are-great-white-sharks-warming-to-uk-waters",
-        "https://www.reddit.com/r/sharks/comments/1d4wb8x/great_whites_in_the_uk/",
-        "https://www.reddit.com/r/uknews/comments/1u4ybbo/great_white_sharks_inevitable_in_the_uk_after/",
+        "https://www.reddit.com/r/europe/comments/1vf6xb2/great_white_sharks_are_already_in_uk_as_they_head/",
+        "https://www.reddit.com/r/uknews/comments/1vf6vjs/great_white_sharks_are_already_in_uk_as_they_head/",
+        "https://www.sciencedirect.com/science/article/pii/S1470160X23008622",
         "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
-        "https://www.tiktok.com/@wildlifewithcookie/video/7608255253452000535",
-        "https://www.youtube.com/shorts/hnQH87ufSsc",
-        "https://www.youtube.com/watch?v=CDja_Gamub8"
+        "https://www.theguardian.com/us-news/2026/jul/31/great-white-shark-us-canada-coasts",
+        "https://www.wildlifeonline.me.uk/articles/view/great-white-shark-in-british-waters"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
+        "bbc.com",
         "gbif.org",
-        "news.sky.com",
-        "peirceshark.com",
+        "metro.co.uk",
         "plymouth.ac.uk",
         "reddit.com",
-        "semanticscholar.org",
+        "sciencedirect.com",
         "thedailyjaws.com",
         "theguardian.com",
-        "tiktok.com",
-        "youtube.com"
+        "timesofindia.indiatimes.com",
+        "wildlifeonline.me.uk"
       ],
       "min_similarity": 0.3
     }

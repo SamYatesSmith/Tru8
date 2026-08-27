@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-5647-FA4F",
-  "captured_at": "2026-08-17T15:09:53.825761+00:00",
-  "captured_with": "09cd87b",
+  "captured_at": "2026-08-27T14:05:56.780812+00:00",
+  "captured_with": "2c6fd02",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -31,7 +31,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 29,
+      "value": 25,
       "tolerance": 8
     },
     "claims": {
@@ -39,103 +39,74 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 5,
+      "value": 3,
       "tolerance": 3
     },
     "web_search": {
-      "value": 45,
+      "value": 26,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 3,
+      "value": 2,
       "tolerance": 8
     },
-    "tier_reporting": {
-      "value": 14,
-      "tolerance": 7
-    },
     "tier_primary": {
-      "value": 14,
+      "value": 15,
       "tolerance": 7
     },
     "tier_commentary": {
-      "value": 1,
+      "value": 7,
+      "tolerance": 4
+    },
+    "tier_reporting": {
+      "value": 3,
       "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://abcnews.com/US/damage-weather-climate-disasters-exceed-100b-2022-noaa/story?id=91345859",
-        "https://cebr.com/blogs/the-pothole-crisis-is-costing-14-4-billion-a-year-in-economic-damage-in-england-alone/",
-        "https://civilbeat.org/2026/03/hawai%CA%BBi-governor-estimates-storm-damage-has-already-hit-1-billion/",
         "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
-        "https://comptroller.nyc.gov/reports/ten-years-after-sandy/",
-        "https://doi.org/10.1016/j.heliyon.2023.e15277",
-        "https://doi.org/10.1016/j.jeem.2023.102915",
-        "https://doi.org/10.1016/j.trd.2023.104034",
-        "https://doi.org/10.1111/poms.13681",
-        "https://doi.org/10.1371/journal.pstr.0000028",
-        "https://doi.org/10.3390/ijerph19042189",
-        "https://eciu.net/analysis/briefings/climate-impacts/flood-risk-and-the-uk",
-        "https://floodlist.com/europe/united-kingdom",
-        "https://kse.ua/about-the-school/news/as-of-november-2022-the-total-amount-of-losses-caused-to-the-infrastructure-of-ukra",
-        "https://ncbudget.org/state-lawmakers-have-prioritized-property-over-people-in-ncs-helene-recovery/",
+        "https://onebillionresilient.org/hot-cities-chilled-economies-london/",
         "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
-        "https://policy.friendsoftheearth.uk/insight/flooding-england-getting-worse",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC11334115/",
+        "https://policy.friendsoftheearth.uk/insight/which-neighbourhoods-are-most-vulnerable-heatwaves",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
-        "https://weatherspark.com/h/m/45062/2022/7/Historical-Weather-in-July-2022-in-London-United-Kingdom",
-        "https://www.abi.org.uk/media-hub/news-post/more-action-needed-to-protect-properties-as-adverse-weather-takes-record-toll",
-        "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
-        "https://www.bbc.com/news/articles/c8xnwz7kl2vo",
         "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
         "https://www.carbonbrief.org/guest-post-a-met-office-review-of-the-uks-record-breaking-summer-in-2022",
-        "https://www.climate.gov/news-features/blogs/beyond-data/2022-us-billion-dollar-weather-and-climate-disasters-historical",
-        "https://www.climate.gov/news-features/blogs/beyond-data/2024-active-year-us-billion-dollar-weather-and-climate-disasters",
-        "https://www.climatecentral.org/climate-services/billion-dollar-disasters",
-        "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
-        "https://www.gov.uk/flood-and-coastal-erosion-risk-management-research-reports/evidence-on-the-costs-of-floods-in-england",
-        "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
+        "https://www.claimsjournal.com/news/national/2026/06/26/338470.htm",
+        "https://www.frontiersin.org/journals/environmental-science/articles/10.3389/fenvs.2023.1282284/full",
         "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
-        "https://www.lse.ac.uk/granthaminstitute/extreme-heat-preparedness-and-resilience-in-the-uk/",
+        "https://www.london.gov.uk/climate-change-could-cost-london-36-billion",
+        "https://www.london.gov.uk/sites/default/files/2024-02/LCRR%20INTERIM%20REPORT%2012%2002%202024.pdf",
+        "https://www.lse.ac.uk/granthaminstitute/news/june-heatwave-cost-uk-economy-more-than-1-billion-study-finds/",
+        "https://www.lse.ac.uk/granthaminstitute/publication/turning-up-the-heat/",
         "https://www.metoffice.gov.uk/about-us/news-and-media/media-centre/weather-and-climate-news/2022/july-heat-review",
-        "https://www.metoffice.gov.uk/blog/2026/uk-heatwaves-how-the-records-tell-a-changing-story",
-        "https://www.nature.com/articles/s41467-023-41888-1",
-        "https://www.nature.com/articles/s43247-026-03586-w",
-        "https://www.ncei.noaa.gov/access/billions/",
-        "https://www.osbm.nc.gov/hurricane-helene-dna/open",
-        "https://www.redcross.org.uk/stories/disasters-and-emergencies/world/climate-change-and-pakistan-flooding-affecting-milli",
-        "https://www.reddit.com/r/UKWeather/comments/1s8eyj6/remember_the_heat_wave_of_2022/",
-        "https://www.timeanddate.com/weather/uk/london/historic?month=7&year=2022",
+        "https://www.metoffice.gov.uk/blog/2025/impact-of-extreme-heat-events-on-industries",
+        "https://www.metoffice.gov.uk/research/climate/maps-and-data/uk-climate-extremes",
+        "https://www.publicsectorexecutive.com/articles/report-warns-extreme-heat-could-cost-london-ps36bn-year-2050s",
         "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
       ],
-      "min_similarity": 0.4
+      "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "abcnews.com",
-        "anderson.ucla.edu",
         "bbc.com",
         "carbonbrief.org",
-        "cebr.com",
-        "civilbeat.org",
-        "climate.gov",
-        "climatecentral.org",
-        "cnbc.com",
+        "claimsjournal.com",
         "community.netweather.tv",
-        "eciu.net",
-        "floodlist.com",
-        "gov.uk",
+        "frontiersin.org",
         "internetgeography.net",
+        "london.gov.uk",
         "lse.ac.uk",
         "metoffice.gov.uk",
-        "nature.com",
         "ncei.noaa.gov",
+        "onebillionresilient.org",
         "open-meteo.com",
+        "pmc.ncbi.nlm.nih.gov",
         "policy.friendsoftheearth.uk",
+        "publicsectorexecutive.com",
         "rmets.onlinelibrary.wiley.com",
-        "timeanddate.com",
-        "weatherspark.com",
         "worldweatherattribution.org"
       ],
       "min_similarity": 0.45

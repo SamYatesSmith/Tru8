@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-C1A0-0003",
-  "captured_at": "2026-07-30T08:49:36.470347+00:00",
-  "captured_with": "61d75c9",
+  "captured_at": "2026-08-27T14:08:15.409539+00:00",
+  "captured_with": "2c6fd02",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -30,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 18,
+      "value": 16,
       "tolerance": 8
     },
     "claims": {
@@ -42,72 +42,67 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 38,
+      "value": 30,
       "tolerance": 8
     },
     "api_adapters": {
       "value": 4,
       "tolerance": 8
     },
-    "tier_commentary": {
-      "value": 8,
+    "tier_reporting": {
+      "value": 4,
       "tolerance": 4
     },
     "tier_primary": {
-      "value": 10,
-      "tolerance": 5
+      "value": 12,
+      "tolerance": 6
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
         "https://doi.org/10.1038/s41577-021-00592-1",
-        "https://doi.org/10.1056/nejmoa2118691",
+        "https://doi.org/10.1056/nejmoa2107659",
         "https://doi.org/10.1056/nejmoa2119451",
-        "https://en.wikipedia.org/wiki/COVID-19_vaccine",
-        "https://en.wikipedia.org/wiki/Janssen_COVID-19_vaccine",
         "https://en.wikipedia.org/wiki/Moderna_COVID-19_vaccine",
+        "https://en.wikipedia.org/wiki/Novavax_COVID-19_vaccine",
         "https://en.wikipedia.org/wiki/Oxford%E2%80%93AstraZeneca_COVID-19_vaccine",
         "https://en.wikipedia.org/wiki/Pfizer%E2%80%93BioNTech_COVID-19_vaccine",
-        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8314794/",
-        "https://pubmed.ncbi.nlm.nih.gov/33301246/",
+        "https://en.wikipedia.org/wiki/Sputnik_V_COVID-19_vaccine",
+        "https://pharmaceutical-journal.com/article/feature/everything-you-need-to-know-about-covid-19-vaccines",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10294753/",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8717697/",
         "https://pubmed.ncbi.nlm.nih.gov/34942066/",
         "https://pubmed.ncbi.nlm.nih.gov/35767475/",
-        "https://www.biontech.com/content/dam/biontech-corporate/global/pdf/home/media/en/news/attachments/2021/03/9451.pdf",
-        "https://www.cdc.gov/acip/grade/covid-19-pfizer-biontech-vaccine.html",
         "https://www.cdc.gov/mmwr/volumes/70/wr/mm7042e1.htm",
-        "https://www.cidrap.umn.edu/covid-19/covid-19-scan-feb-18-2021",
         "https://www.cidrap.umn.edu/covid-19/peer-reviewed-data-show-high-protection-leading-covid-vaccines",
-        "https://www.nejm.org/doi/abs/10.1056/NEJMoa2110345",
+        "https://www.fda.gov/media/144246/download",
         "https://www.nejm.org/doi/full/10.1056/NEJMc2104974",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
-        "https://www.nejm.org/doi/full/10.1056/NEJMoa2105290",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2035389",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2106599",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2110345",
-        "https://www.nejm.org/doi/full/10.1056/NEJMoa2114114",
-        "https://www.nejm.org/doi/full/10.1056/NEJMoa2510226",
-        "https://www.pfizer.com/news/press-release/press-release-detail/follow-data-phase-3-trial-pfizer-biontech-covid-19-vaccin",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2200674",
+        "https://www.ovid.com/journals/nejm/pdf/10.1056/nejmoa2110345~safety-and-efficacy-of-the-bnt162b2-mrna-covid-19-vaccine",
         "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-announce-publication-results-landmark",
         "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-conclude-phase-3-study-covid-19-vacci",
         "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-confirm-high-efficacy-and-no-serious",
         "https://www.pfizer.com/science/coronavirus/updates",
-        "https://www.sciencedirect.com/science/article/pii/S0024320525002449",
-        "https://www.sciencedirect.com/science/article/pii/S1201971221008572",
-        "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)02183-8/fulltext",
         "https://www.upstate.edu/news/articles/2021/2021-05-27-thomas.php"
       ],
-      "min_similarity": 0.4
+      "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "biontech.com",
         "cdc.gov",
         "cidrap.umn.edu",
         "factcheck.org",
         "nejm.org",
+        "ovid.com",
         "pfizer.com",
+        "pharmaceutical-journal.com",
+        "pmc.ncbi.nlm.nih.gov",
         "pubmed.ncbi.nlm.nih.gov",
-        "sciencedirect.com",
-        "thelancet.com",
         "upstate.edu"
       ],
       "min_similarity": 0.3

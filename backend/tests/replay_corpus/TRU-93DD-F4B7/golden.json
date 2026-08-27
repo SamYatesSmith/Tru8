@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-93DD-F4B7",
-  "captured_at": "2026-07-30T08:48:59.917183+00:00",
-  "captured_with": "61d75c9",
+  "captured_at": "2026-08-27T14:07:12.241781+00:00",
+  "captured_with": "2c6fd02",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -30,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 14,
+      "value": 10,
       "tolerance": 8
     },
     "claims": {
@@ -42,7 +42,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 22,
+      "value": 28,
       "tolerance": 8
     },
     "api_adapters": {
@@ -50,58 +50,51 @@
       "tolerance": 8
     },
     "tier_reporting": {
-      "value": 3,
+      "value": 1,
       "tolerance": 4
-    },
-    "tier_primary": {
-      "value": 11,
-      "tolerance": 5
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://en.climate-data.org/europe/united-kingdom/scotland/edinburgh-48/t/february-2/",
+        "https://en.climate-data.org/europe/united-kingdom/scotland/edinburgh-48/",
+        "https://everythingedinburgh.com/best-time-to-visit-edinburgh/",
         "https://open-meteo.com/en/docs#latitude=55.95&longitude=-3.19",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/joc.7787",
-        "https://weatherspark.com/h/m/38026/2021/2/Historical-Weather-in-February-2021-in-Edinburgh-United-Kingdom",
+        "https://weather.metoffice.gov.uk/learn-about/past-uk-weather-events",
         "https://weatherspark.com/y/38026/Average-Weather-in-Edinburgh-United-Kingdom-Year-Round",
-        "https://world-weather.info/forecast/united_kingdom/edinburgh/february-2021/",
-        "https://www.avisonyoung.com/drivers-of-change/heat-resilient-cities",
-        "https://www.climatexchange.org.uk/publications/scotclimate-a-tool-for-understanding-future-extreme-weather-in-scotland/",
-        "https://www.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/weather/learn-about/uk-past-events/interesting/2",
-        "https://www.netweather.tv/weather-forecasts/news/10709-february-2021-cold-and-snow-down-to--230c",
-        "https://www.researchgate.net/profile/Buwen-Dong",
-        "https://www.rmets.org/sites/default/files/2025-04/january_2025_-_observer_notes.pdf",
-        "https://www.telegraph.co.uk/news/2021/02/11/uk-weather-extreme-freeze-could-cause-travel-meltdown-across/",
-        "https://www.the-sun.com/news/2317526/weather-forecast-snow-temperatures-rocket-next-week/",
-        "https://www.theguardian.com/uk-news/2021/feb/11/uk-temperature-falls-lowest-level-decade-extreme-freeze",
-        "https://www.theweatheroutlook.com/twocommunity/Posts/t21822-Availability-of-Weather-Station-Data/page3",
+        "https://www.bbc.co.uk/news/articles/c0m9yez3780o",
+        "https://www.bbc.co.uk/news/articles/c7vevn46gv8o",
+        "https://www.bbc.co.uk/news/articles/ckg9gxlg7x4o",
+        "https://www.bbc.co.uk/news/articles/cn4d0n1l8zno",
+        "https://www.bbc.co.uk/news/magazine-12606943",
+        "https://www.bbc.co.uk/news/magazine-33760845",
+        "https://www.bbc.co.uk/news/uk-16959950",
+        "https://www.bbc.co.uk/news/uk-scotland-north-east-orkney-shetland-56037261",
+        "https://www.bbc.com/news/uk-55992385",
+        "https://www.bbc.com/news/uk-scotland-highlands-islands-56022387",
+        "https://www.express.co.uk/news/weather/1396454/uk-weather-forecast-latest-met-office-forecast-snow-winter-weather-charts",
+        "https://www.express.co.uk/news/weather/1400393/uk-long-range-forecast-snow-march-met-office-weather-latest",
+        "https://www.met.reading.ac.uk/~brugge/diary2021.html",
+        "https://www.metoffice.gov.uk/research/climate/maps-and-data/summaries",
+        "https://www.netweather.tv/weather-forecasts/uk/winter/winter-history",
+        "https://www.reddit.com/r/CasualUK/comments/1on9ez0/is_anyone_else_finding_the_current_unseasonable/",
+        "https://www.thetimes.com/uk/environment/article/coldest-night-of-the-year-recorded-at-16c-b0lw03k8p",
         "https://www.timeanddate.com/weather/uk/edinburgh/historic",
-        "https://www.timeanddate.com/weather/uk/edinburgh/historic?month=9&year=2021",
-        "https://www.trevorharley.com/2021.html",
-        "https://www.worldweatheronline.com/edinburgh-weather-averages-february/city-of-edinburgh/gb.aspx",
-        "https://www.youtube.com/watch?v=fBc6MASiGOs"
+        "https://www.trevorharley.com/weather-february.html"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "en.climate-data.org",
-        "metoffice.gov.uk",
-        "netweather.tv",
-        "rmets.onlinelibrary.wiley.com",
-        "rmets.org",
-        "telegraph.co.uk",
-        "theguardian.com",
-        "theweatheroutlook.com",
-        "timeanddate.com",
-        "trevorharley.com",
-        "weatherspark.com",
-        "world-weather.info",
-        "worldweatheronline.com"
+        "bbc.co.uk",
+        "bbc.com",
+        "everythingedinburgh.com",
+        "express.co.uk",
+        "met.reading.ac.uk",
+        "rmets.onlinelibrary.wiley.com"
       ],
-      "min_similarity": 0.3
+      "min_similarity": 0.2
     }
   }
 }

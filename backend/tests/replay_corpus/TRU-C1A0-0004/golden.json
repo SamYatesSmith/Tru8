@@ -1,14 +1,14 @@
 {
   "claim_id": "TRU-C1A0-0004",
-  "captured_at": "2026-07-30T08:49:47.694998+00:00",
-  "captured_with": "61d75c9",
+  "captured_at": "2026-08-27T14:08:23.010249+00:00",
+  "captured_with": "2c6fd02",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
     "classifier_inject": {
       "primary": "Politics",
       "secondaries_must_include": [
-        "Finance",
+        "Climate",
         "Law"
       ],
       "jurisdiction_to": "US"
@@ -35,7 +35,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 18,
+      "value": 15,
       "tolerance": 8
     },
     "claims": {
@@ -43,23 +43,23 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 3,
+      "value": 2,
       "tolerance": 3
     },
     "web_search": {
-      "value": 24,
+      "value": 17,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 0,
+      "value": 1,
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 9,
+      "value": 5,
       "tolerance": 4
     },
     "tier_commentary": {
-      "value": 7,
+      "value": 8,
       "tolerance": 4
     },
     "tier_reporting": {
@@ -70,53 +70,43 @@
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://blogs.lse.ac.uk/usappblog/2026/06/05/looking-beyond-trump-understanding-the-building-blocks-of-recent-us-climate",
+        "https://experience.arcgis.com/experience/45ac4dc0f74a42c6bc4548fbd8804c92",
         "https://grist.org/energy/trump-inflation-reduction-act-big-beautiful-bil/",
         "https://international.canada.ca/en/global-affairs/corporate/transparency/briefing-documents/parliamentary-committee/2023",
-        "https://iratracker.org/actions/",
+        "https://investmentpolicy.unctad.org/investment-policy-monitor/measures/4004/-369-billion-in-investment-incentives-to-add",
         "https://journals.stecab.com/jece/article/download/1038/458",
-        "https://scholarship.law.columbia.edu/sabin_climate_change/232/",
-        "https://thespringgroup.org/articles/a-comprehensive-economic-analysis-of-renewable-energy-in-the-united-states",
-        "https://triagecancer.org/inflation-reduction-act-vaccines-blog",
-        "https://www.amcp.org/advocacy/ira-implementation",
-        "https://www.c-span.org/program/white-house-event/president-biden-signs-inflation-reduction-act/615969",
-        "https://www.cambridge.org/core/journals/world-trade-review/article/tariffs-versus-subsidies-protection-versus-industrial",
-        "https://www.congress.gov/bill/117th-congress/house-bill/5376/text",
+        "https://nationalhealthcouncil.org/blog/inflation-reduction-act-signed-by-president-biden/",
+        "https://scholarship.law.unc.edu/cgi/viewcontent.cgi?article",
+        "https://www.cato.org/policy-analysis/budgetary-cost-inflation-reduction-acts-energy-subsidies",
+        "https://www.congress.gov/crs-product/R48944",
         "https://www.energy.gov/edf/inflation-reduction-act-2022",
-        "https://www.epa.gov/green-power-markets/summary-inflation-reduction-act-provisions-related-renewable-energy",
-        "https://www.everycrsreport.com/reports/R48944.html",
+        "https://www.envirovotersedfund.org/one-year-since-the-inflation-reduction-act/",
         "https://www.healthinsurance.org/glossary/inflation-reduction-act/",
         "https://www.iea.org/policies/16156-inflation-reduction-act-of-2022",
-        "https://www.irs.gov/inflation-reduction-act-of-2022",
-        "https://www.naco.org/news/inflation-reduction-act-signed-law",
-        "https://www.nga.org/ira-resources/",
         "https://www.nytimes.com/2022/08/16/business/biden-climate-tax-inflation-reduction.html",
         "https://www.presidency.ucsb.edu/documents/what-they-are-saying-biden-harris-administration-celebrates-two-years-the-infl",
         "https://www.proskauertaxtalks.com/2022/08/president-biden-signs-inflation-reduction-act-into-law/",
-        "https://www.researchgate.net/publication/399536432_The_Impact_of_the_Inflation_Reduction_Act_on_Global_Manufacturing"
+        "https://x.com/RepDwightEvans/status/2087992520579957162"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "amcp.org",
-        "blogs.lse.ac.uk",
-        "c-span.org",
-        "cambridge.org",
-        "congress.gov",
+        "cato.org",
         "energy.gov",
-        "epa.gov",
+        "envirovotersedfund.org",
+        "experience.arcgis.com",
         "grist.org",
         "healthinsurance.org",
         "iea.org",
-        "iratracker.org",
-        "irs.gov",
-        "naco.org",
-        "nga.org",
+        "international.canada.ca",
+        "investmentpolicy.unctad.org",
+        "nationalhealthcouncil.org",
         "nytimes.com",
         "presidency.ucsb.edu",
-        "scholarship.law.columbia.edu",
-        "triagecancer.org"
+        "proskauertaxtalks.com",
+        "scholarship.law.unc.edu",
+        "x.com"
       ],
       "min_similarity": 0.45
     }
