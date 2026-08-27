@@ -81,6 +81,81 @@ paused, not cancelled.
 dev servers (uvicorn :8000, next :3000) were left running for the founder's
 hands-on pass — stale by next session.
 
+**5. 🔴 SOURCE-RESTRICTIONS DESIGN REVIEW — COMPLETED 2026-08-26, LOGGED
+2026-08-27. The session hit its usage limit mid-delivery before this could be
+written down; the verdicts below are final — do NOT re-derive them.** Triggered
+by the founder's question *"I don't see much from certain independent media news
+sources — what are the current source restrictions?"*. A five-mechanism sweep
+produced three proposals; the design review that followed **corrected two of its
+own load-bearing findings**, which killed two of the three.
+
+   **Correction A — the runtime blocklist is NOT permanent in production; the
+   sweep read a LOCAL artefact.** `backend/data/domain_status.json` is gitignored
+   (`.gitignore:121`, rationale written in place), no `railway.toml`/`railway.json`
+   exists in the repo and the Dockerfile declares no `VOLUME` — and Railway builds
+   from git, so the file is never in the image. **Every prod container starts empty**
+   and re-seeds only the 13 pre-seeded entries; the list survives until the next
+   deploy, no longer. carbonbrief.org / thehill.com / cnbc.com are blocked **on the
+   founder's machine**, accumulated over months of local runs, not in prod. (Residual
+   check if it ever matters: a volume attached in the Railway *dashboard* would not
+   appear in the repo — `railway ssh` → `ls backend/data/` settles it in seconds.)
+   ⚠️ **The real consequence is a MEASUREMENT-INTEGRITY trap, not a coverage bug:
+   any retrieval measurement run LOCALLY filters against a months-stale blocklist
+   production does not have, so it reads a smaller pool than prod would.** Know this
+   before testing anything in this area.
+
+   **Correction B — `audit/2026-08-20_independent_source_lane_design_review.md` is
+   WRONG about Substack, and a decision rested on it.** It states Substack/Medium/
+   WordPress are "in no explicit classifier list (verified)". In fact `_BLOG_PLATFORMS`
+   (`evidence_classifier.py:197`, contains `substack.com`) was added **2026-04-24
+   (`8e53e75`, "Wave 3 B5a + B5b: quality floor for parody, tabloid, and social
+   sources")** — four months before that doc — and it is not a passive fall-through:
+   `_apply_quality_floor` (`:475`, applied `:513`) is a hard override firing
+   *"regardless of the LLM or URL-identity override verdict"*. Substack is **pinned**
+   to commentary/opinion by domain, whatever the content says.
+
+   **Verdicts — 2 of 3 CLOSED as decided-against; do not re-open without new evidence:**
+   - **#1 runtime blocklist — ✅ WORTH DOING, but one line, not the TTL first
+     proposed.** With ephemerality confirmed (Correction A), TTL machinery would add
+     persistence infrastructure to fix what a deploy already resets. What genuinely
+     survives is that **a 5-second timeout is recorded as a bot-block**:
+     `app/services/evidence.py:35-36` unions `DomainStatus.TIMEOUT` into the blocked
+     set (the docstring at `:233` says so outright). Slow is not hostile, and cheap
+     hosting is exactly where small outlets live. Narrow fix: stop unioning `TIMEOUT`,
+     or raise the timeout. Blast radius is low — it changes whether we retry a fetch,
+     not what we search, how we rank, or how we tier. **NOT STARTED; gated behind the
+     bench re-record.**
+   - **#2 the `General`-class `site:` roster — ❌ CLOSED, don't touch.** Highest-drift
+     change on the table (claim lane, first query per plan, double fetch weight, every
+     check) and it fights measurement we already hold: the F7 re-gold showed
+     primary-tier evidence **ROSE on every corpus claim** (2→10, 6→11, 7→11, 4→9,
+     0→4, 1→3), and authority targeting is part of what produced that. Loosening it
+     is also invariant #7 exposure in the dangerous direction — on a false claim, that
+     is how a well-evidenced falsehood starts to look two-sided.
+   - **#3 the Substack/blog floor — ❌ CLOSED as code work; the RECORD was the defect.**
+     The arithmetic settles it: weights primary 3 / reporting 2 / commentary 1 against
+     `FACTUAL_MIN_WEIGHTED_SUPPORT=3`. At commentary, **three** independent Substack
+     posts are needed to badge an element `supported`; promoted to reporting, **two**
+     would do it — halving the bar for a factual element to read supported off
+     blog-platform sources, the same sycophancy hazard the August audit flagged in
+     another guise. The floor is defensible as policy ("we cannot assess editorial
+     process on an open publishing platform") — it just has to be a **known decision**,
+     not a belief that it is neutral. **Owed: correct the false line in the 2026-08-20
+     doc** (Correction B).
+
+   **The constraint governing all three:** the bench is dead (0/10, model-migration
+   drift), so nothing guards a pipeline change today — and even re-recorded it
+   **cannot verify a retrieval change** (25 of 40 URLs differ between two IDENTICAL
+   runs). Every option here needs direct measurement — issue the query, read the
+   results, pence and minutes — never a before/after bench read. **Recommendation,
+   accepted: change nothing in retrieval until the bench is re-recorded.**
+
+   **Recorded for completeness, NOT re-verified in the review** (it came from the
+   sweep agent): the diversity guardrails that would counterbalance all of this are
+   **inert** — `MAX_EVIDENCE_PER_DOMAIN` / `GLOBAL_MAX_PER_DOMAIN` are defined in
+   config and referenced nowhere, and the written domain dedup is never called; only
+   the 35% concentration cap actually runs. Verify before acting on it.
+
 ### ▶▶ SEND WEEK (PAUSED — see item 3 above). Day 1 was Tue 25 Aug (TTE · Viglione · Seymour), Day 2 Wed 26 Aug (Tapper · McSweeney). Founder decision 2026-08-24: all five over these two days.
 
 **What happened 2026-08-24:** the TTE email was ADVERSARIALLY VERIFIED by
