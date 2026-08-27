@@ -56,16 +56,14 @@ acceptance table). **Still open on it, in order:**
      be read" when the backend raises on EITHER side failing, and never names
      which source.
 
-**2. 🔴 THE REPLAY BENCH IS DEAD — 0 ok / 10 fail, every claim, total
-cassette drift. NOT a COMPARE regression** (identical failure at two
-pre-COMPARE commits). **Attributed by experiment:** pinning the old model
-strings (`GOOGLE_LLM_MODEL=gemini-2.5-flash-lite
-MAPPING_GOOGLE_MODEL=gemini-2.5-flash`) took TRU-93DD-F4B7 from **0 hits →
-38 hits** — the 2026-08-25 model migration changed every cassette key.
-Residual ~16 misses = post-08-17 prompt changes (recital gate `7cd71b4`,
-mapping revert `8e43b8e`). **Owed: full corpus re-record on CURRENT models +
-golden review. Until paid, the drift guard protects nothing.** Do NOT
-re-diagnose this from scratch — the attribution is done.
+**2. ✅ THE REPLAY BENCH IS ALIVE AGAIN — re-recorded 2026-08-27 (`c960d8b`), guard mechanism fixed (`97548bb`).** It was 0 ok / 10 fail on total cassette drift (the 2026-08-25 model migration re-keyed every cassette). All 10 claims re-recorded live on the current models, patched, and verified by deterministic replay — **178 ok / 5 warn / 9 fail / 5 unexercised**, replay reproduces the recording exactly, zero drift. Cost ~£0.80. Recorded AFTER the `DISTIL_MODEL` fix, so the cassettes carry the corrected model and need no redo on 16 Oct.
+   - **Goldens: 8 re-golded wholesale; `018F-44AA` and `C1A0-0005` merged BY HAND.** Their must-fire gate pins are deliberately kept at capture values — re-golding to zero would have bought a clean sweep by retiring the only bench guards on the 2026-08-13 incident and the F1 temporal gate. The debt is written into each golden's `notes` with "do not lower the pins".
+   - **⚠️ Re-gold with `--all --update-golden`, NEVER per-claim.** URLs are tracked globally (invariant #1), so a standalone run makes different requests than the same claim inside `--all`; per-claim re-golding rewrote two cassettes out of sequence and cost a re-patch to undo.
+   - **New: `UNEXERCISED`** (`97548bb`). A must-fire assertion whose pool lacked the trap now reports `unexercised` — counted separately, never folded into `ok`, never changes the exit code. Precondition PRESENT and gate silent is still a hard FAILURE; an undeclared precondition still fails. Reads the **final pool** (`domain_set`), never `url_ledger_flat` — whitehouse.gov was *fetched* on this recording but dropped before mapping, so the ledger would have called the trap present. Full rules + table: `tests/replay_corpus/README.md`.
+   - **⚠️ `UNEXERCISED` is NOT evidence a gate works.** The deterministic guards are `test_assertion_evidence_wiring.py` (452 lines) and `test_temporal_scope_wiring.py` (411) — the gates through the real mapping parser on fixed evidence. The bench anchor only adds "does this also happen live". A 2026-08-27 claim that re-golding would leave the temporal gate "entirely unguarded" was **overstated** and is corrected here.
+   - **Known-flaky moved:** `TRU-5647-FA4F` now carries the non-converging `cassette_drift` role `82CF-2F81` held (82CF is clean this recording); it appears in some replays and not others, consistent with the documented timing mechanism. Do NOT chase it — 34 misses / 48 hits was identical before and after a patch pass.
+   - **Confound recorded, not hidden:** WeatherAPI returned 400 throughout (the LOCAL key lacks history access), so `93DD-F4B7`'s weather-adapter numbers are degraded versus an environment with a full key.
+   - **The 9 remaining fails are real observations, not confusion:** thin pools (`unique_domains`, `factual_weight_share`, `top_domain_share` on 93DD / A3E8 / B4A3 / 0005), `018F`'s recital count 3→1, and `0005` losing the `gianlucabenigno.substack.com` source. **Owed:** pay the two must-fire debts at a future recording whose pool carries the trap.
 
 **3. ▶▶ SENDS: PAUSED, founder decision 2026-08-26 in-session:** *"WE ARE NOT
 GOING TO DO THE SENDS UNTIL WE RESOLVE THIS SOURCE TAB ISSUE, ALONGSIDE OTHER
