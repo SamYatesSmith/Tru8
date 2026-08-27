@@ -26,6 +26,10 @@ acceptance table). **Still open on it, in order:**
      the endpoint-level proof).
    - **One real prod comparison** (~0.2p) — charge-side + Railway env are
      only provable there.
+   - **✅ PROD VERIFIED 2026-08-27 (founder logged Railway in; all three checked at the source, none inferred):**
+     `alembic current` → **`claim_comparison (head)`**, and — the M-06 lesson applied, because a head can be stamped past a table that was never created — `to_regclass('public.claim_comparison')` returns the table AND it holds **1 real row**: check `159af846`, evidence pair `ev-7f6c562d` / `ev-f8127c89`, both summaries and the divergence populated, `basis_a/b = full`, 482 / 1,242 words, usage `gemini-3.5-flash-lite` 2,626 in, created **2026-08-26 20:37** — i.e. a genuine comparison the founder ran after the 401 fix deployed at 15:52. **The "one real prod comparison" item is therefore PAID.**
+     ⚠️ **It does NOT prove the 401 fix**, and must not be read as doing so: the bug only appeared on a SECOND comparison started >60s after page load, and one stored row is one success. That still needs the interactive hands-on pass.
+   - **✅ `DISTIL_MODEL` PROD CHECK CLOSED 2026-08-27 — production is fully off Gemini 2.5.** `railway variables` shows `DISTIL_MODEL` is **not pinned**, so the code default governs, and the live container confirms it directly: `settings.DISTIL_MODEL` → **`gemini-3.5-flash-lite`**, `GOOGLE_LLM_MODEL` → `gemini-3.5-flash-lite` (pinned on Railway to the same value), `MAPPING_GOOGLE_MODEL` → `gemini-3.7-flash` (unpinned, code default, a tier above the bulk as designed). Read out of the RUNNING container, not the repo. The 16 Oct exposure on the distiller is closed.
    - Cosmetic, founder's call: nav "COMPARE" (marketing /compare) now shares
      a word with the lens tab.
    - **✅ FIXED 2026-08-26 (was: 2nd comparison 401s on a stale Clerk token,
