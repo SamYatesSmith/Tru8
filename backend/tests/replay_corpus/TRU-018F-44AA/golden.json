@@ -30,7 +30,12 @@
     "scope_gates_must_fire": [
       "interested_party",
       "recital_scope"
-    ]
+    ],
+    "must_fire_preconditions": {
+      "interested_party": [
+        "whitehouse.gov"
+      ]
+    }
   },
   "tolerant_counters": {
     "sources_included": {

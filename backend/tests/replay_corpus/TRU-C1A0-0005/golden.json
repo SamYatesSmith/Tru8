@@ -32,7 +32,12 @@
     "coverage_recovery_must_not_timeout": true,
     "temporal_scope_must_fire_on_periods": [
       "2024-09"
-    ]
+    ],
+    "must_fire_preconditions": {
+      "temporal_scope": [
+        "gianlucabenigno.substack.com"
+      ]
+    }
   },
   "tolerant_counters": {
     "sources_included": {

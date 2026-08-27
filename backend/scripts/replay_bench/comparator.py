@@ -29,6 +29,65 @@ class Diff:
     def is_warning(self) -> bool:
         return self.level == "warning"
 
+    def is_unexercised(self) -> bool:
+        return self.level == "unexercised"
+
+
+# A must-fire gate assertion can only mean "the gate broke" if the pool
+# actually contained something the gate could fire on. Live pools churn ~62%
+# between identical runs (audit/2026-08-20), so a corpus draw routinely
+# arrives without the trap — and a check that reports that as a failure cannot
+# be told apart from a real break, which is how a red bench stops meaning
+# anything. Goldens may therefore declare, per gate, the URL substrings whose
+# presence is the precondition for firing:
+#
+#   "must_fire_preconditions": {"interested_party": ["whitehouse.gov"]}
+#
+# Precondition absent  -> "unexercised" (not a failure; the trap wasn't there)
+# Precondition present -> "failure"     (the trap WAS there and nothing caught it)
+#
+# Declaring no precondition keeps the old behaviour: always a hard failure.
+_GATE_COUNTERS = {
+    "interested_party": (
+        "interested_party_scoped_refs",
+        "interested_party_scoped_elements",
+    ),
+    "recital_scope": ("recital_scoped_refs", "recital_scoped_elements"),
+    "temporal_scope": ("temporal_scoped_refs", "temporal_scoped_elements"),
+    "jurisdiction_scope": ("jurisdiction_scoped_refs", "jurisdiction_scoped_elements"),
+    "measure_scope": ("measure_scoped_refs", "measure_scoped_elements"),
+    "echo_scope": ("echo_scoped_refs", "echo_scoped_elements"),
+}
+
+
+def _pool_text(obs: Dict[str, Any]) -> str:
+    """What reached MAPPING, lowercased, as one blob.
+
+    Deliberately the final pool (`domain_set` / `domain_distribution`) and NOT
+    `url_ledger_flat`. The distinction is load-bearing and was got wrong once:
+    on the 2026-08-27 recording of TRU-018F-44AA, whitehouse.gov WAS retrieved
+    (a National Security Strategy PDF) but was dropped before mapping, so it
+    appears in the URL ledger while the gate never saw it. Reading the ledger
+    would call that trap "present" and report a hard failure for a gate that was
+    given nothing — the exact confusion this mechanism exists to remove.
+    """
+    domains = obs.get("domain_set") or obs.get("domain_distribution") or []
+    if isinstance(domains, dict):
+        domains = list(domains.keys())
+    return " ".join(str(d) for d in domains).lower()
+
+
+def _precondition_met(obs: Dict[str, Any], substrings: Sequence[str]) -> bool:
+    """True if the pool carries at least one source the gate could fire on.
+
+    An empty/absent precondition list means "cannot tell" — treated as MET, so
+    the assertion stays a hard failure. Silence must never soften a guard.
+    """
+    if not substrings:
+        return True
+    blob = _pool_text(obs)
+    return any(str(s).lower() in blob for s in substrings)
+
 
 def _get(obs: Dict[str, Any], path: str) -> Any:
     """Dotted-path lookup with int-keyed dict support: 'freshness_inject_per_claim.0.fired'."""
@@ -94,15 +153,39 @@ def compare_hard_invariants(obs: Dict[str, Any], hard: Dict[str, Any]) -> List[D
     if v3_floors:
         out.extend(_check_v3_quality_per_claim(obs, v3_floors, v3_warn or {}))
 
+    preconditions = hard.get("must_fire_preconditions") or {}
+
     temporal_periods = hard.get("temporal_scope_must_fire_on_periods")
     if temporal_periods is not None:
-        out.extend(_check_temporal_scope(obs, temporal_periods))
+        out.extend(
+            _check_temporal_scope(
+                obs, temporal_periods, preconditions.get("temporal_scope")
+            )
+        )
 
     gates_must_fire = hard.get("scope_gates_must_fire")
     if gates_must_fire is not None:
-        out.extend(_check_scope_gates_fire(obs, gates_must_fire))
+        out.extend(_check_scope_gates_fire(obs, gates_must_fire, preconditions))
 
     return out
+
+
+def unexercised_gate_counters(obs: Dict[str, Any], golden: Dict[str, Any]) -> List[str]:
+    """Counter names whose gate had no chance to fire on this pool.
+
+    Only gates that actually declare a precondition AND did not fire can be
+    unexercised; a gate that fired is judged on its counts as before.
+    """
+    hard = golden.get("hard_invariants", {})
+    preconditions = hard.get("must_fire_preconditions") or {}
+    names: List[str] = []
+    for gate, substrings in preconditions.items():
+        if obs.get(f"{gate}_events"):
+            continue
+        if _precondition_met(obs, substrings):
+            continue
+        names.extend(_GATE_COUNTERS.get(gate, ()))
+    return names
 
 
 # The consequence each gate exists to prevent, quoted when it stops firing —
@@ -124,7 +207,9 @@ _SCOPE_GATE_STAKES = {
 
 
 def _check_scope_gates_fire(
-    obs: Dict[str, Any], gate_keys: Sequence[str]
+    obs: Dict[str, Any],
+    gate_keys: Sequence[str],
+    preconditions: Dict[str, Sequence[str]] | None = None,
 ) -> List[Diff]:
     """Named scope gates must still fire on this corpus claim (2026-08-17).
 
@@ -135,13 +220,21 @@ def _check_scope_gates_fire(
     interested_party / recital_scope).
     """
     out: List[Diff] = []
+    preconditions = preconditions or {}
     for key in gate_keys:
         events = obs.get(f"{key}_events") or []
         scoped_refs = sum(int(e.get("scoped", 0)) for e in events)
         fired = bool(events)
+        exercised = _precondition_met(obs, preconditions.get(key, []))
+        if fired:
+            level = "ok"
+        elif exercised:
+            level = "failure"
+        else:
+            level = "unexercised"
         out.append(
             Diff(
-                level="ok" if fired else "failure",
+                level=level,
                 signal=f"scope_gate:{key}",
                 expected="gate fires at least once on this claim",
                 observed=(
@@ -153,8 +246,17 @@ def _check_scope_gates_fire(
                     f"{key} gate fired"
                     if fired
                     else (
-                        f"the {key} gate stopped scoping — "
-                        + _SCOPE_GATE_STAKES.get(key, "its receipts are gone")
+                        (
+                            f"the {key} gate stopped scoping — "
+                            + _SCOPE_GATE_STAKES.get(key, "its receipts are gone")
+                        )
+                        if exercised
+                        else (
+                            f"NOT EXERCISED: this pool carries nothing the {key} gate "
+                            f"could fire on ({preconditions.get(key)}), so the gate was "
+                            "never given the chance. Not a regression, and NOT proof the "
+                            "gate works — the deterministic guard is its wiring test."
+                        )
                     )
                 ),
             )
@@ -163,7 +265,9 @@ def _check_scope_gates_fire(
 
 
 def _check_temporal_scope(
-    obs: Dict[str, Any], expected_periods: Sequence[str]
+    obs: Dict[str, Any],
+    expected_periods: Sequence[str],
+    precondition: Sequence[str] | None = None,
 ) -> List[Diff]:
     """The F1 gate must still fire, on the periods it fired on when golden.
 
@@ -178,11 +282,19 @@ def _check_temporal_scope(
     scoped_refs = sum(int(e.get("scoped", 0)) for e in events)
     out: List[Diff] = []
 
+    exercised = _precondition_met(obs, precondition or [])
+
     for period in expected_periods:
         fired = period in observed_periods
+        if fired:
+            level = "ok"
+        elif exercised:
+            level = "failure"
+        else:
+            level = "unexercised"
         out.append(
             Diff(
-                level="ok" if fired else "failure",
+                level=level,
                 signal=f"temporal_scope:{period}",
                 expected=f"gate fires on an element pinned to {period}",
                 observed=(
@@ -194,8 +306,17 @@ def _check_temporal_scope(
                     f"temporal scope gate fired on {period}"
                     if fired
                     else (
-                        "the F1 temporal scope gate stopped scoping off-period "
-                        "evidence — settled facts can read as disputed again"
+                        (
+                            "the F1 temporal scope gate stopped scoping off-period "
+                            "evidence — settled facts can read as disputed again"
+                        )
+                        if exercised
+                        else (
+                            "NOT EXERCISED: this pool carries no off-period source "
+                            f"({list(precondition or [])}), so the gate had nothing to "
+                            "scope. Not a regression, and NOT proof the gate works — "
+                            "the deterministic guard is test_temporal_scope_wiring.py."
+                        )
                     )
                 ),
             )
@@ -603,12 +724,34 @@ _COUNTER_PATHS = {
 
 
 def compare_tolerant_counters(
-    obs: Dict[str, Any], counters: Dict[str, Dict[str, int]]
+    obs: Dict[str, Any],
+    counters: Dict[str, Dict[str, int]],
+    unexercised: Sequence[str] = (),
 ) -> List[Diff]:
     out: List[Diff] = []
     if not counters:
         return out
+    unexercised = set(unexercised)
     for name, spec in counters.items():
+        if name in unexercised:
+            # Its gate was never given the chance to fire on this pool, so the
+            # count cannot mean anything. Reported, never silently dropped.
+            out.append(
+                Diff(
+                    level="unexercised",
+                    signal=f"counter:{name}",
+                    expected=spec.get("value"),
+                    observed=(
+                        (obs.get(_COUNTER_PATHS[name][0]) or {}).get(
+                            _COUNTER_PATHS[name][1], 0
+                        )
+                        if name in _COUNTER_PATHS
+                        else None
+                    ),
+                    message="NOT EXERCISED: gate precondition absent from this pool",
+                )
+            )
+            continue
         path = _COUNTER_PATHS.get(name)
         if path is None:
             out.append(
@@ -749,6 +892,12 @@ def compare_set_jaccard(
 def compare(obs: Dict[str, Any], golden: Dict[str, Any]) -> List[Diff]:
     diffs: List[Diff] = []
     diffs.extend(compare_hard_invariants(obs, golden.get("hard_invariants", {})))
-    diffs.extend(compare_tolerant_counters(obs, golden.get("tolerant_counters", {})))
+    diffs.extend(
+        compare_tolerant_counters(
+            obs,
+            golden.get("tolerant_counters", {}),
+            unexercised_gate_counters(obs, golden),
+        )
+    )
     diffs.extend(compare_set_jaccard(obs, golden.get("set_jaccard", {})))
     return diffs

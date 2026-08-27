@@ -33,6 +33,49 @@
 > The 2 warns are expected too: `TRU-A3E8-3199` factual_weight_share 0.23 and
 > `TRU-C1A0-0001` top_domain_share 0.40, both in the "Mediocre" band, neither a failure.
 
+## UNEXERCISED — a guard that was never given the chance (2026-08-27)
+
+A must-fire gate assertion (`scope_gates_must_fire`,
+`temporal_scope_must_fire_on_periods`) can only mean *"the gate broke"* if the
+pool actually contained something the gate could fire on. Live pools churn ~62%
+between identical runs, so a draw routinely arrives without the trap — and a
+check reporting that as FAILED cannot be told apart from a real break. That is
+how a red bench stops being read.
+
+Goldens may therefore declare, per gate, the domains whose presence is the
+precondition for firing:
+
+```json
+"hard_invariants": {
+  "must_fire_preconditions": {"interested_party": ["whitehouse.gov"]}
+}
+```
+
+| precondition | gate fired | verdict |
+|---|---|---|
+| absent  | no  | **UNEXERCISED** — not a failure, and **not a pass** |
+| present | no  | **FAILURE** — the trap was there and nothing caught it |
+| either  | yes | OK |
+| *not declared* | no | **FAILURE** — silence never softens a guard |
+
+`UNEXERCISED` is counted and printed separately, never folded into `ok`, and
+never changes the exit code. Its counters (`*_scoped_refs` / `*_scoped_elements`)
+follow their gate.
+
+⚠️ **The precondition reads the FINAL POOL (`domain_set`), never
+`url_ledger_flat`** — and this distinction is load-bearing. On the 2026-08-27
+recording of `TRU-018F-44AA`, whitehouse.gov *was* fetched (a National Security
+Strategy PDF) but was dropped before mapping, so the gate never saw it. Reading
+the URL ledger calls that trap "present" and reports a hard failure for a gate
+that was given nothing. Pinned by
+`tests/unit/replay_bench/test_unexercised_gates.py`.
+
+⚠️ **UNEXERCISED is not evidence the gate works.** The deterministic guards are
+`test_assertion_evidence_wiring.py` (recital + interested-party) and
+`test_temporal_scope_wiring.py` (F1), which run the gates through the real
+mapping parser on fixed evidence. The bench anchor only adds "does this also
+happen on a live pool".
+
 **Frozen 9-claim regression corpus** (it was 5 when this file was written; the C1A0
 series was added later). Run `python scripts/replay_bench.py --all` before every
 pipeline-quality commit. Catches regressions of the
