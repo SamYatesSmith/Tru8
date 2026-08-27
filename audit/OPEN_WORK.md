@@ -9,11 +9,11 @@
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ WHERE 2026-08-27 ENDED — READ ITEM 7 FIRST. Five things shipped and were PROD-VERIFIED; one new open question outranks them all.
+### ▶▶ WHERE 2026-08-27 ENDED — READ ITEMS 7 AND 8 FIRST. Five things shipped and were PROD-VERIFIED; **two new pipeline findings outrank them all, and both came from pressure-testing ONE real outreach record** (`/r/fa08cff7`). Item 7: tier sets weight, so rigour has no channel. Item 8: the state vocabulary cannot say "refuted", so a claim disproved 13-to-0 badges the same as a 50/50 split. Neither is reachable by prompt.
 
 **Shipped + verified today:** bench ALIVE again (`c960d8b`, `97548bb`) · `DISTIL_MODEL` was still on retiring Gemini 2.5 and is fixed (`2c6fd02`), **confirmed live in the running Railway container** · blocklist no longer bans a site for being slow (`7800ce9`) · COMPARE's prod table + a real stored comparison verified · the "partner findings were never given" claim was WRONG and is corrected (item 3).
 
-**The live question (item 7):** pressure-testing a real outreach record showed tier sets weight, so a specialist factcheck counts HALF a general news story. Founder's read — correct — is that this is a pipeline issue no prompt can fix. **Viglione is HELD, Seymour is sendable.** No patching tier weights to unblock a send.
+**The live questions (items 7 + 8):** pressure-testing a real outreach record showed tier sets weight, so a specialist factcheck counts HALF a general news story. Founder's read — correct — is that this is a pipeline issue no prompt can fix. **And the founder was right again that the first write-up under-reported it: the badge fault (item 8) is worse for a reader than the weighting fault, and “the answer is sound” was too generous a framing.** **Viglione is HELD, Seymour is sendable.** No patching tier weights to unblock a send.
 
 **Founder-only, still open:** COMPARE hands-on pass (Clerk wall — do TWO comparisons a minute apart, one alone does not prove the 401 fix) · the sends themselves.
 
@@ -267,6 +267,57 @@ own load-bearing findings**, which killed two of the three.
    identical runs, and six more days of coverage. Demo live if useful, but **keep
    the emails pointed at `fa08cff7`** — every verified sentence is verified
    against that record and no other.
+
+**8. 🔴 OPEN 2026-08-27 — THE STATE VOCABULARY CANNOT SAY "REFUTED", so a comprehensively disproved claim renders identically to a genuine 50/50 split. Sibling of item 7, DIFFERENT mechanism — someone could fix one and leave the other.**
+
+   `ElementState` (`app/models/claim_map.py:19-22`) has exactly three values:
+   **`supported` · `disputed` · `unresolved`**. And
+   `_derive_element_state_with_authority` routes three unrelated situations into
+   the same one:
+
+   ```
+   n_supports == 0 AND n_challenges > 0        -> disputed
+   weighted_challenges > 2 x weighted_supports -> disputed
+   close split (including an exact 2x tie)     -> disputed
+   ```
+
+   So on `/r/fa08cff7` (the Viglione/Seymour wildfire record) **e1 at 0 supports /
+   4 challenges and e2 at 0 supports / 9 challenges both badge `disputed` — the
+   same badge a 5-vs-5 element would carry.** Thirteen sources contradict the
+   claim, none support it, and the element a reader scans says *disputed*, which
+   reads as *contested, two sides, unsettled*.
+
+   ⚠️ **This is false balance produced by VOCABULARY, and it contradicts
+   invariant #7 in the invariant's own words — *"a well-evidenced grave claim
+   SHOULD look one-sided."*** The mechanism is the mirror of the sycophancy case
+   the project has guarded hard against: it cannot make a false claim look
+   supported, but it *does* make a refuted claim look merely contested. No prompt
+   reaches it; the enum is three values and the derivation is mechanical.
+
+   **What is carrying the honest message today:** the claim-level ORIENTATION
+   sentence, which reads *"Of 2 elements examined, retrieved evidence challenges
+   all 2, with none supporting."* That is accurate and unambiguous. **The failure
+   is that everything a reader scans — the per-element badges — flattens it.**
+   Any fix should start by asking why the badge cannot say what the orientation
+   sentence already says.
+
+   ⚠️ **Do NOT "fix" this by adding a `refuted` state without reading the
+   history.** `disputed` is load-bearing in the anti-sycophancy work: the strict
+   `>` change of 2026-08-17 deliberately sends an exact 2x tie to `disputed`
+   (TRU-018F-44AA's crux element), and both sides were tightened in the same
+   commit precisely so the mechanism stays symmetric — invariant #7 forbids
+   changing one side alone. A new state is a change to the same machinery and
+   must be symmetric too: if `refuted` is added for one-sided challenge, the
+   one-sided-support case needs the equivalent scrutiny, or the asymmetry the
+   project has spent months removing comes back inverted.
+
+   **Also found in the same record, and thin enough to matter:**
+   **`total_search_results: 17` on a FULL-tier check** whose documented fetch cap
+   is 40 (13 queries/claim, <=65/check). 13 evidence items survived, 12 shown, 1
+   unmapped. Roughly half the evidence the tier is meant to gather. Not yet
+   diagnosed — could be lane sizing, the filter cascade, or genuinely thin
+   coverage for the claim. **Measure before concluding: two identical runs differ
+   by ~62% of URLs, so a single record is not evidence of a systematic shortfall.**
 
 ### ▶▶ SEND WEEK — GATE CLEAR (item 3), but the roster CHANGED at sign-off 2026-08-27: **Viglione is HELD on item 7** (tier-weight labelling, not record accuracy) while **Seymour is SENDABLE**. TTE unchanged. Tapper + McSweeney un-reassessed since 2026-08-24 and still owed a pressure pass. The original 2026-08-24 plan below (all five across Tue 25 / Wed 26 Aug) is HISTORY — read item 7 before sending anyone.
 
