@@ -65,14 +65,34 @@ acceptance table). **Still open on it, in order:**
    - **Confound recorded, not hidden:** WeatherAPI returned 400 throughout (the LOCAL key lacks history access), so `93DD-F4B7`'s weather-adapter numbers are degraded versus an environment with a full key.
    - **The 9 remaining fails are real observations, not confusion:** thin pools (`unique_domains`, `factual_weight_share`, `top_domain_share` on 93DD / A3E8 / B4A3 / 0005), `018F`'s recital count 3→1, and `0005` losing the `gianlucabenigno.substack.com` source. **Owed:** pay the two must-fire debts at a future recording whose pool carries the trap.
 
-**3. ▶▶ SENDS: PAUSED, founder decision 2026-08-26 in-session:** *"WE ARE NOT
-GOING TO DO THE SENDS UNTIL WE RESOLVE THIS SOURCE TAB ISSUE, ALONGSIDE OTHER
-NOTED ISSUES I FOUND LAST NIGHT WHEN MY PARTNER WAS VIEWING THE SITE."*
-COMPARE resolves the source-tab issue. **⚠️ The OTHER partner findings were
-NEVER ENUMERATED — the founder deferred listing them. ASK FOR THE LIST before
-assuming the send gate is clear.** Everything in the send-week block below
-(TTE text verified, Fix 1 approved-unbuilt, etc.) still stands — it is
-paused, not cancelled.
+**3. ✅ THE SEND GATE IS CLEAR — every condition of the 2026-08-26 pause is met (corrected 2026-08-27).**
+The pause was: *"WE ARE NOT GOING TO DO THE SENDS UNTIL WE RESOLVE THIS SOURCE
+TAB ISSUE, ALONGSIDE OTHER NOTED ISSUES I FOUND LAST NIGHT WHEN MY PARTNER WAS
+VIEWING THE SITE."* All of it is resolved:
+   - **Source-tab issue** → COMPARE shipped and live (`f8733df`).
+   - **The partner's findings — GIVEN, not deferred.** They were the substance of
+     the 2026-08-26 session, stated in-session at 15:01: (1) the supported/context/
+     contested spread clipped off-screen and should be three labelled horizontal
+     bars, responsive, equally prominent; (2) a notable-evidence card offered only
+     "See in evidence" (a jump within the grid) and needed a link to the source
+     itself. **Both shipped in `e6f9ad4`.** The founder closed the list in the same
+     session: *"Thats all she had, i think!"* — plus their own note on pixelated
+     favicons, shipped in `c4dbf1a`.
+   - ⚠️ **THIS ENTRY PREVIOUSLY CLAIMED THE FINDINGS WERE "NEVER ENUMERATED — ASK
+     FOR THE LIST". That was WRONG and cost the founder a round-trip on
+     2026-08-27.** The handoff was written from the fact that no *list* had been
+     dictated, while the findings had in fact arrived one at a time as ordinary
+     requests and been built the same day. **Lesson: work delivered in-session IS
+     the record of the requirement — before recording something as "never
+     provided", check what shipped that day.**
+   - Only open condition remaining is the founder's own hands-on pass (item 1),
+     which is a check of COMPARE, not a partner finding.
+
+   **So: sends are unblocked.** Everything in the send-week block below (TTE text
+   adversarially verified, Fix 1 approved-unbuilt but explicitly send-safe without
+   it) stands and is ready to execute. Day 1 = TTE · Viglione · Seymour, Day 2 =
+   Tapper · McSweeney; the pressure-pass on the Viglione + Seymour notes is still
+   owed BEFORE their sends.
 
 **4. Housekeeping done 2026-08-26:** Syncthing fully removed (repo files +
 `.git` conflict copy; founder deleted the AppData/Downloads pieces). Local
