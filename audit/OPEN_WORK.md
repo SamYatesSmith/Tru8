@@ -141,8 +141,12 @@ own load-bearing findings**, which killed two of the three.
      set (the docstring at `:233` says so outright). Slow is not hostile, and cheap
      hosting is exactly where small outlets live. Narrow fix: stop unioning `TIMEOUT`,
      or raise the timeout. Blast radius is low — it changes whether we retry a fetch,
-     not what we search, how we rank, or how we tier. **NOT STARTED; gated behind the
-     bench re-record.**
+     not what we search, how we rank, or how we tier. **✅ SHIPPED 2026-08-27 (`7800ce9`).** TIMEOUT no longer
+     unions into the blocklist; BOT_BLOCKED still does. Tests pin both
+     directions incl. that the TIMEOUT bucket is never queried. ⚠️ The
+     bench CANNOT verify this — `DomainStatusFixture` installs an EMPTY
+     tracker, so no bench claim exercises the blocklist; it stayed at
+     178/5/9/5, a no-regression signal only.**
    - **#2 the `General`-class `site:` roster — ❌ CLOSED, don't touch.** Highest-drift
      change on the table (claim lane, first query per plan, double fetch weight, every
      check) and it fights measurement we already hold: the F7 re-gold showed
