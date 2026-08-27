@@ -270,7 +270,7 @@ async def call_google_ai(
         logger.debug("Google AI API key not configured")
         return None
 
-    model = model or getattr(settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite")
+    model = model or getattr(settings, "GOOGLE_LLM_MODEL", "gemini-3.5-flash-lite")
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
         f"{model}:generateContent?key={api_key}"
@@ -393,7 +393,7 @@ async def call_google_ai_with_usage(
         logger.debug("Google AI API key not configured")
         return None, None
 
-    model = model or getattr(settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite")
+    model = model or getattr(settings, "GOOGLE_LLM_MODEL", "gemini-3.5-flash-lite")
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
         f"{model}:generateContent?key={api_key}"

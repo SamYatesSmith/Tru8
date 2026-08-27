@@ -1530,7 +1530,7 @@ class ClaimMapAnalyzer:
         self.max_elements = settings.MAX_ELEMENTS_PER_CLAIM
         self.snippet_length = settings.EVIDENCE_SNIPPET_LENGTH
         self.google_model = getattr(
-            settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite"
+            settings, "GOOGLE_LLM_MODEL", "gemini-3.5-flash-lite"
         )
         self.mapping_google_model = getattr(
             settings, "MAPPING_GOOGLE_MODEL", self.google_model

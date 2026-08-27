@@ -230,7 +230,7 @@ RESPOND WITH JSON:
         self.timeout = settings.QUERY_PLANNING_TIMEOUT
         self.model = settings.QUERY_PLANNING_MODEL  # OpenAI fallback model
         self.google_model = getattr(
-            settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite"
+            settings, "GOOGLE_LLM_MODEL", "gemini-3.5-flash-lite"
         )
 
     async def plan_queries_batch(

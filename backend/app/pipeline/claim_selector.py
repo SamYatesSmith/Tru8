@@ -54,7 +54,7 @@ class ClaimSelector:
         self.google_ai_api_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
         self.max_selected = settings.MAX_SELECTED_CLAIMS
         self.google_model = getattr(
-            settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite"
+            settings, "GOOGLE_LLM_MODEL", "gemini-3.5-flash-lite"
         )
         self.timeout = 30
 

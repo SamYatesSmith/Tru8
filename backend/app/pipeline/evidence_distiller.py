@@ -65,7 +65,7 @@ class EvidenceDistiller:
 
     def __init__(self):
         self.google_ai_api_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
-        self.model = getattr(settings, "DISTIL_MODEL", "gemini-2.5-flash-lite")
+        self.model = getattr(settings, "DISTIL_MODEL", "gemini-3.5-flash-lite")
         self.timeout = getattr(settings, "DISTIL_TIMEOUT", 15)
         self.max_facts = getattr(settings, "DISTIL_MAX_FACTS_PER_ITEM", 8)
         self.min_text_length = getattr(settings, "DISTIL_MIN_TEXT_LENGTH", 500)

@@ -476,7 +476,7 @@ class ImageIngester(BaseIngester):
                 return None
 
             # Use the full flash model for vision — lite may not support multimodal
-            model = getattr(settings, "MAPPING_GOOGLE_MODEL", "gemini-2.5-flash")
+            model = getattr(settings, "MAPPING_GOOGLE_MODEL", "gemini-3.7-flash")
             url = (
                 f"https://generativelanguage.googleapis.com/v1beta/models/"
                 f"{model}:generateContent?key={api_key}"

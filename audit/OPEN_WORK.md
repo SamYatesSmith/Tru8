@@ -156,6 +156,8 @@ own load-bearing findings**, which killed two of the three.
    config and referenced nowhere, and the written domain dedup is never called; only
    the 35% concentration cap actually runs. Verify before acting on it.
 
+**6. ⏳ OWED, FOUNDER, needs Railway: check whether `DISTIL_MODEL` is pinned as an env var.** The 2026-08-25 model migration missed this third model setting (it was still `gemini-2.5-flash-lite`); the default is fixed 2026-08-27, but a Railway pin would override it and leave prod on a model that retires 16 Oct. `railway variables` -> unset it or set `gemini-3.5-flash-lite`. Full record at the migration entry below.
+
 ### ▶▶ SEND WEEK (PAUSED — see item 3 above). Day 1 was Tue 25 Aug (TTE · Viglione · Seymour), Day 2 Wed 26 Aug (Tapper · McSweeney). Founder decision 2026-08-24: all five over these two days.
 
 **What happened 2026-08-24:** the TTE email was ADVERSARIALLY VERIFIED by
@@ -537,6 +539,52 @@ the `Claim:` line, delta in `supported` badges both valence directions. Invarian
 #7 as one number; no public benchmark runs it.
 
 ### ✅✅ MIGRATION COMPLETE AND LIVE-VERIFIED IN PRODUCTION 2026-08-25 (`e5467ce`)
+
+> ### ⚠️ CORRECTION 2026-08-27 — "the whole pipeline" was NOT the whole pipeline. A THIRD model setting was missed, and this entry asserted otherwise for two days.
+>
+> **`DISTIL_MODEL` was still `gemini-2.5-flash-lite`** (`config.py:298`, in the
+> distillation block ~180 lines from the two settings the migration tracked, with
+> no comment tying it to the model family). The claim above — *"The whole pipeline
+> is off the retiring Gemini 2.5 family"* — was verified by checking what had been
+> CHANGED, not by checking what was LEFT. **A single `grep gemini-2.5` would have
+> caught it.** Make that grep the last step of any model migration.
+>
+> **Caught by a replay-bench recording, not by reasoning:** the fresh
+> `TRU-93DD-F4B7` cassette contains 11 LLM calls — 10 to `3.5-flash-lite` /
+> `3.7-flash` and **one to `gemini-2.5-flash-lite`**. A live artefact, not an
+> inference. Note what could NOT have caught it: production was healthy the whole
+> time, because 2.5 does not retire until 16 Oct. **A green deploy cannot prove a
+> migration is complete — only an inventory of what remains can.**
+>
+> **Why it mattered:** the distiller is ~60% of counted input tokens, the slowest
+> stage (~63s), and is **Google-only with no OpenAI fallback** (`evidence_distiller.py:19`).
+> On 16 October it would not have degraded — it would have stopped.
+>
+> **Fixed 2026-08-27 (`DISTIL_MODEL` → `gemini-3.5-flash-lite`), plus the stale
+> surfaces the same sweep found**, none of them live but each a landmine: eleven
+> `getattr(settings, "<MODEL>", "gemini-2.5-…")` fallbacks across `google_ai.py`
+> (×2), `query_planner`, `query_answer`, `extract`, `evidence_classifier`,
+> `claim_selector`, `claim_map_analyzer`, `ingest`, `evidence_distiller` — dead
+> today (the settings attribute always exists) but each would silently resurrect a
+> retired model if a setting were ever renamed — and `.env.example:26`, which
+> pinned `GOOGLE_LLM_MODEL=gemini-2.5-flash-lite` for anyone provisioning from the
+> template. Deliberately NOT changed: the `gemini-2.5-*` rows in
+> `cost_constants.py` (historic checks must still price correctly) and the 2.5
+> references in comments/tests recording past measurements.
+>
+> **Verified:** full suite **3,609 passed / 69 skipped / 0 failed**; resolved
+> settings now `GOOGLE_LLM_MODEL=gemini-3.5-flash-lite`,
+> `MAPPING_GOOGLE_MODEL=gemini-3.7-flash` (a tier above the bulk, as designed),
+> `DISTIL_MODEL=gemini-3.5-flash-lite`. **`compute_pipeline_fingerprint()` reads
+> only the first two** (`manifest_signer.py:41-42`), so the fingerprint does not
+> move and historic `/verify/{id}` records are unaffected — no repeat of the
+> ordering incident recorded below.
+>
+> **⏳ STILL OWED — FOUNDER, needs Railway:** if `DISTIL_MODEL` is pinned as a
+> Railway env var, this default change does NOTHING and prod stays on the retiring
+> model. Check `railway variables` for `DISTIL_MODEL`; unset it, or set it to
+> `gemini-3.5-flash-lite`. The same caveat the entry below already raises for
+> `GOOGLE_LLM_MODEL`.
 
 **The whole pipeline is off the retiring Gemini 2.5 family.** Prod healthy on
 `e5467ce`, 12/12 poll samples, no flapping. **Both models are now

@@ -932,7 +932,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             # after extraction) — no need to duplicate here.
 
             google_model = getattr(
-                settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite"
+                settings, "GOOGLE_LLM_MODEL", "gemini-3.5-flash-lite"
             )
             return {
                 "success": True,

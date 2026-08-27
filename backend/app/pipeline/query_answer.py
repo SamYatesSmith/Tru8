@@ -22,7 +22,7 @@ class QueryAnswerer:
         self.timeout = 30
         self.model = "gpt-4o-mini-2024-07-18"  # OpenAI fallback model
         self.google_model = getattr(
-            settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite"
+            settings, "GOOGLE_LLM_MODEL", "gemini-3.5-flash-lite"
         )
         self.max_tokens = 300
         self.temperature = 0.2

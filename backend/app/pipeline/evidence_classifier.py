@@ -567,7 +567,7 @@ class EvidenceClassifier:
         self.google_ai_api_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
         self.model = getattr(settings, "LLM_MODEL_NAME", "gpt-4o-mini")
         self.google_model = getattr(
-            settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite"
+            settings, "GOOGLE_LLM_MODEL", "gemini-3.5-flash-lite"
         )
         self.timeout = 45
         self.snippet_length = 300

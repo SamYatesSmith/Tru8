@@ -295,7 +295,15 @@ class Settings(BaseSettings):
 
     # Evidence distillation
     ENABLE_EVIDENCE_DISTILLATION: bool = Field(True, env="ENABLE_EVIDENCE_DISTILLATION")
-    DISTIL_MODEL: str = Field("gemini-2.5-flash-lite", env="DISTIL_MODEL")
+    DISTIL_MODEL: str = Field("gemini-3.5-flash-lite", env="DISTIL_MODEL")
+    # Migrated 2026-08-27. The 2026-08-25 migration moved GOOGLE_LLM_MODEL and
+    # MAPPING_GOOGLE_MODEL and recorded "the whole pipeline is off the retiring
+    # Gemini 2.5 family" - but this third model setting lives 180 lines away in
+    # the distillation block and was missed. A replay-bench recording caught it:
+    # 10 calls on 3.5/3.7, one on 2.5-flash-lite. The distiller is ~60% of input
+    # tokens and has NO OpenAI fallback, so it would have failed outright on
+    # 16 Oct 2026. If a deployment pins DISTIL_MODEL as an env var, changing this
+    # default does nothing - check the environment too.
     DISTIL_TIMEOUT: float = Field(15.0, env="DISTIL_TIMEOUT")
     DISTIL_MAX_FACTS_PER_ITEM: int = Field(8, env="DISTIL_MAX_FACTS_PER_ITEM")
     DISTIL_MIN_TEXT_LENGTH: int = Field(500, env="DISTIL_MIN_TEXT_LENGTH")
