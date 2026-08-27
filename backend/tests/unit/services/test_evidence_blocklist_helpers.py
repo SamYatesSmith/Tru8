@@ -17,17 +17,23 @@ from app.services.evidence import (
     get_runtime_blocked_domains,
     is_domain_blocked,
 )
+from app.utils.domain_status_tracker import DomainStatus
 
 
 class TestGetRuntimeBlockedDomains:
-    """get_runtime_blocked_domains aggregates BOT_BLOCKED + TIMEOUT
-    entries from the domain status tracker, plus their www. variants."""
+    """get_runtime_blocked_domains returns BOT_BLOCKED entries from the domain
+    status tracker, plus their www. variants.
 
-    def test_returns_bot_blocked_and_timeout_domains_with_www_variants(self):
+    TIMEOUT is deliberately excluded (2026-08-27). It used to be blocked, which
+    made one slow response on a 5-second deadline a permanent exclusion — a
+    silent, receiptless removal (invariant #5) that fell hardest on the small
+    outlets least able to afford fast hosting."""
+
+    def test_returns_bot_blocked_domains_with_www_variants(self):
         mock_tracker = MagicMock()
-        mock_tracker.get_domains_by_status.side_effect = [
-            [{"domain": "facebook.com"}, {"domain": "instagram.com"}],
-            [{"domain": "slow-server.example"}],
+        mock_tracker.get_domains_by_status.return_value = [
+            {"domain": "facebook.com"},
+            {"domain": "instagram.com"},
         ]
 
         with patch(
@@ -39,8 +45,50 @@ class TestGetRuntimeBlockedDomains:
         assert "www.facebook.com" in result
         assert "instagram.com" in result
         assert "www.instagram.com" in result
-        assert "slow-server.example" in result
-        assert "www.slow-server.example" in result
+
+    def test_a_slow_domain_is_NOT_blocked(self):
+        """The 2026-08-27 change, pinned. Slow is not hostile.
+
+        A domain that timed out must stay eligible: the block was one-strike,
+        permanent for the life of the process, and invisible downstream. The
+        cost of NOT blocking is bounded — one more fetch slot, capped by the
+        same 5s timeout. The cost of blocking was a publisher disappearing.
+        """
+        mock_tracker = MagicMock()
+
+        def by_status(status):
+            if status is DomainStatus.BOT_BLOCKED:
+                return [{"domain": "facebook.com"}]
+            return [{"domain": "slow-server.example"}]
+
+        mock_tracker.get_domains_by_status.side_effect = by_status
+
+        with patch(
+            "app.services.evidence.get_domain_tracker", return_value=mock_tracker
+        ):
+            result = get_runtime_blocked_domains()
+
+        assert "slow-server.example" not in result
+        assert "www.slow-server.example" not in result
+        assert "facebook.com" in result  # an explicit refusal still blocks
+
+    def test_timeout_status_is_never_even_queried(self):
+        """Stronger than checking the output: the TIMEOUT bucket is not read.
+
+        Asserting only on the returned set would still pass if someone re-added
+        the union and the fixture happened to return nothing for it.
+        """
+        mock_tracker = MagicMock()
+        mock_tracker.get_domains_by_status.return_value = []
+
+        with patch(
+            "app.services.evidence.get_domain_tracker", return_value=mock_tracker
+        ):
+            get_runtime_blocked_domains()
+
+        queried = [c.args[0] for c in mock_tracker.get_domains_by_status.call_args_list]
+        assert DomainStatus.TIMEOUT not in queried
+        assert DomainStatus.BOT_BLOCKED in queried
 
     def test_returns_safe_fallback_on_tracker_failure(self):
         mock_tracker = MagicMock()
@@ -56,9 +104,10 @@ class TestGetRuntimeBlockedDomains:
 
     def test_skips_empty_domain_entries(self):
         mock_tracker = MagicMock()
-        mock_tracker.get_domains_by_status.side_effect = [
-            [{"domain": "facebook.com"}, {"domain": ""}, {"foo": "bar"}],
-            [],
+        mock_tracker.get_domains_by_status.return_value = [
+            {"domain": "facebook.com"},
+            {"domain": ""},
+            {"foo": "bar"},
         ]
 
         with patch(

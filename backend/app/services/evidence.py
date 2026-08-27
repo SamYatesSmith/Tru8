@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_runtime_blocked_domains() -> set:
-    """Return the runtime blocklist of bot-blocked + timed-out domains.
+    """Return the runtime blocklist of bot-blocked domains.
 
     Used by EvidenceService at extraction time AND by the post-filter
     recovery loop in runner.py — both paths must apply the same
@@ -29,13 +29,36 @@ def get_runtime_blocked_domains() -> set:
 
     Returns each observed domain plus its ``www.`` prefix variant so
     substring matching catches both forms.
+
+    ⚠️ TIMEOUT IS DELIBERATELY NOT BLOCKED (2026-08-27). It used to be, and the
+    effect was a one-strike permanent exclusion on a **5-second** deadline
+    (``URL_FETCH_TIMEOUT``): a single slow response and the domain was never
+    fetched again for the life of the process. Three arguments retired it —
+
+    1. **Slow is not hostile.** A 403/429 is a refusal the server chose to send;
+       a timeout is a statement about latency, and cheap hosting is exactly where
+       small and independent outlets live. The old docstring justified blocking
+       on the grounds that these domains "consistently return no usable
+       content", but one strike is not evidence of "consistently".
+    2. **It was a silent exclusion with no receipt**, which invariant #5 forbids.
+       Nothing downstream could tell that a source had been removed for being
+       slow rather than for being irrelevant.
+    3. **The costs are asymmetric.** Not blocking risks re-spending ONE fetch
+       slot on a slow domain, bounded by the same 5s timeout. Blocking risks
+       excluding a publisher permanently and invisibly.
+
+    BOT_BLOCKED stays: an explicit refusal is a real signal about access, not
+    about speed. Rate-limited, paywall and JS-required were never blocked.
+
+    ⚠️ The replay bench CANNOT verify this change — its `DomainStatusFixture`
+    installs an EMPTY tracker, so no bench claim ever exercises the blocklist.
+    The guard is `tests/unit/services/test_runtime_blocklist.py`.
     """
     try:
         tracker = get_domain_tracker()
         bot_blocked = tracker.get_domains_by_status(DomainStatus.BOT_BLOCKED)
-        timed_out = tracker.get_domains_by_status(DomainStatus.TIMEOUT)
         blocked = set()
-        for d in (*bot_blocked, *timed_out):
+        for d in bot_blocked:
             domain = d.get("domain", "")
             if not domain:
                 continue
@@ -230,10 +253,12 @@ class EvidenceExtractor:
     def _init_blocked_domains(self) -> None:
         """Initialize blocked domains from tracker.
 
-        Blocks BOT_BLOCKED (403) and TIMEOUT domains — both consistently
-        return no usable content and waste fetch time.  Rate-limited (429),
-        paywall, and JS-required are NOT blocked — they may succeed on retry
-        or return partial content.
+        Blocks BOT_BLOCKED (403) only: an explicit refusal to serve us.
+        NOT blocked — TIMEOUT (2026-08-27: slow is not hostile, and a 5s
+        one-strike ban fell hardest on small outlets; see
+        ``get_runtime_blocked_domains``), rate-limited (429), paywall, and
+        JS-required, all of which may succeed on retry or return partial
+        content.
         """
         try:
             self.blocked_domains = get_runtime_blocked_domains()
