@@ -5,11 +5,11 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-26, end of day)
+## 🟢 START HERE — next session (updated 2026-08-27)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ WHERE 2026-08-26 ENDED: COMPARE tab SHIPPED (replaced SOURCES). Sends are PAUSED by founder decision. Bench is DEAD (not ours).
+### ▶▶ WHERE 2026-08-27 ENDED: bench ALIVE again ·  migration gap found and fixed · blocklist timeout ban removed · SEND GATE CLEAR. The blockers left are all things only the founder can do (Railway login, Clerk hands-on pass) plus the sends themselves.
 
 **1. COMPARE is live in production** (`f8733df` deployed, health-watched
 through the flip). Built → design-reviewed → live-verified in one day; the
