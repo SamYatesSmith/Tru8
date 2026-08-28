@@ -683,6 +683,19 @@ class Settings(BaseSettings):
     # when its original is not counted. ROLLBACK: ENABLE_ECHO_SCOPE_GATE=False.
     ENABLE_ECHO_SCOPE_GATE: bool = Field(True, env="ENABLE_ECHO_SCOPE_GATE")
 
+    # Item 7 stage 1 (2026-08-28): the factcheck signal. When ON, the evidence
+    # classifier (1) asks the LLM for a conservative `factcheck` boolean (a
+    # genre judgement — content property, never an outlet roster), (2) marks
+    # the four known factcheck domains mechanically on the search path, and
+    # (3) promotes a flagged commentary/ANALYSIS item to reporting
+    # (`factcheck_promotion` receipt) — the tier the heuristic has always
+    # assigned flagged factchecks. DEFAULT OFF: the prompt variant re-keys
+    # every classifier cassette in the replay bench, so the flip is a decision
+    # that carries a bench re-record; measure firing rates first with
+    # scripts/measure_factcheck_signal.py. ROLLBACK: ENABLE_FACTCHECK_SIGNAL=False.
+    # Design: audit/2026-08-28_rigour_and_refutation_design_review.md §3, Option 7-A.
+    ENABLE_FACTCHECK_SIGNAL: bool = Field(False, env="ENABLE_FACTCHECK_SIGNAL")
+
     # ========== TRACK M: EVIDENCE INFRASTRUCTURE ==========
 
     # M-04: Manifest signing

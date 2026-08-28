@@ -88,6 +88,152 @@ Respond with JSON only:
 Include one entry per evidence item. The index must match the item number above."""
 
 
+# ── Factcheck signal (item 7 stage 1, 2026-08-28) ─────────────────────────
+# A genuine factcheck is a VERIFICATION EXERCISE — a different epistemic act
+# from opinion — and the heuristic path has said so since inception
+# (`is_factcheck` → reporting/analysis in _classify_heuristic). But the flag
+# could only ever be set by the Google Fact-Check API stage, so a factcheck
+# arriving via WEB SEARCH was never flagged, and the LLM path never saw the
+# flag at all — the mechanism that filed Carbon Brief's factcheck at
+# commentary/weight 1 on /r/fa08cff7. Three repairs, ALL gated on
+# ENABLE_FACTCHECK_SIGNAL (default False: the prompt variant re-keys every
+# classifier cassette in the replay bench — measure firing rates with
+# scripts/measure_factcheck_signal.py, then flip with a re-record budgeted):
+#   1. the LLM emits a conservative `factcheck` boolean — a genre judgement
+#      over content, never an outlet roster (invariant #6);
+#   2. the four-domain fallback marks search-path items mechanically (parity
+#      with FactCheckParser._is_factcheck_domain — that parser is NOT wired
+#      into the live pipeline);
+#   3. a flagged item that ALSO classified `analysis` is promoted
+#      commentary → reporting (`factcheck_promotion` receipt). A floor, never
+#      a demotion — and the quality floors keep the last word, so a Substack
+#      "factcheck" stays pinned by blog_platform_floor.
+# Design: audit/2026-08-28_rigour_and_refutation_design_review.md §3, Option 7-A.
+
+# Parity with FactCheckParser._is_factcheck_domain (factcheck_parser.py:80) —
+# the list is a FALLBACK for the obvious four, not a roster of who counts.
+_FACTCHECK_DOMAINS = re.compile(
+    r"snopes\.com|politifact\.com|factcheck\.org|fullfact\.org",
+    re.IGNORECASE,
+)
+
+_FACTCHECK_SYSTEM_ADDENDUM = """\
+
+**Factcheck** — set "factcheck": true ONLY when the item's principal purpose is \
+to verify a specific claim against evidence and state a finding (a verification \
+exercise). News that quotes factcheckers, opinion ABOUT factchecking, and \
+general explainers are NOT factchecks. If uncertain, use false.
+"""
+
+FACTCHECK_CLASSIFICATION_SYSTEM_PROMPT = (
+    CLASSIFICATION_SYSTEM_PROMPT + _FACTCHECK_SYSTEM_ADDENDUM
+)
+
+FACTCHECK_CLASSIFICATION_USER_PROMPT = """\
+Classify each evidence item below by tier and type, and flag factchecks.
+
+{evidence_text}
+
+Respond with JSON only:
+{{
+  "classifications": [
+    {{"index": 0, "tier": "<primary|reporting|commentary>", "type": "<data|official_statement|news_reporting|analysis|opinion|academic>", "factcheck": <true|false>}},
+    ...
+  ]
+}}
+
+Include one entry per evidence item. The index must match the item number above."""
+
+
+def _factcheck_signal_enabled() -> bool:
+    return bool(getattr(settings, "ENABLE_FACTCHECK_SIGNAL", False))
+
+
+def _prompts() -> Tuple[str, str]:
+    """(system, user_template) — the flag-OFF pair is byte-identical to the
+    pre-signal prompts, so the replay bench's cassette keys are untouched
+    until the flag flips."""
+    if _factcheck_signal_enabled():
+        return (
+            FACTCHECK_CLASSIFICATION_SYSTEM_PROMPT,
+            FACTCHECK_CLASSIFICATION_USER_PROMPT,
+        )
+    return CLASSIFICATION_SYSTEM_PROMPT, CLASSIFICATION_USER_PROMPT
+
+
+def _mark_factcheck_domains(evidence_items: List[Dict[str, Any]]) -> int:
+    """Set is_factcheck=True where the URL/source is one of the four known
+    factcheck domains. Sets only — never unsets (the Google Fact-Check API
+    stage's flag always survives). Returns how many items were newly marked."""
+    marked = 0
+    for item in evidence_items:
+        if item.get("is_factcheck"):
+            continue
+        url = item.get("url", "") or ""
+        source = item.get("source", item.get("domain", "")) or ""
+        if _FACTCHECK_DOMAINS.search(url) or _FACTCHECK_DOMAINS.search(source):
+            item["is_factcheck"] = True
+            marked += 1
+    return marked
+
+
+def _extract_classification_entries(raw: Any) -> List[Any]:
+    """Locate the classifications list in an LLM response — the wrapper key,
+    a bare list, or any list value whose entries look like classifications.
+    Shared by the (tier, type) parser and the factcheck-flag parser so the
+    two can never read different entries from the same response."""
+    if isinstance(raw, list):
+        return raw
+    classifications = raw.get("classifications", [])
+    if not classifications:
+        for _key, value in raw.items():
+            if isinstance(value, list) and len(value) > 0:
+                if isinstance(value[0], dict) and (
+                    "tier" in value[0] or "type" in value[0]
+                ):
+                    classifications = value
+                    break
+    return classifications
+
+
+def _parse_factcheck_flags(raw: Any, expected_count: int) -> List[bool]:
+    """Read the optional per-entry `factcheck` boolean. Strictly `is True` —
+    a string, 1, or absent field all read False (conservative by design)."""
+    flags = [False] * expected_count
+    for entry in _extract_classification_entries(raw):
+        if not isinstance(entry, dict):
+            continue
+        index = entry.get("index")
+        if not isinstance(index, int) or index < 0 or index >= expected_count:
+            continue
+        if entry.get("factcheck") is True:
+            flags[index] = True
+    return flags
+
+
+def _apply_factcheck_promotion(evidence: Dict[str, Any]) -> Optional[str]:
+    """Promote a flagged factcheck that classified commentary/ANALYSIS to
+    reporting — the tier _classify_heuristic has always assigned flagged
+    factchecks (a verification exercise counts like reporting, weight 2,
+    never half a news story).
+
+    A floor, not a setter: primary and reporting items are untouched. Requires
+    BOTH signals (the flag AND type == analysis) so a mis-flagged opinion
+    column is never promoted. Runs BEFORE the quality pass, so the tabloid /
+    social / blog floors keep the last word. Returns the receipt name if
+    applied, else None.
+    """
+    if not evidence.get("is_factcheck"):
+        return None
+    if evidence.get("tier") != "commentary":
+        return None
+    if evidence.get("evidence_type") != "analysis":
+        return None
+    evidence["tier"] = "reporting"
+    evidence["classification_method"] = "factcheck_promotion"
+    return "factcheck_promotion"
+
+
 # ── Heuristic patterns ────────────────────────────────────────────────────
 
 _GOV_PATTERNS = re.compile(
@@ -596,6 +742,14 @@ class EvidenceClassifier:
         if not evidence_items:
             return evidence_items
 
+        # Factcheck signal: domain fallback marks the obvious four BEFORE
+        # classification, so the flag exists on the search path (the API
+        # stage's flag is never unset). LLM-emitted flags land per batch in
+        # _classify_batch_llm.
+        factcheck_domain_marked = 0
+        if _factcheck_signal_enabled():
+            factcheck_domain_marked = _mark_factcheck_domains(evidence_items)
+
         # Partition: items needing classification vs already classified
         needs_classification: List[int] = []
         for i, item in enumerate(evidence_items):
@@ -682,7 +836,17 @@ class EvidenceClassifier:
         arxiv_excluded_count = 0
         arxiv_demoted_count = 0
         quality_floor_count = 0
+        factcheck_promoted_count = 0
         for item in evidence_items:
+            # Factcheck promotion runs FIRST so the quality floors below keep
+            # the last word (a Substack "factcheck" stays blog_platform_floor).
+            if _factcheck_signal_enabled() and _apply_factcheck_promotion(item):
+                factcheck_promoted_count += 1
+                logger.info(
+                    "[FACTCHECK PROMOTION] %s: commentary/analysis → reporting",
+                    (item.get("url") or "")[:60],
+                )
+
             reason = _arxiv_smell_test(item)
             if reason:
                 item["receipt_status"] = "excluded"
@@ -714,7 +878,8 @@ class EvidenceClassifier:
         logger.info(
             "[EVIDENCE_CLASSIFIER] Classification complete: "
             "%d LLM, %d heuristic, %d overrides, "
-            "%d arxiv excluded, %d arxiv demoted, %d quality floor. "
+            "%d arxiv excluded, %d arxiv demoted, %d quality floor, "
+            "%d factcheck-marked, %d factcheck promoted. "
             "Tiers: %s. Types: %s",
             llm_count,
             heuristic_count,
@@ -722,6 +887,8 @@ class EvidenceClassifier:
             arxiv_excluded_count,
             arxiv_demoted_count,
             quality_floor_count,
+            factcheck_domain_marked,
+            factcheck_promoted_count,
             dict(tier_counts),
             dict(type_counts),
         )
@@ -756,12 +923,21 @@ class EvidenceClassifier:
             )
 
         evidence_text = "\n\n".join(evidence_parts)
-        user_prompt = CLASSIFICATION_USER_PROMPT.format(evidence_text=evidence_text)
+        _, user_template = _prompts()
+        user_prompt = user_template.format(evidence_text=evidence_text)
 
         parsed = await self._call_llm(user_prompt)
 
         if parsed is None:
             return [None] * len(batch)
+
+        # LLM-emitted factcheck flags land directly on the batch items (same
+        # dicts the pipeline carries forward). Set only — never unset, so the
+        # Google Fact-Check API stage's flag always survives an LLM false.
+        if _factcheck_signal_enabled():
+            for i, flagged in enumerate(_parse_factcheck_flags(parsed, len(batch))):
+                if flagged:
+                    batch[i]["is_factcheck"] = True
 
         return self._parse_classification_response(parsed, len(batch))
 
@@ -773,20 +949,7 @@ class EvidenceClassifier:
         """Parse LLM classification response into validated (tier, type) tuples."""
         results: List[Optional[Tuple[str, str]]] = [None] * expected_count
 
-        if isinstance(raw, list):
-            classifications = raw
-        else:
-            classifications = raw.get("classifications", [])
-
-        if not classifications:
-            # Search for any list value that looks like classifications
-            for key, value in raw.items():
-                if isinstance(value, list) and len(value) > 0:
-                    if isinstance(value[0], dict) and (
-                        "tier" in value[0] or "type" in value[0]
-                    ):
-                        classifications = value
-                        break
+        classifications = _extract_classification_entries(raw)
 
         if not classifications:
             logger.warning(
@@ -896,7 +1059,7 @@ class EvidenceClassifier:
 
     async def _call_google(self, user_prompt: str) -> tuple:
         """Classify via Google Gemini API."""
-        full_prompt = f"{CLASSIFICATION_SYSTEM_PROMPT}\n\n{user_prompt}"
+        full_prompt = f"{_prompts()[0]}\n\n{user_prompt}"
         return await call_google_ai_with_usage(
             full_prompt,
             temperature=0.1,
@@ -919,7 +1082,7 @@ class EvidenceClassifier:
                     "messages": [
                         {
                             "role": "system",
-                            "content": CLASSIFICATION_SYSTEM_PROMPT,
+                            "content": _prompts()[0],
                         },
                         {
                             "role": "user",
