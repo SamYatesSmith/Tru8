@@ -5,11 +5,26 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-27)
+## 🟢 START HERE — next session (updated 2026-08-28)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ WHERE 2026-08-27 ENDED — READ ITEMS 7 AND 8 FIRST. Five things shipped and were PROD-VERIFIED; **two new pipeline findings outrank them all, and both came from pressure-testing ONE real outreach record** (`/r/fa08cff7`). Item 7: tier sets weight, so rigour has no channel. Item 8: the state vocabulary cannot say "refuted", so a claim disproved 13-to-0 badges the same as a 50/50 split. Neither is reachable by prompt.
+### ▶▶ WHERE 2026-08-28 ENDED — item 7 has its design review AND its stage-1 fix SHIPPED; item 8's premise was CORRECTED and its fix is scoped-not-built. Read `audit/2026-08-28_rigour_and_refutation_design_review.md` before touching either item further — it is the canonical scoping for both.
+
+**Shipped 2026-08-28 (three commits, all on main):**
+- **`937b7b1` — the scoping design review for items 7+8**, everything verified against code + the LIVE public `fa08cff7` payload, not the register prose. Two premises corrected: item 8's badges already read "− Challenged" on every basis-threaded surface (§4d fix 3 has been live since 2026-07-21), and weights did NOT decide `fa08cff7` (0 supports → the count-based `all_challenges` rule fires before weights are read).
+- **`20a6da8` + `2612a3e` — item 7 stage 1 BUILT, MEASURED, FLIPPED ON (`ENABLE_FACTCHECK_SIGNAL` default True), bench re-recorded.** The LLM classifier now emits a conservative `factcheck` boolean; the four-domain fallback marks the search path; flagged + commentary/**analysis** promotes to reporting (`factcheck_promotion` receipt, floor-never-demotion, quality floors keep the last word). Measured before flipping: **0 false positives / 200 stored URLs**; probed on `fa08cff7`'s own pool, **Carbon Brief flags and lands at reporting** — the motivating case closes. Full suite 3,650 pass.
+- **Bench re-recorded** (the flip re-keys every classifier cassette): new PASS state **121 ok / 5 warn / 11 fail / 5 unexercised**, every fail attributed (`tests/replay_corpus/README.md` header is canonical). ⚠️ The timing-flaky set is now THREE claims and wanders between passes (82CF + B4A3 + intermittent 5647) — do not chase. Both must-fire debts carried forward again (018F recital/interested-party, 0005 temporal + gianlucabenigno).
+
+### ▶▶ WHAT HAPPENS NEXT, in order:
+1. **🔴 FOUNDER: push to prod.** The flip is committed on main but **NOT PUSHED** — nothing new is deployed. `git push` triggers the Railway deploy that puts the factcheck signal live. Until then prod still runs the old classifier.
+2. **🔴 FOUNDER: the Viglione hold decision (item 7).** Stage 1 answers the sharpest half of her concern — her outlet's factcheck no longer counts half a news story — but stage 2 (type-modulated weights) is UNBUILT. Decide: is stage 1 enough to release the hold and send, or wait for stage 2? Note her stored record `fa08cff7` still SHOWS the old classification (Carbon Brief commentary/analysis) — a fix in the pipeline does not rewrite a stored record, and never should (manifest). If sending on stage 1, the note must not claim the record itself was re-labelled.
+3. **Item 7 stage 2 (type-modulated weights) — decision owed, not started.** Prerequisites per the design review §3: measure the type distribution over stored evidence first, and move `FACTUAL_MIN_WEIGHTED_SUPPORT`/`GROUNDS_MIN_WEIGHTED_SUPPORT` in the SAME commit as any weight change (the commentary-ceiling arithmetic, item 5 #3). May prove unnecessary — evaluate after stage 1 has run in prod for a while.
+4. **Item 8 — Option A scoped, approved direction, NOT built:** thread `basis` into `RelatedClaimCard`; split the disputed bucket in dashboard/overview/history aggregates using the existing `isChallengesOnly` helper; expose a derived `challengesOnly` field in API payloads (computed on read — no storage, no manifest impact). Enum extension DEFERRED (blast radius in review §4.4 — read it before ever adding a state).
+5. **Send week (unchanged from 2026-08-27):** TTE ready · Seymour sendable · Viglione per decision #2 · **Tapper + McSweeney still owe a pressure pass against their STORED records** before they go anywhere · Fix 1 (element `uncertainty` on `/r/`) approved-unbuilt, send-safe without it.
+6. **Founder-only, still open:** COMPARE hands-on pass (TWO comparisons a minute apart — one stored row does not prove the 401 fix) · the sends themselves.
+
+### ▶▶ WHERE 2026-08-27 ENDED (history) — Item 7: tier sets weight, so rigour has no channel. Item 8: the state vocabulary cannot say "refuted". Both found by pressure-testing `/r/fa08cff7`; both now scoped above.
 
 **Shipped + verified today:** bench ALIVE again (`c960d8b`, `97548bb`) · `DISTIL_MODEL` was still on retiring Gemini 2.5 and is fixed (`2c6fd02`), **confirmed live in the running Railway container** · blocklist no longer bans a site for being slow (`7800ce9`) · COMPARE's prod table + a real stored comparison verified · the "partner findings were never given" claim was WRONG and is corrected (item 3).
 

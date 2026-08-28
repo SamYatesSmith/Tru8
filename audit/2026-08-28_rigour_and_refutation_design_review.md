@@ -1,6 +1,6 @@
 # Rigour and Refutation — scoping design review (OPEN_WORK items 7 + 8)
 
-**Date:** 2026-08-28 · **Status: SCOPING ONLY — no build decision taken, no code changed.**
+**Date:** 2026-08-28 · **Status: item 7 stage 1 (Option 7-A) BUILT + FLIPPED ON same day** (`20a6da8`, `2612a3e` — measured first: 0 false positives / 200 stored URLs, Carbon Brief flags and lands at reporting on the `fa08cff7` probe; bench re-recorded, pass state 121/5/11/5). **Item 7 stage 2 (7-B) and item 8 Option A remain scoped, NOT built.** The rest of this doc is the scoping review as written before the build.
 Everything below was re-derived from code and from the LIVE public record
 (`GET /api/v1/checks/public/fa08cff7-…?detailed=true`, fetched today), never from the
 OPEN_WORK prose alone. Where the prose and the record disagree, this doc says so.
