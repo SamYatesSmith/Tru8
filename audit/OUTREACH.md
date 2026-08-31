@@ -335,6 +335,23 @@ commentary/opinion by `blog_platform_floor`. Ridley's absence removes the one
 visible mapping-quality point the 2026-08-25 swap bought, so the note now sells
 the landscape, not the recital handling.
 
+**Critical review of the rewrite, same day — one send-blocker, one page own-goal.**
+The rewrite said the record "does not surface" the GWIS/Russia point. The PDF
+does: each element's `uncertainty` line renders there, and the Carbon Brief
+snippet names Ridley's tweet. A factchecker clicks the PDF. Corrected to "only
+as a one-line caveat against each element in the downloadable PDF — the web
+page itself never surfaces it" (EVIDENCE, GAPS, MAP and the detail panel each
+checked). Second: the GAPS lens said "All 2 elements are substantiated by
+available evidence" under two − CHALLENGED badges — verdict language, wrong
+way round; fixed in `SeekerView.tsx`. Flagged but left (signed record): the
+NEWS type badge on a factcheck, an Open-Meteo 7-day forecast sitting in the
+ledger as primary/data, and reviewed/mapped counters that disagree between
+page, API and PDF.
+
+**Standing rule, now three times proven, widened: check the note against EVERY
+rendered surface — page, every lens, AND the PDF. The PDF shows things the page
+does not, in both directions.**
+
 ## The cadence
 
 - **5 sends/week for 10 weeks. Every message bespoke.** Each ≈ 20 min: find

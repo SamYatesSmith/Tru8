@@ -224,7 +224,7 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
       {!hasUnknowns && (
         <div className="space-y-4">
           <DiagnosticFlag label="Well covered">
-            All {elements.length} {elements.length === 1 ? 'element is' : 'elements are'} substantiated by available evidence — no outstanding gaps or unresolved questions for this claim.
+            All {elements.length} {elements.length === 1 ? 'element has' : 'elements have'} a settled state from the available evidence — no outstanding gaps or unresolved questions for this claim.
           </DiagnosticFlag>
         </div>
       )}
