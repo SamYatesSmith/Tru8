@@ -352,6 +352,33 @@ page, API and PDF.
 rendered surface — page, every lens, AND the PDF. The PDF shows things the page
 does not, in both directions.**
 
+## VERIFICATION ROUND 4 (2026-08-31) — Tapper + McSweeney pressure-passed
+
+Same method: rendered page, each lens, the PDF, the stored payload. Both notes
+carried the error Viglione's first rewrite carried: they described the element
+caveat (Tapper: modelled/static; McSweeney: conflicting evidence) as visible,
+and it renders in the PDF only. Both rewritten.
+
+**Tapper** (`5d69fc71`, now C+): every supporting source traces to Neidle's
+analysis — Times, Herald, a Reddit post and Tapper's own piece recite it — and
+the echo detector cannot see that because the origin is commentary, not
+primary. The note now says so and names his piece. futureeconomy.scot's
+push-back is in the pool, filed context; its two objections are the caveats.
+"Not HMRC outturn" was unsafe (the analysis is built on outturn data) and is
+reworded. Sendable.
+
+**McSweeney** (`6fe1a7e8`, now B−): his factcheck is a Reddit mirror filed
+OPINION at weight 1 and out-weighed 3 v 1, so the half he checked reads
+supported. Stage 1 cannot promote a mirror; only carbonbrief.org entering the
+pool would fix it. Recommended: one re-run before sending. The note also said
+"led by the WWA work" while the page names youtube.com as the top challenger —
+reworded. Three Wikipedia pages sit at PRIMARY/DATA in his ledger; a pipeline
+item, recorded in OPEN_WORK.
+
+**Pattern, three records running: the note is written from the payload, the
+reader sees the page, and the caveat channel is the gap. Fix 1 (element
+`uncertainty` on `/r/`) is no longer optional for the next round.**
+
 ## The cadence
 
 - **5 sends/week for 10 weeks. Every message bespoke.** Each ≈ 20 min: find
