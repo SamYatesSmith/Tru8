@@ -317,6 +317,24 @@ Seymour's "Welcome to the Pyrocene" (5 Aug, New Statesman) confirmed live.
 **Standing rule, now twice-proven: draft from the rendered page, and check the
 note is describing the record it actually links to.**
 
+## VERIFICATION ROUND 3 (2026-08-31) — Viglione record swapped to the stage-1 re-run
+
+The 2026-08-27 hold was on labelling, not accuracy: `fa08cff7` filed her own
+outlet's factcheck as commentary/analysis at half a news story's weight. The
+factcheck signal (item 7 stage 1) went live in prod 2026-08-31 (`6e9fbb7`), but a
+stored record never changes, so the founder chose to re-run the claim rather
+than send the old record or wait for stage 2. New record `441144ac`: same
+answer, Carbon Brief now **reporting (R·NEWS·04)**, mapped on both elements.
+
+Every sentence of the note re-checked against the RENDERED page. Two removals:
+the Ridley-tweet sentence (his tweet is not in this pool) and the word
+"archived" (her row carries no ARCHIVED tag). The GWIS/Russia limitation stays —
+still true, nothing beyond title/date/tier/element renders in the detail panel.
+Trade-off accepted: 5 of 13 sources bear directly; Ritchie's Substack is still
+commentary/opinion by `blog_platform_floor`. Ridley's absence removes the one
+visible mapping-quality point the 2026-08-25 swap bought, so the note now sells
+the landscape, not the recital handling.
+
 ## The cadence
 
 - **5 sends/week for 10 weeks. Every message bespoke.** Each ≈ 20 min: find
