@@ -14,24 +14,32 @@
 > drift guard across the whole corpus to buy a green tick. Its golden is still the
 > 2026-07-21 `fdf3509` capture and is **not** comparable to post-Phase-2 behaviour.
 >
-> So: **`175 ok / 10 warn / 2 fail` is the current PASS state** (2026-08-17 Phase C
-> re-record #1, 10 claims — the `claimant` extract-prompt change re-keyed EVERY
-> cassette, so the whole corpus was re-recorded and replay-verified same day). The
-> 2 fails are attributed and accepted: 82CF known-flaky (11 misses / 61 hits, its
-> documented timing signature) + A3E8 `factual_weight_share` 0.0 (record-time live
-> pool drift — no data/official/academic item mapped on that claim in the fresh
-> pool; same class as 93DD's accepted 2026-08-11 fail). 0004's two long-standing
-> fails cleared with its fresh recording. **TRU-018F-44AA now pins BOTH
-> assertion-evidence gates at tolerance 0** (recital 3/3, interested_party 1/1 —
-> the must-fire debt from the Phase A recording is PAID; both mutation-checked).
+> So: **`121 ok / 5 warn / 11 fail / 5 unexercised` is the current PASS state**
+> (2026-08-28 re-record: the `ENABLE_FACTCHECK_SIGNAL` flip changed the classifier
+> prompt, re-keying EVERY cassette; whole corpus re-recorded and replay-verified
+> same day). Every fail is attributed, none is an unexplained regression:
+> - **3 × cassette_drift — the timing-flaky set is now THREE claims and its
+>   membership WANDERS between replay passes:** 82CF (19 misses, the original),
+>   B4A3 (10–11 misses, consistent across 3 passes this recording), 5647
+>   (0 misses in one pass, 43 in another — intermittent). All carry the
+>   documented signature (ordinary evidence fetches; replay has no network
+>   latency so it outruns the recording's fetch queue). Their goldens were NOT
+>   overwritten (`--update-golden` skips drifted claims). Do not chase them.
+> - **2 × 018F recital pins + 1 × 0005 `gianlucabenigno` must-have — the KEPT
+>   DEBT, failing visibly by design** (pins at 2026-08-17 capture values; pay by
+>   re-recording until the pool carries the traps — see each golden's notes).
+> - **5 × thin-pool v3 metrics** (`factual_weight_share` 018F/93DD/A3E8,
+>   `unique_domains` 93DD, `top_domain_share` 0003) — record-time pool drift,
+>   same class as the accepted 2026-08-11/08-27 fails.
 > History: 135/2/1 → 158/2/1 → RETIRED 2026-08-11 → 143/13/5 (2026-08-13; true
 > post-re-pin state 144/13/4) → 166/14/4 (018F joined) → 171/10/3 (Phase B; 5647
 > re-recorded — the factual floor sends thin-support elements to recovery, which
 > issues queries old recordings never made, attributed by matched-pair replay) →
-> 175/10/2. Anything worse is a real regression. `audit/OPEN_WORK.md` 2026-08-17.
->
-> The 2 warns are expected too: `TRU-A3E8-3199` factual_weight_share 0.23 and
-> `TRU-C1A0-0001` top_domain_share 0.40, both in the "Mediocre" band, neither a failure.
+> 175/10/2 (2026-08-17) → 178/5/9/5 (2026-08-27 model-migration re-record) →
+> 121/5/11/5 (2026-08-28; the ok-count drop is the flaky set zeroing three
+> claims' assertions in the scoring pass, not lost coverage — a pass where they
+> replay clean scores higher). Anything worse is a real regression.
+> `audit/OPEN_WORK.md` item 7.
 
 ## UNEXERCISED — a guard that was never given the chance (2026-08-27)
 

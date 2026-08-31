@@ -59,10 +59,11 @@ def _item(url="https://example.org/a", **kw):
 
 class TestFlagOffIsByteIdentical:
     @pytest.mark.unit
-    def test_default_is_off(self):
-        # The flag ships False: the prompt variant re-keys every classifier
-        # cassette, so the flip is a decision, not a side effect of deploy.
-        assert type(settings).model_fields["ENABLE_FACTCHECK_SIGNAL"].default is False
+    def test_default_is_on(self):
+        # Flipped ON 2026-08-28 after the firing-rate measurement (zero false
+        # positives over 200 items) and the fa08cff7 probe; the bench was
+        # re-recorded the same day. Flipping back re-keys the cassettes again.
+        assert type(settings).model_fields["ENABLE_FACTCHECK_SIGNAL"].default is True
 
     @pytest.mark.unit
     def test_prompts_off_are_the_originals(self, signal_off):

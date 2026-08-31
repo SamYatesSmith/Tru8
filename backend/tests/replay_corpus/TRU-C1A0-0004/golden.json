@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-C1A0-0004",
-  "captured_at": "2026-08-27T14:08:23.010249+00:00",
-  "captured_with": "2c6fd02",
+  "captured_at": "2026-08-28T11:47:24.258214+00:00",
+  "captured_with": "20a6da8",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -13,6 +13,9 @@
       ],
       "jurisdiction_to": "US"
     },
+    "freshness_inject_must_fire_on_claims": [
+      0
+    ],
     "must_have_url_substrings": [],
     "must_not_have_url_substrings": [],
     "expected_adapters_subset": [],
@@ -35,7 +38,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 15,
+      "value": 20,
       "tolerance": 8
     },
     "claims": {
@@ -43,11 +46,11 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 2,
+      "value": 3,
       "tolerance": 3
     },
     "web_search": {
-      "value": 17,
+      "value": 22,
       "tolerance": 8
     },
     "api_adapters": {
@@ -55,58 +58,67 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 5,
+      "value": 7,
       "tolerance": 4
     },
     "tier_commentary": {
-      "value": 8,
-      "tolerance": 4
+      "value": 10,
+      "tolerance": 5
     },
     "tier_reporting": {
-      "value": 2,
+      "value": 3,
       "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://experience.arcgis.com/experience/45ac4dc0f74a42c6bc4548fbd8804c92",
-        "https://grist.org/energy/trump-inflation-reduction-act-big-beautiful-bil/",
-        "https://international.canada.ca/en/global-affairs/corporate/transparency/briefing-documents/parliamentary-committee/2023",
+        "https://earthjustice.org/brief/2022/what-the-inflation-reduction-act-means-for-climate",
+        "https://greenly.earth/en-gb/blog/ecology-news/what-is-the-climate-bill-and-what-does-it-imply",
+        "https://grist.org/politics/heres-whats-in-the-senates-joe-manchins-369-billion-for-climate-and-energy/",
         "https://investmentpolicy.unctad.org/investment-policy-monitor/measures/4004/-369-billion-in-investment-incentives-to-add",
-        "https://journals.stecab.com/jece/article/download/1038/458",
+        "https://iratracker.org/actions/",
         "https://nationalhealthcouncil.org/blog/inflation-reduction-act-signed-by-president-biden/",
-        "https://scholarship.law.unc.edu/cgi/viewcontent.cgi?article",
-        "https://www.cato.org/policy-analysis/budgetary-cost-inflation-reduction-acts-energy-subsidies",
-        "https://www.congress.gov/crs-product/R48944",
+        "https://openroom.fundacionrepsol.com/en/contents/key-measures-inflation-reduction-act-ira-energy-transition/",
+        "https://taxpolicycenter.org/briefing-book/what-did-2022-inflation-reduction-act-do",
+        "https://www.catf.us/2022/08/inflation-reduction-act-what-it-is-what-it-means-how-it-came-to-pass/",
+        "https://www.cfr.org/education/learn/reading/inflation-reduction-act",
+        "https://www.climatecentral.org/climate-matters/inflation-reduction-act",
+        "https://www.congress.gov/bill/117th-congress/house-bill/5376/text",
+        "https://www.congress.gov/crs-product/R47262",
+        "https://www.ebsco.com/research-starters/political-science/inflation-reduction-act-2022",
         "https://www.energy.gov/edf/inflation-reduction-act-2022",
-        "https://www.envirovotersedfund.org/one-year-since-the-inflation-reduction-act/",
-        "https://www.healthinsurance.org/glossary/inflation-reduction-act/",
-        "https://www.iea.org/policies/16156-inflation-reduction-act-of-2022",
-        "https://www.nytimes.com/2022/08/16/business/biden-climate-tax-inflation-reduction.html",
+        "https://www.governing.com/now/what-does-the-inflation-reduction-act-do-for-state-and-local-government",
+        "https://www.irs.gov/credits-and-deductions-under-the-inflation-reduction-act-of-2022",
+        "https://www.nga.org/ira-resources/",
         "https://www.presidency.ucsb.edu/documents/what-they-are-saying-biden-harris-administration-celebrates-two-years-the-infl",
         "https://www.proskauertaxtalks.com/2022/08/president-biden-signs-inflation-reduction-act-into-law/",
-        "https://x.com/RepDwightEvans/status/2087992520579957162"
+        "https://www.utilitydive.com/news/senate-inflation-reduction-act-climate-solar-tax/629087/",
+        "https://www.wri.org/insights/inflation-reduction-act-benefits"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "cato.org",
+        "catf.us",
+        "cfr.org",
+        "climatecentral.org",
+        "congress.gov",
+        "earthjustice.org",
+        "ebsco.com",
         "energy.gov",
-        "envirovotersedfund.org",
-        "experience.arcgis.com",
+        "governing.com",
+        "greenly.earth",
         "grist.org",
-        "healthinsurance.org",
-        "iea.org",
-        "international.canada.ca",
         "investmentpolicy.unctad.org",
+        "iratracker.org",
         "nationalhealthcouncil.org",
-        "nytimes.com",
+        "nga.org",
+        "openroom.fundacionrepsol.com",
         "presidency.ucsb.edu",
         "proskauertaxtalks.com",
-        "scholarship.law.unc.edu",
-        "x.com"
+        "taxpolicycenter.org",
+        "utilitydive.com"
       ],
       "min_similarity": 0.45
     }

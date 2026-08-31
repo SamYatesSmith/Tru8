@@ -689,12 +689,16 @@ class Settings(BaseSettings):
     # the four known factcheck domains mechanically on the search path, and
     # (3) promotes a flagged commentary/ANALYSIS item to reporting
     # (`factcheck_promotion` receipt) — the tier the heuristic has always
-    # assigned flagged factchecks. DEFAULT OFF: the prompt variant re-keys
-    # every classifier cassette in the replay bench, so the flip is a decision
-    # that carries a bench re-record; measure firing rates first with
-    # scripts/measure_factcheck_signal.py. ROLLBACK: ENABLE_FACTCHECK_SIGNAL=False.
+    # assigned flagged factchecks. FLIPPED ON 2026-08-28 (founder-approved)
+    # after measurement: 200 stored-ledger URLs → zero false positives, 10/10
+    # flagged were genuine (7 by content judgement beyond the domain list);
+    # probed on /r/fa08cff7's own pool, Carbon Brief flags and lands at
+    # reporting, Ridley's tweet stays unflagged, the Substack floor holds.
+    # The flip re-keyed every classifier cassette — bench re-recorded same
+    # day. ROLLBACK: ENABLE_FACTCHECK_SIGNAL=False (restores the pre-signal
+    # prompts byte-identically — which re-keys the cassettes AGAIN).
     # Design: audit/2026-08-28_rigour_and_refutation_design_review.md §3, Option 7-A.
-    ENABLE_FACTCHECK_SIGNAL: bool = Field(False, env="ENABLE_FACTCHECK_SIGNAL")
+    ENABLE_FACTCHECK_SIGNAL: bool = Field(True, env="ENABLE_FACTCHECK_SIGNAL")
 
     # ========== TRACK M: EVIDENCE INFRASTRUCTURE ==========
 
