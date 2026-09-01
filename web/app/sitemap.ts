@@ -8,6 +8,8 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 const REPOSITIONED = new Date('2026-06-18')
 // The homepage went human-first + absorbed /research (C1, one front door).
 const HUMAN_FIRST = new Date('2026-07-09')
+// The claim field became the front door; sheets folded and reordered.
+const FIELD_FRONT_DOOR = new Date('2026-09-01')
 // Second blog post publish date. Also the last time the blog INDEX changed,
 // since the index changes when a post is added.
 const AGENTS_POST = new Date('2026-03-25')
@@ -19,7 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: baseUrl,
-      lastModified: HUMAN_FIRST,
+      lastModified: FIELD_FRONT_DOOR,
       changeFrequency: 'weekly',
       priority: 1.0,
     },

@@ -68,6 +68,32 @@ ASSETS = [
     ("tru8-hero-static.svg", 520, HERO_FIDELITY, ()),
 ]
 
+# --- ON DARK ------------------------------------------------------------------
+# The homepage claim field uses the mark as its go button, on a near-black tile
+# (founder decision 2026-09-01, chosen from four lightings of the SAME object:
+# "T2 — orange, strands lifted"). The on-white ramp tops out at stroke-opacity
+# ~0.55 because ink on white cannot go brighter than the ink; on black the same
+# strands read as mud. The dark build is therefore the on-white build with every
+# strand's opacity remapped linearly from its own [min, max] onto
+# [DARK_FLOOR, 1.0] — geometry, widths, colours and pulses untouched, so it is
+# still one logo. Derived from the same-named light asset, never drawn apart.
+DARK_FLOOR = 0.30
+DARK_ASSETS = [
+    ("tru8-mark-dark.svg", "tru8-mark.svg"),
+    ("tru8-mark-dark-static.svg", "tru8-mark-static.svg"),
+]
+
+
+def lift_for_dark(svg: str, floor: float = DARK_FLOOR) -> str:
+    ops = [float(o) for o in re.findall(r'stroke-opacity="([\d.]+)"', svg)]
+    lo, hi = min(ops), max(ops)
+
+    def sub(m):
+        o = float(m.group(1))
+        return f'stroke-opacity="{min(1.0, floor + (o - lo) / (hi - lo) * (1.0 - floor)):.3f}"'
+
+    return re.sub(r'stroke-opacity="([\d.]+)"', sub, svg)
+
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
@@ -87,6 +113,11 @@ def main():
         aspects[name] = vb[3] / vb[2]
         (OUT / name).write_text(svg, encoding="utf-8")
         print(f"  {name:24s} {len(svg):8,d} bytes   {w:.0f}x{h:.0f}")
+
+    for name, source in DARK_ASSETS:
+        svg = lift_for_dark((OUT / source).read_text(encoding="utf-8"))
+        (OUT / name).write_text(svg, encoding="utf-8")
+        print(f"  {name:24s} {len(svg):8,d} bytes   (lifted from {source})")
 
     # One logo means one aspect ratio. If these ever diverge the nav and the
     # hero have become different objects again -- which is exactly the fault

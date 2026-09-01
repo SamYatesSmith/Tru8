@@ -9,8 +9,6 @@
  * "confirm/checked" wording is used instead of "verify a claim".
  */
 
-import Link from 'next/link';
-
 interface QA {
   q: string;
   a: string;
@@ -19,7 +17,11 @@ interface QA {
 const FAQS: ReadonlyArray<QA> = [
   {
     q: 'What is Tru8?',
-    a: 'Tru8 is evidence research infrastructure. You submit a claim or a question, and Tru8 decomposes it into checkable elements, retrieves evidence from published sources, and organises the results into a structured evidence landscape — what supports each element, what challenges it, and what is missing. Submit an article and Tru8 extracts its claims for you to choose from. Tru8 does not issue a verdict. We organise; you decide.',
+    a: 'Tru8 is evidence research infrastructure. You submit a claim or a question, and Tru8 decomposes it into checkable elements, retrieves evidence from published sources, and organises the results into a structured evidence landscape — what supports each element, what challenges it, and what is missing. Submit an article and Tru8 extracts its claims for you to choose from. We organise; you decide.',
+  },
+  {
+    q: 'How long does a check take?',
+    a: 'Under a minute. Tru8 runs a live search and reads every source it keeps, so a check takes tens of seconds rather than milliseconds — and you get a permanent link to the record when it is done.',
   },
   {
     q: 'How is Tru8 different from a fact-checker?',
@@ -38,6 +40,9 @@ const FAQS: ReadonlyArray<QA> = [
     a: 'No. AI is used to decompose claims, retrieve evidence and classify it by source type and tier. It never scores credibility and never issues a verdict. The judgement stays with you.',
   },
 ];
+// 2026-09-01: "How long does a check take?" added (the ONE timing phrase sitewide is
+// "under a minute"); the "From the blog" block removed from the homepage — two posts,
+// newest March, read as a dead blog. The posts themselves are unchanged under /blog.
 // C1 (2026-07-09): "Is there an API?" + "Can a report be checked independently?"
 // moved to the /developers FAQ — this page keeps the five human-buyer questions.
 
@@ -83,29 +88,6 @@ export function StitchFaq() {
           ))}
         </dl>
 
-        <div className="max-w-3xl mt-10 pt-8 border-t border-zinc-100">
-          <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-            From the blog
-          </p>
-          <ul className="space-y-2.5">
-            <li>
-              <Link
-                href="/blog/first-public-release"
-                className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
-              >
-                Tru8 — A First Public Release: what Tru8 is and why it exists
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/blog/evidence-research-for-agents"
-                className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
-              >
-                Evidence Research for AI Agents and Developer Tools
-              </Link>
-            </li>
-          </ul>
-        </div>
       </div>
     </section>
   );

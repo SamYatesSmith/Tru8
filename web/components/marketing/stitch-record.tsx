@@ -1,15 +1,25 @@
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+
 import { ScrollReveal } from './scroll-reveal';
 import { SheetHeader } from './sheet-header';
-import { StartCheckLink } from './start-check-link';
 
 /**
- * Homepage — Sheet 01, The Record ("Artifact" archetype).
+ * Homepage — Sheet 02, The Record ("Artifact" archetype).
  *
- * C1 simplification (2026-07-09): the two-register artifact (5 differentiators
- * + 4-item structure) collapsed into ONE six-item grid — say it once, at one
- * altitude. Echo detection kept in the six (hardest to copy, D16); the signed
- * manifest speaks once, in the footer. Gains the quiet start CTA the section
- * never had (the strongest reframing moment on the site was a dead end).
+ * 2026-09-01 — Sheets 00 (Why Tru8 exists) and 01 (The Record) FOLDED into
+ * this one, and it now follows "Inside a check" rather than leading. With the
+ * claim field as the front door, a visitor's next question is "what comes
+ * back?", not "why is everyone else wrong?" — so this sheet leads with the
+ * thing you receive and keeps the old comparison as a single closing beat
+ * ("Not a list of sources, not a score — the record.") pointing at /compare,
+ * where the full table still lives. "Not a verdict" is said exactly twice on
+ * the page now — the headline and FAQ Q2 — and no longer here.
+ *
+ * C1 simplification (2026-07-09): the two-register artifact collapsed into
+ * ONE six-item grid — say it once, at one altitude. Echo detection kept in
+ * the six (hardest to copy, D16); the signed manifest speaks once, in the
+ * footer.
  *
  * Constraints: no verdict language (object is the record, never "the claim
  * is…"); no "policy" noun (D15); manifest is a "signed record", not
@@ -59,16 +69,16 @@ export function StitchRecord() {
       className="py-28 md:py-40 bg-zinc-50 border-t border-zinc-100 scroll-mt-24"
     >
       <div className="max-w-7xl mx-auto px-6">
-        <SheetHeader number="01" label="The Record" refText="PUBLISHED SOURCES · SIGNED" />
+        <SheetHeader number="02" label="The Record" refText="PUBLISHED SOURCES · SIGNED" />
         <ScrollReveal>
           <div className="max-w-3xl mb-12 md:mb-14">
             <h2 className="text-3xl md:text-5xl font-normal tracking-[-0.02em] text-zinc-900 leading-[1.05]">
-              Not a verdict. A structured evidence record.
+              What <span className="font-bold">comes back.</span>
             </h2>
             <p className="text-sm md:text-base text-zinc-500 leading-relaxed mt-6 max-w-2xl">
-              Every check returns the same inspectable structure — what supports
-              each part of the claim, what challenges it, what&rsquo;s missing,
-              and what was excluded and why.
+              A structured evidence record, every time: what supports each part
+              of the claim, what challenges it, what&rsquo;s missing, and what
+              was set aside and why.
             </p>
           </div>
         </ScrollReveal>
@@ -128,9 +138,19 @@ export function StitchRecord() {
             </div>
           </div>
 
-          {/* The section's action — this moment used to be a dead end */}
-          <div className="mt-10">
-            <StartCheckLink surface="record" label="Start a check and see yours" />
+          {/* The old Sheet 00, reduced to one beat — the table lives on /compare */}
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
+            <p className="text-base md:text-lg text-zinc-900">
+              Not a list of sources, not a score —{' '}
+              <span className="font-bold">the record.</span>
+            </p>
+            <Link
+              href="/compare"
+              className="group inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-900 hover:text-accent transition-colors"
+            >
+              <span>See the full comparison</span>
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+            </Link>
           </div>
         </ScrollReveal>
       </div>

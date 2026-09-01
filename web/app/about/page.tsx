@@ -142,7 +142,7 @@ export default function AboutPage() {
                 Start in the browser
               </Link>
               <Link
-                href="/#how-it-works"
+                href="/#record"
                 className="inline-flex items-center gap-2 px-8 py-4 border border-zinc-300 text-zinc-900 hover:border-zinc-900 text-xs font-bold uppercase tracking-[0.2em] transition-colors"
               >
                 How it works

@@ -5,7 +5,7 @@ import { ScrollReveal } from './scroll-reveal';
 import { SheetHeader } from './sheet-header';
 
 /**
- * Homepage — Sheet 05, For developers (C1 entry-point clarity, 2026-07-09).
+ * Homepage — Sheet 04, For developers (renumbered 2026-09-01) (C1 entry-point clarity, 2026-07-09).
  *
  * Condensed to one dark band: the landing page platforms the HUMAN start; the
  * developer pitch gets a headline, four capability chips, one CTA and a price
@@ -25,7 +25,7 @@ export function StitchDeveloperShowcase() {
   return (
     <section id="developer-showcase" className="py-20 md:py-28 bg-zinc-950 text-zinc-100">
       <div className="max-w-7xl mx-auto px-6">
-        <SheetHeader number="05" label="For developers" refText="POST /agent/*" tone="dark" />
+        <SheetHeader number="04" label="For developers" refText="POST /agent/*" tone="dark" />
         <ScrollReveal>
           <div className="mb-10 md:mb-12 max-w-3xl">
             <h2 className="text-3xl md:text-5xl font-normal tracking-[-0.02em] text-zinc-50 leading-[1.0]">

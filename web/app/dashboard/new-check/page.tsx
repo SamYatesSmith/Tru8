@@ -53,13 +53,26 @@ export default function NewCheckPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Prefill from the homepage field (2026-09-01): ?text= or ?url=, plus
+  // run=1 to submit on arrival. The params are stripped from the address bar
+  // BEFORE the run fires so a refresh cannot spend a second credit.
+  const [pendingRun, setPendingRun] = useState(false);
   useEffect(() => {
     const urlParam = searchParams.get('url');
+    const textParam = searchParams.get('text');
+    const run = searchParams.get('run') === '1';
     if (urlParam) {
       setUrlInput(urlParam);
       setActiveTab('url');
+    } else if (textParam) {
+      setTextInput(textParam);
+      setActiveTab('text');
     }
-  }, [searchParams]);
+    if (run && (urlParam || textParam)) {
+      router.replace('/dashboard/new-check', { scroll: false });
+      setPendingRun(true);
+    }
+  }, [searchParams, router]);
 
   const handleImageSelect = useCallback((file: File) => {
     setError(null);
@@ -273,6 +286,17 @@ export default function NewCheckPage() {
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (!pendingRun || isSubmitting) return;
+    const ready =
+      (activeTab === 'text' && textInput.trim().length > 0) ||
+      (activeTab === 'url' && urlInput.trim().length > 0);
+    if (!ready) return;
+    setPendingRun(false);
+    void handleSubmit({ preventDefault() {} } as unknown as React.FormEvent);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once, on the prefilled state
+  }, [pendingRun, activeTab, textInput, urlInput, isSubmitting]);
 
   const handleShare = (platform: string) => {
     const url = window.location.origin;

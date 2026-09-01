@@ -27,7 +27,10 @@ export default clerkMiddleware(async (auth, req) => {
       // Not authenticated → Redirect to home with auth modal trigger
       const url = new URL('/', req.url);
       url.searchParams.set('auth_redirect', 'true');
-      url.searchParams.set('redirect_url', req.nextUrl.pathname);
+      // Path AND query: the hero field sends a signed-out visitor to
+      // /dashboard/new-check?text=…&run=1, and the claim must survive the
+      // auth modal (2026-09-01). Clerk's forceRedirectUrl accepts a full path.
+      url.searchParams.set('redirect_url', req.nextUrl.pathname + req.nextUrl.search);
       return NextResponse.redirect(url);
     }
     // Authenticated → Allow through (pages trust middleware)

@@ -25,7 +25,7 @@
    volume to test; ten people is noise. First users are recruited by hand, by
    name. Channels become relevant at 10→100, informed by what the first ten say.
 4. **The product produces its own demonstration.** A check yields a permanent
-   public record (`/r/[id]`) about any claim, in ~3 minutes, for pennies. So we
+   public record (`/r/[id]`) about any claim, in under a minute (30–60 s measured, 2026-09-01; was "~3 minutes"), for pennies. So we
    never ask for attention — we arrive holding finished work about the
    recipient's own topic.
 

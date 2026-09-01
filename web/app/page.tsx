@@ -3,10 +3,8 @@ import { Navigation } from '@/components/layout/navigation'
 import { MobileNav } from '@/components/layout/mobile-nav'
 import { Footer } from '@/components/layout/footer'
 import { StitchHero } from '@/components/marketing/stitch-hero'
-import { StitchWhy } from '@/components/marketing/stitch-why'
 import { StitchRecord } from '@/components/marketing/stitch-record'
 import { StitchProductPreview } from '@/components/marketing/stitch-product-preview'
-import { StitchProcess } from '@/components/marketing/stitch-process'
 import { StitchEdges } from '@/components/marketing/stitch-edges'
 import { StitchDeveloperShowcase } from '@/components/marketing/stitch-developer-showcase'
 import { StitchFaq } from '@/components/marketing/stitch-faq'
@@ -56,8 +54,13 @@ const jsonLd = {
 }
 
 /**
- * Home Page — human-first single front door (C1 entry-point clarity, 2026-07-09).
- * Order: what Tru8 is (hero) → why it exists (00) → what it offers (01–05) → FAQ → close.
+ * Home Page — the claim field is the front door (2026-09-01; C1 human-first
+ * single front door since 2026-07-09).
+ * Order: hero (field) → 01 inside a check (proof) → 02 the record (what comes
+ * back; old sheets 00+01 folded) → 03 edges → 04 for developers → FAQ → close
+ * (the field again). How-it-works removed — the field demonstrates step one and
+ * the record sheet covers the rest. Decisions:
+ * audit/2026-09-01_landing_below_hero_review.md §Decisions.
  *
  * Auth-redirect handling: middleware sets ?auth_redirect=true when a user hits a
  * protected route signed-out; the nav opens the auth modal and stores redirect_url.
@@ -103,10 +106,8 @@ export default function Home({
           <div className="absolute inset-y-0 right-0 w-px bg-zinc-200" />
         </div>
         <StitchHero />
-        <StitchWhy />
-        <StitchRecord />
         <StitchProductPreview />
-        <StitchProcess />
+        <StitchRecord />
         <StitchEdges />
         <StitchDeveloperShowcase />
         <StitchFaq />

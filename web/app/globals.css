@@ -553,3 +553,52 @@ a:focus-visible {
 .claim-overview-card:hover .drill-arrow {
   color: #18181B;
 }
+
+/* ---------------------------------------------------------------------------
+   Claim field (components/marketing/claim-field.tsx) — built from the canvas
+   "Tru8 Landing Hero", 2026-09-01. Three layers, glow OUTSIDE only:
+   .tru8-halo  small, soft, warm — behind the box, never inside it
+   .tru8-ring  1.5px satin-orange band + a narrow specular highlight circling it
+               (a second, fainter one counter-rotates so they occasionally cross)
+   .tru8-well  opaque white + light 14px dot infill (page grid stays 40px)
+   The two @property angles are what let the conic gradients animate. */
+@property --tru8-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --tru8-angle2 { syntax: '<angle>'; inherits: false; initial-value: 180deg; }
+@keyframes tru8-sheen  { to { --tru8-angle: 360deg; } }
+@keyframes tru8-sheen2 { to { --tru8-angle2: -180deg; } }
+.tru8-field { position: relative; isolation: isolate; }
+.tru8-halo {
+  position: absolute; inset: -9px; border-radius: 20px; z-index: 0; pointer-events: none;
+  background:
+    conic-gradient(from var(--tru8-angle), transparent 0 38%, rgba(255,237,213,0.9) 47%, rgba(251,146,60,0.9) 50%, rgba(255,237,213,0.9) 53%, transparent 62%),
+    radial-gradient(120% 140% at 50% 50%, rgba(234,88,12,0.24), rgba(234,88,12,0.07) 60%, transparent 75%);
+  filter: blur(16px); opacity: 0.42;
+  animation: tru8-sheen 9s linear infinite;
+}
+.tru8-ring {
+  position: relative; z-index: 1; border-radius: 12px; padding: 1.5px;
+  background:
+    conic-gradient(from var(--tru8-angle), transparent 0 42%, rgba(255,255,255,0) 45%, rgba(255,255,255,0.96) 49.5%, rgba(255,241,230,0.85) 51.5%, rgba(255,255,255,0) 55%, transparent 100%),
+    conic-gradient(from var(--tru8-angle2), transparent 0 44%, rgba(255,255,255,0) 47%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 53%, transparent 100%),
+    linear-gradient(135deg, #d9531a 0%, #ef7a3b 28%, #c2410c 52%, #f08a4e 76%, #d9531a 100%);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(234,88,12,0.35), 0 0 22px rgba(234,88,12,0.18);
+  animation: tru8-sheen 9s linear infinite, tru8-sheen2 14s linear infinite;
+}
+.tru8-well {
+  border-radius: 10.5px; background-color: #ffffff;
+  background-image: radial-gradient(#f0f0f2 1px, transparent 1px);
+  background-size: 14px 14px; background-position: 7px 7px;
+}
+/* Go tile: a specular sweep crosses it on hover, answering the ring */
+.tru8-go { position: relative; overflow: hidden; transition: transform 160ms ease; }
+.tru8-go:hover:not(:disabled) { transform: translateY(-1px); }
+.tru8-go::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.16) 50%, transparent 65%);
+  transform: translateX(-120%); transition: transform 600ms ease;
+}
+.tru8-go:hover:not(:disabled)::after { transform: translateX(120%); }
+@media (prefers-reduced-motion: reduce) {
+  .tru8-halo, .tru8-ring { animation: none; }
+  .tru8-go::after { display: none; }
+}

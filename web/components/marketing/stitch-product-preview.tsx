@@ -7,9 +7,17 @@ import { ArrowUpRight } from 'lucide-react';
 import { ScrollReveal } from './scroll-reveal';
 import { SheetHeader } from './sheet-header';
 import { ScreenshotScrollLightbox, type ScreenshotSlide } from './screenshot-scroll-lightbox';
+import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
+import { capture } from '@/lib/analytics';
 
 /**
- * Homepage — Sheet 02, Inside a check (C1 entry-point clarity, 2026-07-09).
+ * Homepage — Sheet 01, Inside a check (C1 entry-point clarity, 2026-07-09).
+ *
+ * 2026-09-01 — now the FIRST sheet after the hero (founder: proof before
+ * argument, once the claim field is the front door), trimmed to the summary
+ * + two lenses (Timeline joins the quiet strip), and every panel links to the
+ * LIVE sample record in that view — "proof, not pictures". Sheet numbers
+ * renumbered 01–04 across the page.
  *
  * "The summary, then the lenses." — the results summary LEADS (labelled THE
  * SUMMARY, deliberately unnumbered so it never reads as a seventh view), then
@@ -38,6 +46,8 @@ interface Panel {
   ratio: number;
   alt: string;
   lightboxTitle: string;
+  /** `?view=` on the public sample record that opens this lens; summary = none. */
+  sampleView?: string;
 }
 
 /** AWAKE (C4, 2026-07-09): C2 shipped the redesigned summary card and the
@@ -102,6 +112,7 @@ const LENS_PANELS: Panel[] = [
     src: '/imagery/screenshots/librarian-landscape.png',
     lightboxSrc: '/imagery/screenshots/librarian-landscape-full.png',
     ratio: 1984 / 1323,
+    sampleView: 'librarian',
     alt: 'The Evidence view — sixteen sources on semaglutide and cardiovascular risk, classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic) in a heatmap grid, with filters and the evidence ledger beneath showing the FDA, the BMJ and PubMed.',
     lightboxTitle: 'Evidence — classified landscape',
   },
@@ -121,27 +132,9 @@ const LENS_PANELS: Panel[] = [
     src: '/imagery/screenshots/cartographer-network.png',
     lightboxSrc: '/imagery/screenshots/cartographer-network-full.png',
     ratio: 1984 / 805,
+    sampleView: 'cartographer',
     alt: 'The Map view — sources on UK greenhouse gas emissions plotted by tier against the two elements of the claim, each source shown as its own site mark. Nine primary sources including GOV.UK, the ONS and Our World in Data sit above four commentary sources.',
     lightboxTitle: 'Map — citation cascade',
-  },
-  {
-    kind: 'lens',
-    number: '03',
-    label: 'Timeline',
-    subtitle: 'Chronologist',
-    route: '/dashboard/check/[id]?view=chronologist',
-    headline: (
-      <>
-        When did each piece of evidence <span className="font-bold">appear?</span>
-      </>
-    ),
-    description:
-      'A timeline of every source, ordered by publication date. See how the conversation developed and where the reporting clusters.',
-    src: '/imagery/screenshots/chronologist-timeline.png',
-    lightboxSrc: '/imagery/screenshots/chronologist-timeline-full.png',
-    ratio: 1984 / 1438,
-    alt: 'The Timeline view — evidence on global extreme poverty plotted by publication date from May 2018 to February 2026, with gaps marked between clusters, and a panel listing the four sources that carry no publication date at all.',
-    lightboxTitle: 'Timeline — evidence timeline',
   },
 ];
 
@@ -168,7 +161,7 @@ export function StitchProductPreview() {
   return (
     <section id="preview" className="py-24 md:py-32 bg-white border-t border-zinc-100 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
-        <SheetHeader number="02" label="Inside a check" refText="ONE SUMMARY · SIX LENSES" />
+        <SheetHeader number="01" label="Inside a check" refText="ONE SUMMARY · SIX LENSES" />
         <ScrollReveal>
           <div className="mb-16 md:mb-20 max-w-3xl">
             <h2 className="text-3xl md:text-5xl font-normal tracking-[-0.02em] text-zinc-900 leading-[1.0]">
@@ -197,6 +190,9 @@ export function StitchProductPreview() {
         <div className="mt-16 md:mt-20 pt-8 border-t border-zinc-100 flex flex-wrap items-baseline gap-x-3 gap-y-2 font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-400">
           <span aria-hidden="true" className="w-1.5 h-1.5 bg-accent rotate-45 self-center shrink-0" />
           <span>Also inside the console:</span>
+          <span className="text-zinc-600">Timeline</span>
+          <span>— when each piece of evidence appeared</span>
+          <span aria-hidden="true">·</span>
           <span className="text-zinc-600">Gaps</span>
           <span>— what&rsquo;s missing, with targeted re-search</span>
           <span aria-hidden="true">·</span>
@@ -258,18 +254,34 @@ function PanelRow({ panel, index, flipped, onOpen }: PanelRowProps) {
           <p className="text-sm md:text-base text-zinc-500 leading-relaxed mb-8">
             {panel.description}
           </p>
-          <button
-            type="button"
-            onClick={onOpen}
-            className="group inline-flex items-center gap-2 self-start font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-900 hover:text-accent transition-colors"
-            aria-label={`Open ${panel.label} screenshot full-size`}
-          >
-            <span>View full size</span>
-            <ArrowUpRight
-              size={14}
-              className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-          </button>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <button
+              type="button"
+              onClick={onOpen}
+              className="group inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-900 hover:text-accent transition-colors"
+              aria-label={`Open ${panel.label} screenshot full-size`}
+            >
+              <span>View full size</span>
+              <ArrowUpRight
+                size={14}
+                className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              />
+            </button>
+            {/* Proof, not pictures: the live public record, opened in this view */}
+            <a
+              href={panel.sampleView ? `${SAMPLE_REPORT_PATH}?view=${panel.sampleView}` : SAMPLE_REPORT_PATH}
+              target="_blank"
+              rel="noopener"
+              onClick={() => capture('view_sample_click', { surface: `preview:${panel.label.toLowerCase()}` })}
+              className="group inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 hover:text-zinc-900 transition-colors"
+            >
+              <span>Open the sample record here</span>
+              <ArrowUpRight
+                size={14}
+                className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              />
+            </a>
+          </div>
         </div>
 
         {/* Screenshot frame */}

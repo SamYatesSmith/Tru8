@@ -87,6 +87,7 @@ export type AnalyticsEvent =
   | 'research_start_click' // /research primary CTA → /dashboard (retired with /research, C1 2026-07-09)
   // C1 entry-point clarity (2026-07-09): the single human start funnel
   | 'start_check_click' // "Start a check" CTA → /dashboard (property: surface — nav/mobile-nav/hero/record/closing/footer)
+  | 'claim_field_submit' // "Start a check" CTA → /dashboard (property: surface — nav/mobile-nav/hero/record/closing/footer)
   | 'view_sample_click' // "See a sample record" → public demo /r/ (property: surface — hero/closing)
   // Researcher funnel (Phase 1 instrumentation, 2026-06-23)
   | 'report_viewed' // a check report opened (public /r/ or dashboard)
