@@ -123,3 +123,15 @@ Threat model read against the diff, then verified on the running app (signed-out
 Trade-off recorded: sessionStorage is tab-scoped — a sign-in completed in another tab (email magic link) opens the console form empty rather than prefilled. Graceful miss, never a wrong run.
 
 Checks after the pass: vitest **14 files / 123 tests** (two new suites), `tsc` clean, `next lint` clean on touched files, `next build` clean. Not verified: the post-sign-in half of the round trip (needs credentials); the sanitiser is unit-tested and the fallback was observed.
+
+## Security + bug pass 2 — 2026-09-01 (fresh read of 17a6843 + 8dd68cc)
+
+Walked every seam the fixes themselves introduced. **Nothing new in the change.** One adjacent, pre-existing tightening taken as defence in depth.
+
+- **Intent lifecycle:** consumed on the first effect run; StrictMode's double-invoke and the `router.replace` re-run both see it gone and do nothing; `pendingRun` survives as state; the run effect reads the latest `handleSubmit`. Back after a run lands on the clean `/dashboard/new-check` with nothing to re-fire.
+- **Intent without `run`** (bounced, dismissed the modal, later opened Start a check): prefill only, no spend. **Intent + stale-session reset** (modal signs a wedged client out, `auth-modal.tsx:57`): the intent outlives the reset and runs once after re-sign-in — correct, it is the visitor's own claim. Two tabs: separate storage, no crosstalk.
+- **`safeInternalPath` edge cases:** `/dashboard/../..//host` and `/%2F%2Fhost` normalise on-origin; `/@host`, `/dashboard?x=//host` are paths; nested `?auth_redirect=true` inside `redirect_url` cannot loop (dashboard pages ignore it). Only consumer of `redirect_url` is `page.tsx` → `Navigation` → `AuthModal` (git grep).
+- **`useSearchParams` in `ClaimField`:** `/` is server-rendered per request (it reads `searchParams`), so no static-render Suspense bail-out; build clean.
+- **Taken (pre-existing, adjacent — B2):** the console form's `isValidUrl` accepted any scheme (`javascript:`, `file:`, `ftp:`) because `new URL()` alone does; the hero field already insists on `https?://`. Now http(s) only on the legacy `?url=` path too.
+
+Checks: vitest 123 pass · `tsc` clean · lint clean on touched files · `next build` clean. **Loop closed here:** a full pass found nothing new in the change; the one edit was a hardening outside it.

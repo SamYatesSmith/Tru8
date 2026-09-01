@@ -145,10 +145,14 @@ export default function NewCheckPage() {
     if (isLimitReached) capture('paywall_hit', { surface: 'limit_banner' });
   }, [isLimitReached]);
 
+  // http(s) only. `new URL()` alone accepts javascript:, file:, ftp: — the
+  // homepage field already insists on https?://, and the console form should
+  // refuse the same up front rather than rely on the backend to (2026-09-01
+  // security pass 2, defence in depth on the legacy ?url= prefill).
   const isValidUrl = (url: string): boolean => {
     try {
-      new URL(url);
-      return true;
+      const u = new URL(url);
+      return u.protocol === 'http:' || u.protocol === 'https:';
     } catch {
       return false;
     }
