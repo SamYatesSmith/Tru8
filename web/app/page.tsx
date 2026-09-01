@@ -9,6 +9,7 @@ import { StitchEdges } from '@/components/marketing/stitch-edges'
 import { StitchDeveloperShowcase } from '@/components/marketing/stitch-developer-showcase'
 import { StitchFaq } from '@/components/marketing/stitch-faq'
 import { StitchClosingCta } from '@/components/marketing/stitch-closing-cta'
+import { safeInternalPath } from '@/lib/safe-redirect'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 
@@ -71,7 +72,10 @@ export default function Home({
   searchParams: { auth_redirect?: string; redirect_url?: string };
 }) {
   const shouldOpenAuth = searchParams.auth_redirect === 'true';
-  const redirectUrl = searchParams.redirect_url;
+  // Only a path on this site may become Clerk's forceRedirectUrl - anything
+  // else (https://..., //host, /\\host) is an open redirect. Invalid -> undefined
+  // -> the modal's default (/dashboard). 2026-09-01 security pass.
+  const redirectUrl = safeInternalPath(searchParams.redirect_url);
 
   return (
     <>

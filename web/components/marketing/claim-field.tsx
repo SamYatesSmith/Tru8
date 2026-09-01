@@ -1,10 +1,11 @@
 'use client';
 
-import { useId, useState, type FormEvent, type KeyboardEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useId, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { ArrowUpRight } from 'lucide-react';
 import { capture } from '@/lib/analytics';
+import { saveClaimIntent } from '@/lib/claim-intent';
 import { triageText, triageUrl } from '@/lib/input-triage';
 import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
 
@@ -20,14 +21,20 @@ import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
  * mono row: free to try · under a minute · the tagline · the sample record.
  *
  * What pressing the mark does: client-side triage (same rules as the console
- * form), then `/dashboard/new-check?text=…&run=1` (or `?url=`). Signed in →
- * the check starts on arrival. Signed out → middleware bounces to `/` with
- * the FULL path (query included) as `redirect_url`, the auth modal opens, and
- * Clerk's forceRedirectUrl lands the visitor on the same prefilled URL — one
- * interruption, nothing retyped, the check runs the moment sign-in completes.
- * Anonymous runs are deliberately NOT offered yet: they need a per-IP/daily
- * budget, Turnstile, and anonymous→account attachment first
- * (`audit/2026-09-01_claim_field_front_door_review.md` §4 option B).
+ * form), then the claim is written to a single-use, tab-scoped intent
+ * (`lib/claim-intent.ts`) and the browser goes to
+ * `/dashboard/new-check?run=1`. Signed in → the console reads the intent,
+ * prefills, and starts the check. Signed out → middleware bounces to `/` with
+ * that path as `redirect_url`, the auth modal opens, and Clerk lands the
+ * visitor on the same path after sign-in — the intent is still in the tab,
+ * so the check runs then. One interruption, nothing retyped.
+ *
+ * Why the claim is NOT in the URL (security pass, same day): a claim in the
+ * query string reaches server logs, PostHog `$current_url`, Sentry
+ * breadcrumbs and Referers; and `run=1` beside it would let any link spend a
+ * signed-in user's credit. The console auto-runs only when `?run=1` meets an
+ * intent this tab wrote itself. Anonymous runs are deliberately NOT offered
+ * yet (`audit/2026-09-01_claim_field_front_door_review.md` §4 option B).
  *
  * Locks: no verdict language in placeholder or errors (D3); one start label
  * sitewide ("Start a check") lives in the button's accessible name; UK
@@ -37,6 +44,9 @@ import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
 
 const MIN_CHARS = 10;
 const MAX_CHARS = 5000;
+
+/** Where the field sends the visitor. The claim itself travels via the intent. */
+export const CLAIM_FIELD_DESTINATION = '/dashboard/new-check?run=1';
 
 function looksLikeUrl(value: string): boolean {
   return /^https?:\/\/\S+$/i.test(value);
@@ -51,11 +61,21 @@ export function ClaimField({
   autoFocus?: boolean;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isSignedIn } = useAuth();
   const id = useId();
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // A signed-out submit comes straight back to this page (middleware bounce →
+  // auth modal) with the SAME component instance mounted; without this the
+  // field stayed disabled behind the modal, and after a dismissed modal too.
+  // Any change to the page's query (the bounce adds ?auth_redirect=true; the
+  // modal's close strips it) re-arms the field. Found on the security pass.
+  useEffect(() => {
+    setBusy(false);
+  }, [searchParams]);
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
@@ -67,14 +87,12 @@ export function ClaimField({
     }
 
     const isUrl = looksLikeUrl(v);
-    let params: URLSearchParams;
     if (isUrl) {
       const triage = triageUrl(v);
       if (!triage.ok) {
         setError(triage.message);
         return;
       }
-      params = new URLSearchParams({ url: v, run: '1' });
     } else {
       if (v.length < MIN_CHARS) {
         setError('A little more, please — at least ten characters.');
@@ -91,17 +109,24 @@ export function ClaimField({
         setError(triage.message);
         return;
       }
-      params = new URLSearchParams({ text: v, run: '1' });
+    }
+
+    if (!saveClaimIntent(isUrl ? 'url' : 'text', v)) {
+      // sessionStorage unavailable (locked-down browser). The console form is
+      // one click away; say so rather than silently dropping the claim.
+      setError('Your browser blocked the hand-off — open Start a check and paste it there.');
+      return;
     }
 
     setError(null);
     setBusy(true);
+    // Never the claim text — only its shape.
     capture('claim_field_submit', {
       surface,
       input_type: isUrl ? 'url' : v.endsWith('?') ? 'question' : 'text',
       signed_in: Boolean(isSignedIn),
     });
-    router.push(`/dashboard/new-check?${params.toString()}`);
+    router.push(CLAIM_FIELD_DESTINATION);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -136,6 +161,7 @@ export function ClaimField({
               placeholder="Paste a claim or a question — the evidence for and against, organised"
               autoFocus={autoFocus}
               disabled={busy}
+              maxLength={MAX_CHARS + 500}
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? errorId : undefined}
               spellCheck

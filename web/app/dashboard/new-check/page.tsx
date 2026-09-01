@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { apiClient } from '@/lib/api';
 import { capture } from '@/lib/analytics';
 import { triageText, triageUrl } from '@/lib/input-triage';
+import { consumeClaimIntent } from '@/lib/claim-intent';
 import { PageHeader } from '../components/page-header';
 import { SubscriptionsComingSoon } from '@/components/subscriptions/coming-soon';
 
@@ -53,24 +54,32 @@ export default function NewCheckPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Prefill from the homepage field (2026-09-01): ?text= or ?url=, plus
-  // run=1 to submit on arrival. The params are stripped from the address bar
-  // BEFORE the run fires so a refresh cannot spend a second credit.
+  // Hand-off from the homepage field (2026-09-01, hardened the same day).
+  // The claim arrives via a single-use, tab-scoped intent (lib/claim-intent.ts),
+  // NEVER the URL - so it reaches no log, no analytics URL, no Referer, and no
+  // link can carry it. `?run=1` submits on arrival ONLY when such an intent
+  // exists; a bare `?run=1` (a link someone was sent) does nothing but get
+  // stripped. Params are removed from the address bar BEFORE the run fires so
+  // a refresh cannot spend a second credit. `?url=` remains the legacy prefill
+  // (no auto-run) used by share flows.
   const [pendingRun, setPendingRun] = useState(false);
   useEffect(() => {
     const urlParam = searchParams.get('url');
-    const textParam = searchParams.get('text');
     const run = searchParams.get('run') === '1';
-    if (urlParam) {
+    const intent = consumeClaimIntent();
+    if (intent?.kind === 'url') {
+      setUrlInput(intent.value);
+      setActiveTab('url');
+    } else if (intent?.kind === 'text') {
+      setTextInput(intent.value);
+      setActiveTab('text');
+    } else if (urlParam) {
       setUrlInput(urlParam);
       setActiveTab('url');
-    } else if (textParam) {
-      setTextInput(textParam);
-      setActiveTab('text');
     }
-    if (run && (urlParam || textParam)) {
+    if (run) {
       router.replace('/dashboard/new-check', { scroll: false });
-      setPendingRun(true);
+      if (intent) setPendingRun(true);
     }
   }, [searchParams, router]);
 

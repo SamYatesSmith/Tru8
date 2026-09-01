@@ -107,3 +107,19 @@ Status: **BUILT 2026-09-01 (same day), verified locally, committed on main, NOT 
 - **Flag:** headline colour `#B2B2BA` is the founder's canvas choice; it measures ~2.1:1 on white, under the 3:1 large-text floor. One token to change.
 - **Copy:** "verdict" now appears twice in visible page text — the headline and FAQ Q5 (where it answers "Does Tru8 use AI to decide what is true?"). FAQ Q1's "Tru8 does not issue a verdict." was redundant beside the tagline and was cut. The `<meta>` description still carries "No verdict".
 
+
+## Security + bug pass 1 — 2026-09-01 (founder: "/loop to verify … air tight security wise")
+
+Threat model read against the diff, then verified on the running app (signed-out session).
+
+| # | Finding | Severity | Fix | Verified |
+|---|---|---|---|---|
+| S1 | **Open redirect via `?redirect_url=`** — `page.tsx` passed the raw query value to Clerk's `forceRedirectUrl`, which trusts the app. `/?auth_redirect=true&redirect_url=https://evil.example` would sign a visitor in on our modal and land them off-site (`//host` and `/\host` too). Pre-existing, but the front-door change made this param load-bearing. | High | `lib/safe-redirect.ts` `safeInternalPath()` — string, single leading `/`, second char not `/` or `\`, no whitespace/control chars, ≤2048, resolves on a fixed origin; else `undefined` → modal default `/dashboard`. 16 unit cases. | Probe on the running app: `redirect_url=https%3A%2F%2Fevil.example%2F` → landed on `/dashboard`. |
+| S2 | **Drive-by spend via `?text=…&run=1`** — a link anyone could send a signed-in user; one click spent a credit with no further action. | High | Claim moved OUT of the URL into a single-use, tab-scoped **intent** (`lib/claim-intent.ts`, sessionStorage, 30-min TTL, consumed on first read). `run=1` auto-submits only when an intent this tab wrote exists; a bare `?run=1` is stripped and does nothing. `?text=` support removed; legacy `?url=` prefill kept (no auto-run). | Bare `/dashboard/new-check?run=1` → empty form, URL stripped, no API call (api.log). |
+| S3 | **Claim text leaked into URLs** → server logs (seen in dev.log), PostHog `$current_url`, Sentry breadcrumbs, Referer. | Medium | Same fix as S2 — the URL is now `/dashboard/new-check?run=1`, nothing else. Analytics event carries only `input_type`/`surface`/`signed_in`. | Signed-out submit: intent present in sessionStorage, URL `/` with no claim. |
+| B1 | **Field stuck disabled after the signed-out bounce** — the same `ClaimField` instance stays mounted through `/` → bounce → `/?auth_redirect…`, so `busy` never reset; closing the modal left a dead field. | Medium | `useEffect(() => setBusy(false), [searchParams])` — any query change re-arms it. | Textarea + go button `disabled: false` with the modal open and after Escape; typed claim still in the field. |
+| — | XSS via prefilled text: React-escaped controlled inputs, no `dangerouslySetInnerHTML` on the path. Double-spend on refresh: params replaced before the run; `pendingRun` single-shot; `isSubmitting` guard. CSRF: the run needs the tab's own sessionStorage. | — | No change needed. | Code read. |
+
+Trade-off recorded: sessionStorage is tab-scoped — a sign-in completed in another tab (email magic link) opens the console form empty rather than prefilled. Graceful miss, never a wrong run.
+
+Checks after the pass: vitest **14 files / 123 tests** (two new suites), `tsc` clean, `next lint` clean on touched files, `next build` clean. Not verified: the post-sign-in half of the round trip (needs credentials); the sanitiser is unit-tested and the fallback was observed.
