@@ -18,7 +18,8 @@ import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
  * small warm halo OUTSIDE the box (never inside); an opaque white well with a
  * light 14px dot infill; the brand mark, animated, on a near-black tile as the
  * go button — the mark's own proportions (54×75), not a square. Beneath, one
- * mono row: free to try · under a minute · the tagline · the sample record.
+ * mono row: free to try · the tagline · the sample record (the timing phrase
+ * lives in the Edges sheet and the FAQ, not here — founder, 2026-09-01).
  *
  * What pressing the mark does: client-side triage (same rules as the console
  * form), then the claim is written to a single-use, tab-scoped intent
@@ -209,7 +210,7 @@ export function ClaimField({
 
       {/* Footer row — one style for all three cells (founder, 2026-09-01) */}
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 items-center gap-3 sm:gap-6 px-0.5 font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-400 text-center">
-        <span className="sm:text-left whitespace-nowrap">· Free to try · under a minute ·</span>
+        <span className="sm:text-left whitespace-nowrap">· Free to try ·</span>
         <span className="whitespace-nowrap">· We organise; you decide ·</span>
         <a
           href={SAMPLE_REPORT_PATH}

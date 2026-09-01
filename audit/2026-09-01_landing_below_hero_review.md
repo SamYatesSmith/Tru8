@@ -93,7 +93,7 @@ field), `sitemap.ts` lastmod for `/`. Verify with `/verify-ui` after.
 1. **"Not a verdict" → exactly twice:** hero headline + FAQ Q2 (JSON-LD). Removed from 01's heading, 04's first edge; 00 folds away.
 2. **00 + 01 FOLD into one sheet, "01 THE RECORD":** heading *"What comes back."*; sub *"A structured evidence record, every time: what supports each part of the claim, what challenges it, what's missing, and what was set aside and why."*; body = the six-row anatomy + manifest; closing line replaces the 00 table — *"Not a list of sources, not a score — the record."* (the third clause, "not a verdict", was cut: it would have made the word's third appearance; the headline and FAQ Q2 already carry it) → "See the full comparison →" (`/compare` keeps the table).
 3. **Closing CTA = the hero field again** (shared component).
-4. **Timing = "under a minute", everywhere** (founder: 30–60 s these days). Hero footer row, new Edge *"Takes under a minute — not instant."*, FAQ, live hero's "~90 seconds" on rebuild. OUTREACH.md "~3 minutes" corrected in this commit.
+4. **Timing = "under a minute", everywhere** (founder: 30–60 s these days). ~~Hero footer row~~ (added by me, removed at the founder's request after launch — the footer row is "· Free to try ·" as on the canvas), new Edge *"Takes under a minute — not instant."*, FAQ, live hero's "~90 seconds" on rebuild. OUTREACH.md "~3 minutes" corrected in this commit.
 5. **Order:** HERO → **02 Inside a check** (proof first; summary + 2 lenses linked to the live sample) → 01 Record (folded) → 04 Edges → 05 Developers → FAQ (blog block off) → CLOSE (field). **03 How-it-works removed.**
 
 Status: **BUILT 2026-09-01 (same day), verified locally, committed on main, NOT pushed** (push = Railway deploy; founder's call).
