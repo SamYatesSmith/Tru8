@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { Loader2, Twitter, Linkedin, MessageCircle, Lock, Upload, X, Image as ImageIcon } from 'lucide-react';
@@ -300,6 +300,7 @@ export default function NewCheckPage() {
     }
   };
 
+  const autoRunFired = useRef(false);
   useEffect(() => {
     if (!pendingRun || isSubmitting) return;
     const ready =
@@ -307,6 +308,7 @@ export default function NewCheckPage() {
       (activeTab === 'url' && urlInput.trim().length > 0);
     if (!ready) return;
     setPendingRun(false);
+    autoRunFired.current = true;
     void handleSubmit({ preventDefault() {} } as unknown as React.FormEvent);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once, on the prefilled state
   }, [pendingRun, activeTab, textInput, urlInput, isSubmitting]);
@@ -329,6 +331,30 @@ export default function NewCheckPage() {
 
   const charCount = textInput.length;
   const maxChars = 5000;
+
+  // Arrived from the homepage field with a run pending (the post-sign-in path):
+  // show that the check is starting, never the form. The form returns only if
+  // something stops the run — a limit, a triage rule — with its message shown.
+  // (Founder, 2026-09-01: the form flashing for a second read as mis-routing.)
+  const autoStarting = pendingRun || (autoRunFired.current && isSubmitting && !error);
+  if (autoStarting) {
+    const claim = activeTab === 'url' ? urlInput : textInput;
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center gap-8 px-6">
+        {/* eslint-disable-next-line @next/next/no-img-element -- generated SVG art */}
+        <img src="/brand/tru8-mark.svg" alt="" aria-hidden="true" className="h-[138px] w-auto motion-reduce:hidden" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- see above */}
+        <img src="/brand/tru8-mark-static.svg" alt="" aria-hidden="true" className="h-[138px] w-auto hidden motion-reduce:block" />
+        <p role="status" aria-live="polite" className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500">
+          <span aria-hidden="true" className="inline-block w-1.5 h-1.5 bg-accent rotate-45 mr-2 align-middle" />
+          Starting your check
+        </p>
+        {claim ? (
+          <p className="max-w-2xl text-base md:text-lg text-zinc-900 leading-relaxed break-words">{claim}</p>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

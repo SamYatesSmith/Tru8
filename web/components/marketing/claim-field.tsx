@@ -4,8 +4,9 @@ import { useEffect, useId, useState, type FormEvent, type KeyboardEvent } from '
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { ArrowUpRight } from 'lucide-react';
+import { apiClient } from '@/lib/api';
 import { capture } from '@/lib/analytics';
-import { saveClaimIntent } from '@/lib/claim-intent';
+import { clearClaimIntent, saveClaimIntent } from '@/lib/claim-intent';
 import { triageText, triageUrl } from '@/lib/input-triage';
 import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
 
@@ -21,21 +22,27 @@ import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
  * mono row: free to try · the tagline · the sample record (the timing phrase
  * lives in the Edges sheet and the FAQ, not here — founder, 2026-09-01).
  *
- * What pressing the mark does: client-side triage (same rules as the console
- * form), then the claim is written to a single-use, tab-scoped intent
- * (`lib/claim-intent.ts`) and the browser goes to
- * `/dashboard/new-check?run=1`. Signed in → the console reads the intent,
- * prefills, and starts the check. Signed out → middleware bounces to `/` with
- * that path as `redirect_url`, the auth modal opens, and Clerk lands the
- * visitor on the same path after sign-in — the intent is still in the tab,
- * so the check runs then. One interruption, nothing retyped.
+ * What pressing the mark does, after client-side triage (same rules as the
+ * console form):
  *
- * Why the claim is NOT in the URL (security pass, same day): a claim in the
- * query string reaches server logs, PostHog `$current_url`, Sentry
- * breadcrumbs and Referers; and `run=1` beside it would let any link spend a
- * signed-in user's credit. The console auto-runs only when `?run=1` meets an
- * intent this tab wrote itself. Anonymous runs are deliberately NOT offered
- * yet (`audit/2026-09-01_claim_field_front_door_review.md` §4 option B).
+ * SIGNED IN → the check is created from HERE and the browser goes straight to
+ * `/dashboard/check/<id>` — no visit to the console form. (The first build
+ * hopped through `/dashboard/new-check?run=1`, which rendered the form for a
+ * second before firing; founder: unprofessional and confusing. Same day.)
+ *
+ * SIGNED OUT (or Clerk not yet loaded) → the claim is written to a single-use,
+ * tab-scoped intent (`lib/claim-intent.ts`) and the browser goes to
+ * `/dashboard/new-check?run=1`; middleware bounces to `/` with that path as
+ * `redirect_url`, the auth modal opens, and Clerk lands the visitor on the
+ * same path after sign-in, where the console shows a "Starting your check"
+ * panel — never the form — while it runs. One interruption, nothing retyped.
+ *
+ * Why the claim is NOT in the URL (security pass): a claim in the query string
+ * reaches server logs, PostHog `$current_url`, Sentry breadcrumbs and Referers;
+ * and `run=1` beside it would let any link spend a signed-in user's credit.
+ * The console auto-runs only when `?run=1` meets an intent this tab wrote
+ * itself. Anonymous runs are deliberately NOT offered yet
+ * (`audit/2026-09-01_claim_field_front_door_review.md` §4 option B).
  *
  * Locks: no verdict language in placeholder or errors (D3); one start label
  * sitewide ("Start a check") lives in the button's accessible name; UK
@@ -46,7 +53,7 @@ import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
 const MIN_CHARS = 10;
 const MAX_CHARS = 5000;
 
-/** Where the field sends the visitor. The claim itself travels via the intent. */
+/** Signed-out destination. The claim itself travels via the intent. */
 export const CLAIM_FIELD_DESTINATION = '/dashboard/new-check?run=1';
 
 function looksLikeUrl(value: string): boolean {
@@ -63,10 +70,11 @@ export function ClaimField({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const id = useId();
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   // A signed-out submit comes straight back to this page (middleware bounce →
@@ -76,9 +84,10 @@ export function ClaimField({
   // modal's close strips it) re-arms the field. Found on the security pass.
   useEffect(() => {
     setBusy(false);
+    setStatus(null);
   }, [searchParams]);
 
-  const submit = (e?: FormEvent) => {
+  const submit = async (e?: FormEvent) => {
     e?.preventDefault();
     if (busy) return;
     const v = value.trim();
@@ -112,6 +121,8 @@ export function ClaimField({
       }
     }
 
+    // Saved in both paths: it is the hand-off when signed out, and the
+    // console's prefill if a signed-in create fails and we send them there.
     if (!saveClaimIntent(isUrl ? 'url' : 'text', v)) {
       // sessionStorage unavailable (locked-down browser). The console form is
       // one click away; say so rather than silently dropping the claim.
@@ -119,15 +130,55 @@ export function ClaimField({
       return;
     }
 
+    const inputType = isUrl ? 'url' : v.endsWith('?') ? 'question' : 'text';
     setError(null);
     setBusy(true);
     // Never the claim text — only its shape.
-    capture('claim_field_submit', {
-      surface,
-      input_type: isUrl ? 'url' : v.endsWith('?') ? 'question' : 'text',
-      signed_in: Boolean(isSignedIn),
-    });
-    router.push(CLAIM_FIELD_DESTINATION);
+    capture('claim_field_submit', { surface, input_type: inputType, signed_in: Boolean(isSignedIn) });
+
+    if (!isSignedIn) {
+      router.push(CLAIM_FIELD_DESTINATION);
+      return;
+    }
+
+    // Signed in: create the check from here and go straight to it.
+    setStatus('Starting your check');
+    capture('check_submitted', { input_type: inputType, surface });
+    const go = (checkId: string) => {
+      clearClaimIntent();
+      window.location.href = `/dashboard/check/${checkId}?fresh=true`;
+    };
+    const fail = (message?: string) => {
+      // Limit / access problems have their own explanation on the console form,
+      // which the saved intent will prefill. Anything else is said here.
+      if (message && /402|403|limit|beta/i.test(message)) {
+        router.push('/dashboard/new-check');
+        return;
+      }
+      setBusy(false);
+      setStatus(null);
+      setError(message || 'Could not start the check. Please try again.');
+    };
+    try {
+      const token = await getToken();
+      const result = await apiClient.createCheckStreaming(
+        isUrl ? { input_type: 'url', url: v } : { input_type: 'text', content: v },
+        token,
+        {
+          onConnected: go,
+          onComplete: (checkId) => {
+            if (checkId) go(checkId);
+          },
+          onError: (message, checkId) => {
+            if (checkId) go(checkId);
+            else fail(message);
+          },
+        },
+      );
+      if (result?.checkId) go(result.checkId);
+    } catch (err) {
+      fail(err instanceof Error ? err.message : undefined);
+    }
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -135,14 +186,14 @@ export function ClaimField({
     // single-purpose field a visitor has already used today.
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      submit();
+      void submit();
     }
   };
 
   const errorId = `${id}-error`;
 
   return (
-    <form onSubmit={submit} noValidate className="w-full max-w-[960px] mx-auto">
+    <form onSubmit={(e) => void submit(e)} noValidate className="w-full max-w-[960px] mx-auto">
       <div className="tru8-field">
         <div className="tru8-halo" aria-hidden="true" />
         <div className="tru8-ring">
@@ -205,6 +256,15 @@ export function ClaimField({
           className="mt-3 font-mono text-[10px] tracking-[0.2em] uppercase text-accent"
         >
           {error}
+        </p>
+      ) : status ? (
+        <p
+          role="status"
+          aria-live="polite"
+          className="mt-3 font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500"
+        >
+          <span aria-hidden="true" className="inline-block w-1.5 h-1.5 bg-accent rotate-45 mr-2 align-middle" />
+          {status}
         </p>
       ) : null}
 

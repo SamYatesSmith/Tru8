@@ -135,3 +135,11 @@ Walked every seam the fixes themselves introduced. **Nothing new in the change.*
 - **Taken (pre-existing, adjacent — B2):** the console form's `isValidUrl` accepted any scheme (`javascript:`, `file:`, `ftp:`) because `new URL()` alone does; the hero field already insists on `https?://`. Now http(s) only on the legacy `?url=` path too.
 
 Checks: vitest 123 pass · `tsc` clean · lint clean on touched files · `next build` clean. **Loop closed here:** a full pass found nothing new in the change; the one edit was a hardening outside it.
+
+## Post-launch fix — the console form flashed before the run (2026-09-01)
+
+Founder, on prod: a signed-in submit from the hero showed the console form for ~1 s before the check started — the auto-run hopped through `/dashboard/new-check?run=1` (page render + the dashboard layout's server-side usage fetch), then fired. Read as mis-routing.
+
+- **Signed in → no hop.** `ClaimField` now creates the check itself (`apiClient.createCheckStreaming`, the same call the console makes) and goes straight to `/dashboard/check/<id>?fresh=true`; a mono "Starting your check" status sits under the field meanwhile. Failures: limit/access → `/dashboard/new-check` (the saved intent prefills; the page's own banner explains); anything else → inline error, field re-armed. The intent is cleared on success so a later console visit is not prefilled with a claim already run.
+- **Post-sign-in arrival with a pending run → never the form.** `new-check` renders a "Starting your check" panel (mark, status, the claim) until the check page takes over; the form returns only if something stops the run, with its message.
+- Not observable here (needs a signed-in session in the extension); typecheck, lint, tests, build clean. Founder to confirm on prod.
