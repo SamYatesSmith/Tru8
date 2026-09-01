@@ -66,7 +66,7 @@ export function StitchRecord() {
   return (
     <section
       id="record"
-      className="py-28 md:py-40 bg-zinc-50 border-t border-zinc-100 scroll-mt-24"
+      className="pt-0 pb-24 md:pb-32 bg-zinc-50 scroll-mt-24"
     >
       <div className="max-w-7xl mx-auto px-6">
         <SheetHeader number="02" label="The Record" refText="PUBLISHED SOURCES · SIGNED" />

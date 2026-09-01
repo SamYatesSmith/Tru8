@@ -10,7 +10,7 @@ import { ClaimField } from './claim-field';
  */
 export function StitchClosingCta() {
   return (
-    <section className="py-20 md:py-28 bg-grid-dot border-t border-zinc-100">
+    <section className="pt-20 md:pt-28 pb-24 md:pb-32 bg-grid-dot border-t border-zinc-200">
       <div className="max-w-7xl mx-auto px-5 md:px-6 flex flex-col items-center">
         <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.02em] text-zinc-900 mb-4 leading-[1.05]">
           See the record for <span className="font-bold">your claim.</span>

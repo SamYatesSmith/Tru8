@@ -25,7 +25,7 @@ import { ClaimField } from './claim-field';
  */
 export function StitchHero() {
   return (
-    <section className="relative pt-24 md:pt-28 pb-20 md:pb-24 bg-grid-dot overflow-hidden border-b border-zinc-100">
+    <section className="relative pt-24 md:pt-28 pb-24 md:pb-32 bg-grid-dot overflow-hidden">
       <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10 flex flex-col items-center">
         {/* The mark, animated (SMIL inside the SVG) — decorative; the h1 carries
             the meaning. Generated art: design/mobius-mark/build_assets.py. */}

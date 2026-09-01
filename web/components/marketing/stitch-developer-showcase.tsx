@@ -23,7 +23,7 @@ const CHIPS: ReadonlyArray<{ key: string; description: string }> = [
 
 export function StitchDeveloperShowcase() {
   return (
-    <section id="developer-showcase" className="py-20 md:py-28 bg-zinc-950 text-zinc-100">
+    <section id="developer-showcase" className="pt-0 pb-24 md:pb-32 bg-zinc-950 text-zinc-100">
       <div className="max-w-7xl mx-auto px-6">
         <SheetHeader number="04" label="For developers" refText="POST /agent/*" tone="dark" />
         <ScrollReveal>

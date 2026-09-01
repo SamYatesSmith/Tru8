@@ -9,6 +9,8 @@
  * "confirm/checked" wording is used instead of "verify a claim".
  */
 
+import { SheetHeader } from './sheet-header';
+
 interface QA {
   q: string;
   a: string;
@@ -61,15 +63,13 @@ const faqJsonLd = {
 
 export function StitchFaq() {
   return (
-    <section className="relative py-20 md:py-28 border-t border-zinc-100">
+    <section className="relative pt-0 pb-24 md:pb-32 bg-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="max-w-7xl mx-auto px-5 md:px-6">
-        <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 mb-5 md:mb-6">
-          Common Questions
-        </div>
+        <SheetHeader number="05" label="Common questions" refText="WHAT IT DOES · WHAT IT DOES NOT" />
         <h2 className="max-w-3xl text-2xl sm:text-3xl md:text-4xl font-normal tracking-[-0.02em] text-zinc-900 leading-tight mb-12 md:mb-16">
           What Tru8 does &mdash; and what it deliberately does not.
         </h2>

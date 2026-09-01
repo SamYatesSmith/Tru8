@@ -35,7 +35,7 @@ const LIMITS: ReadonlyArray<{ head: string; body: string }> = [
 
 export function StitchEdges() {
   return (
-    <section className="py-20 md:py-28 bg-zinc-50 border-t border-zinc-100">
+    <section className="pt-0 pb-24 md:pb-32 bg-white">
       <div className="max-w-7xl mx-auto px-6">
         <SheetHeader number="03" label="Edges" refText="STATED, NOT HIDDEN" />
         <ScrollReveal>

@@ -159,7 +159,7 @@ export function StitchProductPreview() {
   };
 
   return (
-    <section id="preview" className="py-24 md:py-32 bg-white border-t border-zinc-100 scroll-mt-24">
+    <section id="preview" className="pt-0 pb-24 md:pb-32 bg-white scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
         <SheetHeader number="01" label="Inside a check" refText="ONE SUMMARY · SIX LENSES" />
         <ScrollReveal>
