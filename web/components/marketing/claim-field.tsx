@@ -30,12 +30,14 @@ import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
  * hopped through `/dashboard/new-check?run=1`, which rendered the form for a
  * second before firing; founder: unprofessional and confusing. Same day.)
  *
- * SIGNED OUT (or Clerk not yet loaded) → the claim is written to a single-use,
+ * SIGNED OUT → the claim is written to a single-use,
  * tab-scoped intent (`lib/claim-intent.ts`) and the browser goes to
  * `/dashboard/new-check?run=1`; middleware bounces to `/` with that path as
  * `redirect_url`, the auth modal opens, and Clerk lands the visitor on the
- * same path after sign-in, where the console shows a "Starting your check"
- * panel — never the form — while it runs. One interruption, nothing retyped.
+ * same path after sign-in, where the console shows only the animated mark
+ * — never the form, never the claim — while it runs. One interruption,
+ * nothing retyped. If Clerk has not loaded when Enter is pressed, the field
+ * waits for it (≤3 s) rather than guessing signed-out.
  *
  * Why the claim is NOT in the URL (security pass): a claim in the query string
  * reaches server logs, PostHog `$current_url`, Sentry breadcrumbs and Referers;
@@ -60,6 +62,21 @@ function looksLikeUrl(value: string): boolean {
   return /^https?:\/\/\S+$/i.test(value);
 }
 
+type ClerkWindow = Window & { Clerk?: { loaded?: boolean; user?: unknown } };
+
+/** True/false once Clerk's client is loaded; waits up to `maxMs` for it. */
+async function resolveSignedIn(isLoaded: boolean, isSignedIn: boolean, maxMs = 3000): Promise<boolean> {
+  if (isLoaded) return isSignedIn;
+  const started = Date.now();
+  while (Date.now() - started < maxMs) {
+    const clerk = (window as ClerkWindow).Clerk;
+    if (clerk?.loaded) return Boolean(clerk.user);
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  const clerk = (window as ClerkWindow).Clerk;
+  return Boolean(clerk?.user);
+}
+
 export function ClaimField({
   surface,
   autoFocus = false,
@@ -70,7 +87,7 @@ export function ClaimField({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isSignedIn, getToken } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const id = useId();
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -136,7 +153,12 @@ export function ClaimField({
     // Never the claim text — only its shape.
     capture('claim_field_submit', { surface, input_type: inputType, signed_in: Boolean(isSignedIn) });
 
-    if (!isSignedIn) {
+    // A fast paste-and-Enter can beat Clerk's client load; deciding on a
+    // not-yet-loaded `isSignedIn` sent signed-in visitors down the sign-out
+    // route (seen on prod, 2026-09-01). Give Clerk up to ~3 s, then read the
+    // live client rather than the hook's stale closure value.
+    const signedIn = await resolveSignedIn(isLoaded, Boolean(isSignedIn));
+    if (!signedIn) {
       router.push(CLAIM_FIELD_DESTINATION);
       return;
     }

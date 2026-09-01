@@ -338,20 +338,16 @@ export default function NewCheckPage() {
   // (Founder, 2026-09-01: the form flashing for a second read as mis-routing.)
   const autoStarting = pendingRun || (autoRunFired.current && isSubmitting && !error);
   if (autoStarting) {
-    const claim = activeTab === 'url' ? urlInput : textInput;
+    // Founder, 2026-09-01: no screen that states the claim. If a filler is
+    // unavoidable it is the animated mark alone, centred. Status text is for
+    // screen readers only.
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center gap-8 px-6">
+      <div className="min-h-[70vh] flex items-center justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element -- generated SVG art */}
-        <img src="/brand/tru8-mark.svg" alt="" aria-hidden="true" className="h-[138px] w-auto motion-reduce:hidden" />
+        <img src="/brand/tru8-hero.svg" alt="" aria-hidden="true" className="h-[260px] md:h-[320px] w-auto motion-reduce:hidden" />
         {/* eslint-disable-next-line @next/next/no-img-element -- see above */}
-        <img src="/brand/tru8-mark-static.svg" alt="" aria-hidden="true" className="h-[138px] w-auto hidden motion-reduce:block" />
-        <p role="status" aria-live="polite" className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500">
-          <span aria-hidden="true" className="inline-block w-1.5 h-1.5 bg-accent rotate-45 mr-2 align-middle" />
-          Starting your check
-        </p>
-        {claim ? (
-          <p className="max-w-2xl text-base md:text-lg text-zinc-900 leading-relaxed break-words">{claim}</p>
-        ) : null}
+        <img src="/brand/tru8-hero-static.svg" alt="" aria-hidden="true" className="h-[260px] md:h-[320px] w-auto hidden motion-reduce:block" />
+        <p role="status" aria-live="polite" className="sr-only">Starting your check</p>
       </div>
     );
   }
