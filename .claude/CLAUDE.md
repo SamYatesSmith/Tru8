@@ -37,7 +37,7 @@ plan) and the outreach contact map (third-party personal data).
 ```bash
 # Backend
 cd backend
-uvicorn app.main:app --reload                    # API server (port 8000)
+uvicorn main:app --reload                        # API server (port 8000) — module is main:app, NOT app.main (start-backend.sh / entrypoint.sh)
 pytest tests/ -q --no-cov                        # All tests (3,517 pass, 66 skip, ~85s as of 2026-08-17)
 # Redis + Postgres must be up or ~26 cache/perf tests fail on connection refused, not on logic.
 pytest tests/unit/pipeline/ -v                   # Pipeline unit tests
