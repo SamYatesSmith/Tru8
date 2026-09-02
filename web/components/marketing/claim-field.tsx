@@ -239,7 +239,10 @@ export function ClaimField({
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? errorId : undefined}
               spellCheck
-              className="flex-grow min-w-0 resize-none bg-transparent border-0 outline-none p-0 text-base md:text-xl font-medium leading-normal text-zinc-900 placeholder:text-zinc-400 disabled:opacity-60"
+              // 16px explicit below md: the root is 14px on phones and iOS Safari
+              // zooms the page on focusing any control under 16px, which pushed
+              // the go tile half off screen (founder, iPhone, 2026-09-02).
+              className="flex-grow min-w-0 resize-none bg-transparent border-0 outline-none p-0 text-[16px] md:text-xl font-medium leading-normal text-zinc-900 placeholder:text-zinc-400 disabled:opacity-60"
             />
             <button
               type="submit"

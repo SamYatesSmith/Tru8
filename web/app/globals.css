@@ -70,6 +70,21 @@
       font-size: 16px;
     }
   }
+
+  /* iOS Safari zooms the whole page when a focused form control renders under
+     16px, and the zoom + offset stay on the tab after the keyboard closes. The
+     root is 14px on phones, so every rem-sized control sits under that line —
+     on the homepage claim field the go tile ended up half off screen (founder,
+     iPhone, 2026-09-02). Touch devices only: desktop density is untouched.
+     A utility class (.text-sm) still outranks this; the hero field sets its
+     own explicit 16px for that reason. */
+  @media (hover: none) and (pointer: coarse) and (max-width: 767px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
 }
 
 @layer utilities {
