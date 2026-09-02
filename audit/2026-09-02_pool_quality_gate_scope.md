@@ -34,11 +34,30 @@ from outliving the code that filled it.
 
 ### Piece 1 (half a day) — the trigger reads quality, not just quantity
 - `runner.py:447-472`: two new predicates beside `_element_is_starved`:
-  - `_element_is_one_sided_thin(elem)`: all directional refs on ONE side **and** that side's `support_structure`/`challenge_structure` has `derivation.originals ≤ 1` **and** `distinct_domains ≤ 2` (reuse `element_is_thin`). **One-sided alone must NOT trigger** — a well-evidenced grave claim should look one-sided (invariant #7; Viglione `441144ac`: 10 challenges across 8 domains → no trigger). TTE `11f54993` (1 original + 6 derivatives) and Tapper `5d69fc71` (Neidle + 4 recitals) → trigger.
-  - `_claim_pool_is_junk_heavy(claim)`: scorer excluded > 50% of the reviewed pool, or < 4 distinct domains after filtering (from the `raw_evidence` filter metadata the runner already holds).
-- `runner.py:2520-2532`: candidates also qualify on either predicate; each candidate carries `reason ∈ {unresolved, starved, one_sided_thin, junk_heavy}` — logged, and written into the element `basis` as a receipt (`recovery_reason`) so the page can say why more was fetched (no hidden curation).
-- Caps, timeout, merge and re-map untouched. ~40 lines + tests: the four fixture shapes above, pinned from stored records (tolerance 0).
-- **Measure before flipping:** run the predicates over every stored check's basis (`scripts/`, read-only, no spend) and report the trigger rate by claim shape. Expect: fires on thin/niche claims (TTE, Tapper, McSweeney e1), never on big-outlet claims (Viglione, Seymour).
+  - `_element_is_one_sided_thin(elem)`: all directional refs on ONE side **and** that side is not independent, where "not independent" is any of — **echo-dominated** (`derivation.derivative_count ≥ 2` and `originals ≤ 1`: a re-report cluster around at most one original), **single outlet** (`distinct_domains ≤ 1`), or an **F4 repetition cluster** (`repetition.max_cluster_on_side ≥ 3`). All three fields are already in `basis.support_structure` / `challenge_structure`. **One-sided alone must NOT trigger** — a well-evidenced grave claim should look one-sided (invariant #7).
+  - `_claim_pool_is_narrow(claim)`: fewer than 4 distinct domains survived filtering. **Not** "share of reviewed sources dropped" — see §Verification: 60–75% dropped is normal filtering on a good record.
+- `runner.py:2520-2532`: candidates also qualify on either predicate; each candidate carries `reason ∈ {unresolved, starved, one_sided_thin, narrow_pool}` — logged, and written into the element `basis` as a receipt (`recovery_reason`) so the page can say why more was fetched (no hidden curation).
+- Caps, timeout, merge and re-map untouched. ~40 lines + tests: the nine stored-record shapes below, pinned from the payloads (tolerance 0).
+
+## Verification of the rule (2026-09-02, run over nine stored records, no spend)
+
+The predicates were run against the real `basis` blocks of every record fetched today. **The first draft of the rule was wrong twice and the run caught both:** "≤ 2 domains" fired on Viglione's second element (two *independent* challengers), and "> 50% of reviewed sources dropped" fired on Tapper, McSweeney's re-run and the Scotland control arm — all of which are normal filtering (46 reviewed → 12 kept on a good record). Both corrected above. Result with the corrected rule:
+
+| record | existing trigger | new quality trigger | why |
+|---|---|---|---|
+| TTE original `11f54993` (critic in, as context) | no | **YES** | every element: 1 original + 6 derivatives — the case the founder worried about |
+| TTE re-run `b0398fca` (critic absent) | no | **YES** | e1 single outlet; e2/e4 echo-dominated |
+| TTE control arm `3cc642a4` (cache replay) | yes (e3 contextual) | YES | e1 single outlet |
+| Viglione `441144ac` | no | no | e1 10 challengers across 10 domains; e2 two independent |
+| Seymour `fa08cff7` | no | no | 4 and 8 independent challengers |
+| Tapper `5d69fc71` | no | **no — KNOWN MISS** | 5 supports, `originals 0 / derivatives 0`: the echo detector needs a PRIMARY original, and Neidle is commentary, so four recitals of one analysis read as five independents; the F4 shingle cluster is silent too |
+| McSweeney original `6fe1a7e8` | no | no | e1 two-sided (its fault was weighting — item 7), e2 five independent |
+| McSweeney re-run `e1e5de25` | no | YES | e1 rests on one official source — cheap and reasonable to look for a second |
+| Scotland control arm `4be28cd1` | yes (e3 unresolved) | yes | — |
+
+**Reading:** fires on every TTE shape, never on the three strong records, and misses Tapper for a named reason that is a gap in the echo detector, not in the gate. **Closing the Tapper miss is a separate, small change to the derivation pass** (`corroboration`): treat a commentary analysis that ≥ 2 later sources recite as an original, so its reciters count as derivatives. Scope it after this ships; it also fixes the △ note on Tapper's record.
+
+**Trigger rate:** 5 of these 9. Two of the five would have fired anyway. A read-only pass over all stored checks (the measurement script in Piece 1) gives the real rate before the flag flips.
 
 ## What does not change
 The cache stays (a viral claim must not cost a thousand searches; a fresh run is not automatically better — 25/40 URL churn). The cached pool is still the starting point; good items are kept by URL dedupe; only the weak parts are searched again. Recovery's existing caps bound cost and time.
