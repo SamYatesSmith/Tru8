@@ -33,7 +33,7 @@ Today's numbers are the ones to build on; re-probe before shipping.
 
 ## 2. Brave Goggles — a different RANKER, already in the stack
 
-Brave is the chain's second provider and the key is set. The Web Search API accepts an inline
+Brave is the chain's second provider and the key is set — on the **FREE plan: 2,000 queries/month, 1/s** (read from `x-ratelimit-limit: 1, 2000` on 2026-09-02; 1,983 left this month after these probes). It is the fallback when Serper fails, so a goggle lane would draw on the same quota. The Web Search API accepts an inline
 Goggle (`$boost` / `$downrank` / `$discard` by site or path). Same claims, `country=GB`, `count=13`:
 
 | case | Brave plain | claimant-aware goggle¹ | **generic goggle²** |
@@ -67,7 +67,7 @@ Serper remains the right primary; it has not grown a dissent feature.
 
 | service | what it adds | cost | verdict |
 |---|---|---|---|
-| Brave Goggles | custom re-rank on Brave's index | £0 extra (existing plan) | **use** |
+| Brave Goggles | custom re-rank on Brave's index | free tier 2,000/mo (≈66 checks/day at 1 query per claim); Base $5/1k ≈ 0.4p per query, i.e. 0.4p–2p per check depending on claim count — vs ~1p of Serper per check today | **use; cheapest lever, but not free at scale** |
 | Kagi Search API (Small Web lens) | index of personal sites/newsletters | $12/1k ≈ 1p per query | over the rule for every check; maybe on-demand |
 | DataForSEO Backlinks | pages that LINK to the claim's source URL — rebuttals cite what they rebut | ~$0.024/request ≈ 2p | over the rule per check; a natural Seeker "find responses" action at 1 credit |
 | Tavily / Perplexity Sonar | agentic search that reformulates and reads | $5–8/1k + tokens | ruled out (2026-05-15 rule) |
@@ -83,7 +83,7 @@ Scotland rank 3. ⚠️ Changes every corpus claim's request set → **bench cas
 probe above plus a control-arm re-run of the two claims.
 
 **B. Generic dissent goggle lane (design, small).** One Brave query per claim with the generic
-goggle, its results fed through the normal pipeline with **≤2 fetch slots** (commentary weight 1
+goggle (free tier covers today's volume; ~+40% on search cost per check on Base at scale — and it competes with Brave's fallback role for the same quota, so the circuit breaker must protect the fallback), its results fed through the normal pipeline with **≤2 fetch slots** (commentary weight 1
 vs support floor 3 — the sycophancy ceiling from the 20 Aug review), direction-neutral (the mapper
 decides supports/challenges; the lane only widens the pool). Measured today: 2/3 known cases.
 Name it for what it does — "independent-publishing lane", never "challenge lane".
