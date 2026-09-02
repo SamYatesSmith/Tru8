@@ -5,11 +5,37 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-09-01, sign-off)
+## 🟢 START HERE — next session (updated 2026-09-02, sign-off)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ WHERE 2026-09-01 ENDED — THE CLAIM FIELD IS THE FRONT DOOR, LIVE. Seven commits on main, all deployed and live-verified (`17a6843` front door · `8dd68cc` + `d2c14f3` security passes · `a02f8b6` footer row · `ce62d2d` direct-to-check · `988fd3e` section rhythm · `b0267ec` Clerk wait + mark-only interstitial). Founder ran claims on prod: "seems better".
+### ▶▶ WHERE 2026-09-02 ENDED — five things shipped and live; send week is THREE, not five; Build A awaits its proof.
+
+**Live on production today (all verified live, all on main):**
+- **Fix 1** `46efd58` — element caveats render on `/r/` as a grey `NOTE ·` row behind a fail-closed no-verdict gate (`web/lib/element-caveat.ts`). Design: `audit/2026-09-02_fix1_element_caveat_render_design.md`.
+- **iOS tap-zoom** `3ea7d06` — 16px floor on form fields for touch devices; the homepage field explicit.
+- **Playwright** `cb6711a` — `cd web && node scripts/verify-page.mjs <url> --device "iPhone 15"`; the page-verification tool from now on. Chrome extension only for Clerk-walled flows.
+- **Compact phone cookie banner** `0cb41b1` — 164px strip, was ~55% of the first screen.
+- **Build A** `adf252d` — the claim lane's lead query now also runs UNWINDOWED (`ENABLE_CLAIM_LANE_UNWINDOWED_TWIN`). Why: the past-month window returned only blocklisted social links, so the lane contributed nothing and critics appeared by luck. Design: `audit/2026-09-02_claim_lane_unwindowed_twin_design.md`; evidence: `audit/2026-09-02_dissent_discovery_probe.md`.
+
+**Send sheet** (`audit/2026-08-21_send_sheet.md`, untracked): all notes re-verified against the live pages and rewritten for Fix 1. **McSweeney re-run `e1e5de25`** (carbonbrief.org now in the pool, B+). **TTE HELD** — a 15p re-run lost their own piece from the pool. **Tapper held** by the founder's standard (C+). **Send THREE: Viglione, Seymour, McSweeney.**
+
+**Decisions today:** headline grey KEPT · Option B (signed-out runs) = capped subsidy, measure first (logged in the front-door review §4B) · Brave is on the FREE plan (2,000/month) so Build B is cheap, not free.
+
+### ▶▶ WHAT HAPPENS NEXT, in order:
+1. **Founder go — control arm for Build A (2 × 15p):** re-run the TTE claim and the Scotland 48p claim via the agent API (`max_age_hours=0`). **Pass = the critic's piece is in the pool** (trusttheevidence.substack.com; futureeconomy.scot). Run each twice if the pair disagrees (churn). Pass → fresh records for TTE + Tapper, notes rewritten against the rendered page + PDF, then send. Fail → hold both, design Build B (`…twin_design.md` §6).
+2. **Founder go — bench re-record (~£0.80, ~10 min, docker up):** `python scripts/replay_bench.py --all --update-golden` — Build A re-keyed every wired cassette; the bench reads as drifted until then. Keep the 018F/0005 must-fire pins (merge by hand, as on 2026-08-27).
+3. **Founder sends three by hand** (Viglione, Seymour, McSweeney) — read each `/r/` page first; tell the agent who/when so first-touch is logged in `audit/OUTREACH.md`.
+4. **Founder phone re-test** on a FRESH tab after the iOS fix + banner; screenshot if the page still opens scrolled.
+5. **After a few days:** read the front-door numbers (`claim_field_submit` vs `start_check_click`) → Option B decision. Unchanged.
+6. **Small honesty fix, cheap:** the GAPS lens must stop saying "well covered" when the pool holds no challenge and the supports trace to one original (parked gap #3 from 2026-08-24).
+7. Item 7 stage 2 / item 8 Option A — unchanged, after the above.
+
+**Durable lessons written to memory today:** a model-written free-text field means nothing until the prompt defines it — read the stored corpus for verdict language before rendering it · a guarantee written for "every lane's second query" silently misses a one-query lane · when a query's results are all blocklisted the lane contributes nothing — check what a query RETURNS before theorising about ranking · re-run once before sending to anyone likely to try the claim themselves · record the parameters of every probe · iOS zooms on any control under 16px and keeps the zoom on the tab.
+
+---
+
+### ▶▶ WHERE 2026-09-01 ENDED (history) — THE CLAIM FIELD IS THE FRONT DOOR, LIVE. Seven commits on main, all deployed and live-verified (`17a6843` front door · `8dd68cc` + `d2c14f3` security passes · `a02f8b6` footer row · `ce62d2d` direct-to-check · `988fd3e` section rhythm · `b0267ec` Clerk wait + mark-only interstitial). Founder ran claims on prod: "seems better".
 
 **What is live on `/`:** centred animated mark → *Context, not verdicts.* → lede → `ClaimField` (ring, halo outside, light dots; the animated brand mark on a 54×75 black tile IS the go button) → footer row `· Free to try ·` / `· We organise; you decide ·` / *See a sample record*. Page order HERO → 01 Inside a check → 02 The Record ("What comes back.", old 00+01 folded) → 03 Edges → 04 For developers → 05 Common questions → CLOSE (the field again). One vertical rhythm: the SheetHeader rule is the only divider, equal `pb-24 md:pb-32` gaps. **Behaviour:** signed in → the field creates the check itself and lands on `/dashboard/check/<id>` (waits ≤3 s for Clerk before deciding); signed out → single-use tab-scoped intent + `/dashboard/new-check?run=1` → auth modal → check runs after sign-in behind a mark-only interstitial. Claim NEVER in a URL; bare `?run=1` inert; `redirect_url` sanitised (`safeInternalPath`). Full record: `audit/2026-09-01_claim_field_front_door_review.md` (the decision) + `audit/2026-09-01_landing_below_hero_review.md` (build, verification, security passes 1–2, four post-launch fixes).
 
