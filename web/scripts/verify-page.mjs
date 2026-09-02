@@ -14,6 +14,7 @@
  *   --select "<css>"          Print textContent of every match (e.g. [data-testid=x]).
  *   --focus "<css>"           Focus this element before measuring, to see what a tap does.
  *   --click "<selector>"      Click this first (e.g. text=Reject non-essential) — dismiss a banner.
+ *   --rect "<css>"            Also print the bounding rect of this element (e.g. [role=dialog]).
  *   --full                    Screenshot the full page instead of the viewport.
  *   --wait <ms>               Extra settle time after load (default 1500).
  *
@@ -52,6 +53,7 @@ const out = opt('out');
 const select = opt('select');
 const focusSel = opt('focus');
 const clickSel = opt('click');
+const rectSel = opt('rect');
 const settle = Number(opt('wait', '1500'));
 
 if (deviceName && !devices[deviceName]) {
@@ -121,6 +123,10 @@ if (focusSel) {
     focused: await rect(focusSel),
     submitButton: await rect('button[type="submit"]'),
   };
+}
+
+if (rectSel) {
+  report.rect = await rect(rectSel);
 }
 
 if (select) {
