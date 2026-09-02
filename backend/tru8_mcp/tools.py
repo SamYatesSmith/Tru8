@@ -11,6 +11,10 @@ import os
 from importlib.metadata import PackageNotFoundError, version
 from typing import Optional
 
+import hashlib
+import json
+import time
+
 import httpx
 
 logger = logging.getLogger(__name__)
@@ -39,6 +43,24 @@ TIER_TIMEOUTS = {
 
 # Tier order for fallback
 TIER_ORDER = ["lookup", "consensus", "quick", "full"]
+
+# Idempotency (2026-09-02). Over the hosted transport the streamable-HTTP
+# stream dies at ~140 s; the client's next POST is rejected, it re-initialises
+# and RE-SENDS the pending tool call, and the server runs it again. One
+# tru8_check produced two charged checks (dd2ca726 + c8dd4886, 15p each).
+# The API already honours an Idempotency-Key (agent_auth.py: same key + same
+# request hash → the first transaction is returned, no second charge); the
+# client just never sent one. The key is derived from the endpoint, the
+# payload and a ten-minute window, so a transport retry maps onto the first
+# call and a deliberate identical call ten minutes later is a new one.
+IDEMPOTENCY_WINDOW_S = 600.0
+
+
+def idempotency_key_for(endpoint: str, payload: dict, now: Optional[float] = None) -> str:
+    """One key per (endpoint, payload, ten-minute window) — see IDEMPOTENCY_WINDOW_S."""
+    bucket = int((time.time() if now is None else now) // IDEMPOTENCY_WINDOW_S)
+    raw = json.dumps({"e": endpoint, "p": payload, "b": bucket}, sort_keys=True, default=str)
+    return "mcp-" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:40]
 
 
 class Tru8APIClient:
@@ -70,12 +92,15 @@ class Tru8APIClient:
                 "→ Settings → Developer."
             )
 
-    def _headers(self) -> dict:
-        return {
+    def _headers(self, idempotency_key: Optional[str] = None) -> dict:
+        headers = {
             "X-API-Key": self.api_key,
             "Accept": "application/json",
             "X-Tru8-Client": CLIENT_HEADER,
         }
+        if idempotency_key:
+            headers["Idempotency-Key"] = idempotency_key
+        return headers
 
     @staticmethod
     def _detect_input_type(claim: str) -> Optional[str]:
@@ -112,7 +137,7 @@ class Tru8APIClient:
             resp = await client.post(
                 f"{self.base_url}/api/v1/agent/{tier}",
                 json=payload,
-                headers=self._headers(),
+                headers=self._headers(idempotency_key_for(f"agent/{tier}", payload)),
             )
             if resp.status_code == 402:
                 raise InsufficientBalanceError(f"Insufficient balance for {tier} tier")
@@ -157,7 +182,7 @@ class Tru8APIClient:
             resp = await client.post(
                 f"{self.base_url}/api/v1/agent/check",
                 json=payload,
-                headers=self._headers(),
+                headers=self._headers(idempotency_key_for("agent/check", payload)),
             )
             if resp.status_code == 402:
                 raise InsufficientBalanceError(

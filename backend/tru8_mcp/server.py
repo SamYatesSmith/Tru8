@@ -220,6 +220,8 @@ async def tru8_check(
     - full      (~£0.15, ~60-90s) — web + specialist APIs, LLM classification, coverage recovery
 
     Charges based on tier actually executed, not tier requested.
+    Identical calls within ten minutes return the same check, so a
+    transport retry never runs — or charges — twice.
     Set max_tier to control maximum spend per call.
 
     Output structure:

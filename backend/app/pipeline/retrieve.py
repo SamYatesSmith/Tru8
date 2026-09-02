@@ -2299,13 +2299,11 @@ class EvidenceRetriever:
                     f"per_lane={_lane_histogram(fetch_set, plan_element_ids)}"
                 )
 
-            extraction_tasks = [
-                self._extract_with_fallback(result, claim_text, fetch_sem)
-                for result in fetch_set
-            ]
-
-            extracted_results = await asyncio.gather(
-                *extraction_tasks, return_exceptions=True
+            # Fetch-phase deadline (2026-09-02): keep what has finished when
+            # the fetches overrun, instead of letting the outer per-claim wait
+            # cancel the whole web task and discard every fetched page.
+            extracted_results = await self._extract_all_within_deadline(
+                fetch_set, claim_text, fetch_sem
             )
 
             # Filter successful extractions and track fallback stats
@@ -2344,6 +2342,75 @@ class EvidenceRetriever:
                 claim_text, max_sources=max_sources
             )
             return fallback, len(fallback) if isinstance(fallback, list) else 0
+
+    async def _extract_all_within_deadline(
+        self,
+        fetch_set: List[Any],
+        claim_text: str,
+        semaphore: asyncio.Semaphore,
+    ) -> List[Any]:
+        """Run every page fetch, but stop waiting at the fetch-phase deadline.
+
+        Returns a list aligned with ``fetch_set``: an EvidenceSnippet, None,
+        or the exception a fetch raised — exactly what ``asyncio.gather(...,
+        return_exceptions=True)`` returned before. Fetches still pending at
+        the deadline are cancelled and reported as None, each with a URL
+        ledger receipt (``stage=fetch_deadline``), so a dropped page is a
+        visible exclusion, never a silent one (invariant #5).
+
+        Why: the outer per-claim wait (RETRIEVE_CLAIM_TIMEOUT_S, 45 s) is
+        all-or-nothing INSIDE the web task — when the fetches overran it,
+        every fetched page was discarded and the pool collapsed to the API
+        items (TTE control arm dd2ca726, 2026-09-02: 40 fetched, the
+        critic's page among them, then ``0 web snippets``).
+        """
+        if not settings.ENABLE_FETCH_PHASE_DEADLINE:
+            return await asyncio.gather(
+                *[
+                    self._extract_with_fallback(r, claim_text, semaphore)
+                    for r in fetch_set
+                ],
+                return_exceptions=True,
+            )
+
+        deadline = float(settings.RETRIEVE_FETCH_PHASE_TIMEOUT_S)
+        tasks = [
+            asyncio.create_task(
+                self._extract_with_fallback(r, claim_text, semaphore)
+            )
+            for r in fetch_set
+        ]
+        if not tasks:
+            return []
+        done, pending = await asyncio.wait(tasks, timeout=deadline)
+
+        results: List[Any] = []
+        dropped_urls: List[str] = []
+        for search_result, task in zip(fetch_set, tasks):
+            if task in pending:
+                task.cancel()
+                results.append(None)
+                dropped_urls.append((getattr(search_result, "url", "") or "")[:120])
+            elif task.cancelled():
+                results.append(None)
+            elif task.exception() is not None:
+                results.append(task.exception())
+            else:
+                results.append(task.result())
+        if pending:
+            # Let the cancellations settle so no task is destroyed mid-await.
+            await asyncio.gather(*pending, return_exceptions=True)
+            logger.warning(
+                f"[RETRIEVE] Fetch deadline | kept={len(done)} "
+                f"dropped_by_deadline={len(pending)} after {deadline:g}s | "
+                f"claim='{claim_text[:60]}'"
+            )
+            for url in dropped_urls:
+                logger.info(
+                    f"[URL LEDGER] dropped stage=fetch_deadline "
+                    f"reason='fetch_deadline_{deadline:g}s' url={url}"
+                )
+        return results
 
     async def _extract_with_fallback(
         self, search_result, claim_text: str, semaphore: asyncio.Semaphore

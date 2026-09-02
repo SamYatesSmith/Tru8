@@ -448,7 +448,24 @@ class Settings(BaseSettings):
     # retrieval gathers** (queries, lanes, windows, filters, blocklist policy).
     # Scope: audit/2026-09-02_pool_quality_gate_scope.md, Piece 3.
     RETRIEVAL_CACHE_VERSION: str = Field(
-        "2026-09-02a", env="RETRIEVAL_CACHE_VERSION"
+        "2026-09-02b", env="RETRIEVAL_CACHE_VERSION"
+    )
+
+    # Fetch-phase deadline (2026-09-02). The per-claim 45 s wait in
+    # retrieve.py (RETRIEVE_CLAIM_TIMEOUT_S) cancels the WHOLE web task when
+    # the page fetches overrun — every fetched page is discarded, the pool
+    # collapses to the API items, and coverage recovery rebuilds a thin,
+    # month-windowed pool. Seen on the TTE control arm (dd2ca726: 40 fetched,
+    # critic's page fetched, then `0 web snippets`). The fetch phase now has
+    # its own, shorter deadline and KEEPS what has finished — only the
+    # stragglers are cancelled, each with a ledger receipt. 30 s leaves the
+    # outer 45 s room for search (~3 s) and post-processing, so the outer
+    # all-or-nothing cut should never fire in practice. False = today.
+    ENABLE_FETCH_PHASE_DEADLINE: bool = Field(
+        True, env="ENABLE_FETCH_PHASE_DEADLINE"
+    )
+    RETRIEVE_FETCH_PHASE_TIMEOUT_S: float = Field(
+        30.0, env="RETRIEVE_FETCH_PHASE_TIMEOUT_S"
     )
 
     # Phase 3a (2026-07-29): element atomicity. 21.2% of grounds elements ask

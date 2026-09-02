@@ -824,6 +824,24 @@ async def _run_agent_pipeline(
         request_hash=request_hash,
     )
 
+    # Idempotent replay (2026-09-02). charge() honours Idempotency-Key by
+    # returning the EXISTING transaction instead of debiting again — but this
+    # function then created a second Check, ran the pipeline a second time
+    # and re-pointed the transaction at the new check. A transport retry of
+    # one tru8_check therefore still ran twice (dd2ca726 + c8dd4886). A
+    # fresh transaction has no check yet (charge() is called without one
+    # here), so an attached check is the exact signature of a replay: return
+    # that check — waiting for it if it is still running — and never run or
+    # re-link anything.
+    if tx.check_id:
+        return await _idempotent_replay(
+            tx=tx,
+            tier=tier,
+            limitations=limitations,
+            compact=body.compact or False,
+            max_wait_s=config.max_wall_time_seconds,
+        )
+
     # Resolve input type (auto-detect URL from claim text)
     resolved_type, input_data = _resolve_input(body.claim, body.input_type)
 
@@ -1017,6 +1035,79 @@ async def _run_agent_pipeline(
         await handle_pipeline_failure(check.id, payment.user_id, e)
         _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
         raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
+
+
+async def _idempotent_replay(
+    *,
+    tx: "AgentTransaction",
+    tier: str,
+    limitations: list,
+    compact: bool,
+    max_wait_s: float,
+    poll_s: float = 2.0,
+) -> JSONResponse:
+    """Return the check an idempotent transaction already owns.
+
+    Waits (up to the tier's wall-time budget) while the original run is still
+    in flight, then builds the normal agent response for it with
+    ``chargedPence`` 0 — the first call paid. A failed original surfaces as
+    502 exactly as its own call did; the refund happened there.
+    """
+    import time
+
+    from sqlalchemy import select
+
+    from app.core.database import async_session
+    from app.api.v1.response_builder import build_agent_response
+
+    check_id = tx.check_id
+    deadline = time.monotonic() + max(float(max_wait_s), 0.0)
+    status = None
+    executed_tier = tier
+    while True:
+        async with async_session() as poll_session:
+            row = await poll_session.execute(select(Check).where(Check.id == check_id))
+            check = row.scalar_one_or_none()
+        if check is None:
+            raise HTTPException(status_code=404, detail="Check not found")
+        status = check.status
+        executed_tier = getattr(check, "executed_tier", None) or tier
+        if status in ("completed", "failed", "error"):
+            break
+        if time.monotonic() >= deadline:
+            raise HTTPException(
+                status_code=504,
+                detail="The original run for this Idempotency-Key is still in progress.",
+            )
+        await asyncio.sleep(poll_s)
+
+    if status != "completed":
+        raise HTTPException(
+            status_code=502,
+            detail="The original run for this Idempotency-Key failed; it was refunded then.",
+        )
+
+    logger.info(
+        f"[AGENT {tier.upper()}] Idempotent replay | key tx={tx.id} check={check_id} "
+        f"— no new run, no new charge"
+    )
+    async with async_session() as resp_session:
+        response_data = await build_agent_response(
+            check_id=check_id,
+            session=resp_session,
+            executed_tier=executed_tier,
+            charged_pence=0,
+            limitations=limitations,
+            compact=compact,
+        )
+    return JSONResponse(
+        content=response_data,
+        headers={
+            "X-Check-Id": check_id,
+            "X-Tru8-Tx-Id": tx.id,
+            "X-Tru8-Idempotent-Replay": "1",
+        },
+    )
 
 
 async def _refund_and_fail_tx(
