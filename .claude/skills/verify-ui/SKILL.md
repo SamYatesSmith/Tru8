@@ -37,9 +37,27 @@ cd web
 npm run build           # 1. must compile/typecheck clean (Next.js build)
 npm run dev             # 2. dev server on http://localhost:3000 (run in background)
 ```
-Drive it with the browser MCP tools (`browser_navigate`, `browser_snapshot`,
-`browser_take_screenshot`, `browser_console_messages`, `browser_resize`). Use a
-desktop viewport (≥1280px) and a mobile viewport (≥375px) for every route.
+Drive it with **Playwright, headless, from the command line** — no Chrome window,
+no extension, no Docker gateway (2026-09-02; both of those failed on the same
+morning and neither can emulate a phone):
+```bash
+cd web
+node scripts/verify-page.mjs http://localhost:3000/            # desktop 1280×900
+node scripts/verify-page.mjs http://localhost:3000/ --device "iPhone 15" --focus textarea --out ../design/preview/<date>_<page>_iphone.png
+node scripts/verify-page.mjs http://localhost:3000/r/<id> --select '[data-testid="element-caveat"]'
+node scripts/verify-page.mjs <url> --engine webkit ...           # Safari's engine (not iOS Safari)
+```
+It prints JSON: final URL + status, viewport, `scrollY` after load, horizontal
+overflow in px, console errors, the submit button's rect (with `offRight` — px
+past the right edge), and after `--focus` the same again. Screenshots go in
+`design/preview/` (never a temp dir). Run every route at desktop AND
+`--device "iPhone 15"`. To see the REAL public records with an uncommitted
+change, start the dev server against production data (read-only GETs):
+`NEXT_PUBLIC_API_URL=https://api.trueight.com npx next dev -p 3001`.
+The Chrome extension (`mcp__claude-in-chrome__*`) remains ONLY for flows behind
+the founder's Clerk login, which a headless browser cannot reach.
+⚠️ iOS-only behaviours (tap-zoom under 16px, the keyboard viewport) do not
+reproduce in any engine here — those still need the founder's phone.
 
 ## The six checks (each needs evidence)
 
