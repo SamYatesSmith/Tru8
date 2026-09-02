@@ -119,7 +119,15 @@ public records so a repeat is free and instant — the first thing that genuinel
 - **Scope:** ~1 week. Anonymous check ownership + claim on sign-up, Turnstile,
   rate/budget gate, public-by-default for anonymous runs (state it plainly),
   cache that is not user-scoped, abuse logging.
-- **Cost:** bounded by the daily cap you set. 
+- **Cost:** bounded by the daily cap you set.
+  **Founder question 2026-09-02: "I can't charge for signed-out runs — I don't have the money to sponsor a large number of people's research."**
+  Answer logged: correct, B cannot charge and is not meant to; it is a *capped subsidy*, and the cap is the whole mechanism.
+  A global daily budget of runs plus a per-IP allowance; past either, the field reads "sign in to keep going". Exposure is a
+  number the founder sets, not demand. At the measured ~1.2p real cost per check, 30 signed-out runs/day ≈ £11/month;
+  a £10–15/month ceiling is the shape. Tru8 already subsidises research (three free checks per sign-up), so B moves part of
+  that spend in front of the email gate rather than adding a new class of spend. The cross-user public-record cache only
+  pays off at volume — nothing for the money in the first months. **Recommendation (2026-09-02): do not build until §5 #4's
+  numbers show submits dying at the modal; if they do, build with a £10–15/month ceiling.** Founder: "ok" to measuring first.
 - **What it tests:** the actual question — *does a stranger use it* — with no
   email in the way. This is the only variant that removes the gate.
 - **Gate:** build it when Phase 1 shows people submitting and abandoning at the
@@ -167,6 +175,7 @@ sitemap; each is a landing page (the artefact loop from
    the door if you want the current page as the baseline for a day).
 2. **B: agree the gate in advance** — what Phase 1 number, or which stranger
    comment, triggers it — so it is a decision made once, not re-litigated.
+   *2026-09-02: money question answered under §4B — capped subsidy, £10–15/month ceiling if ever built; gate unchanged.*
 3. **Placeholder copy** — proposed: *"Paste a claim or a question"* (box) ·
    *"Get the evidence for and against — a signed record in about two minutes."*
    (beneath). Your call on the exact words; the constraint is no "true/false".

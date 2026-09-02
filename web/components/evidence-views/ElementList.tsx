@@ -6,6 +6,7 @@ import { ElementStateBadge, ElementStateKey } from './ElementStateBadge';
 import { EvidenceQualityNote } from './EvidenceQualityNote';
 import { TopUpButton } from './TopUpButton';
 import { elementIsThin } from '@/lib/support-structure';
+import { elementCaveatNote } from '@/lib/element-caveat';
 
 /** Dashboard-only capability to top up a thin element. Absent on the public report. */
 export interface TopUpCapability {
@@ -39,6 +40,11 @@ export function ElementList({ elements, topUp }: ElementListProps) {
         const sourceCount = element.evidenceRefs?.length || 0;
         const state = (element.state || 'unresolved') as ElementStateKey;
         const isGap = sourceCount === 0;
+        // Fix 1 (2026-09-02): the mapper's one-sentence caveat, gated so only a
+        // genuine limit of the evidence reaches the page — never an adjudication
+        // restating the badge. Grey, no colour, verbatim or nothing.
+        // Design: audit/2026-09-02_fix1_element_caveat_render_design.md
+        const caveat = isGap ? null : elementCaveatNote(element.uncertainty);
 
         return (
           <div
@@ -73,6 +79,17 @@ export function ElementList({ elements, topUp }: ElementListProps) {
                   </div>
                 </div>
                 {!isGap && <EvidenceQualityNote basis={element.basis} />}
+                {caveat && (
+                  <p
+                    title={caveat}
+                    data-testid="element-caveat"
+                    className="mt-1.5 font-mono text-[10px] leading-relaxed text-zinc-500 line-clamp-2"
+                  >
+                    <span className="text-zinc-400 uppercase tracking-wider">Note</span>
+                    <span className="text-zinc-300"> &middot; </span>
+                    {caveat}
+                  </p>
+                )}
                 {topUp && !isGap && elementIsThin(element) && (
                   <div className="mt-2">
                     <TopUpButton
