@@ -211,10 +211,13 @@ class TestMergedPlan:
         )
 
         assert merged["element_wired"] is True
-        # Claim lane first, deterministically, whatever order the LLM replied in
-        assert merged["queries"][:3] == ["c q1", "c q2", "c q3"]
-        assert merged["queries"][3:] == ["e1 q1", "e1 q2", "e2 q1", "e2 q2"]
-        assert len(merged["queries"]) == 7
+        # Claim lane first, deterministically, whatever order the LLM replied in.
+        # Build A (2026-09-02): the lead query's unwindowed twin sits at lane
+        # position 1 — audit/2026-09-02_claim_lane_unwindowed_twin_design.md.
+        assert merged["queries"][:4] == ["c q1", "c q1", "c q2", "c q3"]
+        assert merged["query_freshness"][:2] == ["py", "none"]
+        assert merged["queries"][4:] == ["e1 q1", "e1 q2", "e2 q1", "e2 q2"]
+        assert len(merged["queries"]) == 8
 
     def test_query_element_ids_stay_index_parallel_with_queries(self):
         merged = _merge_element_plans(
@@ -227,7 +230,9 @@ class TestMergedPlan:
         )
 
         assert len(merged["query_element_ids"]) == len(merged["queries"])
+        # Build A (2026-09-02): + the claim lane's twin at index 1.
         assert merged["query_element_ids"] == [
+            CLAIM_LANE_ELEMENT_ID,
             CLAIM_LANE_ELEMENT_ID,
             CLAIM_LANE_ELEMENT_ID,
             "e1",
@@ -248,7 +253,11 @@ class TestMergedPlan:
             1,
         )
 
-        assert merged["queries"] == ["c q1", "e1 q1"]
+        # Build A (2026-09-02): the cap binds on the PLANNER's queries; the
+        # lead's unwindowed twin is a guarantee added after it, so the quick
+        # claim lane runs the claim text twice (windowed, unwindowed).
+        assert merged["queries"] == ["c q1", "c q1", "e1 q1"]
+        assert merged["query_freshness"] == ["py", "none", "py"]
 
     def test_class_augmentation_targets_the_claim_lane_only(self):
         plans = [
@@ -276,9 +285,14 @@ class TestMergedPlan:
             3,
         )
 
+        # Build A (2026-09-02): the claim lane also carries its lead's
+        # unwindowed twin at lane position 1; the hedge on the planner's
+        # position 1 ("c q2") is unchanged and now sits at index 2.
+        assert merged["queries"][:3] == ["c q1", "c q1", "c q2"]
         assert merged["query_freshness"] == [
             "py",
-            "none",  # claim lane, position 1
+            "none",  # claim lane, the lead's twin
+            "none",  # claim lane, planner position 1 (F1-D3 hedge)
             "py",
             "none",  # e1, position 1
             "pd",
@@ -766,7 +780,13 @@ class TestWiredPlannerInput:
         # The merged plan lands on the claim, wired, with per-lane attribution
         plan = claim["query_plan"]
         assert plan["element_wired"] is True
-        assert plan["query_element_ids"] == [CLAIM_LANE_ELEMENT_ID, "e1", "e2"]
+        # Build A (2026-09-02): the claim lane carries its unwindowed twin.
+        assert plan["query_element_ids"] == [
+            CLAIM_LANE_ELEMENT_ID,
+            CLAIM_LANE_ELEMENT_ID,
+            "e1",
+            "e2",
+        ]
 
         # And the telemetry says so — this is how "the seam is live" stops
         # being an inference from architecture docs.

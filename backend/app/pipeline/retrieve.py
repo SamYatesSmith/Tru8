@@ -200,6 +200,12 @@ CLAIM_LANE_MAX_RESULTS_PER_QUERY = 13
 CLAIM_LANE_FETCH_WEIGHT = 2
 ELEMENT_LANE_FETCH_WEIGHT = 1
 
+# Build A (2026-09-02): results requested by the claim lane's unwindowed twin.
+# Fixed, and excluded from the lead's depth divisor, so the lead keeps exactly
+# the depth it has today. Both known rebuttals sat at rank 3 unwindowed
+# (audit/2026-09-02_dissent_discovery_probe.md); results cost nothing extra.
+CLAIM_LANE_TWIN_RESULTS = 10
+
 
 def _build_retrieval_lanes(claim: Dict[str, Any]) -> List[Dict[str, str]]:
     """Build the planner's lane list for one claim.
@@ -311,6 +317,7 @@ def _lane_histogram(results: List[Any], query_element_ids: List[str]) -> Dict[st
 def _allocate_fetch_budget(
     results: List[Any],
     query_element_ids: List[str],
+    query_twin_of: Optional[List[Optional[int]]] = None,
 ) -> List[Any]:
     """Order search results so the fetch budget is shared across lanes.
 
@@ -349,9 +356,19 @@ def _allocate_fetch_budget(
             if cursor >= len(bucket):
                 continue
             lane = _lane_of(key if key >= 0 else None, query_element_ids)
+            # Build A: a claim-lane twin takes an element lane's weight. At the
+            # claim lane's weight it would move the lane from 2/7 to 4/9 of the
+            # fetch budget and starve the element lanes — the opposite of
+            # "add, don't replace". At 1 the lane goes 2/7 -> 3/8 and the
+            # twin's rank-3 hit is still fetched in its third round.
+            is_twin = bool(
+                query_twin_of
+                and 0 <= key < len(query_twin_of)
+                and isinstance(query_twin_of[key], int)
+            )
             weight = (
                 CLAIM_LANE_FETCH_WEIGHT
-                if lane == CLAIM_LANE_ELEMENT_ID
+                if lane == CLAIM_LANE_ELEMENT_ID and not is_twin
                 else ELEMENT_LANE_FETCH_WEIGHT
             )
             take = bucket[cursor : cursor + weight]
@@ -465,6 +482,10 @@ def _merge_element_plans(
     merged_queries: List[str] = []
     query_element_ids: List[str] = []
     query_freshness: List[str] = []
+    # Build A: index of the query a twin copies, None for every other query.
+    # Parallel to the three arrays above; absent from self-supplied plans
+    # (re_search.py), which execute_planned_queries treats as all-None.
+    query_twin_of: List[Optional[int]] = []
     for p in plans:
         element_id = p.get("element_id", "e1")
         element_freshness = p.get("freshness", "py")
@@ -476,14 +497,42 @@ def _merge_element_plans(
         if element_wired and element_id != CLAIM_LANE_ELEMENT_ID:
             lane_cap = min(max_queries_per_element, ELEMENT_LANE_MAX_QUERIES)
         elem_queries = (p.get("queries") or [])[:lane_cap]
+        lane_start = len(merged_queries)
         for pos, q in enumerate(elem_queries):
             merged_queries.append(q)
             query_element_ids.append(element_id)
             query_freshness.append(_hedged_query_freshness(element_freshness, pos))
+            query_twin_of.append(None)
+        # Build A (2026-09-02): the claim lane's lead query — the claim's own
+        # words — must run unwindowed at least once. The F1-D3 hedge covers
+        # position 1 of a lane; the claim lane's position 1 is a site: variant
+        # or does not exist, so the lead never ran without its inherited
+        # window. Insert a freshness=none copy of the lead directly after it.
+        # Breaking-news lanes (pd/pw) are exempt exactly as the hedge is.
+        # Design: audit/2026-09-02_claim_lane_unwindowed_twin_design.md
+        if (
+            element_wired
+            and element_id == CLAIM_LANE_ELEMENT_ID
+            and elem_queries
+            and settings.ENABLE_CLAIM_LANE_UNWINDOWED_TWIN
+            and element_freshness not in ("pd", "pw")
+        ):
+            lead = elem_queries[0]
+            already_unwindowed = any(
+                merged_queries[i] == lead and query_freshness[i] == "none"
+                for i in range(lane_start, len(merged_queries))
+            )
+            if not already_unwindowed:
+                at = lane_start + 1
+                merged_queries.insert(at, lead)
+                query_element_ids.insert(at, CLAIM_LANE_ELEMENT_ID)
+                query_freshness.insert(at, "none")
+                query_twin_of.insert(at, lane_start)
     return {
         "queries": merged_queries,
         "query_element_ids": query_element_ids,
         "query_freshness": query_freshness,
+        "query_twin_of": query_twin_of,
         "freshness": plans[0].get("freshness", "py") if plans else "py",
         "reasoning": plans[0].get("reasoning", "") if plans else "",
         "element_wired": element_wired,
@@ -2037,6 +2086,12 @@ class EvidenceRetriever:
                 3, max_sources // len(queries)
             )  # Distribute sources across queries
             per_query_sources = [sources_per_query] * len(queries)
+            # Build A: twins are excluded from the claim lane's depth divisor
+            # (the lead keeps today's depth) and ask for a fixed slice.
+            query_twin_of = query_plan.get("query_twin_of") or []
+            twin_positions = {
+                i for i, t in enumerate(query_twin_of) if isinstance(t, int)
+            }
             if element_wired:
                 claim_lane_positions = [
                     i
@@ -2044,17 +2099,22 @@ class EvidenceRetriever:
                     if i < len(plan_element_ids)
                     and plan_element_ids[i] == CLAIM_LANE_ELEMENT_ID
                 ]
+                lead_positions = [
+                    i for i in claim_lane_positions if i not in twin_positions
+                ]
                 if claim_lane_positions:
                     claim_lane_depth = max(
                         3,
                         min(
                             CLAIM_LANE_MAX_RESULTS_PER_QUERY,
-                            max_sources // len(claim_lane_positions),
+                            max_sources // max(1, len(lead_positions)),
                         ),
                     )
                     per_query_sources = [
                         (
-                            claim_lane_depth
+                            CLAIM_LANE_TWIN_RESULTS
+                            if i in twin_positions
+                            else claim_lane_depth
                             if i in set(claim_lane_positions)
                             else ELEMENT_RESULTS_PER_QUERY
                         )
@@ -2220,7 +2280,7 @@ class EvidenceRetriever:
             fetch_candidates = unique_search_results
             if element_wired:
                 fetch_candidates = _allocate_fetch_budget(
-                    unique_search_results, plan_element_ids
+                    unique_search_results, plan_element_ids, query_twin_of
                 )
             fetch_set = fetch_candidates[:max_sources]
 

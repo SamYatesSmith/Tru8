@@ -425,6 +425,20 @@ class Settings(BaseSettings):
     # False restores that behaviour byte-for-byte (rollback without a deploy).
     ENABLE_ELEMENT_RETRIEVAL: bool = Field(True, env="ENABLE_ELEMENT_RETRIEVAL")
 
+    # Build A (2026-09-02): the claim lane's unwindowed twin. The claim lane
+    # ran the claim text ONCE, inside the inherited freshness window (pm on the
+    # TTE runs); the F1-D3 hedge unwindows a lane's SECOND query and the claim
+    # lane has one, so the claim's own words never ran without a window. On a
+    # thin claim Google's month window returned only blocklisted social links
+    # and the lane contributed nothing — whether a critic appeared then rode on
+    # element-lane churn (11f54993 had it, b0398fca did not; same input). True:
+    # the lead query gets a freshness=none twin at lane position 1, fixed depth
+    # 10, fetch weight 1. False restores today byte-for-byte. Design:
+    # audit/2026-09-02_claim_lane_unwindowed_twin_design.md
+    ENABLE_CLAIM_LANE_UNWINDOWED_TWIN: bool = Field(
+        True, env="ENABLE_CLAIM_LANE_UNWINDOWED_TWIN"
+    )
+
     # Phase 3a (2026-07-29): element atomicity. 21.2% of grounds elements ask
     # two questions at once and 13.8% ask two that take DIFFERENT grading
     # rules — so the trivially-satisfiable half badges the whole element
