@@ -171,14 +171,23 @@ class CacheService:
         identifier = f"{model}:{self._hash_content(content)}"
         return await self.get("claim_extract", identifier)
     
-    async def cache_evidence_extraction(self, claim: str, evidence_data: List[Dict]) -> bool:
-        """Cache evidence extraction results"""
-        identifier = self._hash_content(claim)
-        return await self.set("evidence_extract", identifier, evidence_data)
+    def _evidence_identifier(self, claim: str) -> str:
+        """Piece 3 (2026-09-02): the retrieval version is part of the key, so a
+        deploy that changes what retrieval gathers starts every claim fresh
+        instead of replaying a pool the old code built (24 h TTL)."""
+        return f"{settings.RETRIEVAL_CACHE_VERSION}:{self._hash_content(claim)}"
+
+    async def cache_evidence_extraction(
+        self, claim: str, evidence_data: List[Dict], ttl: Optional[int] = None
+    ) -> bool:
+        """Cache evidence extraction results (ttl overrides the 24 h default —
+        breaking-news claims are cached for an hour, see workers/pipeline)."""
+        identifier = self._evidence_identifier(claim)
+        return await self.set("evidence_extract", identifier, evidence_data, ttl)
     
     async def get_cached_evidence_extraction(self, claim: str) -> Optional[List[Dict]]:
         """Get cached evidence extraction"""
-        identifier = self._hash_content(claim)
+        identifier = self._evidence_identifier(claim)
         return await self.get("evidence_extract", identifier)
     
     async def cache_pipeline_result(self, check_id: str, result_data: Dict) -> bool:

@@ -143,6 +143,24 @@ async def search_factchecks_for_claims(
     return factcheck_evidence
 
 
+# Piece 3 (2026-09-02): a breaking-news claim (planner freshness pd/pw) is
+# cached for an hour, not a day — a rebuttal published this afternoon must
+# not be invisible to everyone re-checking the same text until tomorrow.
+EVIDENCE_CACHE_TTL_BREAKING_NEWS = 3600
+
+
+def _evidence_cache_ttl(claim: Dict[str, Any]) -> Optional[int]:
+    """TTL override for one claim's cached pool, or None for the category default.
+
+    Reads the planner's freshness off the merged query plan retrieval left on
+    the claim; a claim without one (legacy paths) keeps the default.
+    """
+    plan = claim.get("query_plan") or {}
+    if plan.get("freshness") in ("pd", "pw"):
+        return EVIDENCE_CACHE_TTL_BREAKING_NEWS
+    return None
+
+
 async def retrieve_evidence_with_cache(
     claims: List[Dict[str, Any]],
     cache_service,
@@ -292,11 +310,13 @@ async def retrieve_evidence_with_cache(
                         continue
 
                     # Quality gate passed - cache this evidence
+                    ttl_override = _evidence_cache_ttl(claim)
                     await cache_service.cache_evidence_extraction(
-                        claim_text, evidence_list
+                        claim_text, evidence_list, ttl_override
                     )
                     logger.info(
                         f"[CACHE OK] Claim {position}: cached {len(evidence_list)} evidence items"
+                        f" ttl={ttl_override or 'default'} version={settings.RETRIEVAL_CACHE_VERSION}"
                     )
 
             # Merge cached and new evidence

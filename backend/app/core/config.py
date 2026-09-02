@@ -439,6 +439,18 @@ class Settings(BaseSettings):
         True, env="ENABLE_CLAIM_LANE_UNWINDOWED_TWIN"
     )
 
+    # Piece 3 (2026-09-02): the per-claim evidence cache must not outlive the
+    # retrieval code that filled it. The key was md5(claim text) alone, so a
+    # retrieval improvement did not reach a repeated claim for 24 h, and a
+    # re-run inside that window replayed the old pool with zero searches —
+    # which is how Build A's TTE control arm came back void. This string is
+    # part of the key. **Bump it in the SAME commit as any change to what
+    # retrieval gathers** (queries, lanes, windows, filters, blocklist policy).
+    # Scope: audit/2026-09-02_pool_quality_gate_scope.md, Piece 3.
+    RETRIEVAL_CACHE_VERSION: str = Field(
+        "2026-09-02a", env="RETRIEVAL_CACHE_VERSION"
+    )
+
     # Phase 3a (2026-07-29): element atomicity. 21.2% of grounds elements ask
     # two questions at once and 13.8% ask two that take DIFFERENT grading
     # rules — so the trivially-satisfiable half badges the whole element
