@@ -5,11 +5,42 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-09-02, evening sign-off — supersedes the afternoon block)
+## 🟢 START HERE — next session (updated 2026-09-03, sign-off — supersedes the 2026-09-02 evening block)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ WHERE 2026-09-02 ENDED — seven ships live, both control arms PASS, three faults found and fixed on the way.
+### ▶▶ WHERE 2026-09-03 ENDED — the bench is re-recorded and, for the first time, drift-free. Nothing else moved; the sends are still unlogged.
+
+**⚠️ THREE COMMITS ON MAIN ARE NOT PUSHED** (`fd4bb49` recorder stub · `be6d5ee` corpus re-record · the sign-off docs commit). Production is unaffected by them (bench tooling, corpus, docs only) but `origin/main` is behind — push on the founder's word, it triggers a Railway deploy like any push.
+
+**Shipped today (committed, local):**
+| commit | what | proof |
+|---|---|---|
+| `fd4bb49` | **Recorder stubs oversize PDFs** — an `application/pdf` body over the 20 MiB guard is stored as `body_truncated_from` only and replayed by declared size; the guard refuses it on the same path. A 32.5 MB Gallagher Re PDF on 5647 had made a 30 MB gzip cassette (PDFs do not compress; the pack is already 505 MB and history is not rewritable) | `test_cassette_body_cap.py`, 75/75 bench unit tests; 5647 cassette 36.6 → 5.9 MB, replay identical |
+| `be6d5ee` | **Corpus re-recorded on Build A's twin + the fetch-phase deadline** (~£0.80, founder go). Four passes: `--record` 535 s → `--record-missing` (nothing to patch) → `--update-golden` → verification `--all`. 018F + 0005 merged by hand, pins kept | **`185 ok / 1 warn / 13 fail / 2 unexercised` — ZERO cassette misses on all 10 claims** (82CF, B4A3, 5647 all clean) |
+
+**What the re-record found (all attributed, README header canonical):** (a) **018F recital debt PAID** — 3 refs / 3 elements, the 2026-08-17 pin exactly. (b) **018F interested-party red line = comparator FALSE ALARM, 3 visible fails kept:** the pool carries whitehouse.gov this time (the claimant's own video, tier primary) but the mapper filed it `context`, and the gate only re-labels directional refs — proved by replaying the cassette alone and reading the final claim map (`subjects=['donald trump']`, `interested_party_match` fires on the URL). The must-fire precondition reads domain PRESENCE, coarser than the trigger. Pins NOT lowered. (c) 2 × must_have pool drift (018F politifact; 0005 gianlucabenigno — its temporal gate UNEXERCISED again, 3 domains, ONS-dominated, the scorer kept 3 of 20). (d) 8 × thin-pool v3 floors. Pools moved both ways (82CF 5→13 sources, 0005 11→5); the bench cannot attribute retrieval-size changes (62% churn) — nothing here implicates the 30 s deadline.
+
+**NOT done today, still owed exactly as yesterday:** the sends log (the founder did not say which of Viglione / Seymour / McSweeney went — ask again), the TTE + Tapper note rewrites, the phone re-test, the front-door numbers.
+
+**Spend today:** ~£0.80 (the record pass) + 0p on everything else (replays, the 018F claim-map dump, unit tests). Docker's Postgres/Redis left running (harmless).
+
+### ▶▶ WHAT HAPPENS NEXT, in order:
+1. **Push** `fd4bb49..HEAD` on the founder's word (`git log origin/main..HEAD` shows what is waiting).
+2. **Ask which of the three sends went, and when** → log first-touch in `audit/OUTREACH.md`; watch `?src=` attribution. Nothing is logged yet.
+3. **Rewrite TTE + Tapper notes against their fresh records** (`/r/1bbf008a…`, `/r/4be28cd1…`): the 08-31 pressure pass — rendered page (Playwright, `--select '[data-testid="element-caveat"]'`), every lens, the PDF text. No spend. Then send on the founder's word.
+4. **Founder phone re-test** on a fresh tab (iOS fix + banner); screenshot if it still opens scrolled.
+5. **After a few days:** front-door numbers (`claim_field_submit` vs `start_check_click`) → Option B decision. Unchanged.
+6. **Bench items, no spend, when convenient:** must-fire precondition = "directionally referenced" (needs a capture signal for the trap domain's relationship — today it reads `domain_set`); consider git LFS or an out-of-history home for cassettes before the next re-record (the pack grows ~30 MB per re-record).
+7. **Pipeline queue, held behind the sends:** pool-quality gate Pieces 2 and 1 · echo detector blind spot (recitals of a COMMENTARY original — the Tapper miss) · GAPS lens "well covered" honesty fix · MCP stream keepalive (~140 s) · item 7 stage 2 / item 8 Option A.
+
+**How to read a bench result honestly:** a red gate line is not a broken gate until you have read what the mapper did with the trap — replay the claim alone (018F runs first in `--all`, so its global URL state is identical standalone), wrap `app.pipeline.runner.run_pipeline` to capture the result, and read the element refs. And check cassette sizes in `git diff --stat` before committing a re-record.
+
+**Durable lessons written to memory today** (`project_bench_rerecord_2026_09_03.md`): a must-fire precondition that reads domain presence is coarser than the gate's trigger · the recorder buffers what the pipeline refuses · PDFs do not compress, so truncation is not a fix — stub by declared size · do not lower the pins still holds · a formatter hook reflows test files too, patch by pattern.
+
+---
+
+### ▶▶ WHERE 2026-09-02 ENDED (history) — seven ships live, both control arms PASS, three faults found and fixed on the way.
 
 **Live on production tonight (all on main, all verified live, in order shipped):**
 | commit | what | proof |
