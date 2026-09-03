@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-5647-FA4F",
-  "captured_at": "2026-08-27T14:05:56.780812+00:00",
-  "captured_with": "2c6fd02",
+  "captured_at": "2026-09-03T10:23:13.893725+00:00",
+  "captured_with": "c29a86e",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -31,7 +31,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 25,
+      "value": 31,
       "tolerance": 8
     },
     "claims": {
@@ -39,63 +39,77 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 3,
+      "value": 4,
       "tolerance": 3
     },
     "web_search": {
-      "value": 26,
+      "value": 42,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 2,
+      "value": 3,
       "tolerance": 8
     },
-    "tier_primary": {
-      "value": 15,
-      "tolerance": 7
-    },
     "tier_commentary": {
-      "value": 7,
+      "value": 1,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 3,
+      "value": 2,
       "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
+        "https://climatebarometer.org/uk-experiences-temperatures-above-40c-for-the-first-time/",
         "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
+        "https://doi.org/10.1002/asl.1159",
+        "https://doi.org/10.1002/wea.7709",
+        "https://doi.org/10.1016/j.heliyon.2023.e15277",
+        "https://doi.org/10.1056/nejmoa2119451",
+        "https://doi.org/10.1093/oso/9780192865168.001.0001",
+        "https://doi.org/10.3386/w30445",
         "https://onebillionresilient.org/hot-cities-chilled-economies-london/",
         "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
-        "https://pmc.ncbi.nlm.nih.gov/articles/PMC11334115/",
-        "https://policy.friendsoftheearth.uk/insight/which-neighbourhoods-are-most-vulnerable-heatwaves",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC9039910/",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC9918685/",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
+        "https://rmets.onlinelibrary.wiley.com/doi/full/10.1002/wea.7709",
+        "https://weather.metoffice.gov.uk/warnings-and-advice/seasonal-advice/health-wellbeing/hot-weather-and-its-impacts",
+        "https://weatherspark.com/h/m/45062/2022/7/Historical-Weather-in-July-2022-in-London-United-Kingdom",
+        "https://www.bbc.com/news/articles/c8xnwz7kl2vo",
         "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
         "https://www.carbonbrief.org/guest-post-a-met-office-review-of-the-uks-record-breaking-summer-in-2022",
-        "https://www.claimsjournal.com/news/national/2026/06/26/338470.htm",
-        "https://www.frontiersin.org/journals/environmental-science/articles/10.3389/fenvs.2023.1282284/full",
+        "https://www.climatecentral.org/climate-services/billion-dollar-disasters/state-summary/united-states",
+        "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
+        "https://www.gov.uk/flood-and-coastal-erosion-risk-management-research-reports/evidence-on-the-costs-of-floods-in-england",
+        "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
+        "https://www.ibc.ca/news-insights/news/august-flooding-in-gta-and-parts-of-southern-ontario-caused-over-100-million-in-in",
         "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
         "https://www.london.gov.uk/climate-change-could-cost-london-36-billion",
         "https://www.london.gov.uk/sites/default/files/2024-02/LCRR%20INTERIM%20REPORT%2012%2002%202024.pdf",
-        "https://www.lse.ac.uk/granthaminstitute/news/june-heatwave-cost-uk-economy-more-than-1-billion-study-finds/",
+        "https://www.lse.ac.uk/granthaminstitute/news/one-year-on-from-record-breaking-40-degrees-heat-in-the-uk-and-were-still-n",
         "https://www.lse.ac.uk/granthaminstitute/publication/turning-up-the-heat/",
         "https://www.metoffice.gov.uk/about-us/news-and-media/media-centre/weather-and-climate-news/2022/july-heat-review",
-        "https://www.metoffice.gov.uk/blog/2025/impact-of-extreme-heat-events-on-industries",
-        "https://www.metoffice.gov.uk/research/climate/maps-and-data/uk-climate-extremes",
+        "https://www.metoffice.gov.uk/about-us/news-and-media/media-centre/weather-and-climate-news/2022/red-extreme-heat-warning",
+        "https://www.metoffice.gov.uk/blog/2022/summer-2022-a-historic-season-for-northern-hemisphere-heatwaves",
+        "https://www.nature.com/articles/s41467-023-41888-1",
         "https://www.publicsectorexecutive.com/articles/report-warns-extreme-heat-could-cost-london-ps36bn-year-2050s",
-        "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
+        "https://www.sciencedirect.com/science/article/pii/S2212096321000462",
+        "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee",
+        "https://yalelawjournal.org/essay/the-uninsurable-future-the-climate-threat-to-property-insurance-and-how-to-stop-it"
       ],
-      "min_similarity": 0.35
+      "min_similarity": 0.4
     },
     "domain_set": {
       "golden": [
         "bbc.com",
         "carbonbrief.org",
-        "claimsjournal.com",
+        "climatebarometer.org",
+        "cnbc.com",
         "community.netweather.tv",
-        "frontiersin.org",
+        "gov.uk",
         "internetgeography.net",
         "london.gov.uk",
         "lse.ac.uk",
@@ -103,10 +117,10 @@
         "ncei.noaa.gov",
         "onebillionresilient.org",
         "open-meteo.com",
-        "pmc.ncbi.nlm.nih.gov",
-        "policy.friendsoftheearth.uk",
         "publicsectorexecutive.com",
         "rmets.onlinelibrary.wiley.com",
+        "weather.metoffice.gov.uk",
+        "weatherspark.com",
         "worldweatherattribution.org"
       ],
       "min_similarity": 0.45

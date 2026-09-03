@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-A3E8-3199",
-  "captured_at": "2026-08-28T11:46:27.508078+00:00",
-  "captured_with": "20a6da8",
+  "captured_at": "2026-09-03T10:24:28.740884+00:00",
+  "captured_with": "c29a86e",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -27,7 +27,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 20,
+      "value": 18,
       "tolerance": 8
     },
     "claims": {
@@ -35,61 +35,69 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 3,
+      "value": 2,
       "tolerance": 3
     },
     "web_search": {
-      "value": 31,
+      "value": 44,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 2,
+      "value": 3,
       "tolerance": 8
     },
-    "tier_reporting": {
-      "value": 9,
+    "tier_commentary": {
+      "value": 8,
       "tolerance": 4
     },
-    "tier_commentary": {
+    "tier_reporting": {
       "value": 10,
       "tolerance": 5
-    },
-    "tier_primary": {
-      "value": 1,
-      "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
+        "https://dictionary.cambridge.org/dictionary/english/great",
         "https://doi.org/10.1186/s40462-024-00498-2",
         "https://doi.org/10.1371/journal.pone.0306813",
         "https://doi.org/10.3389/fmars.2025.1667683",
+        "https://en.wikipedia.org/wiki/Dangerous_Reef",
+        "https://en.wikipedia.org/wiki/Megalodon",
+        "https://en.wikipedia.org/wiki/Orca_types_and_populations",
+        "https://en.wikipedia.org/wiki/Shark_finning",
+        "https://en.wikipedia.org/wiki/Whale_shark",
+        "https://iere.org/could-great-white-sharks-live-in-british-waters/",
+        "https://iere.org/does-the-uk-get-great-white-sharks/",
         "https://metro.co.uk/2026/08/03/great-white-sharks-already-uk-venture-north-29287696/",
-        "https://sharkdivingxperts.com/news/in-the-news/searching-for-great-white-sharks-in-british-waters/",
-        "https://thedailyjaws.com/news/could-jaws-be-living-in-uk-waters",
-        "https://timesofindia.indiatimes.com/science/as-uk-oceans-warm-up-experts-warn-great-white-sharks-are-already-lurking-off",
-        "https://www.bbc.com/news/uk-england-14657123",
-        "https://www.carbonbrief.org/factcheck-will-climate-change-bring-great-white-sharks-to-uk-waters",
+        "https://www.animalsaroundtheglobe.com/how-great-white-sharks-are-expanding-into-northern-waters-7-338690/",
+        "https://www.bbc.co.uk/news/articles/c9qe9wvq534o",
+        "https://www.bbc.co.uk/news/articles/crk5705rm5mo",
+        "https://www.bbc.co.uk/travel/article/20260724-an-up-close-encounter-with-giant-sharks-in-ireland",
         "https://www.cornwalllive.com/news/cornwall-news/expert-claims-great-white-sharks-11109114",
         "https://www.dailymail.com/sciencetech/article-15771599/Great-white-sharks-BRITAIN-Scientists-warn.html",
-        "https://www.dailystar.co.uk/news/latest-news/great-white-sharks-already-lurking-37509954",
         "https://www.dailystar.co.uk/news/latest-news/great-white-sharks-already-swimming-37565029",
         "https://www.devonlive.com/news/devon-news/shark-expert-claims-great-whites-11109042",
+        "https://www.discoverwildlife.com/animal-facts/fish/great-white-sharks-in-uk",
+        "https://www.floridamuseum.ufl.edu/science/global-shark-bites-return-to-average-in-2025-with-smaller-proportion-in-the-un",
         "https://www.gbif.org/species/165636544",
         "https://www.gbif.org/species/206230133",
-        "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
-        "https://www.joe.co.uk/lifestyle/great-white-sharks-already-in-uk-541128",
-        "https://www.ladbible.com/news/uk-news/great-white-sharks-uk-waters-hammerhead-400255-20260804",
+        "https://www.merriam-webster.com/dictionary/great",
         "https://www.mirror.co.uk/news/uk-news/great-white-sharks-are-uk-37547976",
-        "https://www.nhm.ac.uk/discover/great-white-shark-man-eater-or-marine-marvel.html",
+        "https://www.newquayvoice.co.uk/2026/08/expert-says-great-whites-are-in-uk-waters-citing-cornwall-sightings/",
+        "https://www.peirceshark.com/great-whites-in-british-waters/",
         "https://www.plymouth.ac.uk/discover/are-great-white-sharks-warming-to-uk-waters",
         "https://www.reddit.com/r/sharks/comments/15aiu61/why_doesnt_the_uk_have_great_white_sharks/",
         "https://www.reddit.com/r/sharks/comments/1d4wb8x/great_whites_in_the_uk/",
-        "https://www.reddit.com/r/uknews/comments/1vf6vjs/great_white_sharks_are_already_in_uk_as_they_head/",
-        "https://www.sharktrust.org/pages/faqs/category/british-sharks",
-        "https://www.stokesentinel.co.uk/news/stoke-on-trent-news/shark-experts-says-great-whites-11110163",
         "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
+        "https://www.theguardian.com/environment/2026/jul/14/california-sharks-el-nino",
+        "https://www.theguardian.com/environment/2026/jul/17/california-sharks-spike",
+        "https://www.theguardian.com/environment/2026/jun/11/great-white-shark-nantucket-beach-catch",
+        "https://www.theguardian.com/environment/commentisfree/2026/jun/17/ocean-swimmer-australia-sharks-territory",
+        "https://www.theguardian.com/environment/video/2026/jun/08/rare-footage-great-white-shark-mediterranean-sea-video",
+        "https://www.theguardian.com/us-news/2026/jul/31/great-white-shark-us-canada-coasts",
+        "https://www.thesaurus.com/browse/great",
+        "https://www.vocabulary.com/dictionary/great",
         "https://www.wildlifeonline.me.uk/articles/view/great-white-shark-in-british-waters",
         "https://www.youtube.com/watch?v=CDja_Gamub8"
       ],
@@ -97,25 +105,21 @@
     },
     "domain_set": {
       "golden": [
-        "bbc.com",
-        "carbonbrief.org",
+        "bbc.co.uk",
         "cornwalllive.com",
         "dailystar.co.uk",
         "devonlive.com",
-        "joe.co.uk",
-        "ladbible.com",
+        "discoverwildlife.com",
+        "iere.org",
         "metro.co.uk",
         "mirror.co.uk",
-        "nhm.ac.uk",
+        "newquayvoice.co.uk",
         "plymouth.ac.uk",
         "reddit.com",
-        "sharkdivingxperts.com",
-        "sharktrust.org",
-        "thedailyjaws.com",
-        "timesofindia.indiatimes.com",
-        "wildlifeonline.me.uk"
+        "theguardian.com",
+        "youtube.com"
       ],
-      "min_similarity": 0.45
+      "min_similarity": 0.3
     }
   }
 }

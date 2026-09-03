@@ -14,31 +14,43 @@
 > drift guard across the whole corpus to buy a green tick. Its golden is still the
 > 2026-07-21 `fdf3509` capture and is **not** comparable to post-Phase-2 behaviour.
 >
-> So: **`121 ok / 5 warn / 11 fail / 5 unexercised` is the current PASS state**
-> (2026-08-28 re-record: the `ENABLE_FACTCHECK_SIGNAL` flip changed the classifier
-> prompt, re-keying EVERY cassette; whole corpus re-recorded and replay-verified
-> same day). Every fail is attributed, none is an unexplained regression:
-> - **3 × cassette_drift — the timing-flaky set is now THREE claims and its
->   membership WANDERS between replay passes:** 82CF (19 misses, the original),
->   B4A3 (10–11 misses, consistent across 3 passes this recording), 5647
->   (0 misses in one pass, 43 in another — intermittent). All carry the
->   documented signature (ordinary evidence fetches; replay has no network
->   latency so it outruns the recording's fetch queue). Their goldens were NOT
->   overwritten (`--update-golden` skips drifted claims). Do not chase them.
-> - **2 × 018F recital pins + 1 × 0005 `gianlucabenigno` must-have — the KEPT
->   DEBT, failing visibly by design** (pins at 2026-08-17 capture values; pay by
->   re-recording until the pool carries the traps — see each golden's notes).
-> - **5 × thin-pool v3 metrics** (`factual_weight_share` 018F/93DD/A3E8,
->   `unique_domains` 93DD, `top_domain_share` 0003) — record-time pool drift,
->   same class as the accepted 2026-08-11/08-27 fails.
+> So: **`185 ok / 1 warn / 13 fail / 2 unexercised` is the current PASS state**
+> (2026-09-03 re-record on Build A's claim-lane twin `adf252d` + the fetch-phase
+> deadline `4286984`, which re-keyed every wired cassette; whole corpus re-recorded
+> live, patched, re-golded and replay-verified the same morning — ~£0.80).
+> **For the first time replay reproduces the recording with ZERO cassette misses
+> on all 10 claims** — 82CF, B4A3 and 5647, the old "timing-flaky set", all
+> replay clean. Every fail is attributed, none is an unexplained regression:
+> - **3 × 018F interested-party pin — a comparator FALSE ALARM, kept failing
+>   visibly by design.** This pool DOES carry whitehouse.gov (the claimant's own
+>   video, tier primary) but the mapper filed it `context`, and the gate only
+>   re-labels directional refs, so it had nothing to scope. Verified by replaying
+>   the cassette and reading the final claim map. The precondition reads domain
+>   PRESENCE, coarser than the trigger; refining it to "directionally referenced"
+>   needs a capture signal (owed). Do not lower the pins.
+> - **2 × must_have pool drift** — 018F `politifact` (prio.org still present) and
+>   0005 `gianlucabenigno` (its temporal gate is UNEXERCISED ×2 again: 3 domains,
+>   ONS-dominated, no off-period source; the relevance scorer kept 3 of 20).
+> - **8 × thin-pool v3 metrics** (`factual_weight_share` 018F 0.14 / A3E8 0.0 /
+>   B4A3 0.11, `unique_domains` 5647 / 93DD / 0005, `top_domain_share` 93DD /
+>   0005) — record-time pool drift, the class accepted since 2026-08-11. Pools
+>   moved both ways this recording (82CF 5→13 sources, 0003 14→20; 0005 11→5,
+>   B4A3 30→24) — the bench cannot attribute retrieval-size changes (62% churn).
+> - **018F recital debt PAID:** the gate scoped 3 refs / 3 elements, exactly the
+>   2026-08-17 pin, re-affirmed at tolerance 0.
+> - **Recorder change, same day:** an `application/pdf` body over the pipeline's
+>   20 MiB guard is now stored as a STUB (`body_truncated_from`) and replayed by
+>   declared size — a 32.5 MB Gallagher Re PDF on 5647 had produced a 30 MB gzip
+>   cassette (PDFs do not compress). Pinned by `test_cassette_body_cap.py`.
 > History: 135/2/1 → 158/2/1 → RETIRED 2026-08-11 → 143/13/5 (2026-08-13; true
 > post-re-pin state 144/13/4) → 166/14/4 (018F joined) → 171/10/3 (Phase B; 5647
 > re-recorded — the factual floor sends thin-support elements to recovery, which
 > issues queries old recordings never made, attributed by matched-pair replay) →
 > 175/10/2 (2026-08-17) → 178/5/9/5 (2026-08-27 model-migration re-record) →
 > 121/5/11/5 (2026-08-28; the ok-count drop is the flaky set zeroing three
-> claims' assertions in the scoring pass, not lost coverage — a pass where they
-> replay clean scores higher). Anything worse is a real regression.
+> claims' assertions in the scoring pass, not lost coverage) → **185/1/13/2
+> (2026-09-03; zero drift — the ok-count recovers because no claim is zeroed).**
+> Anything worse is a real regression.
 > `audit/OPEN_WORK.md` item 7.
 
 ## UNEXERCISED — a guard that was never given the chance (2026-08-27)
@@ -108,7 +120,7 @@ anything else. This cost a full 11-minute run to notice on 2026-08-06.
 | TRU-C1A0-0003 | focused (1 claim) | PubMed routing + yield, Health domain, Semantic Scholar keyless 429 |
 | TRU-C1A0-0004 | article (2 claims) | GovInfo routing + yield (Politics/US), GET→POST 400 fix, US jurisdiction |
 | TRU-C1A0-0005 | focused (1 claim) | **F1 temporal scope gate fires** — the only month-pinned claim, so the only one that can exercise the gate at all. See the caveat below. |
-| TRU-018F-44AA | focused (1 claim) | **Recital gate fires** (2 elements / 3 refs, tolerance 0, mutation-checked) — the 2026-08-13 incident claim. ⚠️ Interested-party does NOT fire in this recording (no whitehouse.gov in its pool — run-variance); its must-fire assertion is owed at the first re-record whose pool carries the claimant's organ. |
+| TRU-018F-44AA | focused (1 claim) | **Recital gate fires** (3 elements / 3 refs, tolerance 0, mutation-checked; re-affirmed on the 2026-09-03 recording) — the 2026-08-13 incident claim. ⚠️ Interested-party: the 2026-09-03 pool DOES carry whitehouse.gov (the claimant's own video, tier primary) but the MAPPER filed it `context`, so the gate — which only re-labels directional refs — had nothing to scope. The comparator reads domain PRESENCE as the precondition and reports a FAILURE; that is a known false alarm, attributed in the golden's notes, not a broken gate. Bench item owed: precondition = "directionally referenced" (needs a capture signal). |
 
 ### TRU-C1A0-0005 guards the GATE, not the 2026-08-06 extension
 

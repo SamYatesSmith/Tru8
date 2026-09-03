@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-82CF-2F81",
-  "captured_at": "2026-08-27T14:06:49.820146+00:00",
-  "captured_with": "2c6fd02",
+  "captured_at": "2026-09-03T10:23:49.761629+00:00",
+  "captured_with": "c29a86e",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -37,7 +37,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 5,
+      "value": 13,
       "tolerance": 8
     },
     "claims": {
@@ -45,24 +45,16 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 2,
+      "value": 3,
       "tolerance": 3
     },
     "web_search": {
-      "value": 8,
+      "value": 40,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 1,
+      "value": 3,
       "tolerance": 8
-    },
-    "tier_primary": {
-      "value": 2,
-      "tolerance": 4
-    },
-    "tier_commentary": {
-      "value": 1,
-      "tolerance": 4
     },
     "tier_reporting": {
       "value": 1,
@@ -71,14 +63,54 @@
   },
   "set_jaccard": {
     "url_ledger_flat": {
-      "golden": [],
-      "min_similarity": 0.15
+      "golden": [
+        "https://apnews.com/article/united-kingdom-government-business-earnings-850e02d38fdbe43e1a48d9666654b412",
+        "https://caselaw.findlaw.com/us-5th-circuit/1972050.html",
+        "https://companiesmarketcap.com/bp/annual-reports/",
+        "https://finance.yahoo.com/energy/articles/u-iran-strikes-put-100-151000231.html",
+        "https://iclg.com/practice-areas/renewable-energy-laws-and-regulations/united-kingdom/",
+        "https://markets.ft.com/data/announce/detail?dockey=1323-15826450-4JE7IM5AAE2BH7E0JQEJUVBN1V",
+        "https://markets.ft.com/data/announce/detail?dockey=1323-15870657-1UMB9LLT6HRNBSODALA576E8JC",
+        "https://montelnews.com/news/1433506/url",
+        "https://publications.parliament.uk/pa/cm5803/cmselect/cmenvaud/109/report.html",
+        "https://www.academia.edu/5320907/BP_Annual_Report_and_Form_20F_Financial_Statements",
+        "https://www.annualreports.com/Company/bp-plc",
+        "https://www.bp.com/investors",
+        "https://www.bp.com/investors/results-reporting-and-presentations/annual-report",
+        "https://www.bp.com/investors/results-reporting-and-presentations/archive-of-results-reports-and-presentations",
+        "https://www.bp.com/investors/results-reporting-and-presentations/archive-of-results-reports-and-presentations/2022",
+        "https://www.bp.com/investors/results-reporting-and-presentations/quarterly-results-and-webcast",
+        "https://www.bp.com/press-and-publications/press-releases",
+        "https://www.bp.com/press-and-publications/press-releases/4q-2022-update-on-strategic-progress",
+        "https://www.bp.com/press-and-publications/press-releases/bp-files-annual-report-on-form-20-f-for-2022",
+        "https://www.carbonbrief.org/bp-sees-biggest-profit-in-114-year-history-after-oil-and-gas-prices-soar",
+        "https://www.cnbc.com/2023/02/07/bp-earnings-q4-and-fy-2022.html",
+        "https://www.endfuelpoverty.org.uk/tag/energy-firm-profits/",
+        "https://www.forbes.com/sites/roberthart/2023/02/07/bp-boasts-record-profits-as-oil-giants-report-historic-windfalls/",
+        "https://www.globalbankingandfinance.com/bp-makes-record-profit-in-2022-slows-shift-from-oil/",
+        "https://www.gov.uk/government/publications/desnz-annual-report-and-accounts-2025-to-2026/performance-report",
+        "https://www.gurufocus.com/news/9063553/bp-looks-85-overvalued-on-gf-value-as-dividend-sustainability-remains-key",
+        "https://www.gurufocus.com/news/9063588/bp-appoints-ian-taylor-as-chairman-amid-leadership-changes",
+        "https://www.nyserda.ny.gov/-/media/Project/Nyserda/Files/Programs/Clean-Energy-Standard/CES-2022-annual-r-1-v1-complete-",
+        "https://www.sec.gov/Archives/edgar/data/313807/000031380723000022/bp-20230630.htm",
+        "https://www.theguardian.com/business/2023/feb/07/bp-profits-windfall-tax-gas-prices-ukraine-war",
+        "https://www.theguardian.com/business/bp"
+      ],
+      "min_similarity": 0.4
     },
     "domain_set": {
       "golden": [
-        "scribd.com"
+        "academia.edu",
+        "apnews.com",
+        "bp.com",
+        "carbonbrief.org",
+        "cnbc.com",
+        "forbes.com",
+        "globalbankingandfinance.com",
+        "markets.ft.com",
+        "theguardian.com"
       ],
-      "min_similarity": 0.2
+      "min_similarity": 0.3
     }
   }
 }

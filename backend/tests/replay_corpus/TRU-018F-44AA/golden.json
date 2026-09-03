@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-018F-44AA",
-  "captured_at": "2026-08-28T11:44:33.467937+00:00",
-  "captured_with": "20a6da8",
+  "captured_at": "2026-09-03T10:22:44.652934+00:00",
+  "captured_with": "c29a86e",
   "captured_with_known_bugs": [],
-  "notes": "The 2026-08-13 incident claim ('Donald Trump stopped 6 wars', check TRU-018F-44AA). Re-recorded 2026-08-17 for Phase C (claimant field changes every extract cassette key). BOTH assertion-evidence gates now fire and are pinned at tolerance 0: recital 3 refs / 3 elements, interested_party 1 ref / 1 element — this recording's pool carries whitehouse.gov, so the must-fire assertion owed since the 2026-08-17 Phase A recording (which lacked the claimant's organ, run-variance) is PAID. must_have pins the two named disputing sources (PolitiFact syndication, PRIO) the incident showed being outweighed. Pins are per-recording. || DEBT 2026-08-27 (re-record on gemini-3.5-flash-lite / 3.7-flash): this pool does NOT carry whitehouse.gov, so interested_party never fired and recital scoped 1 ref / 1 element, not 3/3. The gate assertions here are DELIBERATELY KEPT AT THE 2026-08-17 VALUES and this claim is EXPECTED TO FAIL on them. They were NOT re-golded to zero: that would silently retire the only guard on the 2026-08-13 incident (a claimant organ badging its own claim supported). Gate code is sound - 64 recital/interested-party tests pass; this is pool run-variance, the same condition the Phase A recording hit. PAY THE DEBT by re-recording when a draw carries the claimant organ, then re-pin. Do NOT \"fix\" this by lowering the pins. || DEBT CARRIED FORWARD 2026-08-28 (re-record on ENABLE_FACTCHECK_SIGNAL flip — the classifier prompt change re-keyed every cassette): the fresh pool again lacks the trap, so the must-fire pins and tolerance-0 gate counters are KEPT AT THEIR 2026-08-17 CAPTURE VALUES and this claim is EXPECTED TO FAIL on them. Do not lower the pins; pay the debt by re-recording until the pool carries the trap.",
+  "notes": "The 2026-08-13 incident claim ('Donald Trump stopped 6 wars', check TRU-018F-44AA). Re-recorded 2026-08-17 for Phase C (claimant field changes every extract cassette key). BOTH assertion-evidence gates now fire and are pinned at tolerance 0: recital 3 refs / 3 elements, interested_party 1 ref / 1 element \u2014 this recording's pool carries whitehouse.gov, so the must-fire assertion owed since the 2026-08-17 Phase A recording (which lacked the claimant's organ, run-variance) is PAID. must_have pins the two named disputing sources (PolitiFact syndication, PRIO) the incident showed being outweighed. Pins are per-recording. || DEBT 2026-08-27 (re-record on gemini-3.5-flash-lite / 3.7-flash): this pool does NOT carry whitehouse.gov, so interested_party never fired and recital scoped 1 ref / 1 element, not 3/3. The gate assertions here are DELIBERATELY KEPT AT THE 2026-08-17 VALUES and this claim is EXPECTED TO FAIL on them. They were NOT re-golded to zero: that would silently retire the only guard on the 2026-08-13 incident (a claimant organ badging its own claim supported). Gate code is sound - 64 recital/interested-party tests pass; this is pool run-variance, the same condition the Phase A recording hit. PAY THE DEBT by re-recording when a draw carries the claimant organ, then re-pin. Do NOT \"fix\" this by lowering the pins. || DEBT CARRIED FORWARD 2026-08-28 (re-record on ENABLE_FACTCHECK_SIGNAL flip \u2014 the classifier prompt change re-keyed every cassette): the fresh pool again lacks the trap, so the must-fire pins and tolerance-0 gate counters are KEPT AT THEIR 2026-08-17 CAPTURE VALUES and this claim is EXPECTED TO FAIL on them. Do not lower the pins; pay the debt by re-recording until the pool carries the trap. || 2026-09-03 (re-record on Build A claim-lane twin adf252d + fetch-phase deadline 4286984): RECITAL DEBT PAID \u2014 the gate scoped 3 refs / 3 elements, exactly the 2026-08-17 pin, so those counters are re-affirmed at 3/3 tolerance 0. INTERESTED PARTY: the pool DOES carry whitehouse.gov this time (/videos/president-trump-ive-solved-six-wars-in-six-months/, tier primary, official_statement, shown) but the MAPPER filed it `context` on e3 and did not reference it on e1/e2 \u2014 the gate only re-labels DIRECTIONAL refs, so it had nothing to scope. Verified by replaying this cassette and reading the final claim map (subjects=['donald trump'], interested_party_match fires on the URL). The comparator's must_fire_precondition reads domain PRESENCE, which is coarser than the trigger (a supports/challenges ref from that domain), so its FAILURE here is a false alarm, attributed \u2014 NOT a broken gate and NOT a reason to lower the pins. Bench item owed: refine the precondition to 'directionally referenced' (needs a capture signal). must_have `politifact`: absent from this pool (prio.org present) \u2014 pool drift, kept so the drop-out stays visible.",
   "hard_invariants": {
     "must_have_url_substrings": [
       "politifact",
@@ -39,7 +39,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 15,
+      "value": 14,
       "tolerance": 8
     },
     "claims": {
@@ -59,11 +59,11 @@
       "tolerance": 8
     },
     "tier_commentary": {
-      "value": 6,
+      "value": 8,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 8,
+      "value": 5,
       "tolerance": 4
     },
     "tier_primary": {
@@ -90,53 +90,54 @@
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
+        "https://2017-2021.state.gov/the-abraham-accords/",
         "https://apnews.com/article/middle-east-eight-wars-trump-ended-fact-check-ff41789ca242462c1c0ab65eb4ae8c7e",
-        "https://en.wikipedia.org/wiki/Bibliography_of_Donald_Trump",
         "https://en.wikipedia.org/wiki/Donald_Trump_and_fascism",
+        "https://en.wikipedia.org/wiki/Rhetoric_of_Donald_Trump",
         "https://en.wikipedia.org/wiki/Second_presidency_of_Donald_Trump",
         "https://en.wikipedia.org/wiki/Security_incidents_involving_Donald_Trump",
         "https://en.wikipedia.org/wiki/Use_of_X_by_Donald_Trump",
+        "https://foreignpolicy.com/projects/trump-decision-making-geopolitics/",
         "https://highline.huffingtonpost.com/articles/en/trump-at-war/",
-        "https://hiia.hu/en/the-trump-doctrine/",
-        "https://millercenter.org/president/trump/foreign-affairs",
-        "https://theconversation.com/did-trump-really-resolve-six-conflicts-in-a-matter-of-months-we-spoke-to-the-experts-to-find",
-        "https://www.americanprogress.org/article/100-days-of-the-trump-administrations-foreign-policy-global-chaos-american-weak",
+        "https://news.sky.com/story/which-eight-wars-does-trump-claimed-hes-ended-13415259",
+        "https://www.alestiklal.net/en/article/hidden-intentions-how-trump-went-from-peacemaker-to-conflict-manager",
         "https://www.bbc.com/news/articles/c5y3599gx4qo",
+        "https://www.britannica.com/biography/Donald-Trump/Foreign-relations",
+        "https://www.britannica.com/event/withdrawal-of-United-States-troops-from-Afghanistan",
         "https://www.cbsnews.com/news/trump-ended-6-or-7-wars-what-record-shows/",
         "https://www.cfr.org/articles/guide-trumps-second-term-military-strikes-and-actions",
-        "https://www.cfr.org/articles/trumps-foreign-policy-moments",
-        "https://www.cfr.org/articles/unpacking-trump-twist-national-security-strategy",
-        "https://www.congress.gov/crs-product/R49019",
-        "https://www.congress.gov/crs-product/RS21405",
-        "https://www.hklaw.com/en/general-pages/trumps-2025-executive-orders-chart",
-        "https://www.justsecurity.org/121844/trump-notice-drug-cartels/",
-        "https://www.nafsa.org/executive-and-regulatory-actions-trump2admin",
-        "https://www.nbcmiami.com/news/politics/politifact/fact-check-trump-united-nations-speech/3696080/",
-        "https://www.nbcmiami.com/news/politics/politifact/fact-check-un-donald-trump-claims-seven-wars/3697605/",
-        "https://www.nbcmiami.com/video/nbc-6-news/fact-checking-trumps-repeated-claims-about-ending-7-wars-at-un-general-assembl",
-        "https://www.nytimes.com/2026/05/31/us/politics/trumps-military-wars.html",
+        "https://www.cfr.org/articles/guide-trumps-twenty-point-gaza-peace-deal",
+        "https://www.chathamhouse.org/events/all/standard-event/dealing-peace-how-trump-has-redefined-conflict-resolution",
+        "https://www.fdd.org/topic/foreign-policy-of-the-first-trump-administration/",
+        "https://www.justsecurity.org/107087/tracker-litigation-legal-challenges-trump-administration/",
+        "https://www.news.com.au/world/north-america/us-politics/donald-trump-told-the-united-nations-hed-ended-seven-unendable-w",
+        "https://www.poynter.org/fact-checking/2025/trump-no-president-ended-war-fact-check/",
         "https://www.prio.org/comments/1808",
         "https://www.thetimes.com/us/american-politics/article/what-8-eight-wars-did-trump-end-fact-checked-pxg9h6kxx",
+        "https://www.trumpactiontracker.info/",
         "https://www.war.gov/Multimedia/Experience/Peace-Through-Strength/",
-        "https://www.youtube.com/watch?v",
+        "https://www.whitehouse.gov/videos/president-trump-ive-solved-six-wars-in-six-months/",
+        "https://www.wral.com/archive/22122852/",
+        "https://www.youtube.com/watch?v=QVgH6gYfRFg",
         "https://x.com/StateDept/status/1970579942074187819"
       ],
       "min_similarity": 0.4
     },
     "domain_set": {
       "golden": [
+        "alestiklal.net",
         "apnews.com",
-        "cbsnews.com",
+        "bbc.com",
+        "britannica.com",
         "cfr.org",
-        "hiia.hu",
-        "hklaw.com",
-        "justsecurity.org",
-        "millercenter.org",
-        "nbcmiami.com",
-        "nytimes.com",
+        "chathamhouse.org",
+        "fdd.org",
+        "foreignpolicy.com",
+        "news.sky.com",
+        "poynter.org",
         "prio.org",
-        "theconversation.com",
-        "thetimes.com"
+        "whitehouse.gov",
+        "wral.com"
       ],
       "min_similarity": 0.3
     }

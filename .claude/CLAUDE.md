@@ -46,7 +46,7 @@ alembic upgrade head                             # Run migrations
 
 # Replay bench — run before EVERY pipeline-quality commit (replay itself is free; ~10 min)
 docker-compose up -d                             # REQUIRED: the bench writes a Check row
-python scripts/replay_bench.py --all             # expect exactly: 175 ok / 10 warn / 2 fail (2026-08-17)
+python scripts/replay_bench.py --all             # expect exactly: 185 ok / 1 warn / 13 fail / 2 unexercised (2026-09-03, ZERO cassette drift)
 # ⚠️ THE BENCH CANNOT VERIFY SMALL RETRIEVAL CHANGES (measured 2026-08-20). Two
 # recordings of TRU-018F-44AA taken an hour apart with IDENTICAL settings differed
 # by 25 of 40 URLs — 62% churn — and their tier mixes disagreed wildly
@@ -56,8 +56,10 @@ python scripts/replay_bench.py --all             # expect exactly: 175 ok / 10 w
 # twice) before attributing any pool change to your edit.** For a retrieval idea,
 # the honest test is to issue the query and read the results — pence, seconds, and
 # it answers directly. See audit/2026-08-20_independent_source_lane_design_review.md.
-# The 2 fails are accepted: TRU-82CF-2F81 KNOWN-FLAKY (timing-dependent fetch queue) and
-# TRU-A3E8-3199 factual_weight_share 0.0 (record-time pool drift). 10 claims since
+# All 13 fails are attributed (README header is canonical): 3 × 018F interested-party pin
+# (comparator FALSE ALARM — the mapper filed the claimant's whitehouse.gov video `context`, the
+# gate only re-labels directional refs; precondition reads domain presence), 2 × must_have pool
+# drift (018F politifact, 0005 gianlucabenigno), 8 × thin-pool v3 floors. 10 claims since
 # TRU-018F-44AA joined 2026-08-17. Full pass-state history: tests/replay_corpus/README.md.
 # ⚠️ The bench runs against the WORKING TREE: any uncommitted PROMPT change makes every
 # claim fail on cassette_drift, because request signatures are cassette keys — the held

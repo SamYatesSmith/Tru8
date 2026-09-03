@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-C1A0-0003",
-  "captured_at": "2026-08-28T11:47:14.063879+00:00",
-  "captured_with": "20a6da8",
+  "captured_at": "2026-09-03T10:25:07.521670+00:00",
+  "captured_with": "c29a86e",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -30,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 14,
+      "value": 20,
       "tolerance": 8
     },
     "claims": {
@@ -38,15 +38,15 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 2,
+      "value": 3,
       "tolerance": 3
     },
     "web_search": {
-      "value": 16,
+      "value": 33,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 1,
+      "value": 4,
       "tolerance": 8
     },
     "tier_reporting": {
@@ -54,8 +54,8 @@
       "tolerance": 4
     },
     "tier_primary": {
-      "value": 11,
-      "tolerance": 5
+      "value": 17,
+      "tolerance": 8
     }
   },
   "set_jaccard": {
@@ -64,21 +64,36 @@
         "https://doi.org/10.1038/s41577-021-00592-1",
         "https://doi.org/10.1056/nejmoa2107659",
         "https://doi.org/10.1056/nejmoa2119451",
+        "https://en.wikipedia.org/wiki/COVID-19_vaccine",
+        "https://en.wikipedia.org/wiki/Moderna_COVID-19_vaccine",
+        "https://en.wikipedia.org/wiki/Oxford%E2%80%93AstraZeneca_COVID-19_vaccine",
+        "https://en.wikipedia.org/wiki/Pfizer%E2%80%93BioNTech_COVID-19_vaccine",
+        "https://en.wikipedia.org/wiki/Sputnik_V_COVID-19_vaccine",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC12465431/",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8461570/",
         "https://pmc.ncbi.nlm.nih.gov/articles/PMC8717697/",
+        "https://pubmed.ncbi.nlm.nih.gov/34942066/",
+        "https://pubmed.ncbi.nlm.nih.gov/35767475/",
+        "https://www.cdc.gov/acip/grade/covid-19-pfizer-biontech-vaccine.html",
         "https://www.cdc.gov/mmwr/volumes/70/wr/mm7042e1.htm",
         "https://www.cidrap.umn.edu/covid-19/peer-reviewed-data-show-high-protection-leading-covid-vaccines",
-        "https://www.nejm.org/doi/abs/10.1056/NEJMoa2110345",
-        "https://www.nejm.org/doi/full/10.1056/NEJMc2104974",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2035389",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2101765",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2106599",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2110345",
-        "https://www.nejm.org/doi/full/10.1056/NEJMoa2114114",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2119451",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2200674",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2211031",
+        "https://www.ovid.com/00006024-202112160-00015",
+        "https://www.ovid.com/journals/nejm/fulltext/10.1056/nejmoa2110345~safety-and-efficacy-of-the-bnt162b2-mrna-covid-19-vacc",
         "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-announce-publication-results-landmark",
+        "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-conclude-phase-3-study-covid-19-vacci",
         "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-confirm-high-efficacy-and-no-serious",
+        "https://www.sciencedirect.com/science/article/pii/S0024320525002449",
         "https://www.upstate.edu/news/articles/2021/2021-05-27-thomas.php"
       ],
-      "min_similarity": 0.35
+      "min_similarity": 0.4
     },
     "domain_set": {
       "golden": [
@@ -86,11 +101,13 @@
         "cidrap.umn.edu",
         "factcheck.org",
         "nejm.org",
+        "ovid.com",
         "pfizer.com",
         "pmc.ncbi.nlm.nih.gov",
+        "sciencedirect.com",
         "upstate.edu"
       ],
-      "min_similarity": 0.2
+      "min_similarity": 0.3
     }
   }
 }
