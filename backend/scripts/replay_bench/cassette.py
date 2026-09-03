@@ -103,6 +103,20 @@ _REDACTED = "__REDACTED__"
 # and a stale content-length would mismatch the stored body. Everything else
 # (Date, Set-Cookie, rate-limit counters, CF-Ray, ...) is volatile noise.
 _KEEP_RESPONSE_HEADERS = {"content-type"}
+
+# Oversize PDF bodies are stored as a STUB. The recorder buffers the whole body
+# (`aread`) even when the pipeline streams it and abandons it at the PDF guard
+# (app/services/pdf_evidence.py MAX_PDF_BYTES, 20 MiB): on 2026-09-03 a 32.5 MB
+# Gallagher Re PDF on TRU-5647-FA4F stored 43 MB of base64 the pipeline never
+# consumed — a 30 MB gzip blob headed for git history for good (PDFs do not
+# compress). The guard refuses a PDF whose DECLARED size exceeds the cap before
+# reading a byte, so replay serves the stub with `content-length` set to the
+# original size and an empty body: the pipeline takes the guard's skip path,
+# same as the recording. Only `application/pdf` is stubbed — the HTML path has
+# no size guard, so a non-PDF body is always stored whole. MUST equal or exceed
+# MAX_PDF_BYTES — pinned by tests/unit/replay_bench/test_cassette_body_cap.py.
+_PDF_STUB_OVER_BYTES = 20 * 1024 * 1024
+_PDF_CONTENT_TYPE = "application/pdf"
 # Stripped from replayed responses even if a cassette predates the rule above.
 _DROP_ON_REPLAY = {"content-encoding", "content-length", "transfer-encoding"}
 
@@ -175,6 +189,13 @@ def _serialise_response(response: httpx.Response, body: bytes) -> Dict[str, Any]
     headers = {
         k: v for k, v in response.headers.items() if k.lower() in _KEEP_RESPONSE_HEADERS
     }
+    content_type = (headers.get("content-type") or "").split(";")[0].strip().lower()
+    if content_type == _PDF_CONTENT_TYPE and len(body) > _PDF_STUB_OVER_BYTES:
+        return {
+            "status_code": response.status_code,
+            "headers": headers,
+            "body_truncated_from": len(body),
+        }
     try:
         text = body.decode("utf-8")
         return {
@@ -188,6 +209,29 @@ def _serialise_response(response: httpx.Response, body: bytes) -> Dict[str, Any]
             "headers": headers,
             "body_b64": base64.b64encode(body).decode("ascii"),
         }
+
+
+def _response_from_entry(entry: Dict[str, Any], request: httpx.Request) -> httpx.Response:
+    """Build the replayed response. A PDF stub (see _PDF_STUB_OVER_BYTES) is
+    served with its original size declared and no body, so the pipeline's PDF
+    guard refuses it exactly as it refused the live download."""
+    headers = {
+        k: v for k, v in entry.get("headers", {}).items() if k.lower() not in _DROP_ON_REPLAY
+    }
+    if "body_truncated_from" in entry and "body_text" not in entry and "body_b64" not in entry:
+        headers["content-length"] = str(entry["body_truncated_from"])
+        return httpx.Response(
+            status_code=entry["status_code"],
+            headers=headers,
+            content=b"",
+            request=request,
+        )
+    return httpx.Response(
+        status_code=entry["status_code"],
+        headers=headers,
+        content=_deserialise_body(entry),
+        request=request,
+    )
 
 
 def _deserialise_body(entry: Dict[str, Any]) -> bytes:
@@ -405,17 +449,7 @@ class HttpxCassette:
             # the pipeline takes the same fetch-failed path deterministically.
             exc_cls = getattr(httpx, entry["_exception"], httpx.ConnectError)
             raise exc_cls(f"replayed {entry['_exception']} for {entry.get('_url')}")
-        headers = {
-            k: v
-            for k, v in entry.get("headers", {}).items()
-            if k.lower() not in _DROP_ON_REPLAY
-        }
-        return httpx.Response(
-            status_code=entry["status_code"],
-            headers=headers,
-            content=_deserialise_body(entry),
-            request=request,
-        )
+        return _response_from_entry(entry, request)
 
     # -- persistence -------------------------------------------------------
 
