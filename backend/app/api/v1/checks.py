@@ -20,6 +20,7 @@ from app.core.pdf_assets import FONT_FACE_CSS
 from app.pipeline.support_structure import side_quality_note
 from app.models import User, Check, Claim, Evidence, RawEvidence, Subscription
 from datetime import datetime, timezone
+import re
 import uuid
 import json
 import asyncio
@@ -2766,6 +2767,33 @@ async def recover_check_videos(
 # ============================================================================
 
 
+# A sentence ends at . ! ? followed by whitespace and a capital/digit/quote —
+# but not when the full stop closes a single-letter initial ("U.S. rate").
+_SENTENCE_END = re.compile(r"(?<![A-Z]\.)(?<=[.!?])\s+(?=[A-Z0-9\"'(\[])")
+
+
+def text_check_title(article_excerpt: str, claim_texts: list[str]) -> str:
+    """Title for a check whose input was text, not a URL.
+
+    2026-09-04: this used to be the excerpt's first ``.``-delimited fragment
+    cut at 70 characters plus ``...`` — so the public record's H1, browser
+    tab, share text and OG card all carried a truncated claim ("...people
+    queuing on ...") while the full text sat one block below. Founder: whole
+    title or none. The title is never stored; it is derived on every request,
+    so this changes every record at once.
+
+    A single-claim check IS its claim: use the claim text whole. Otherwise use
+    the excerpt's first sentence, whole, split on a real sentence boundary
+    (``3.4%`` and ``U.S.`` no longer end the title).
+    """
+    excerpt = (article_excerpt or "").strip()
+    if len(claim_texts) == 1 and (claim_texts[0] or "").strip():
+        return claim_texts[0].strip()
+    if not excerpt:
+        return ""
+    return _SENTENCE_END.split(excerpt, maxsplit=1)[0].strip()
+
+
 @router.get(
     "/public/{check_id}",
     summary="Get public check data (no auth)",
@@ -2861,13 +2889,7 @@ async def get_public_check(
     # Fallback title options
     if not title or len(title) < 10:
         if check.article_excerpt:
-            # Use first sentence of article excerpt
-            first_sentence = check.article_excerpt.split(".")[0]
-            title = (
-                first_sentence[:70] + "..."
-                if len(first_sentence) > 70
-                else first_sentence
-            )
+            title = text_check_title(check.article_excerpt, [c.text for c in claims])
         elif source_domain:
             title = f"Report from {source_domain}"
 

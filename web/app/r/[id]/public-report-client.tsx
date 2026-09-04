@@ -287,7 +287,16 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
 
   // Claim type labels
   const activeClaim = claims[activeClaimIndex];
-  const content = getContentDisplay();
+  const rawContent = getContentDisplay();
+  // 2026-09-04: for a text check the title now IS the claim, whole (the API
+  // used to cut it at 70 chars). Showing the same sentence again under
+  // "Analysed" was the duplication the founder called out — drop the block
+  // when it would only repeat the heading. URL checks (a link under a title)
+  // and long pasted text (first sentence above, excerpt below) still show it.
+  const analysedRepeatsTitle =
+    rawContent?.type === 'text' &&
+    (check.inputContent?.content || check.articleExcerpt || '').trim() === (check.title || '').trim();
+  const content = analysedRepeatsTitle ? null : rawContent;
   const totalSources = claims.reduce((sum: number, c: any) => sum + (c.evidence?.length || 0), 0);
 
   return (
