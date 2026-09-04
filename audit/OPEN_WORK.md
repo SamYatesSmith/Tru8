@@ -5,11 +5,38 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-09-03, sign-off — supersedes the 2026-09-02 evening block)
+## 🟢 START HERE — next session (updated 2026-09-04, mid-session — supersedes the 2026-09-03 sign-off block)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ▶▶ WHERE 2026-09-03 ENDED — the bench is re-recorded and, for the first time, drift-free. Nothing else moved; the sends are still unlogged.
+### ▶▶ WHERE 2026-09-04 STANDS (mid-session) — the three commits are pushed; NO sends had gone; TTE + Tapper rewritten on their control-arm records; a GAPS-lens defect found on both send pages and fixed, push owed; the founder sends all five today.
+
+**Done this morning:**
+| what | proof |
+|---|---|
+| **Pushed `c29a86e..90a2806`** (recorder stub · corpus re-record · sign-off docs) on the founder's word | `origin/main` level; health was on `c29a86e` before the push |
+| **Founder confirmed: none of the three 2026-09-02 sends went.** Nothing to log yet | — |
+| **TTE + Tapper notes REWRITTEN** against `1bbf008a-2034-4e0f-a81d-14bb15bd8a32` and `4be28cd1-d10a-47e2-a7cb-976bbffcbbb4` (full ids recovered from session transcripts — they were recorded nowhere in `audit/`) | payload + PDF text + **Playwright DOM dump of every lens** (`?view=`); `audit/OUTREACH.md` ROUND 5; send sheet §1 + §4 |
+| **Viglione / Seymour / McSweeney re-rendered live** — caveat rows identical to the 09-02 pass; McSweeney's closer varied (near-copy of Viglione's, they are colleagues) | `verify-page.mjs --select '[data-testid="element-caveat"]'` ×3 |
+| **`e8f12df` — GAPS lens unresolved card showed raw `ev-…` ids instead of source titles** (lookup keyed by row UUID, refs carry `evidenceId`; never matched on any record, any surface — no previous send record had an unresolved element, so nobody had rendered it). Keyed by both; test fails on the old code | 149/149 web tests, typecheck clean; screenshots `design/preview/2026-09-04_r_{1bbf008a_tte,4be28cd1_tapper}_rerun.png` |
+
+**What the rewrites found:** TTE — the OSR is nowhere on the fresh record (removed from the note); causation `○ UNRESOLVED` on Lucien Engelen's newsletter as sole support (`△ Thin sourcing`); their piece `03 04 · context · ARCHIVED`; element 02 badged supported on five sources restating NHS England's number with NO repetition flag (echo gate needs the primary mapped on the same element; F4 shingles did not match) — disclosed in the note as "the tool only half-sees" their point. Tapper — his piece, the Times, the Herald, the IFS are all ABSENT; the £53m element is `− CHALLENGED` by Neidle's own analysis (static pre-behavioural number, not the net official forecast); £22m supported as an estimate with a £15–30m range; causation unresolved on a Reddit thread. Founder chooses old `5d69fc71` (his piece present, all-supported, C+) vs new `4be28cd1` (thinner, social-heavy, but the £53m finding) — recommendation NEW, trade written at the foot of §4. ⚠️ Both notes say **do not send before `e8f12df` is live** — Heneghan will open GAPS.
+
+**Noted, not changed:** `UnknownElementCard` renders `uncertainty` WITHOUT the Fix 1 gate (amber box) — both send records' text passes it; route it through `elementCaveatNote` when next in that file. A `404` console error on `/r/` pages (TTE, Viglione) — unidentified resource, cosmetic. Header "N of M elements covered" disagrees with the GAPS lens "M of M have evidence" on both records (counter semantics, cosmetic).
+
+**Spend today:** 0p (replays of stored records, no checks run).
+
+### ▶▶ WHAT HAPPENS NEXT, in order:
+1. **Push `e8f12df`** on the founder's word → verify live: `/r/1bbf008a-2034-4e0f-a81d-14bb15bd8a32?view=seeker` shows *The Miracle Statistic Revisited* on the unresolved card, not `ev-48f5e9ce5d8b`.
+2. **Founder reads §1–§5 of the send sheet and sends all five** (TTE, Viglione, Seymour, Tapper, McSweeney) — Tapper old-vs-new is the one open choice.
+3. **Log first-touch in `audit/OUTREACH.md`** (who, when, route) the moment the founder says they went; watch `?src=` attribution.
+4. Founder phone re-test · front-door numbers after a few days · bench items · pipeline queue — all unchanged from 09-03 below.
+
+**Durable lessons written to memory today** (`project_send_day_2026_09_04.md`): a pressure pass covers only the states a record HAS — the first record in a new state renders a surface nobody has read · a lookup keyed by the wrong id fails silently into a fallback that looks like data · record full check ids at the moment a check is run.
+
+---
+
+### ▶▶ WHERE 2026-09-03 ENDED (history) — the bench is re-recorded and, for the first time, drift-free. Nothing else moved; the sends are still unlogged.
 
 **⚠️ THREE COMMITS ON MAIN ARE NOT PUSHED** (`fd4bb49` recorder stub · `be6d5ee` corpus re-record · the sign-off docs commit). Production is unaffected by them (bench tooling, corpus, docs only) but `origin/main` is behind — push on the founder's word, it triggers a Railway deploy like any push.
 

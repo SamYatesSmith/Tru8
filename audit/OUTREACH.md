@@ -379,6 +379,72 @@ item, recorded in OPEN_WORK.
 reader sees the page, and the caveat channel is the gap. Fix 1 (element
 `uncertainty` on `/r/`) is no longer optional for the next round.**
 
+## VERIFICATION ROUND 5 (2026-09-04) — TTE + Tapper rewritten on their control-arm records; a GAPS-lens defect found on both
+
+**Context:** the founder confirmed on the morning of 2026-09-04 that NONE of the
+three 2026-09-02 sends had gone. All five now go today, on the founder's read.
+
+**Method (same as rounds 3–4, one addition):** the public payload
+(`/api/v1/checks/public/<id>?detailed=true`), the PDF text (pypdf), and — new —
+a headless Playwright DOM dump of the `/r/` page on EVERY lens
+(`?view=librarian|seeker|cartographer|chronologist`), so the element roster,
+the SOURCES MAPPED bars, NOTABLES, the ledger, the GAPS unresolved card and the
+timeline were all read as text rather than eyeballed. The two full check ids
+were not recorded anywhere in `audit/` and had to be recovered from the
+session transcripts: TTE `1bbf008a-2034-4e0f-a81d-14bb15bd8a32`, Tapper
+`4be28cd1-d10a-47e2-a7cb-976bbffcbbb4`. **Record full ids at the moment a
+check is run.**
+
+**TTE (`1bbf008a`, 4th run, HELD → SENDABLE):** four elements; 01/02/04
+`+ SUPPORTED`, each with a visible NOTE that the pilot was ONE practice (04:
+"comes exclusively from internal NHS England telephony evaluations of one
+practice"); 03 causation `○ UNRESOLVED` with `△ SUPPORT · Thin sourcing` — its
+only support is Lucien Engelen's newsletter digest, which `supports` all four
+elements. Their piece is `C·OPNON·01 · 03 04 · context · ARCHIVED`. Supports 7
+/ Context 7 / Challenges 0. **Removed from the note because it is not on this
+record:** the Office for Statistics Regulation (nowhere — page, payload, PDF),
+"unpublished", "one original and six derivatives", the `Mostly one source
+repeated` flag (does not fire here; the echo gate re-labelled derivatives on
+01/04 instead, and 02 has no primary to anchor it). **Disclosed in the note:**
+their piece changes no state; element 02 is badged supported on five sources
+that each restate NHS England's number, unflagged. Not cited (invisible): the
+"two five-month periods" detail, the mapper's reasoning.
+
+**Tapper (`4be28cd1`, record CHANGED from `5d69fc71`):** the claim's two
+figures separate — 02 £22m `+ SUPPORTED` (NOTE: independent analytical
+estimate, £15m–£30m), 01 the £53m forecast `− CHALLENGED` by Neidle's own
+analysis + buzzaccounting + futureeconomy (NOTE: static pre-behavioural
+calculation, not the net official forecast), 03 causation `○ UNRESOLVED` on a
+Reddit thread as sole support. **His own piece, the Times, the Herald and the
+IFS are NOT in this pool** (46 reviewed / 12 organised, 9 commentary, Neidle
+×5, two Reddit rows, both primary government pages unmapped). Note rewritten
+around the £53m finding with the thin pool stated plainly; the trade against
+the old record (his piece present, all-supported, C+) is written at the foot
+of §4 for the founder to choose. Not cited (invisible): the Fiscal
+Commission's £8m — in three stored snippets, truncated out of every PDF row.
+
+**DEFECT FOUND — GAPS lens showed raw `ev-…` ids on both records.** The
+unresolved-element card (`UnknownElementCard`) built its title lookup on the
+Evidence row UUID while refs carry the stable `evidenceId`; the lookup never
+matched on any record, on `/r/` or the dashboard, and fell back to the id.
+Nobody had seen it because no previous send record had an unresolved element.
+Fixed `e8f12df` (key by both), pinned by a test that fails on the old code,
+149/149 web tests, typecheck clean. **Must be live before either note goes** —
+Heneghan is the recipient who will open GAPS. Also noted, not changed: that
+card renders `uncertainty` without the Fix 1 gate (both send records' text
+passes it).
+
+**Viglione / Seymour / McSweeney:** caveat rows re-rendered live, identical to
+the 2026-09-02 pass (Viglione both GWIS notes; Seymour none; McSweeney 01 + 02
+shown, 03 hidden). No `/r/` render commit since Fix 1 other than `e8f12df`.
+One change: McSweeney's closer varied — it was a near-copy of Viglione's, and
+they are colleagues.
+
+**Durable:** a pressure pass covers only the states a record HAS — the first
+record in a new state renders a surface nobody has read · a lookup keyed by the
+wrong id fails silently into a fallback that looks like data · record full
+check ids when a check is run, not the prefix.
+
 ## The cadence
 
 - **5 sends/week for 10 weeks. Every message bespoke.** Each ≈ 20 min: find
