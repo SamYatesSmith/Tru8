@@ -48,10 +48,16 @@ export function UnknownElementCard({
   const isGap = !element.evidenceRefs || element.evidenceRefs.length === 0;
   const refCount = element.evidenceRefs?.length || 0;
 
-  // Build evidence lookup by ID for title display
+  // Build evidence lookup by ID for title display.
+  // 2026-09-04: refs carry the stable `ev-…` evidenceId (invariant #4 — the
+  // Claim Map's evidence_refs are the source of truth), while `ev.id` is the
+  // row UUID. Keying by `ev.id` alone never matched on /r/ or the dashboard,
+  // so every unresolved element showed raw `ev-…` chips instead of titles —
+  // first seen on the two 2026-09-02 outreach records. Key by both.
   const evidenceById = useMemo(() => {
     const map = new Map<string, Evidence>();
     for (const ev of evidence) {
+      if (ev.evidenceId) map.set(ev.evidenceId, ev);
       map.set(ev.id, ev);
     }
     return map;
