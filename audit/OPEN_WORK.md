@@ -27,7 +27,7 @@
 **Spend today:** 0p (replays of stored records, no checks run).
 
 ### ▶▶ WHAT HAPPENS NEXT, in order:
-1. **Push `e8f12df`** on the founder's word → verify live: `/r/1bbf008a-2034-4e0f-a81d-14bb15bd8a32?view=seeker` shows *The Miracle Statistic Revisited* on the unresolved card, not `ev-48f5e9ce5d8b`.
+1. ✅ **PUSHED `90a2806..53ec014` and LIVE-VERIFIED 2026-09-04** (founder: "proceed with the push"): the TTE GAPS card read *The Miracle Statistic Revisited* etc. 80 s after the push (Playwright poll); the Tapper card reads *Has Scotland's 48% tax rate really reduced public revenue?* / *…is it raising any money at all?* / *Reddit*; no `ev-…` id on either. Backend health `53ec014`.
 2. **Founder reads §1–§5 of the send sheet and sends all five** (TTE, Viglione, Seymour, Tapper, McSweeney) — Tapper old-vs-new is the one open choice.
 3. **Log first-touch in `audit/OUTREACH.md`** (who, when, route) the moment the founder says they went; watch `?src=` attribution.
 4. Founder phone re-test · front-door numbers after a few days · bench items · pipeline queue — all unchanged from 09-03 below.
