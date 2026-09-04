@@ -440,10 +440,53 @@ shown, 03 hidden). No `/r/` render commit since Fix 1 other than `e8f12df`.
 One change: McSweeney's closer varied — it was a near-copy of Viglione's, and
 they are colleagues.
 
+**Same afternoon — the public record's title (`d7439f5`, `8f95f77`):** the
+founder, reading a shareable link, found the H1 cut at 70 characters plus
+"..." with the full claim one block below. The title was never stored — the
+public endpoint derived it per request — so one backend change fixed every
+record at once: a single-claim check is titled by its claim, whole; the
+duplicate "Analysed" block is dropped when it only repeats the heading; the OG
+card's own clamp raised from 150 to 200 (the console's claim cap) because the
+Scotland claim was losing its last word. Verified live on both send pages and
+on the preview card.
+
+**Send-time discovery — NO EMAIL ADDRESSES (founder: *"I have just realised I
+don't have email addresses?"*).** By design: the roster carries channels under
+the contact map's *"No fabricated addresses"* rule, and none of the five
+publishes one. Every public route was checked: Trust the Evidence's Substack
+about page; both Oxford profiles (*"Contact information: Website
+cebm.ox.ac.uk"* and nothing else); the CEBM project page; Carbon Brief's
+about page (no addresses, Bluesky handles only) and contact page (a web form
+plus a postal address); the New Statesman's contact-us page (functional desks
+only — `comments@`, press, syndication — and *"no statement about contacting
+individual writers"*); Richard Seymour's own Substack (`leninology.substack.com`,
+no address); henrytapper.com (about page none, contact page 404); agewage.com
+(an empty shell); his Pension Schemes Bill written evidence (no address). The
+one address the web offers, `henry@agewage.com`, exists only on data-broker
+listings — by this plan's own rule it is unverified and never to be sent to as
+confirmed. **Verified routes, now a `Send via` line per recipient in the send
+sheet:** TTE + Seymour → subscribe, then Substack reply or direct message ·
+Viglione + McSweeney → the Carbon Brief form marked "For <name> —", or Bluesky
+DM (`@giulianaviglione.bsky.social`, `@rtmcswee.carbonbrief.org`) · Tapper →
+a comment under his 26 Jul post (a **comment-length version** of the note now
+sits in §4 — a letter does not fit a public comment) or X `@henryhtapper`.
+
+**Rule added to the machine:** a roster row is not sendable until it says HOW
+the send physically happens (form · DM · reply-to-newsletter · comment), and
+the note is drafted for that channel. Verify the route when the row is built,
+not on send day. Apply to round two (Macfarlane, Gid M-K, Ridley) before a
+note is drafted.
+
 **Durable:** a pressure pass covers only the states a record HAS — the first
 record in a new state renders a surface nobody has read · a lookup keyed by the
 wrong id fails silently into a fallback that looks like data · record full
-check ids when a check is run, not the prefix.
+check ids when a check is run, not the prefix · a derived display field can be
+wrong everywhere and fixed everywhere in one change — check whether a thing is
+stored before planning a migration.
+
+**FIRST TOUCH — to be logged Monday 2026-09-07 once the founder says what went**
+(recipient · date · route · record · tag). Nothing is logged yet: the founder
+was sending by hand as the 2026-09-04 session closed.
 
 ## The cadence
 
