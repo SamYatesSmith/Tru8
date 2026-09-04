@@ -61,8 +61,16 @@ function claimFontSize(len: number): number {
   if (len <= 46) return 48;
   if (len <= 78) return 42;
   if (len <= 116) return 36;
-  return 31;
+  if (len <= 170) return 31;
+  return 28;
 }
+
+// 2026-09-04: the API stopped cutting a text check's title at 70 chars, so the
+// card now receives the whole claim. The console caps a claim at 200 chars;
+// clamp there, not at 150 — a 156-char claim was losing its last word while
+// the card had a spare line beneath it. Above 170 the 28px tier keeps four
+// lines inside the block.
+const TITLE_CLAMP = 200;
 
 export function RecordCard({ chkId, title, sourceDomain, stance, tiers, elementCount, topDomains, moreCount }: RecordCardProps) {
   const bandSum = stance.supports + stance.context + stance.challenges;
@@ -78,7 +86,7 @@ export function RecordCard({ chkId, title, sourceDomain, stance, tiers, elementC
     { n: tiers.commentary, label: 'Commentary', bg: '#fafafa', bd: '#e5e7eb', fg: '#a1a1aa' },
   ].filter((t) => t.n > 0);
 
-  const displayTitle = title.length > 150 ? title.slice(0, 147) + '…' : title;
+  const displayTitle = title.length > TITLE_CLAMP ? title.slice(0, TITLE_CLAMP - 3) + '…' : title;
 
   return (
     <div style={{ width: 1200, height: 630, display: 'flex', flexDirection: 'column', backgroundColor: C.bg, backgroundImage: `url("${DOT_SVG}")`, backgroundRepeat: 'no-repeat', backgroundSize: '1200px 630px', fontFamily: SANS }}>
