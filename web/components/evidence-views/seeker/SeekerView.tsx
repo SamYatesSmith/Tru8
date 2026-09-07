@@ -10,6 +10,7 @@ import { ResearchButton } from './ResearchButton';
 import { SeekerProvenanceNote } from './SeekerProvenanceNote';
 import { ExplorePanel } from './ExplorePanel';
 import { DiagnosticFlag } from '../DiagnosticFlag';
+import { evidenceCoverage, hasMappedEvidence, needsEvidenceReview } from '@/lib/evidence-coverage';
 
 interface SeekerViewProps {
   claim: Claim;
@@ -71,28 +72,10 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
     return () => { cancelled = true; };
   }, [readOnly, token]);
 
-  // Compute metrics
-  // 2026-05-12: contextual state has evidence in the pool (context-tier
-  // refs); it is NOT a gap and NOT a known-unknown. Counted toward
-  // coverage, excluded from unresolved/gaps so the Seeker re-search
-  // button only targets genuinely empty elements.
-  const metrics = useMemo(() => {
-    let unresolved = 0;
-    let gaps = 0;
-
-    for (const el of elements) {
-      if (el.state === 'unresolved') unresolved++;
-      if (!el.evidenceRefs || el.evidenceRefs.length === 0) gaps++;
-    }
-
-    const withEvidence = elements.filter(el => el.evidenceRefs && el.evidenceRefs.length > 0).length;
-    const coverage = elements.length > 0 ? Math.round((withEvidence / elements.length) * 100) : 0;
-
-    return { gaps, unresolved, coverage };
-  }, [elements]);
+  const metrics = useMemo(() => evidenceCoverage(elements), [elements]);
 
   // Determine if explore mode should activate
-  const hasUnknowns = metrics.gaps > 0 || metrics.unresolved > 0;
+  const hasUnknowns = metrics.gaps > 0 || metrics.needsReview > 0;
 
   // Fetch explore data when no unknowns remain
   useEffect(() => {
@@ -112,22 +95,19 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
     return () => { cancelled = true; };
   }, [hasUnknowns, readOnly, checkId, claim.id, token]);
 
-  // Sort elements: gaps first, then unresolved, then resolved.
-  // 2026-05-12: contextual elements have evidence in pool — they sit
-  // with resolved (Seeker re-search shouldn't target them; the badge
-  // distinguishes them visually).
+  // Keep context-only and disputed elements visible for review. Finding
+  // related material does not resolve the question it was retrieved for.
   const { gapElements, unresolvedElements, resolvedElements } = useMemo(() => {
     const gapEls: IndexedElement[] = [];
     const unresolvedEls: IndexedElement[] = [];
     const resolvedEls: IndexedElement[] = [];
 
     elements.forEach((element, originalIndex) => {
-      const isGap = !element.evidenceRefs || element.evidenceRefs.length === 0;
-      const isAssessed = element.state === 'supported' || element.state === 'disputed' || element.state === 'contextual';
+      const isGap = !hasMappedEvidence(element);
 
       if (isGap) {
         gapEls.push({ element, originalIndex });
-      } else if (!isAssessed) {
+      } else if (needsEvidenceReview(element)) {
         unresolvedEls.push({ element, originalIndex });
       } else {
         resolvedEls.push({ element, originalIndex });
@@ -200,7 +180,7 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
       {unresolvedElements.length > 0 && (
         <div className="space-y-3">
           <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-            Unresolved
+            Needs review
           </p>
           {unresolvedElements.map(entry => renderCard(entry))}
         </div>
@@ -214,7 +194,7 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
             className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-600 transition-colors"
           >
             <span className="text-[8px]">{resolvedOpen ? '\u25BC' : '\u25B6'}</span>
-            Resolved Elements ({resolvedElements.length})
+            Predominantly Supported Elements ({resolvedElements.length})
           </button>
           {resolvedOpen && resolvedElements.map(entry => renderCard(entry))}
         </div>
@@ -223,8 +203,8 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
       {/* Well-covered empty state — positive reframe, no deflection */}
       {!hasUnknowns && (
         <div className="space-y-4">
-          <DiagnosticFlag label="Well covered">
-            All {elements.length} {elements.length === 1 ? 'element has' : 'elements have'} a settled state from the available evidence — no outstanding gaps or unresolved questions for this claim.
+          <DiagnosticFlag label="Evidence mapped">
+            Each element has supporting evidence mapped. Review the source passages and limitations; coverage does not establish completeness or certainty.
           </DiagnosticFlag>
         </div>
       )}

@@ -1,12 +1,12 @@
 interface UnknownsSummaryStripProps {
   gaps: number;
-  unresolved: number;
+  needsReview: number;
   coverage: number;
 }
 
 export function UnknownsSummaryStrip({
   gaps,
-  unresolved,
+  needsReview,
   coverage,
 }: UnknownsSummaryStripProps) {
   return (
@@ -17,17 +17,18 @@ export function UnknownsSummaryStrip({
           <span className="font-mono text-2xl font-semibold text-zinc-900">{gaps}</span>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Unresolved</span>
-          <span className="font-mono text-2xl font-semibold text-zinc-500">{unresolved}</span>
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Needs review</span>
+          <span className="font-mono text-2xl font-semibold text-zinc-500">{needsReview}</span>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Coverage</span>
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Evidence mapped</span>
           <span className="font-mono text-2xl font-semibold text-zinc-700">{coverage}%</span>
         </div>
       </div>
       <p className="text-center font-mono text-[10px] text-zinc-400 mt-3 leading-relaxed">
-        <span className="font-bold">Gaps</span> have no evidence retrieved.{' '}
-        <span className="font-bold">Unresolved</span> have evidence but no settled state.
+        <span className="font-bold">Gaps</span> have no mapped evidence.{' '}
+        <span className="font-bold">Needs review</span> includes contextual, disputed and unresolved elements with evidence.{' '}
+        The percentage measures evidence presence, not certainty or search completeness.
       </p>
     </div>
   );

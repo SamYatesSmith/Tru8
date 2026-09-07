@@ -1,5 +1,7 @@
 # Open Work Register
 
+> **2026-09-07 — evidence-quality implementation authorised.** Work proceeds on `codex/evidence-quality`, one validated commit per step. Scope, evidence, checks and remaining production validation: [implementation register](2026-09-07_evidence_quality_implementation.md). Existing commercial/outreach changes are preserved separately; this programme does not authorise account deletion or outreach.
+
 > **Single source of truth for what's currently open in Tru8.**
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
