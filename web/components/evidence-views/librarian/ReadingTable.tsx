@@ -19,8 +19,10 @@ function extractDomain(url: string): string {
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return '';
+  if (/^\d{4}(?:-\d{2})?$/.test(dateStr)) return dateStr;
   try {
     const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   } catch {
     return dateStr;
@@ -91,10 +93,14 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
       {/* Date */}
       {date && (
         <div className="font-mono text-[10px] text-zinc-400 mb-3">
-          {date}
+          Publication date: {date}
           <DateHint evidence={evidence} />
         </div>
       )}
+      <p className="text-[11px] text-zinc-500 mb-3">
+        {!date && 'Publication date unavailable. '}
+        Publication and capture dates do not establish when a reported value applies.
+      </p>
 
       {/* Stamps */}
       <div className="flex items-center gap-2 mb-4">
@@ -162,7 +168,7 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
           )}
           <details>
             <summary className="cursor-pointer">Capture details</summary>
-            <p className="mt-2">Captured {evidence.textProvenance.captured_at}. Retained {evidence.textProvenance.retained_characters} of {evidence.textProvenance.extraction_characters} extracted characters.</p>
+            <p className="mt-2">Text captured: {evidence.textProvenance.captured_at}. This records when this extraction was retained, not when the reported facts took effect. Retained {evidence.textProvenance.retained_characters} of {evidence.textProvenance.extraction_characters} extracted characters.</p>
             <p className="break-all">Extraction fingerprint (SHA-256): {evidence.textProvenance.extraction_sha256}</p>
           </details>
         </section>

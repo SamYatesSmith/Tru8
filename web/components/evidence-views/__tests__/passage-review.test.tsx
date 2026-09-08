@@ -4,6 +4,21 @@ import type { Claim, Evidence } from '@shared/types';
 import { ReadingTable } from '../librarian/ReadingTable';
 import { PassageReviewNotice } from '../PassageReviewNotice';
 
+it('keeps publication precision and separates capture from effective time', () => {
+  const ev = { id: 'source', url: 'https://example.org', publishedDate: '2025',
+    textProvenance: { version: 1, captured_at: '2026-09-08T10:00:00Z', passages: [] } } as unknown as Evidence;
+  render(<ReadingTable evidence={ev} callNumber="P1" onClose={() => {}} elementDescriptions={[]} />);
+  expect(screen.getByText('Publication date: 2025')).toBeTruthy();
+  expect(screen.queryByText(/1 Jan 2025/)).toBeNull();
+  expect(screen.getByText(/not when the reported facts took effect/)).toBeTruthy();
+});
+
+it('discloses a missing publication date without substituting the capture date', () => {
+  const ev = { id: 'source', url: 'https://example.org' } as Evidence;
+  render(<ReadingTable evidence={ev} callNumber="P1" onClose={() => {}} elementDescriptions={[]} />);
+  expect(screen.getByText(/Publication date unavailable/)).toBeTruthy();
+});
+
 it('shows linked quotation under its relationship without certifying the interpretation', () => {
   const citation = { passage_id: 'p', quote: 'BUSY can occur.', start: 0, end: 15, extraction_sha256: 'hash' };
   const ev = { id: 'source', url: 'https://example.org', textProvenance: { version: 1, extraction_sha256: 'hash',

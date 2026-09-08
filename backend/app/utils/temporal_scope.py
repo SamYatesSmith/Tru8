@@ -88,11 +88,11 @@ genuine disputes — invariant #7 breached from the other side:
   * CAPITALISATION. "in May" is a month; "continued to march" is not. Both
     guards are needed: the preposition alone admits "began to march".
 
-Residual, accepted and recorded rather than hidden: a forward-looking mention
-("the target for December", published October) resolves to the PREVIOUS
-December, and a year-only `published_date` parses to 1 January, which skews the
-same comparison. Both are visible in the receipt (`period_from`, `date_basis`),
-so a wrong scoping is auditable rather than silent.
+2026-09-08: publication resolution requires an explicitly supplied month;
+year-only and malformed dates cannot acquire January through parser fallback.
+Forecast/target sentences do not resolve bare months to a historical year.
+Explicitly stated periods remain readable in those sentences. These guards do
+not establish when a changing value is in force.
 """
 
 from __future__ import annotations
@@ -106,7 +106,6 @@ from app.utils.date_provenance import (
     DATE_BASIS_ENGINE,
     DATE_BASIS_PAGE,
 )
-from app.utils.date_utils import parse_date
 
 #: `date_basis` values whose date may resolve a bare month. Deliberately an
 #: allowlist: `url_inferred_suspect` is likely an upload path, and a missing
@@ -269,6 +268,8 @@ def _bare_month_numbers(text: str, consumed: List[tuple]) -> Set[int]:
     """
     months: Set[int] = set()
     for m in _BARE_MONTH.finditer(text):
+        if _forward_looking_sentence(text, m.start()):
+            continue
         # The month token, not the preposition, is what a month-year match ate.
         if any(start <= m.start(1) < end for start, end in consumed):
             continue
@@ -277,6 +278,56 @@ def _bare_month_numbers(text: str, consumed: List[tuple]) -> Set[int]:
             continue
         months.add(_MONTHS[token.lower()])
     return months
+
+
+_FORWARD_LOOKING = re.compile(
+    r"\b(?:will|would|forecast\w*|predict\w*|projected|projection\w*|"
+    r"expect\w*|target\w*|next|upcoming|scheduled|planned)\b",
+    re.I,
+)
+
+
+def _forward_looking_sentence(text: str, position: int) -> bool:
+    """Abstain from retrospective year inference in prospective sentences."""
+    start = 0
+    for boundary in re.finditer(r"[.!?](?:\s+|$)|\n", text):
+        if boundary.end() <= position:
+            start = boundary.end()
+        else:
+            return bool(_FORWARD_LOOKING.search(text[start : boundary.start()]))
+    return bool(_FORWARD_LOOKING.search(text[start:]))
+
+
+def _publication_with_month(value) -> Optional[datetime]:
+    """Parse only explicit publication dates, never the general year fallback.
+
+    A datetime has already lost original precision; callers remain responsible
+    for its provenance. This function cannot reconstruct discarded raw dates.
+    """
+    if isinstance(value, datetime):
+        return value
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        pass
+    for fmt in (
+        "%Y-%m",
+        "%Y/%m/%d",
+        "%d-%m-%Y",
+        "%d/%m/%Y",
+        "%B %d, %Y",
+        "%b %d, %Y",
+        "%d %B %Y",
+        "%d %b %Y",
+    ):
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    return None
 
 
 def resolve_bare_month(month: int, published: datetime) -> Period:
@@ -308,7 +359,7 @@ def read_evidence_periods(
     if date_basis not in TRUSTED_PUBLICATION_BASES:
         return PeriodReading(stated, set())
 
-    published = parse_date(published_date)
+    published = _publication_with_month(published_date)
     if published is None:
         return PeriodReading(stated, set())
 
@@ -428,12 +479,15 @@ def interval_ends(
 
     published = None
     if date_basis in TRUSTED_PUBLICATION_BASES:
-        published = parse_date(published_date)
+        published = _publication_with_month(published_date)
 
     ends: Set[Period] = set()
     for pattern in _INTERVAL_PATTERNS:
         for match in pattern.finditer(text):
-            end = _first_month_level(match.group("end"), published)
+            resolution_date = (
+                None if _forward_looking_sentence(text, match.start()) else published
+            )
+            end = _first_month_level(match.group("end"), resolution_date)
             if end is not None:
                 ends.add(end)
     return ends

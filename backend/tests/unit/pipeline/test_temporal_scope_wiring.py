@@ -364,6 +364,47 @@ def test_a_bare_month_is_placed_by_its_publication_date():
     assert _rel(elem, "ev-bare-month") == "context"
 
 
+@pytest.mark.parametrize("relationship", ["supports", "challenges"])
+@pytest.mark.parametrize(
+    "snippet,publication",
+    [
+        ("CPI increased in September.", "2025"),
+        ("CPI is expected to rise in September.", "2025-10-22"),
+    ],
+)
+def test_uncertain_year_does_not_scope_either_direction(
+    relationship, snippet, publication
+):
+    evidence = [
+        {
+            "evidence_id": "ev-uncertain",
+            "title": "Inflation report",
+            "snippet": snippet,
+            "published_date": publication,
+            "date_basis": "engine",
+            "tier": "reporting",
+            "evidence_type": "news",
+        }
+    ]
+    response = {
+        "elements": [
+            {
+                "element_id": "e1",
+                "evidence_refs": [
+                    {
+                        "evidence_id": "ev-uncertain",
+                        "relationship": relationship,
+                        "reasoning": "Test interpretation",
+                    }
+                ],
+            }
+        ]
+    }
+    claim_map = _claim_map()
+    ClaimMapAnalyzer()._parse_mapping_response(response, claim_map, evidence)
+    assert _rel(claim_map["elements"][0], "ev-uncertain") == relationship
+
+
 def test_an_untrusted_publication_date_places_nothing():
     """`url_inferred_suspect` is probably an upload path, so it earns no inference."""
     elem = _parse_live_miss()
