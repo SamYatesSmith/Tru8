@@ -2,6 +2,17 @@ import copy
 from unittest.mock import AsyncMock
 
 import pytest
+
+
+@pytest.mark.asyncio
+async def test_pair_review_uses_dedicated_provider_schema(monkeypatch):
+    from app.services.passage_mapping import PASSAGE_RESPONSE_SCHEMA
+    analyzer = ClaimMapAnalyzer()
+    analyzer.google_ai_api_key = "test-only"
+    analyzer._call_google = AsyncMock(return_value=({"pairs": []}, {}))
+    await analyzer._call_llm(prompt="Pairs", temperature=0, max_tokens=100, label="passage_review")
+    assert analyzer._call_google.call_args.kwargs["response_schema"] == PASSAGE_RESPONSE_SCHEMA
+    assert analyzer._call_google.call_args.kwargs["model"] == analyzer.google_model
 from app.core.config import settings
 from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
 from app.services.text_provenance import capture_text_provenance
@@ -86,6 +97,10 @@ async def test_already_mapped_source_reaches_other_element_with_exact_quote():
     await complete_passage_pairs(analyzer, cm, evidence)
     analyzer._call_llm.assert_awaited_once()
     assert "during cleanup" in analyzer._call_llm.call_args.kwargs["prompt"]
+    prompt = analyzer._call_llm.call_args.kwargs["prompt"]
+    assert '"elements": [' not in prompt
+    assert '"pairs":[' in prompt
+    assert analyzer._call_llm.call_args.kwargs["label"] == "passage_review"
     assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "supports"
     ref = cm["elements"][1]["evidence_refs"][0]
     assert ref["relationship"] == "challenges"

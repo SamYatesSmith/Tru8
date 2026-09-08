@@ -12,9 +12,20 @@ User authorised implementation of the hands-on improvement map, with a commit af
 6. **6a and 6b capture contract locally verified:** publication precision survives fresh capture/storage/remapping; explicit effective-date/as-of wording is retained with exact context and visible unreviewed status. Semantic fact/interval linking, current-value evaluation, decomposition and source-role refinements remain pending.
 7. Pending: operational reconciliation and end-to-end acceptance.
 
-No production deployment, paid benchmark or production-log inspection has been performed. Local verification is not an 8/10 re-score; live evidence and reviewer evaluation remain separate acceptance gates.
+No production deployment or production-log inspection has been performed. A bounded paid model evaluation has now run on public/synthetic fixed sources (see the latest checkpoint). Local verification is not an 8/10 re-score; live evidence and reviewer evaluation remain separate acceptance gates.
 
 ## Resume checkpoint — 8 September 2026
+
+### Integrated model evaluation checkpoint
+
+- After `bc3119c`, user requested proceeding with the integrated evaluation. Prepared and executed a bounded 2×2 comparison using the existing configured models, 16 real/synthetic cases, identical source bytes and frozen shared classifications. Fixed element descriptions isolate distillation/mapping; this does not evaluate decomposition or live retrieval. No application data or persistent settings changed.
+- Initial live sweep was stopped after 18 completed arms: of 8 passage-enabled reviews, 2 returned the original element JSON shape and were safely rejected, 3 were partial and 3 complete. The prompt carried both the original element schema and the new pair schema. Preserved these initial results; they are not mixed with corrected results.
+- Fixed the actual contract: reuse relationship judgement rules without the competing element JSON instructions, use a dedicated `passage_review` call label and provider response schema, retain exact quote/pair validation unchanged. Enabled passage fingerprint becomes v2; default-off fingerprints and old mapping prompts remain unchanged. No model choice changed.
+- Corrected sweep completed all **64 arms**. Among 32 passage-enabled arms: 15 complete, 15 needs_review, 2 partial; these statuses describe bounded processing, not accuracy. 40 retained citations pass exact-text/source-version checks, 21 pair disagreements are exposed, 2 pair rows are rejected. SQLite exception/read-only mappings are more consistently recovered in this small sample; unrelated controls stay unmapped.
+- **Do not activate:** a rate-level article is added as a challenge to the separate decision-date element in the combined Bank case; page-clock dates contaminate temporal interpretation in real and fictional controls. Exact quotations do not guarantee entailment. SELECT review is limited to FDA text because the trial abstract capture failed. No global accuracy or 8/10 re-score is claimed.
+- Validation: 42 backend checks including provider-schema wiring, existing completion/model metadata, exact quotation rejection, actual PostgreSQL passage persistence, evaluation hash isolation/dry-run/request-budget controls. Default-off replay `tmp/quality-replay-passage-schema.log`: 185 ok / 1 warn / 13 known fail / 2 unexercised, zero cassette drift. No golden changes.
+- Local responses: `tmp/passage-factorial-evaluation` (interrupted initial sweep), `tmp/passage-factorial-corrected` (complete sweep). Aggregate recorded provider usage: 331,099 input / 42,706 candidate-output / 68,348 thinking tokens (442,153 total), including 188 saved responses across both sweeps. An interrupted in-flight request may not be represented; this is usage telemetry, not a billing reconciliation. Both flags remain OFF, no deployment.
+- **Next, original-plan findings 5/6:** general element-specific entailment and temporal-applicability controls; make page/header observation distinct from the effective date of the cited fact. Replay these failures plus unseen value/date seeds and unrelated source layouts before activation. Details: [factorial evaluation](2026-09-08_passage_factorial_evaluation.md).
 
 ### Structured extraction checkpoint
 

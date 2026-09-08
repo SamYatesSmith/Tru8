@@ -1,0 +1,2165 @@
+{
+  "completed_arms": 64,
+  "review_statuses": {
+    "needs_review": 15,
+    "complete": 15,
+    "partial": 2
+  },
+  "retained_citations": 40,
+  "failed_exact_text_checks": 0,
+  "conflicting_pairs": 21,
+  "rejected_pair_rows": 2,
+  "usage": {
+    "passage-factorial-evaluation": {
+      "responses": 48,
+      "promptTokenCount": 91291,
+      "candidatesTokenCount": 12009,
+      "totalTokenCount": 118747,
+      "thoughtsTokenCount": 15447
+    },
+    "passage-factorial-corrected": {
+      "responses": 140,
+      "promptTokenCount": 239808,
+      "candidatesTokenCount": 30697,
+      "totalTokenCount": 323406,
+      "thoughtsTokenCount": 52901
+    }
+  },
+  "runs": [
+    {
+      "file": "bank-original-s0-p0.json",
+      "sha256": "8ef7db09da634328caf5b2284dc5f8f7ca5add7874f4a9f72e0952b1e2a8e55e",
+      "case_id": "bank-original",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "bank-article",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "bank-original-s0-p1.json",
+      "sha256": "2f3d86220133ac61ccdf8b51c9fbc0527c79800d7691718e970ad044f2d7ae7b",
+      "case_id": "bank-original",
+      "structured": false,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "bank-article",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "bank-original-s1-p0.json",
+      "sha256": "81c3ae154ef6a7d812b403e610805054ba44cffce42478bfb203627b183bc4e7",
+      "case_id": "bank-original",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "supports",
+              "citations": 0
+            },
+            {
+              "evidence_id": "bank-article",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "bank-original-s1-p1.json",
+      "sha256": "ff9815c1aa7558599ab6c67d33c18cb7c7a831be1d42a57997a5701c540fd1b1",
+      "case_id": "bank-original",
+      "structured": true,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "supports",
+              "citations": 1
+            },
+            {
+              "evidence_id": "bank-article",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "supports",
+              "citations": 1
+            },
+            {
+              "evidence_id": "bank-article",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "bank-reversed-s0-p0.json",
+      "sha256": "549b7531aaea29f931455bb16342c479969239136256a270e6a56eed24db121e",
+      "case_id": "bank-reversed",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "unresolved",
+          "refs": [
+            {
+              "evidence_id": "bank-article",
+              "relationship": "supports",
+              "citations": 0
+            },
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "bank-reversed-s0-p1.json",
+      "sha256": "f33684ca9240517247a72ef306d18b62e4ab15ceb0be83639f905d482d22feb5",
+      "case_id": "bank-reversed",
+      "structured": false,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "unresolved",
+          "refs": [
+            {
+              "evidence_id": "bank-article",
+              "relationship": "supports",
+              "citations": 1
+            },
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "bank-reversed-s1-p0.json",
+      "sha256": "8385519f5852327ae45491e6e4b30e0b28827e59bb7b86a2dbd5cf0bb498ab2a",
+      "case_id": "bank-reversed",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "bank-article",
+              "relationship": "supports",
+              "citations": 0
+            },
+            {
+              "evidence_id": "bank-home",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "bank-reversed-s1-p1.json",
+      "sha256": "58318fa04392f6e154da5b6b7a89a70084b44d0c8a6ba0f9076f525fa3efca75",
+      "case_id": "bank-reversed",
+      "structured": true,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "bank-article",
+              "relationship": "supports",
+              "citations": 1
+            },
+            {
+              "evidence_id": "bank-home",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "select-overgeneralised-s0-p0.json",
+      "sha256": "c50e48a230aa0b7bde4b4e85493b652344c14ae1048788873b84dd2ea83de644",
+      "case_id": "select-overgeneralised",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e3",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "select-overgeneralised-s0-p1.json",
+      "sha256": "1d1fea788b5f67eec783623fb61dfee131373757d72246c4a4c2ce316bf6f1a9",
+      "case_id": "select-overgeneralised",
+      "structured": false,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e3",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "select-overgeneralised-s1-p0.json",
+      "sha256": "9c3f02270abd169d34c39250f0b0682aba6f6bbfbd54a8f93a26f782f415ba92",
+      "case_id": "select-overgeneralised",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e3",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "select-overgeneralised-s1-p1.json",
+      "sha256": "06eb0200c73f5157821c42b445d42dc0ef370a02aeb1da54d89f67947de67487",
+      "case_id": "select-overgeneralised",
+      "structured": true,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e3",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "select-scope-s0-p0.json",
+      "sha256": "c06c334729d20fb9c0fcc14de102b7ae771cae42bf987fda476a2e66f24576e2",
+      "case_id": "select-scope",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "unresolved",
+          "refs": []
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e3",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "select-scope-s0-p1.json",
+      "sha256": "706bb096b721abe3046c57172118afde2ffa04329cbf464d29d86e03a84d13ed",
+      "case_id": "select-scope",
+      "structured": false,
+      "passage": true,
+      "review_status": "partial",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e3",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "select-scope-s1-p0.json",
+      "sha256": "827cbf49944bddb59d1f8c9279552995bb858b94b508fe1097fe1aa76a1a96ad",
+      "case_id": "select-scope",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "unresolved",
+          "refs": []
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e3",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "select-scope-s1-p1.json",
+      "sha256": "624b849f97da8ccf61ec41c34c5651e8940dc2c0b8c888d438e70b9d40536e18",
+      "case_id": "select-scope",
+      "structured": true,
+      "passage": true,
+      "review_status": "partial",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e3",
+          "state": "contextual",
+          "refs": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-busy-s0-p0.json",
+      "sha256": "b8ad3e4922e35bcaf1eec3d530e6a015e2cfe8d293947d88c468f0d0a0c194a5",
+      "case_id": "sqlite-busy",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-busy-s0-p1.json",
+      "sha256": "fbc421a8c38feae4e0684702f58a61478010b3bc026041772f449339b2152484",
+      "case_id": "sqlite-busy",
+      "structured": false,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-busy-s1-p0.json",
+      "sha256": "386f0aaaa33b3d4545b94d3c8b0f110e26936aac889554fe7cd375b0ec947b47",
+      "case_id": "sqlite-busy",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-busy-s1-p1.json",
+      "sha256": "92e4df41b67d7e8c4d11d5f73d27e72ca5b2d34ccbf0083940a26c1d2b47c2fb",
+      "case_id": "sqlite-busy",
+      "structured": true,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-readonly-s0-p0.json",
+      "sha256": "16c6c284570d69a67ab07005f91863c36dd27625b68c805254b6d40e849d5f1e",
+      "case_id": "sqlite-readonly",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-readonly-s0-p1.json",
+      "sha256": "29f873d2a2663025cb2eb0eccea69d2c98845aba6659e77440af653e2e861aee",
+      "case_id": "sqlite-readonly",
+      "structured": false,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports",
+              "citations": 1
+            },
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-readonly-s1-p0.json",
+      "sha256": "9c8ea0154112252ba5f9ada4b87ef1e6f1b4779cea18acc5e7bed7c377117023",
+      "case_id": "sqlite-readonly",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-readonly-s1-p1.json",
+      "sha256": "fb6a7c90038f374b81263b10b5b7719d34d44bb5578d2d52f0236b7682558a9d",
+      "case_id": "sqlite-readonly",
+      "structured": true,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports",
+              "citations": 1
+            },
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports",
+              "citations": 0
+            },
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-reversed-s0-p0.json",
+      "sha256": "3bb4669085c9beea171a2274c64871e5817870409f017cb89e9519833b917cff",
+      "case_id": "sqlite-reversed",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-reversed-s0-p1.json",
+      "sha256": "ff661e0098053e3a8087d18794ab3a5972ee40569608c5a2243fdf138e7cfbc5",
+      "case_id": "sqlite-reversed",
+      "structured": false,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-reversed-s1-p0.json",
+      "sha256": "d15693163da1d79a96bb4cb30fd4091e4e91a1462846332c176f2006583821a9",
+      "case_id": "sqlite-reversed",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "sqlite-reversed-s1-p1.json",
+      "sha256": "60f31732979dc2ef22209cd5eb7ac276b557b2286be7f653cd36a2916fb99b06",
+      "case_id": "sqlite-reversed",
+      "structured": true,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        },
+        {
+          "element_id": "e2",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-0-new-s0-p0.json",
+      "sha256": "7c5921ca6c1aab077a614514523c61f5c032b5f9383dc9ff8c8df8cbc1acbd5e",
+      "case_id": "synthetic-0-new",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-0-new-s0-p1.json",
+      "sha256": "5c6862ead1650f3f6cba3043414b82785166e8042f9c144cf901c47b68bab39d",
+      "case_id": "synthetic-0-new",
+      "structured": false,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-0-new-s1-p0.json",
+      "sha256": "43160136f87786135fcb61c0433d475644ebe4016df465c16a13b82484fde0e7",
+      "case_id": "synthetic-0-new",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-0-new-s1-p1.json",
+      "sha256": "3b597546242b6e0b49f2293a43888f78a34b2369ff680f841d5e7a0c557311c1",
+      "case_id": "synthetic-0-new",
+      "structured": true,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-0-reversed-s0-p0.json",
+      "sha256": "e8232743c84a77ec5e25107f7ecd0151ce06be1a92e6baf891d8f6d3eb8af876",
+      "case_id": "synthetic-0-reversed",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-0-reversed-s0-p1.json",
+      "sha256": "5296aa80b8304cf65614f7010b831b7c55f7122a564a3547efc6e60514b220a4",
+      "case_id": "synthetic-0-reversed",
+      "structured": false,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-0-reversed-s1-p0.json",
+      "sha256": "a5dfc077290b2c8d292c4174091e2951e6833ff7f3199a430c041cc4be36b410",
+      "case_id": "synthetic-0-reversed",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-0-reversed-s1-p1.json",
+      "sha256": "3282c02b77fe59141ddbe28b2388846d435e111590de188a8d82975fb29d0b0c",
+      "case_id": "synthetic-0-reversed",
+      "structured": true,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-1-new-s0-p0.json",
+      "sha256": "1c1b7f5c69f29fa92e25310fb74647521d4ae7c21eba7341f9c1bfa1fa776846",
+      "case_id": "synthetic-1-new",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-1-new-s0-p1.json",
+      "sha256": "a8ecffba8efea8e906b15e51bfb3e9ea684befbd0b26e9454b4275728344ad6e",
+      "case_id": "synthetic-1-new",
+      "structured": false,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 1
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-1-new-s1-p0.json",
+      "sha256": "0cdeb9f13d0e6b721bbcc6189328627d56eca8d3f197abc40ce68666e51ad3c1",
+      "case_id": "synthetic-1-new",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-1-new-s1-p1.json",
+      "sha256": "e47e4eacd019f10cc618093f9086ea6443704fc1d6d815087d4689ee9cb90b23",
+      "case_id": "synthetic-1-new",
+      "structured": true,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 1
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-1-reversed-s0-p0.json",
+      "sha256": "c7013f6b4e86591d02b3999731e8f2b40ac60bcc245fb61cd14b913a2e9bf67f",
+      "case_id": "synthetic-1-reversed",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-1-reversed-s0-p1.json",
+      "sha256": "fc023b0ba7b1bfcf2ec8413c8f05167dd5de9517d7d876545cd8a09c5814a2f3",
+      "case_id": "synthetic-1-reversed",
+      "structured": false,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-1-reversed-s1-p0.json",
+      "sha256": "86eb8723e22af0177d6bc100cf9ab171aecb1757ce649cd09b0aa539768561f3",
+      "case_id": "synthetic-1-reversed",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-1-reversed-s1-p1.json",
+      "sha256": "542a5168f4813bf53c938d0efd2a3f322e80e8aaacbb67933c05d11c87ecbf86",
+      "case_id": "synthetic-1-reversed",
+      "structured": true,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-2-new-s0-p0.json",
+      "sha256": "f2b0b96f507a7ee3def0de710f282a3882e44a14b16126569a4f036ec9774601",
+      "case_id": "synthetic-2-new",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-2-new-s0-p1.json",
+      "sha256": "d0dee41b3fe91297ca6f607e5d2caecb30a4d3956619cdf85a55bfd7c4c964fa",
+      "case_id": "synthetic-2-new",
+      "structured": false,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 1
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-2-new-s1-p0.json",
+      "sha256": "b27fa02da17693c5f4c9d13018d9bcbd3313f3d77dda58bb029c9f50a6bf3fa7",
+      "case_id": "synthetic-2-new",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-2-new-s1-p1.json",
+      "sha256": "d9f3105501b63cd82a73614b6f181732a1672d00c89956ee74731f071edab6e6",
+      "case_id": "synthetic-2-new",
+      "structured": true,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 1
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-2-reversed-s0-p0.json",
+      "sha256": "87c815434b6879386fa514eb00d83dfbb36e2f1e5d0bbb1b80ac275eea17e276",
+      "case_id": "synthetic-2-reversed",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "contextual",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-2-reversed-s0-p1.json",
+      "sha256": "a49c462cd505936111078baf42574efb52bf00c626ca338d9e0ed029654d6560",
+      "case_id": "synthetic-2-reversed",
+      "structured": false,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "contextual",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-2-reversed-s1-p0.json",
+      "sha256": "dc1c8f9bd5c000e2cbcc9a6e581888dc20c50eee7e3ac9548b6905b5606fba6f",
+      "case_id": "synthetic-2-reversed",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "contextual",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-2-reversed-s1-p1.json",
+      "sha256": "7e46317b87b6cd80de9f83febac34c4489f70a45d90540c65dd99d6043e5bc7a",
+      "case_id": "synthetic-2-reversed",
+      "structured": true,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "contextual",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-3-new-s0-p0.json",
+      "sha256": "942013676ed8ef6fd92ffc314854e7c827d048702edbb7ae5de38ea4df1602a6",
+      "case_id": "synthetic-3-new",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-3-new-s0-p1.json",
+      "sha256": "16e32dfecc0023b7d932d8ef251b29d7d2b699d69bf37d6eb73e0e5834b13360",
+      "case_id": "synthetic-3-new",
+      "structured": false,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 1
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-3-new-s1-p0.json",
+      "sha256": "2611a86f3e3efc7de85e43d2b036e5573e5909de25dc9001db77c54cf520ea0a",
+      "case_id": "synthetic-3-new",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-3-new-s1-p1.json",
+      "sha256": "3050b91b261f5c1f6d3f348bfe2b08adc2629f644b8521cc3ab733355271d1e0",
+      "case_id": "synthetic-3-new",
+      "structured": true,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "disputed",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges",
+              "citations": 1
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-3-reversed-s0-p0.json",
+      "sha256": "65a6538303b14ae2cc2fd21409583a66f8c266ea735c246d6d5662e05db79adb",
+      "case_id": "synthetic-3-reversed",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-3-reversed-s0-p1.json",
+      "sha256": "6befea8af5bd9dc85fd3c376d155e2987d74a21ea8dda0751f5850a488caaa26",
+      "case_id": "synthetic-3-reversed",
+      "structured": false,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-3-reversed-s1-p0.json",
+      "sha256": "58912220fe7925415fa5b6ec0fe07efbe7a40cc19408c26cfadb5f54a2033dd6",
+      "case_id": "synthetic-3-reversed",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "synthetic-3-reversed-s1-p1.json",
+      "sha256": "9dc0af7f7c9500319ffbfc5e0376eb77d43bc076274be91494b0c981c0cd2430",
+      "case_id": "synthetic-3-reversed",
+      "structured": true,
+      "passage": true,
+      "review_status": "needs_review",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "supported",
+          "refs": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context",
+              "citations": 0
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports",
+              "citations": 0
+            }
+          ]
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "unrelated-control-s0-p0.json",
+      "sha256": "8eba91f5bd7c5395d8013971ea2574f1c05cdf84d16bb2ee6d2984b3a0b83685",
+      "case_id": "unrelated-control",
+      "structured": false,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "unrelated-control-s0-p1.json",
+      "sha256": "8accca602c99fc03e50dee241a7610e26d904708d61723235d9e4c9c413c7c36",
+      "case_id": "unrelated-control",
+      "structured": false,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "unrelated-control-s1-p0.json",
+      "sha256": "3ac675450e0a661700930fe355275fb6b36c2ba286004d451f9b3a84ff56f414",
+      "case_id": "unrelated-control",
+      "structured": true,
+      "passage": false,
+      "review_status": null,
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    },
+    {
+      "file": "unrelated-control-s1-p1.json",
+      "sha256": "bf713fdd9cb144959c8a515c01828b582670c929912441733862a52e5b08c2d3",
+      "case_id": "unrelated-control",
+      "structured": true,
+      "passage": true,
+      "review_status": "complete",
+      "elements": [
+        {
+          "element_id": "e1",
+          "state": "unresolved",
+          "refs": []
+        }
+      ],
+      "models_used": {
+        "mapping": "gemini-3.7-flash",
+        "map_completion": "gemini-3.5-flash-lite",
+        "passage_review": "gemini-3.5-flash-lite"
+      },
+      "fallbacks": {}
+    }
+  ],
+  "semantic_accuracy": "not_globally_scored; targeted error review only",
+  "activation_recommendation": "hold"
+}

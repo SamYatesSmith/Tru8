@@ -2033,6 +2033,9 @@ class ClaimMapAnalyzer:
             response_schema = _MAPPING_RESPONSE_SCHEMA
         elif label == "batch_mapping":
             response_schema = _BATCH_MAPPING_RESPONSE_SCHEMA
+        elif label == "passage_review":
+            from app.services.passage_mapping import PASSAGE_RESPONSE_SCHEMA
+            response_schema = PASSAGE_RESPONSE_SCHEMA
 
         # Try Google first — with a time cap that leaves room for OpenAI fallback
         if self.google_ai_api_key:
