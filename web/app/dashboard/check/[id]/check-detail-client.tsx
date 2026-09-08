@@ -27,6 +27,7 @@ import { SeekerView } from '@/components/evidence-views/seeker';
 import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
 import { capture } from '@/lib/analytics';
 import { EvidenceRelationship } from '@shared/types';
+import { ReportRevisionHistory } from '@/components/evidence-views/ReportRevisionHistory';
 
 interface CheckDetailClientProps {
   initialData: any;
@@ -501,6 +502,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
           />
 
           {/* Multi-claim: Claim-Sectioned Overview */}
+          <ReportRevisionHistory key={checkId} checkId={checkId} refreshKey={checkData} />
           {!isSingleClaim && (
             <ClaimSectionStack
               claims={checkData.claims}

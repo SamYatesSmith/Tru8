@@ -4,7 +4,14 @@ User authorised implementation of the hands-on improvement map, with a commit af
 
 ## Sequence and status
 
-Latest checkpoint: [explicit date-anchor gate](2026-09-08_fact_anchor_gate.md).
+Latest checkpoint: [owner revision viewer and retry header fix](2026-09-08_revision_viewer.md).
+Owners can inspect and compare retained strengthening snapshots without replacing
+the current report. The API client now transmits its supplied idempotency key.
+TypeScript, 183 web tests and 10 PostgreSQL integration checks passed. This closes
+local viewer implementation only; public/export identity, live acceptance and the
+remaining semantic/operational work are still open. No deployment or flag activation.
+
+Previous checkpoint: [explicit date-anchor gate](2026-09-08_fact_anchor_gate.md).
 The disabled candidate now passes 27 targeted conditions across 13 fixed-source
 cases after correcting a measured planned-change regression. Initial mapping and
 passage additions share the gate; EVIDENCE/GAPS explain exclusions. This narrow

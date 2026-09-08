@@ -1,3 +1,5 @@
+import type { ReportRevision, RevisionSummary } from './report-revisions';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 /**
@@ -57,13 +59,12 @@ class ApiClient {
     options: RequestInit = {},
     token?: string | null
   ): Promise<T> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+    const headers = new Headers(options.headers);
+    if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
     // Add auth token if available
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers.set('Authorization', `Bearer ${token}`);
     }
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
@@ -462,6 +463,14 @@ class ApiClient {
     operationId?: string
   ): Promise<{ status: string; message: string; newEvidenceCount?: number; operationId?: string }> {
     return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/elements/${elementId}/research/status${operationId ? `?operation_id=${encodeURIComponent(operationId)}` : ''}`, {}, token);
+  }
+
+  async getReportRevisions(checkId: string, token: string): Promise<{ revisions: RevisionSummary[] }> {
+    return this.request(`/api/v1/checks/${encodeURIComponent(checkId)}/revisions`, {}, token);
+  }
+
+  async getReportRevision(checkId: string, revisionId: string, token: string): Promise<ReportRevision> {
+    return this.request(`/api/v1/checks/${encodeURIComponent(checkId)}/revisions/${encodeURIComponent(revisionId)}`, {}, token);
   }
 
   /**
