@@ -64,6 +64,10 @@ class TestDistilCoreFunction:
         assert items[0]["text"] == "- Fact one.\n- Fact two."
         assert items[0]["_distilled"] is True
         assert items[0]["content_basis"] == "distilled"
+        provenance = items[0]["text_provenance"]
+        assert provenance["original_snippet"] == "Some snippet text"
+        assert provenance["derived_text"] == "- Fact one.\n- Fact two."
+        assert provenance["passages"][0]["text"] == LONG_TEXT
 
     @pytest.mark.asyncio
     @pytest.mark.unit
@@ -111,6 +115,8 @@ class TestDistilCoreFunction:
 
         assert items[0]["text"] == original_text
         assert "_distilled" not in items[0]
+        assert "derived_text" not in items[0]["text_provenance"]
+        assert items[0]["text_provenance"]["passages"][0]["text"] == LONG_TEXT
 
     @pytest.mark.asyncio
     @pytest.mark.unit

@@ -129,6 +129,36 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
         </div>
       )}
 
+      {evidence.textProvenance?.version === 1 && (
+        <section aria-label="Captured source text" className="mb-4 space-y-3 text-[11px] text-zinc-600">
+          <h3 className="font-mono uppercase text-zinc-500">Captured source text</h3>
+          <p>These excerpts are copied from the extracted text. Extraction may omit page content or tables. They have not been linked to the relationships above.</p>
+          {evidence.textProvenance.passages.map((passage, index) => (
+            <div key={passage.id}>
+              <p className="text-zinc-400">Retained excerpt {index + 1}</p>
+              <blockquote className="border-l-2 border-zinc-300 pl-3 whitespace-pre-wrap break-words">{passage.text}</blockquote>
+            </div>
+          ))}
+          {evidence.textProvenance.original_snippet && (
+            <details>
+              <summary className="cursor-pointer">Original stored snippet</summary>
+              <p className="mt-2 whitespace-pre-wrap">{evidence.textProvenance.original_snippet}</p>
+            </details>
+          )}
+          {evidence.textProvenance.derived_text && (
+            <details>
+              <summary className="cursor-pointer">Model-generated facts — not quotations</summary>
+              <p className="mt-2 whitespace-pre-wrap">{evidence.textProvenance.derived_text}</p>
+            </details>
+          )}
+          <details>
+            <summary className="cursor-pointer">Capture details</summary>
+            <p className="mt-2">Captured {evidence.textProvenance.captured_at}. Retained {evidence.textProvenance.retained_characters} of {evidence.textProvenance.extraction_characters} extracted characters.</p>
+            <p className="break-all">Extraction fingerprint (SHA-256): {evidence.textProvenance.extraction_sha256}</p>
+          </details>
+        </section>
+      )}
+
       {/* Claim label (check-wide) */}
       {claimLabel && (
         <div className="font-mono text-[10px] text-zinc-400 mb-4">{claimLabel}</div>

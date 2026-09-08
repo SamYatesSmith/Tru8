@@ -469,6 +469,8 @@ class Evidence(SQLModel, table=True):
         description="What the pipeline obtained: full|snippet|api|pdf",
     )
 
+    text_provenance: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
+
     # Primary Source Detection fields (Tier 1 Improvement, 2025-01-17)
     is_primary_source: bool = Field(
         default=False,

@@ -2128,6 +2128,20 @@ async def run_pipeline_phase2(
     # =========================================================================
     # Stage 4.5 + 4.6: Classification + Distillation (run concurrently)
     # =========================================================================
+    from app.services.text_provenance import (
+        capture_text_provenance,
+        finalize_distilled_payload,
+    )
+
+    for claim in selected_claims:
+        for item in (evidence or {}).get(str(claim.get("position", 0)), []):
+            capture_text_provenance(
+                item,
+                claim.get("text", ""),
+                (claim.get("claim_map") or {}).get(
+                    "elements", claim.get("elements", [])
+                ),
+            )
     _run_classify = not _is_frozen_evidence_replay and bool(evidence)
     _run_distil = (
         not _is_frozen_evidence_replay
@@ -2275,6 +2289,9 @@ async def run_pipeline_phase2(
             concurrent_tasks.append(_timed("distil", _do_distil()))
 
         await asyncio.gather(*concurrent_tasks)
+        for items in evidence.values():
+            for item in items:
+                finalize_distilled_payload(item)
 
         elapsed = (datetime.now(timezone.utc) - classify_distil_start).total_seconds()
         if _run_classify:
@@ -3352,6 +3369,7 @@ async def save_check_results_async(
                     or None,
                     classification_method=ev_data.get("classification_method"),
                     content_basis=ev_data.get("content_basis"),
+                    text_provenance=ev_data.get("text_provenance"),
                     # Fact-check persistence (#14). Computed in-pipeline but
                     # previously dropped here. The confirmed-relevance gate
                     # (parse_success && !low_relevance) is applied at

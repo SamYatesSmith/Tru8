@@ -90,6 +90,18 @@ export type ReceiptStatus =
   | 'unmapped'
   | 'shown';
 
+export interface TextProvenance {
+  version: number;
+  capture_kind: 'extracted_text';
+  captured_at: string;
+  extraction_sha256: string;
+  extraction_characters: number;
+  retained_characters: number;
+  original_snippet: string;
+  derived_text?: string;
+  passages: { id: string; start: number; end: number; text: string; matched_element_ids: string[] }[];
+}
+
 export interface Evidence {
   id: string;
   claimId?: string; // Optional in some contexts
@@ -98,6 +110,8 @@ export interface Evidence {
   url: string;
   title: string;
   snippet: string;
+  contentBasis?: string;
+  textProvenance?: TextProvenance | null;
   publishedDate?: string; // ISO string from backend, not Date
   // Date provenance (F2): where publishedDate came from.
   // 'page_metadata' | 'engine' | 'url_inferred_suspect' | 'api_adapter'

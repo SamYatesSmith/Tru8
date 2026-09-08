@@ -2,10 +2,10 @@
 
 Sits between CLASSIFY and MAP. For each evidence item that has full article text,
 uses Gemini Flash Lite to extract only the atomic facts relevant to the claim.
-The mapper then receives structured facts from across the entire article instead
-of one arbitrary snippet window.
+The model currently reads a bounded leading slice. Separate exact extraction
+windows are retained for review; their retention does not expand model coverage.
 
-Falls back to existing snippets on any failure — no regression risk.
+Falls back to existing snippets on failure. Generated facts are not quotations.
 
 Cost: ~$0.004/claim, ~$0.02/check. Adds ~3-5s latency (parallelisable).
 """
@@ -97,6 +97,11 @@ class EvidenceDistiller:
             self._cleanup_full_text(evidence_items)
             return evidence_items
 
+        from app.services.text_provenance import capture_text_provenance
+
+        for item in evidence_items:
+            capture_text_provenance(item, claim_text)
+
         # Partition into distillable vs skip
         distillable_indices: List[int] = []
         for i, item in enumerate(evidence_items):
@@ -153,6 +158,10 @@ class EvidenceDistiller:
                 evidence_items[idx]["text"] = "- " + "\n- ".join(capped)
                 evidence_items[idx]["_distilled"] = True
                 evidence_items[idx]["content_basis"] = "distilled"
+                provenance = evidence_items[idx].get("text_provenance")
+                if provenance:
+                    provenance["derived_text"] = evidence_items[idx]["text"]
+                    provenance["derivation"] = "model_generated_facts"
 
         self._cleanup_full_text(evidence_items)
         return evidence_items

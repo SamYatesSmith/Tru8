@@ -186,6 +186,10 @@ class EvidenceItem(BaseModel):
         None,
         description="How tier/type was assigned: llm, heuristic, or api_metadata",
     )
+    textProvenance: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Retained extraction excerpts; not verified relationship citations",
+    )
     contentBasis: Optional[ContentBasis] = Field(
         None,
         description="How the content was obtained: full (page fetch), snippet (search result), api (structured API), pdf",
