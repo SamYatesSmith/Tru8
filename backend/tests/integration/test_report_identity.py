@@ -6,9 +6,15 @@ from types import SimpleNamespace
 import pytest
 from integration.test_research_operations import database, admit
 from app.models import Check, Claim, Evidence, ReportRevision
-from app.services.report_revisions import capture_report, identify_snapshot
+from app.services.report_revisions import (
+    capture_report,
+    identify_snapshot,
+    sign_snapshot,
+)
 from app.api.v1.response_builder import build_check_response
 from app.api.v1.checks import get_public_check, _build_check_pdf_bytes
+from app.services import research_operations as operations
+from integration.test_research_operations import result_rows
 
 
 @pytest.mark.asyncio
@@ -98,3 +104,82 @@ async def test_owner_public_and_pdf_identify_same_read_content(database, monkeyp
         assert "?revision=retained" in html[0]
         # PDF presentation notes must not mutate ORM claim maps or their identity.
         assert await capture_report(session, check) == snapshot
+
+
+@pytest.mark.asyncio
+async def test_strengthening_preserves_large_source_ledger_across_outputs(
+    database, monkeypatch
+):
+    """Synthetic 42-source ledger; real persistence/routes, no live retrieval."""
+    original_urls = {f"https://example.invalid/source-{i}" for i in range(42)}
+    async with database() as session:
+        check = await session.get(Check, "report")
+        check.input_content = json.dumps({"text": "Claim"})
+        for i, url in enumerate(sorted(original_urls)):
+            session.add(
+                Evidence(
+                    id=f"original-{i}",
+                    claim_id="claim",
+                    evidence_id=f"source-{i}",
+                    title=f"Synthetic source {i}",
+                    snippet="Synthetic retained text",
+                    relevance_score=0.8,
+                    url=url,
+                    source="example.invalid",
+                )
+            )
+        await session.flush()
+        check.manifest = sign_snapshot(await capture_report(session, check))
+        await session.commit()
+
+    op, _ = await admit(database)
+    from app.pipeline import re_search
+
+    async def research(claim, targets, progress):
+        assert {e["url"] for e in claim["evidence"]} == original_urls
+        return copy.deepcopy(claim["claimMap"]), [
+            {
+                "evidence_id": "additional",
+                "url": "https://example.invalid/additional",
+                "title": "Additional synthetic source",
+                "text": "Additional text",
+                "tier": "primary",
+                "evidence_type": "data",
+            }
+        ]
+
+    monkeypatch.setattr(re_search, "research_claim", research)
+    await operations.execute_operation(op.id)
+    await operations.execute_operation(
+        op.id
+    )  # A delivery retry must not add duplicates.
+    revisions = await result_rows(database, ReportRevision)
+    before = next(r for r in revisions if r.phase == "before")
+    after = next(r for r in revisions if r.phase == "after")
+    expected_urls = original_urls | {"https://example.invalid/additional"}
+    assert {e["url"] for e in before.snapshot["claims"][0]["evidence"]} == original_urls
+    assert {e["url"] for e in after.snapshot["claims"][0]["evidence"]} == expected_urls
+    assert len(await result_rows(database, Evidence)) == 43
+    html = []
+
+    class Renderer:
+        def __init__(self, *, string, **kwargs):
+            html.append(string)
+
+        def write_pdf(self):
+            return b"%PDF-test"
+
+    monkeypatch.setitem(sys.modules, "weasyprint", SimpleNamespace(HTML=Renderer))
+    async with database() as session:
+        owner = await build_check_response("report", "owner", session)
+        public = await get_public_check("report", detailed=True, session=session)
+        for response in (owner, public):
+            assert {
+                e["url"] for e in response["claims"][0]["evidence"]
+            } == expected_urls
+            assert response["reportIdentity"]["revisionId"] == after.id
+        check = await session.get(Check, "report")
+        await _build_check_pdf_bytes(check, session)
+        for url in expected_urls:
+            assert url in html[0]
+        assert owner["reportIdentity"]["contentHash"] in html[0]
