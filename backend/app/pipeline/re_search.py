@@ -141,4 +141,9 @@ async def research_claim(claim: dict, element_ids: list[str], progress):
     for element in updated["elements"]:
         if briefs.get(element["element_id"]):
             element["bounty_text"] = briefs[element["element_id"]]
+    from app.services.source_concentration import source_concentration
+
+    updated.setdefault("metadata", {})["source_concentration"] = source_concentration(
+        existing + candidates, updated
+    )
     return updated, candidates

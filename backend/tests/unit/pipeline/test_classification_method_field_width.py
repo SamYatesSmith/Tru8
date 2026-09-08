@@ -65,10 +65,10 @@ def test_all_classification_method_literals_fit_field_width():
             break
     assert max_len is not None
     literals = _collect_classification_method_literals()
-    # Sanity: we should find at least the Bug D + B3 + classifier values.
+    # Sanity: the scanner must find the classifier's standard value.
     assert (
-        "domain_concentration_cap" in literals
-    ), f"Scanner missed Bug D's literal — check the regex. Found: {sorted(literals)}"
+        "llm" in literals
+    ), f"Scanner missed the classifier literal. Found: {sorted(literals)}"
     overflowing = [v for v in literals if len(v) > max_len]
     assert not overflowing, (
         f"classification_method literals exceed varchar({max_len}): "

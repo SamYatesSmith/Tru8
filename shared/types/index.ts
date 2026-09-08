@@ -345,6 +345,12 @@ export interface ClaimMap {
     // Inner keys stay snake_case (only top-level metadata keys are camelCased).
     queryPlan?: { queries: string[]; element_ids: string[]; freshness: string[] };
     passageReview?: PassageReview;
+    sourceConcentration?: {
+      basis: 'mapped_documents_by_domain';
+      mapped_documents: number;
+      domains: { domain: string; documents: number }[];
+      independence: 'not_established';
+    };
     // Opinion decoupling: written by the grounds stage when it rebuilt this
     // claim's elements into neutral open questions. `applied` is the canonical
     // "these elements are QUESTIONS, not assertions" signal — see
