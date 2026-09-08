@@ -1446,6 +1446,7 @@ class _ScopeGate(NamedTuple):
 #: their receipts with the main pass's rather than overwrite them — losing a
 #: receipt is losing the record of an exclusion (invariant #5).
 _SCOPE_RECEIPT_KEYS = (
+    "relationship_scope",
     "fact_applicability",
     "temporal_scope",
     "jurisdiction_scope",
@@ -2061,6 +2062,10 @@ class ClaimMapAnalyzer:
         elif label == "passage_review":
             from app.services.passage_mapping import PASSAGE_RESPONSE_SCHEMA
             response_schema = PASSAGE_RESPONSE_SCHEMA
+        elif label == "scope_review":
+            from app.services.relationship_scope_review import RESPONSE_SCHEMA
+
+            response_schema = RESPONSE_SCHEMA
 
         # Try Google first — with a time cap that leaves room for OpenAI fallback
         if self.google_ai_api_key:
@@ -2844,6 +2849,9 @@ class ClaimMapAnalyzer:
                     for pair in receipt.get("pairs", []):
                         if pair.get("status") == "linked":
                             pair["status"] = "not_applied"
+            from app.services.relationship_scope_review import review_relationship_scope
+
+            await review_relationship_scope(self, claim_map, evidence_list)
 
     async def _complete_unmapped_sources(
         self,
@@ -3302,6 +3310,11 @@ class ClaimMapAnalyzer:
             logger.warning(
                 f"[RECOVERY MAP] Claim {claim_map.get('claim_id', '?')}: LLM returned None"
             )
+
+        if settings.ENABLE_PASSAGE_MAPPING and parsed is not None:
+            from app.services.relationship_scope_review import review_relationship_scope
+
+            await review_relationship_scope(self, claim_map, pool)
 
         # Re-derive orientation from all element states
         apply_orientation(claim_map)

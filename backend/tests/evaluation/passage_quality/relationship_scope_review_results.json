@@ -1,0 +1,565 @@
+{
+  "scope": "Three sequential candidate sweeps with two repeats, frozen full source pools and fixed mapping elements; not end-to-end or held-out human assessment.",
+  "sweeps": [
+    {
+      "name": "scope-review",
+      "raw_sha256": "16efe60f508c5107fa4190d5f1b22724f52728aefaa6914d0dc6fdd3c126b16d",
+      "results": [
+        {
+          "case": "creatine",
+          "repeat": 0,
+          "source_inputs": 21,
+          "states": [
+            "contextual"
+          ],
+          "relationships": {
+            "supports": 0,
+            "challenges": 0,
+            "context": 10
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 4,
+            "selected_pairs": 4,
+            "assessed_pairs": 4,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [
+            {
+              "evidence_id": "ev-70f5c1a3268c",
+              "decision": null,
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "distilled",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim refers to the prevention of Parkinson's disease (onset/incidence), whereas the evidence specifically addresses slowing the progression of symptoms in patients who already have Parkinson's disease. Onset/incidence prevention is distinct from progression/symptoms in already diagnosed patients."
+            },
+            {
+              "evidence_id": "ev-4977ed90d311",
+              "decision": null,
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim is about preventing the onset of Parkinson's disease, but the evidence evaluates Parkinson's disease (PD) progression. Prevention and progression are different outcomes."
+            },
+            {
+              "evidence_id": "ev-07ed2917d107",
+              "decision": null,
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim addresses disease prevention, while the evidence addresses slowing clinical progression in patients with the disease."
+            },
+            {
+              "evidence_id": "ev-bf877b9d39b4",
+              "decision": null,
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "distilled",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim focuses on preventing Parkinson's disease, whereas the evidence discusses delaying progression or improving motor impairment in individuals who already have Parkinson's disease."
+            }
+          ],
+          "observational_snippet_relationship": null
+        },
+        {
+          "case": "select",
+          "repeat": 0,
+          "source_inputs": 16,
+          "states": [
+            "supported"
+          ],
+          "relationships": {
+            "supports": 7,
+            "challenges": 0,
+            "context": 8
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 7,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [],
+          "observational_snippet_relationship": "supports"
+        },
+        {
+          "case": "creatine",
+          "repeat": 1,
+          "source_inputs": 21,
+          "states": [
+            "contextual"
+          ],
+          "relationships": {
+            "supports": 0,
+            "challenges": 0,
+            "context": 11
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 4,
+            "selected_pairs": 4,
+            "assessed_pairs": 4,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [
+            {
+              "evidence_id": "ev-70f5c1a3268c",
+              "decision": null,
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "distilled",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim refers to the prevention of Parkinson's disease in healthy individuals, whereas the evidence discusses slowing the progression of symptoms in already diagnosed patients."
+            },
+            {
+              "evidence_id": "ev-4977ed90d311",
+              "decision": null,
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim is about preventing the onset of Parkinson's disease, whereas the evidence addresses Parkinson's disease (PD) progression."
+            },
+            {
+              "evidence_id": "ev-07ed2917d107",
+              "decision": null,
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The element claim is about preventing Parkinson's disease, but the source evidence specifically evaluates clinical progression in already diagnosed patients."
+            },
+            {
+              "evidence_id": "ev-bf877b9d39b4",
+              "decision": null,
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "distilled",
+              "prior_relationship": "challenges",
+              "reasoning": "The element scope concerns preventing Parkinson's disease, while the evidence addresses delaying progression or improving impairment in individuals who already have Parkinson's disease."
+            }
+          ],
+          "observational_snippet_relationship": null
+        },
+        {
+          "case": "select",
+          "repeat": 1,
+          "source_inputs": 16,
+          "states": [
+            "supported"
+          ],
+          "relationships": {
+            "supports": 7,
+            "challenges": 0,
+            "context": 9
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 7,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [],
+          "observational_snippet_relationship": "supports"
+        }
+      ]
+    },
+    {
+      "name": "scope-review-final",
+      "raw_sha256": "bf294ab4dc9b7d738cb13a879bf449bba72f3af737258ccf6a0d03e03c1d6e3c",
+      "results": [
+        {
+          "case": "creatine",
+          "repeat": 0,
+          "source_inputs": 21,
+          "states": [
+            "contextual"
+          ],
+          "relationships": {
+            "supports": 0,
+            "challenges": 0,
+            "context": 12
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 5,
+            "selected_pairs": 5,
+            "assessed_pairs": 5,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [
+            {
+              "evidence_id": "ev-feaaa3e4a4e1",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim is about preventing Parkinson's disease, whereas the evidence discusses slowing disease progression in already diagnosed patients."
+            },
+            {
+              "evidence_id": "ev-70f5c1a3268c",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "retained_extraction",
+              "prior_relationship": "challenges",
+              "reasoning": "Prevention of onset is distinct from managing or altering the clinical progression in patients with early-stage Parkinson's."
+            },
+            {
+              "evidence_id": "ev-07ed2917d107",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The evidence addresses clinical progression rather than the prevention of the disease."
+            },
+            {
+              "evidence_id": "ev-rec-e1_0_e55bce61",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The trial evaluated patients with early Parkinson disease rather than preventing the onset of the disease."
+            },
+            {
+              "evidence_id": "ev-rec-e2_5_6a9081eb",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The evidence focuses on treatment/management in existing Parkinson's patients rather than preventing the disease."
+            }
+          ],
+          "observational_snippet_relationship": null
+        },
+        {
+          "case": "select",
+          "repeat": 0,
+          "source_inputs": 16,
+          "states": [
+            "supported"
+          ],
+          "relationships": {
+            "supports": 7,
+            "challenges": 0,
+            "context": 8
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 7,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [],
+          "observational_snippet_relationship": "supports"
+        },
+        {
+          "case": "creatine",
+          "repeat": 1,
+          "source_inputs": 21,
+          "states": [
+            "contextual"
+          ],
+          "relationships": {
+            "supports": 0,
+            "challenges": 0,
+            "context": 10
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 2,
+            "selected_pairs": 2,
+            "assessed_pairs": 2,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [
+            {
+              "evidence_id": "ev-4977ed90d311",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim is about preventing Parkinson's disease, whereas the evidence discusses the progression of the disease in already diagnosed patients, which represents a different outcome scope."
+            },
+            {
+              "evidence_id": "ev-07ed2917d107",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim concerns preventing the onset of Parkinson's disease, whereas the evidence focuses on slowing clinical progression in already diagnosed patients."
+            }
+          ],
+          "observational_snippet_relationship": null
+        },
+        {
+          "case": "select",
+          "repeat": 1,
+          "source_inputs": 16,
+          "states": [
+            "supported"
+          ],
+          "relationships": {
+            "supports": 7,
+            "challenges": 0,
+            "context": 9
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 7,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [],
+          "observational_snippet_relationship": "supports"
+        }
+      ]
+    },
+    {
+      "name": "scope-review-identity",
+      "raw_sha256": "7455602fb0b6c96d58443fb6e48fec80370f039cf19548dbe9122ac03de975d6",
+      "results": [
+        {
+          "case": "creatine",
+          "repeat": 0,
+          "source_inputs": 21,
+          "states": [
+            "contextual"
+          ],
+          "relationships": {
+            "supports": 0,
+            "challenges": 0,
+            "context": 13
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 4,
+            "selected_pairs": 4,
+            "assessed_pairs": 4,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [
+            {
+              "evidence_id": "ev-feaaa3e4a4e1",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim is about preventing Parkinson's disease, whereas the evidence discusses disease progression in already diagnosed patients, which represents a different outcome scope."
+            },
+            {
+              "evidence_id": "ev-43cd26972dcc",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim concerns prevention, whereas the evidence targets clinical progression in patients with existing Parkinson disease."
+            },
+            {
+              "evidence_id": "ev-rec-e1_0_e55bce61",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim targets disease prevention, while the cited trial studies early Parkinson disease patients rather than prevention."
+            },
+            {
+              "evidence_id": "ev-rec-e2_5_6a9081eb",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "The claim is about preventing the onset of Parkinson's disease, whereas the source text discusses treatment or management in patients who already have Parkinson's."
+            }
+          ],
+          "observational_snippet_relationship": null
+        },
+        {
+          "case": "select",
+          "repeat": 0,
+          "source_inputs": 16,
+          "states": [
+            "supported"
+          ],
+          "relationships": {
+            "supports": 6,
+            "challenges": 0,
+            "context": 10
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 7,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [
+            {
+              "evidence_id": "ev-1b3f9af549a3",
+              "decision": "unknown",
+              "decision_basis": "explicit_study_identifier_missing",
+              "content_basis": "snippet",
+              "prior_relationship": "supports",
+              "reasoning": "The supplied material does not identify SELECT, so applicability to a result specifically from that study is unestablished."
+            }
+          ],
+          "observational_snippet_relationship": "context"
+        },
+        {
+          "case": "creatine",
+          "repeat": 1,
+          "source_inputs": 21,
+          "states": [
+            "contextual"
+          ],
+          "relationships": {
+            "supports": 0,
+            "challenges": 0,
+            "context": 14
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 2,
+            "selected_pairs": 2,
+            "assessed_pairs": 2,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [
+            {
+              "evidence_id": "ev-feaaa3e4a4e1",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "Onset or prevention of a disease is distinct from the progression of the disease in already diagnosed patients."
+            },
+            {
+              "evidence_id": "ev-rec-e2_5_6a9081eb",
+              "decision": "mismatch",
+              "decision_basis": "model_scope_judgement",
+              "content_basis": "snippet",
+              "prior_relationship": "challenges",
+              "reasoning": "Prevention of Parkinson's disease is distinct from treatment or management in already diagnosed patients."
+            }
+          ],
+          "observational_snippet_relationship": null
+        },
+        {
+          "case": "select",
+          "repeat": 1,
+          "source_inputs": 16,
+          "states": [
+            "supported"
+          ],
+          "relationships": {
+            "supports": 6,
+            "challenges": 0,
+            "context": 10
+          },
+          "review": {
+            "version": 1,
+            "method": "model_scope_review_not_entailment_proof",
+            "candidate_pairs": 6,
+            "selected_pairs": 6,
+            "assessed_pairs": 6,
+            "uninspected_pairs": 0,
+            "status": "complete"
+          },
+          "scoped": [],
+          "observational_snippet_relationship": "context"
+        }
+      ]
+    }
+  ],
+  "synthetic_controls": {
+    "raw_sha256": "ade4e9fee63c555bd74a1c7dbeb78a88e9171f371484ee146665202ff9db374b",
+    "results": [
+      [
+        {
+          "id": "ev-trial-positive",
+          "expected": "supports",
+          "actual": "supports",
+          "pass": true
+        },
+        {
+          "id": "ev-trial-negative",
+          "expected": "challenges",
+          "actual": "challenges",
+          "pass": true
+        },
+        {
+          "id": "ev-progression",
+          "expected": "context",
+          "actual": "context",
+          "pass": true
+        },
+        {
+          "id": "ev-association",
+          "expected": "context",
+          "actual": "context",
+          "pass": true
+        }
+      ],
+      [
+        {
+          "id": "ev-trial-positive",
+          "expected": "supports",
+          "actual": "supports",
+          "pass": true
+        },
+        {
+          "id": "ev-trial-negative",
+          "expected": "challenges",
+          "actual": "challenges",
+          "pass": true
+        },
+        {
+          "id": "ev-progression",
+          "expected": "context",
+          "actual": "context",
+          "pass": true
+        },
+        {
+          "id": "ev-association",
+          "expected": "context",
+          "actual": "context",
+          "pass": true
+        }
+      ]
+    ],
+    "timing": "After unknown-scope policy; before final acronym-identity guard. Controls have no named-study assertion; identifier behavior has separate unit tests."
+  },
+  "validation": {
+    "backend_tests": 124,
+    "web_tests": 190,
+    "typescript": "passed",
+    "replay": {
+      "ok": 185,
+      "warn": 1,
+      "known_fail": 13,
+      "unexercised": 2,
+      "cassette_drift": 0
+    }
+  },
+  "decision": "Targeted frozen-source scope gate passes in both final repeats. Candidate remains OFF pending integrated and broader held-out assessment, latency/cost measurement and source-origin work. No 8/10 claim."
+}

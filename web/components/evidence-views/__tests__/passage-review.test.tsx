@@ -38,3 +38,15 @@ it('keeps uninspected pairs and conflicting interpretations visible', () => {
   expect(container.textContent).toContain('4 eligible pairs remain uninspected');
   expect(container.textContent).toContain('conflicting with the earlier mapping');
 });
+
+it('shows scope limitations and does not claim a superseded mapping was retained', () => {
+  const claim = { claimMap: { metadata: {
+    passageReview: { candidate_pairs: 1, assessed_pairs: 1, uninspected_pairs: 0, status: 'needs_review', pairs: [{ element_id: 'e1', evidence_id: 'ev', status: 'conflict', proposed_relationship: 'context' }] },
+    scopeReview: { candidate_pairs: 2, assessed_pairs: 1, uninspected_pairs: 1, status: 'needs_review', pairs: [{ element_id: 'e1', evidence_id: 'ev', status: 'scoped', reasoning: 'Different clinical outcome.' }] },
+  }, elements: [{ elementId: 'e1', description: 'Prevention' }] }, evidence: [{ evidenceId: 'ev', title: 'Trial' }] } as unknown as Claim;
+  const { container } = render(<PassageReviewNotice claim={claim} />);
+  expect(container.textContent).toContain('1 relationships remain uninspected');
+  expect(container.textContent).toContain('Different clinical outcome.');
+  expect(container.textContent).toContain('later scope review retained this source as context');
+  expect(container.textContent).not.toContain('The earlier mapping has been retained.');
+});

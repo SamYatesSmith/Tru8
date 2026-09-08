@@ -345,6 +345,13 @@ export interface ClaimMap {
     // Inner keys stay snake_case (only top-level metadata keys are camelCased).
     queryPlan?: { queries: string[]; element_ids: string[]; freshness: string[] };
     passageReview?: PassageReview;
+    scopeReview?: {
+      candidate_pairs: number;
+      assessed_pairs: number;
+      uninspected_pairs: number;
+      status: string;
+      pairs: { element_id: string; evidence_id: string; status: string; reasoning?: string; decision?: string }[];
+    };
     sourceConcentration?: {
       basis: 'mapped_documents_by_domain';
       mapped_documents: number;
