@@ -1,0 +1,955 @@
+{
+  "scope": "Diagnostic v7 versus v8 candidate tests; repeated fixed-source mapping separate from decomposition. Not end-to-end, not blinded human review, not an activation pass.",
+  "inputs": {
+    "venus": {
+      "claim": "Venus takes longer to rotate once on its axis than to orbit the Sun.",
+      "pipeline_sha256": "42c290b7eddae0d05e23da09efb4ec6b9e16369059dd06c74e13005987f93017"
+    },
+    "creatine": {
+      "claim": "Taking creatine supplements prevents Parkinson's disease.",
+      "pipeline_sha256": "e8fbd790ea1108259b56f22244feb0a5517a844f17a6055863e30b71f3ff4f08"
+    },
+    "select": {
+      "claim": "In the SELECT trial, semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes.",
+      "pipeline_sha256": "5b4e89a2b293f925df6b97bd636793fa590f416b47ac1b5e374ad15a89283eae"
+    }
+  },
+  "sweeps": [
+    {
+      "name": "baseline",
+      "raw_sha256": "4534092e1c7fe788c1aa1f6f0699cdbb1cb7f293a78acad97ca6ecd12cd138d0",
+      "results": [
+        {
+          "kind": "decomposition",
+          "case": "venus",
+          "repeat": 0,
+          "elements": [
+            "The rotational period of Venus on its axis exceeds 243 Earth days.",
+            "The orbital period of Venus around the Sun is approximately 225 Earth days.",
+            "The time required for one axial rotation of Venus is greater than the time required for one solar orbit."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "creatine",
+          "repeat": 0,
+          "elements": [
+            "Individuals consume creatine supplements at dosages capable of producing biological effects.",
+            "Creatine supplementation alters biochemical pathways in the human body relevant to the pathophysiology of Parkinson's disease.",
+            "The biological changes induced by creatine directly prevent the neurodegeneration characteristic of Parkinson's disease.",
+            "Populations taking creatine supplements exhibit a statistically significant reduction in the incidence of Parkinson's disease compared to non-users."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "select",
+          "repeat": 0,
+          "elements": [
+            "The SELECT trial studied adults with overweight or obesity and established cardiovascular disease without diabetes.",
+            "Semaglutide administration led to a reduction in major adverse cardiovascular events relative to placebo in this population.",
+            "The reduction in major adverse cardiovascular events achieved by semaglutide compared to placebo in the trial was exactly 20%."
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "creatine",
+          "repeat": 0,
+          "source_inputs": 21,
+          "relationship_counts": {
+            "supports": 0,
+            "challenges": 8,
+            "context": 5
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-c069baecc694",
+              "relationship": "challenges",
+              "reasoning": "The evidence states that large-scale clinical trials have not proven that creatine slows or prevents Parkinson's disease progression, contradicting the claim."
+            },
+            {
+              "evidence_id": "ev-ec832c07f275",
+              "relationship": "challenges",
+              "reasoning": "The Cochrane review found no clear evidence of an effect of creatine on clinical outcomes in Parkinson's disease, challenging the claim that it prevents the disease."
+            },
+            {
+              "evidence_id": "ev-70f5c1a3268c",
+              "relationship": "challenges",
+              "reasoning": "A five-year trial involving over 1,700 participants found that creatine neither improved nor worsened Parkinson's disease progression, contradicting the claim that it prevents it."
+            },
+            {
+              "evidence_id": "ev-4977ed90d311",
+              "relationship": "challenges",
+              "reasoning": "Reports that evidence from clinical trials has consistently demonstrated no effect of creatine supplementation on Parkinson's disease progression."
+            },
+            {
+              "evidence_id": "ev-07ed2917d107",
+              "relationship": "challenges",
+              "reasoning": "States that despite preclinical hypotheses, creatine failed to slow clinical progression in patients with Parkinson's disease."
+            },
+            {
+              "evidence_id": "ev-bf877b9d39b4",
+              "relationship": "challenges",
+              "reasoning": "Reports that a large 5-year study found 10 grams of daily creatine did not slow Parkinson's disease progression."
+            },
+            {
+              "evidence_id": "ev-rec-e1_0_e55bce61",
+              "relationship": "challenges",
+              "reasoning": "A randomized futility clinical trial of creatine in early Parkinson disease concluded it was futile, challenging its preventative efficacy."
+            },
+            {
+              "evidence_id": "ev-rec-e2_5_6a9081eb",
+              "relationship": "challenges",
+              "reasoning": "States explicitly that creatine isn't a Parkinson's treatment and only provides modest benefits on top of standard care."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 6,
+            "uninspected_pairs": 1
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-127019679c89",
+              "status": "conflict",
+              "proposed_relationship": "challenges"
+            }
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "select",
+          "repeat": 0,
+          "source_inputs": 16,
+          "relationship_counts": {
+            "supports": 7,
+            "challenges": 0,
+            "context": 8
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-1b3f9af549a3",
+              "relationship": "supports",
+              "reasoning": "This primary study evidence demonstrates that semaglutide 2.4 mg use is associated with significantly lower risks of MACE outcomes, directly supporting the clinical cardiovascular benefit asserted in the SELECT trial element."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 13,
+            "selected_pairs": 12,
+            "assessed_pairs": 10,
+            "uninspected_pairs": 3
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-f1bd3a89c585",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-255a4cae094a",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-ed4aa279da97",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-94d9fec815ea",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            }
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "venus",
+          "repeat": 1,
+          "elements": [
+            "The duration of one complete axial rotation of Venus is greater than the duration of one complete orbital revolution of Venus around the Sun.",
+            "One sidereal rotation of Venus takes approximately 243 Earth days.",
+            "One orbital revolution of Venus around the Sun takes approximately 225 Earth days."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "creatine",
+          "repeat": 1,
+          "elements": [
+            "Creatine supplements are ingested by individuals at risk for or free from Parkinson's disease.",
+            "Ingested creatine successfully crosses the blood-brain barrier and reaches adequate concentrations in neural tissue.",
+            "The biological mechanisms of creatine directly inhibit the neurodegenerative processes associated with Parkinson's disease.",
+            "Clinical or epidemiological data demonstrates that individuals taking creatine supplements have a statistically significant lower incidence of Parkinson's disease compared to non-users."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "select",
+          "repeat": 1,
+          "elements": [
+            "The SELECT trial was conducted on a population of adults with overweight or obesity and established cardiovascular disease but without diabetes.",
+            "Semaglutide treatment led to a causal reduction in major adverse cardiovascular events relative to placebo in this population.",
+            "The magnitude of the reduction in major adverse cardiovascular events with semaglutide compared to placebo was precisely 20%."
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "creatine",
+          "repeat": 1,
+          "source_inputs": 21,
+          "relationship_counts": {
+            "supports": 0,
+            "challenges": 7,
+            "context": 5
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-c069baecc694",
+              "relationship": "challenges",
+              "reasoning": "Reports that the large-scale NIH LS-1 Phase III trial of over 1,700 patients was halted for futility because creatine did not slow clinical progression compared to placebo."
+            },
+            {
+              "evidence_id": "ev-ec832c07f275",
+              "relationship": "challenges",
+              "reasoning": "A Cochrane review evaluating trials of creatine for Parkinson's disease found no clear evidence of an effect on motor function or activities of daily living, challenging the claim that creatine prevents or effectively treats the condition."
+            },
+            {
+              "evidence_id": "ev-70f5c1a3268c",
+              "relationship": "challenges",
+              "reasoning": "A large-scale randomized controlled trial following over 1,700 participants found that creatine neither improved nor worsened clinical progression after five years, directly challenging the idea that creatine is effective against Parkinson's disease."
+            },
+            {
+              "evidence_id": "ev-4977ed90d311",
+              "relationship": "challenges",
+              "reasoning": "Documents that clinical trials have consistently demonstrated no effect of creatine supplementation on Parkinson's disease progression."
+            },
+            {
+              "evidence_id": "ev-07ed2917d107",
+              "relationship": "challenges",
+              "reasoning": "Confirms that clinical evidence shows creatine failed to slow the progression of Parkinson's disease."
+            },
+            {
+              "evidence_id": "ev-bf877b9d39b4",
+              "relationship": "challenges",
+              "reasoning": "Reports that a large study found taking 10 grams of creatine daily did not slow Parkinson's disease progression over 5 years."
+            },
+            {
+              "evidence_id": "ev-rec-e2_5_6a9081eb",
+              "relationship": "challenges",
+              "reasoning": "Explains that creatine is not a treatment for Parkinson's disease because human trials failed to demonstrate efficacy."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 7,
+            "uninspected_pairs": 0
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-c069baecc694",
+              "status": "conflict",
+              "proposed_relationship": "context"
+            },
+            {
+              "evidence_id": "ev-127019679c89",
+              "status": "conflict",
+              "proposed_relationship": "challenges"
+            },
+            {
+              "evidence_id": "ev-bf877b9d39b4",
+              "status": "conflict",
+              "proposed_relationship": "context"
+            }
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "select",
+          "repeat": 1,
+          "source_inputs": 16,
+          "relationship_counts": {
+            "supports": 6,
+            "challenges": 0,
+            "context": 10
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-1b3f9af549a3",
+              "relationship": "context",
+              "reasoning": "Notes semaglutide 2.4 mg is associated with lower risks of MACE outcomes in real-world use without specifying the SELECT trial 20% figure."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 13,
+            "selected_pairs": 12,
+            "assessed_pairs": 11,
+            "uninspected_pairs": 2
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-e034ece5a149",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-f1bd3a89c585",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-255a4cae094a",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-89c4bc6ba1da",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-ed4aa279da97",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-94d9fec815ea",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "candidate",
+      "raw_sha256": "f5d4000d541f4198c839107358ab49725195ddd22ff9d16dc4a0bdb8f08cc186",
+      "results": [
+        {
+          "kind": "decomposition",
+          "case": "venus",
+          "repeat": 0,
+          "elements": [
+            "The rotational period of Venus on its axis is greater than its orbital period around the Sun."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "creatine",
+          "repeat": 0,
+          "elements": [
+            "Taking creatine supplements is a causal factor that prevents the onset of Parkinson's disease."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "select",
+          "repeat": 0,
+          "elements": [
+            "In the SELECT trial, semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes."
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "creatine",
+          "repeat": 0,
+          "source_inputs": 21,
+          "relationship_counts": {
+            "supports": 0,
+            "challenges": 4,
+            "context": 10
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-feaaa3e4a4e1",
+              "relationship": "challenges",
+              "reasoning": "Large-scale studies showed no significant benefit for Parkinson disease progression, contradicting the claim of prevention."
+            },
+            {
+              "evidence_id": "ev-43cd26972dcc",
+              "relationship": "challenges",
+              "reasoning": "Clinical trial results show no significant effect on clinical progression in patients with Parkinson disease."
+            },
+            {
+              "evidence_id": "ev-rec-e1_0_e55bce61",
+              "relationship": "challenges",
+              "reasoning": "A randomized, double-blind futility clinical trial of creatine in Parkinson's disease found it lacked efficacy."
+            },
+            {
+              "evidence_id": "ev-rec-e2_2_94453bf0",
+              "relationship": "challenges",
+              "reasoning": "A placebo-controlled randomized pilot trial on creatine supplementation in Parkinson disease found no significant therapeutic benefit."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 7,
+            "uninspected_pairs": 0
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-70f5c1a3268c",
+              "status": "conflict",
+              "proposed_relationship": "challenges"
+            }
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "select",
+          "repeat": 0,
+          "source_inputs": 16,
+          "relationship_counts": {
+            "supports": 6,
+            "challenges": 0,
+            "context": 10
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-1b3f9af549a3",
+              "relationship": "context",
+              "reasoning": "Discusses real-world SCORE study results on semaglutide 2.4 mg and MACE outcomes rather than direct data from the SELECT trial."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 13,
+            "selected_pairs": 12,
+            "assessed_pairs": 9,
+            "uninspected_pairs": 4
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-f1bd3a89c585",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-255a4cae094a",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-ed4aa279da97",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-94d9fec815ea",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            }
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "venus",
+          "repeat": 1,
+          "elements": [
+            "The duration of one complete axial rotation of Venus is greater than the duration of one complete orbit of Venus around the Sun."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "creatine",
+          "repeat": 1,
+          "elements": [
+            "Creatine supplements are taken as an intervention.",
+            "Taking creatine supplements directly causes the prevention of the onset of Parkinson's disease.",
+            "Parkinson's disease is prevented in individuals who take creatine supplements compared to those who do not."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "select",
+          "repeat": 1,
+          "elements": [
+            "In the SELECT trial, semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes."
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "creatine",
+          "repeat": 1,
+          "source_inputs": 21,
+          "relationship_counts": {
+            "supports": 0,
+            "challenges": 2,
+            "context": 11
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-feaaa3e4a4e1",
+              "relationship": "challenges",
+              "reasoning": "Large-scale studies showed no significant benefit for Parkinson disease progression, contradicting the claim that creatine prevents or halts the disease."
+            },
+            {
+              "evidence_id": "ev-rec-e1_0_e55bce61",
+              "relationship": "challenges",
+              "reasoning": "References a randomized, double-blind, futility clinical trial of creatine in Parkinson's disease that failed to show efficacy."
+            }
+          ],
+          "passage_review": {
+            "status": "partial",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 6,
+            "uninspected_pairs": 1
+          },
+          "conflicts": []
+        },
+        {
+          "kind": "mapping",
+          "case": "select",
+          "repeat": 1,
+          "source_inputs": 16,
+          "relationship_counts": {
+            "supports": 6,
+            "challenges": 0,
+            "context": 10
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-1b3f9af549a3",
+              "relationship": "context",
+              "reasoning": "Discusses real-world SCORE study data regarding semaglutide 2.4 mg and MACE outcomes rather than the SELECT trial results directly."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 13,
+            "selected_pairs": 12,
+            "assessed_pairs": 11,
+            "uninspected_pairs": 2
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-f1bd3a89c585",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-255a4cae094a",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-89c4bc6ba1da",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-ed4aa279da97",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-37f567139cd0",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-94d9fec815ea",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "final",
+      "raw_sha256": "320138970895f34b82b8ca8dabe4e26881d52ad0a20dd23ebea3bddd638a00ff",
+      "results": [
+        {
+          "kind": "decomposition",
+          "case": "venus",
+          "repeat": 0,
+          "elements": [
+            "The time it takes for Venus to complete one rotation on its axis is greater than the time it takes for Venus to complete one orbit around the Sun."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "creatine",
+          "repeat": 0,
+          "elements": [
+            "Taking creatine supplements is a cause of the prevention of Parkinson's disease onset."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "select",
+          "repeat": 0,
+          "elements": [
+            "In the SELECT trial, semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes."
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "creatine",
+          "repeat": 0,
+          "source_inputs": 21,
+          "relationship_counts": {
+            "supports": 0,
+            "challenges": 4,
+            "context": 8
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-70f5c1a3268c",
+              "relationship": "challenges",
+              "reasoning": "Clinical trials found that creatine does not significantly slow or prevent Parkinson's symptoms or progression."
+            },
+            {
+              "evidence_id": "ev-4977ed90d311",
+              "relationship": "challenges",
+              "reasoning": "Evidence from clinical trials consistently demonstrates no effect of creatine supplementation on Parkinson's disease progression."
+            },
+            {
+              "evidence_id": "ev-07ed2917d107",
+              "relationship": "challenges",
+              "reasoning": "Despite preclinical evidence, clinical trials found creatine failed to prevent or slow Parkinson disease progression."
+            },
+            {
+              "evidence_id": "ev-bf877b9d39b4",
+              "relationship": "challenges",
+              "reasoning": "A large study showed that taking 10 grams of creatine daily did not prevent or slow Parkinson's disease progression over 5 years."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 6,
+            "uninspected_pairs": 1
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-bf877b9d39b4",
+              "status": "conflict",
+              "proposed_relationship": "context"
+            }
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "select",
+          "repeat": 0,
+          "source_inputs": 16,
+          "relationship_counts": {
+            "supports": 7,
+            "challenges": 0,
+            "context": 9
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-1b3f9af549a3",
+              "relationship": "supports",
+              "reasoning": "This primary study demonstrates that semaglutide 2.4 mg use was associated with significantly lower risks of all MACE outcomes, directly supporting the clinical cardiovascular benefit in the target population."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 13,
+            "selected_pairs": 12,
+            "assessed_pairs": 10,
+            "uninspected_pairs": 3
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-f1bd3a89c585",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-255a4cae094a",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-ed4aa279da97",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-94d9fec815ea",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            }
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "venus",
+          "repeat": 1,
+          "elements": [
+            "The duration of one full axial rotation of Venus is greater than the duration of one complete orbit of Venus around the Sun."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "creatine",
+          "repeat": 1,
+          "elements": [
+            "Taking creatine supplements is a cause of the prevention of Parkinson's disease onset."
+          ]
+        },
+        {
+          "kind": "decomposition",
+          "case": "select",
+          "repeat": 1,
+          "elements": [
+            "In the SELECT trial, semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes."
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "creatine",
+          "repeat": 1,
+          "source_inputs": 21,
+          "relationship_counts": {
+            "supports": 0,
+            "challenges": 4,
+            "context": 7
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-70f5c1a3268c",
+              "relationship": "challenges",
+              "reasoning": "Clinical trials found that creatine does not significantly slow or prevent Parkinson\u2019s disease symptoms."
+            },
+            {
+              "evidence_id": "ev-4977ed90d311",
+              "relationship": "challenges",
+              "reasoning": "Evidence from clinical trials consistently demonstrates no effect of creatine supplementation on Parkinson's disease."
+            },
+            {
+              "evidence_id": "ev-07ed2917d107",
+              "relationship": "challenges",
+              "reasoning": "Creatine failed to impact the clinical progression or occurrence of Parkinson disease despite preclinical evidence."
+            },
+            {
+              "evidence_id": "ev-bf877b9d39b4",
+              "relationship": "challenges",
+              "reasoning": "There is no convincing evidence that dietary supplements help delay progression or prevent Parkinson's disease."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 7,
+            "selected_pairs": 7,
+            "assessed_pairs": 7,
+            "uninspected_pairs": 0
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-70f5c1a3268c",
+              "status": "conflict",
+              "proposed_relationship": "context"
+            },
+            {
+              "evidence_id": "ev-bf877b9d39b4",
+              "status": "conflict",
+              "proposed_relationship": "context"
+            }
+          ]
+        },
+        {
+          "kind": "mapping",
+          "case": "select",
+          "repeat": 1,
+          "source_inputs": 16,
+          "relationship_counts": {
+            "supports": 7,
+            "challenges": 0,
+            "context": 8
+          },
+          "diagnostic_relationships": [
+            {
+              "evidence_id": "ev-1b3f9af549a3",
+              "relationship": "supports",
+              "reasoning": "The evidence reports that semaglutide 2.4 mg use was associated with significantly lower risks of all MACE outcomes, supporting the cardiovascular benefit described in the SELECT trial."
+            }
+          ],
+          "passage_review": {
+            "status": "needs_review",
+            "candidate_pairs": 13,
+            "selected_pairs": 12,
+            "assessed_pairs": 11,
+            "uninspected_pairs": 2
+          },
+          "conflicts": [
+            {
+              "evidence_id": "ev-e034ece5a149",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-f1bd3a89c585",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-255a4cae094a",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-89c4bc6ba1da",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-ed4aa279da97",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            },
+            {
+              "evidence_id": "ev-94d9fec815ea",
+              "status": "conflict",
+              "proposed_relationship": "supports"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "batch": {
+    "raw_sha256": "c0f8bedf8f516c306cefee6b4496e6c89236535eefd319caba5edb602740c975",
+    "results": [
+      {
+        "repeat": 0,
+        "elements": {
+          "venus": [
+            "The rotational period of Venus on its axis is longer in duration than its orbital period around the Sun."
+          ],
+          "creatine": [
+            "The intake of creatine supplements causes the prevention of the onset of Parkinson's disease."
+          ],
+          "select": [
+            "In the SELECT trial, semaglutide administration resulted in a 20% reduction in major adverse cardiovascular events relative to placebo among adults with overweight or obesity and established cardiovascular disease without diabetes."
+          ]
+        }
+      },
+      {
+        "repeat": 1,
+        "elements": {
+          "venus": [
+            "Venus takes a longer duration of time to complete one rotation on its axis than it does to complete one orbit around the Sun."
+          ],
+          "creatine": [
+            "The intake of creatine supplements prevents the onset of Parkinson's disease."
+          ],
+          "select": [
+            "In the SELECT trial, semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes."
+          ]
+        }
+      }
+    ]
+  },
+  "synthetic_controls": {
+    "claim": "Intervention A reduces the incidence of condition R in initially unaffected adults compared with placebo.",
+    "sources": [
+      [
+        "ev-trial-positive",
+        "A randomized placebo-controlled trial in adults initially free of condition R found that intervention A reduced new diagnoses of condition R from 20% to 10% over five years, with a statistically significant difference.",
+        "supports"
+      ],
+      [
+        "ev-trial-negative",
+        "A large adequately powered randomized placebo-controlled trial in adults initially free of condition R found identical five-year incidence of new condition R diagnoses with intervention A and placebo. The trial excluded a clinically meaningful reduction in incidence.",
+        "challenges"
+      ],
+      [
+        "ev-progression",
+        "A randomized trial in adults already diagnosed with condition R found intervention A did not slow symptom progression compared with placebo. The trial did not measure prevention of onset.",
+        "context"
+      ],
+      [
+        "ev-association",
+        "An observational survey found lower incidence of condition R among adults who chose intervention A. There was no randomized assignment or placebo comparator, and confounding precludes a causal conclusion.",
+        "context"
+      ]
+    ],
+    "results": [
+      {
+        "repeat": 0,
+        "checks": [
+          {
+            "id": "ev-trial-positive",
+            "expected": "supports",
+            "actual": "supports",
+            "pass": true
+          },
+          {
+            "id": "ev-trial-negative",
+            "expected": "challenges",
+            "actual": "challenges",
+            "pass": true
+          },
+          {
+            "id": "ev-progression",
+            "expected": "context",
+            "actual": "context",
+            "pass": true
+          },
+          {
+            "id": "ev-association",
+            "expected": "context",
+            "actual": "context",
+            "pass": true
+          }
+        ]
+      },
+      {
+        "repeat": 1,
+        "checks": [
+          {
+            "id": "ev-trial-positive",
+            "expected": "supports",
+            "actual": "supports",
+            "pass": true
+          },
+          {
+            "id": "ev-trial-negative",
+            "expected": "challenges",
+            "actual": "challenges",
+            "pass": true
+          },
+          {
+            "id": "ev-progression",
+            "expected": "context",
+            "actual": "context",
+            "pass": true
+          },
+          {
+            "id": "ev-association",
+            "expected": "context",
+            "actual": "context",
+            "pass": true
+          }
+        ]
+      }
+    ],
+    "raw_sha256": "c4a30ed192c3d1c4881ac1ed8ee887b8e50eb6672253d1c0b76f06e742353f7f"
+  },
+  "validation": {
+    "focused_tests_passed": 105,
+    "replay": {
+      "ok": 185,
+      "warn": 1,
+      "known_fail": 13,
+      "unexercised": 2,
+      "cassette_drift": 0
+    }
+  },
+  "decision": "Decomposition diagnostic checks pass; real-source mapping acceptance FAILS. Candidate stays OFF. Preserve source pools and investigate conflict resolution and snippet-only scope handling."
+}

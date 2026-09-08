@@ -2023,6 +2023,19 @@ class ClaimMapAnalyzer:
         self._last_model_used = "unknown"
 
         if settings.ENABLE_PASSAGE_MAPPING and label in (
+            "decomposition", "batch_decomposition"
+        ):
+            from app.services.mapping_applicability import DECOMPOSITION_SCOPE_RULES
+
+            # Remove the conflicting legacy split rule, rather than asking the
+            # candidate to obey it and an opposite addendum simultaneously.
+            prompt = prompt.replace(
+                "include the causal link itself as one element, alongside the cause and the effect.",
+                "include the causal claim itself without unasserted prerequisites or repeated outcomes.",
+            )
+            prompt = prompt + "\n" + DECOMPOSITION_SCOPE_RULES
+
+        if settings.ENABLE_PASSAGE_MAPPING and label in (
             "mapping",
             "batch_mapping",
             "map_completion",
