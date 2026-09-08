@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <style>
+    .hero-identity { font-family: monospace; font-size: 10px; line-height: 1.5; color: #3F3F46; margin-top: 6px; overflow-wrap: anywhere; word-break: break-all; }
     /* ================================================================
        TRU8 PDF EVIDENCE REPORT — Stitch Design System v5 (brand-aligned)
        WeasyPrint-safe: float, table-cell, inline-block only.
@@ -719,14 +720,19 @@
 
   <!-- RECORD HERO (models the OG share card) -->
   <div class="hero" id="top">
-    <div class="hero-eyebrow"><span class="diamond"></span><span class="accent">Signed</span> &middot; Evidence Record</div>
+    <div class="hero-eyebrow"><span class="diamond"></span>{% if check.manifest and check.manifest.signature %}<span class="accent">Signed</span> &middot; {% endif %}Evidence Record</div>
     {% if claims|length == 1 %}
     <div class="hero-claim">&ldquo;{{ claims[0].text }}&rdquo;</div>
     {% else %}
     <div class="hero-claim">{{ claims|length }} claims examined</div>
     {% endif %}
     {% if check.manifest and check.manifest.signature %}
-    <div class="hero-signed">hmac-sha256 &middot; verify at <a href="https://trueight.com/verify/{{ check.id }}">trueight.com/verify/{{ check.id[:8]|lower }}</a></div>
+    <div class="hero-signed">hmac-sha256 &middot; verify at <a href="{{ verify_url | default('https://trueight.com/verify/' ~ check.id) }}">Verify signed fields{% if report_identity and report_identity.revisionId %} of this retained revision{% else %} of the live report (which can change){% endif %}</a></div>
+    {% endif %}
+    {% if report_identity %}
+    <div class="hero-identity">Evidence snapshot SHA-256: {{ report_identity.contentHash }}</div>
+    <div class="hero-identity">{% if report_identity.revisionId %}Retained revision: {{ report_identity.revisionId }}{% else %}No matching retained revision. This export captures the evidence snapshot read at export time.{% endif %}</div>
+    <div class="hero-identity">The content identifier is not a signature or proof of factual accuracy. The online report may change.</div>
     {% endif %}
   </div>
 
@@ -889,7 +895,7 @@
     <span class="ftr-brand">TRU<span class="ftr-brand-8">8</span></span> &nbsp;&middot;&nbsp; We organise; you decide.
     <div class="ftr-disc">This report presents evidence sources and their relationships to claim elements. It does not render verdicts. Evaluate evidence and verify critical information independently.</div>
     {% if check.manifest and check.manifest.signature %}
-    <div class="ftr-id">Signed record &middot; {{ check.manifest.signature[:40] }}&hellip; &middot; verify: trueight.com/verify/{{ check.id }}</div>
+    <div class="ftr-id">Signed record &middot; {{ check.manifest.signature[:40] }}&hellip; &middot; <a href="{{ verify_url | default('https://trueight.com/verify/' ~ check.id) }}">Verify signed fields</a></div>
     {% endif %}
     <div class="ftr-id">Report {{ check.id[:8] | upper }} &middot; Generated {{ now.strftime('%d %b %Y, %H:%M UTC') }} &middot; trueight.com</div>
   </div>

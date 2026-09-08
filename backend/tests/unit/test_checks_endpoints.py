@@ -312,6 +312,11 @@ class TestGetCheck:
         check = _make_check(check_id="check-detail-1")
         claim = _make_claim(check_id="check-detail-1", claim_id="claim-d1")
         evidence = _make_evidence(claim_id="claim-d1")
+        check.executed_tier = "full"
+        check.provider_status = None
+        check.manifest = None
+        claim.claim_text_hash = None
+        evidence.model_dump.return_value = {"id": evidence.id, "snippet": evidence.snippet}
 
         app = _create_test_app()
         session = _make_session(
@@ -319,6 +324,7 @@ class TestGetCheck:
             {"rows": [claim]},  # claims query
             {"rows": []},  # raw evidence counts
             {"rows": [evidence]},  # evidence for claim
+            {"scalar": None},  # no matching retained evidence snapshot
         )
         app.dependency_overrides[get_current_user_or_api_key] = _mock_auth_override()
         app.dependency_overrides[get_session] = lambda: session
@@ -340,6 +346,8 @@ class TestGetCheck:
         assert data["status"] == "completed"
         assert len(data["claims"]) == 1
         assert data["claims"][0]["text"] == "The earth is round"
+        assert data["reportIdentity"]["status"] == "unretained"
+        assert len(data["reportIdentity"]["contentHash"]) == 64
 
     @pytest.mark.asyncio
     async def test_get_check_wrong_user(self):

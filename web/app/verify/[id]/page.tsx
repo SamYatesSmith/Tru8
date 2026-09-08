@@ -15,31 +15,11 @@ import Link from 'next/link';
 import { Navigation } from '@/components/layout/navigation';
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
 import { Footer } from '@/components/layout/footer';
+import { getVerification } from '@/lib/report-verification';
 
 interface PageProps {
   params: { id: string };
-}
-
-interface VerifyResult {
-  valid: boolean;
-  checkId?: string;
-  signedAt?: string;
-  kid?: string;
-  executedTier?: string;
-  pipelineFingerprint?: string;
-  reason?: string;
-}
-
-async function getVerification(id: string): Promise<VerifyResult | null> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  try {
-    const res = await fetch(`${apiUrl}/verify/${id}`, { next: { revalidate: 60 } });
-    if (!res.ok) return null;
-    return res.json();
-  } catch (error) {
-    console.error('Failed to fetch verification:', error);
-    return null;
-  }
+  searchParams?: { revision?: string | string[] };
 }
 
 export const metadata: Metadata = {
@@ -50,6 +30,10 @@ export const metadata: Metadata = {
 };
 
 const REASON_COPY: Record<string, { head: string; body: string }> = {
+  unsigned: {
+    head: 'Revision not signed',
+    body: 'No signature was stored with this revision.',
+  },
   not_found: {
     head: 'No record found',
     body: 'No record matches this reference. Check the link, or open the report it came from.',
@@ -80,8 +64,9 @@ function Row({ label, value }: { label: string; value?: string }) {
   );
 }
 
-export default async function VerifyPage({ params }: PageProps) {
-  const result = await getVerification(params.id);
+export default async function VerifyPage({ params, searchParams }: PageProps) {
+  const revision = searchParams?.revision;
+  const result = Array.isArray(revision) ? null : await getVerification(params.id, revision);
   const valid = result?.valid === true;
   const reasonCopy = result?.reason ? REASON_COPY[result.reason] : undefined;
 
@@ -110,6 +95,7 @@ export default async function VerifyPage({ params }: PageProps) {
               </span>
             </div>
 
+            {typeof revision === 'string' && <Row label="Requested revision" value={revision} />}
             {valid ? (
               <>
                 <div className="px-6 py-8">
@@ -152,7 +138,7 @@ export default async function VerifyPage({ params }: PageProps) {
                 href={`/r/${params.id}`}
                 className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-900 hover:text-accent transition-colors"
               >
-                View the report →
+                View the live report (may have changed) →
               </Link>
             </div>
           </div>

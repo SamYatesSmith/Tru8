@@ -28,7 +28,7 @@ async def capture_report(session, check) -> dict:
         .scalars()
         .all()
     )
-    data = []
+    rows = []
     for claim in claims:
         evidence = (
             (
@@ -41,6 +41,14 @@ async def capture_report(session, check) -> dict:
             .scalars()
             .all()
         )
+        rows.append((claim, evidence))
+    return snapshot_from_rows(check, rows)
+
+
+def snapshot_from_rows(check, rows) -> dict:
+    """Identify the exact rows already read by a response/export, without reloading."""
+    data = []
+    for claim, evidence in sorted(rows, key=lambda row: (row[0].position, row[0].id)):
         cm = claim.claim_map
         if isinstance(cm, str):
             cm = json.loads(cm)
@@ -52,7 +60,8 @@ async def capture_report(session, check) -> dict:
                 "claim_text_hash": claim.claim_text_hash,
                 "claimMap": copy.deepcopy(cm),
                 "evidence": [
-                    e.model_dump(mode="json", exclude={"claim_id"}) for e in evidence
+                    e.model_dump(mode="json", exclude={"claim_id"})
+                    for e in sorted(evidence, key=lambda e: e.id)
                 ],
             }
         )
@@ -74,6 +83,29 @@ def snapshot_hash(snapshot: dict) -> str:
             snapshot, sort_keys=True, separators=(",", ":"), ensure_ascii=False
         ).encode()
     ).hexdigest()
+
+
+async def identify_snapshot(session, snapshot: dict) -> dict:
+    """Match content, never label it with the newest unrelated retained revision."""
+    from app.models import ReportRevision
+
+    row = (
+        await session.execute(
+            select(ReportRevision.id)
+            .where(
+                ReportRevision.check_id == snapshot["check"]["id"],
+                ReportRevision.snapshot == snapshot,
+            )
+            .order_by(ReportRevision.created_at.desc(), ReportRevision.id.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    return {
+        "basis": "evidence_snapshot_v1",
+        "contentHash": snapshot_hash(snapshot),
+        "revisionId": row,
+        "status": "retained" if row else "unretained",
+    }
 
 
 def signature_inputs(snapshot: dict):

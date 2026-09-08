@@ -196,11 +196,15 @@ async def build_check_response(
                 f"Failed to get progress from Redis for check {check_id}: {e}"
             )
 
-    claims_data = await _load_claims_data(check.id, session)
+    claims_data, snapshot = await _load_claims_data(check.id, session, snapshot_check=check)
 
     response = _build_response_dict(
         check, claims_data, current_stage, progress_percent, progress_message
     )
+    if check.status == "completed":
+        from app.services.report_revisions import identify_snapshot
+
+        response["reportIdentity"] = await identify_snapshot(session, snapshot)
 
     if computed:
         from app.services.computed_analytics import compute_analytics
@@ -314,7 +318,7 @@ async def build_agent_response(
 # ---------------------------------------------------------------------------
 
 
-async def _load_claims_data(check_id: str, session: AsyncSession) -> list:
+async def _load_claims_data(check_id: str, session: AsyncSession, snapshot_check=None):
     """Load claims + evidence for a check, returning the standard claims_data list."""
     claims_stmt = (
         select(Claim).where(Claim.check_id == check_id).order_by(Claim.position)
@@ -331,10 +335,12 @@ async def _load_claims_data(check_id: str, session: AsyncSession) -> list:
     raw_counts_by_position = dict(raw_counts_result.all())
 
     claims_data = []
+    snapshot_rows = []
     for claim in claims:
         evidence_stmt = select(Evidence).where(Evidence.claim_id == claim.id)
         evidence_result = await session.execute(evidence_stmt)
         evidence = evidence_result.scalars().all()
+        snapshot_rows.append((claim, evidence))
 
         claims_data.append(
             {
@@ -357,6 +363,10 @@ async def _load_claims_data(check_id: str, session: AsyncSession) -> list:
                 "evidence": [_serialize_evidence(ev) for ev in evidence],
             }
         )
+    if snapshot_check is not None:
+        from app.services.report_revisions import snapshot_from_rows
+
+        return claims_data, snapshot_from_rows(snapshot_check, snapshot_rows)
     return claims_data
 
 

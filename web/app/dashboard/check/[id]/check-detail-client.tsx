@@ -28,6 +28,7 @@ import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
 import { capture } from '@/lib/analytics';
 import { EvidenceRelationship } from '@shared/types';
 import { ReportRevisionHistory } from '@/components/evidence-views/ReportRevisionHistory';
+import { ReportIdentityNotice } from '@/components/evidence-views/ReportIdentityNotice';
 
 interface CheckDetailClientProps {
   initialData: any;
@@ -503,6 +504,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
 
           {/* Multi-claim: Claim-Sectioned Overview */}
           <ReportRevisionHistory key={checkId} checkId={checkId} refreshKey={checkData} />
+          <ReportIdentityNotice checkId={checkId} identity={checkData.reportIdentity} />
           {!isSingleClaim && (
             <ClaimSectionStack
               claims={checkData.claims}

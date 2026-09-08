@@ -411,3 +411,16 @@ def test_multi_claim_contents_and_back_to_top():
     assert 'id="claim-2"' in html
     # multi-claim hero shows a count, not a single quoted claim
     assert "claims examined" in html
+
+
+def test_unsigned_export_identity_does_not_claim_a_signature():
+    ctx = _context()
+    ctx["check"].manifest = None
+    ctx["report_identity"] = {"contentHash": "a" * 64, "revisionId": None}
+    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)),
+                      autoescape=select_autoescape(["html", "xml"]))
+    html = env.get_template("pdf/fact_check_report.html").render(**ctx)
+    assert '<span class="accent">Signed</span>' not in html
+    assert "a" * 64 in html
+    assert "No matching retained revision" in html
+    assert "not a signature" in html

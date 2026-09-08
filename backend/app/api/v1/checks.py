@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 import re
 import uuid
 import json
+import copy
 import asyncio
 import logging
 import secrets
@@ -2118,6 +2119,7 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
 
     # Fetch ALL evidence for each claim (ordered by relevance)
     claims_with_evidence = []
+    snapshot_rows = []
     tier_counts = {"primary": 0, "reporting": 0, "commentary": 0}
     type_counts: dict[str, int] = {}
 
@@ -2129,6 +2131,7 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
         )
         evidence_result = await session.execute(evidence_stmt)
         evidence_list = evidence_result.scalars().all()
+        snapshot_rows.append((claim, evidence_list))
 
         # Build per-claim evidence index: evidence_id → 1-based number
         evidence_index: dict[str, int] = {}
@@ -2141,7 +2144,7 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
             if ev.evidence_type:
                 type_counts[ev.evidence_type] = type_counts.get(ev.evidence_type, 0) + 1
 
-        claim_map = claim.claim_map if claim.claim_map else None
+        claim_map = copy.deepcopy(claim.claim_map) if claim.claim_map else None
         elements = claim_map.get("elements", []) if claim_map else []
         # Pre-compute presentation reads (like tier_counts) so Jinja stays dumb.
         for el in elements:
@@ -2163,6 +2166,12 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
     # Pre-compute totals for template (avoids broken Jinja2 sum filter on nested lists)
     total_evidence = sum(len(c.get("evidence", [])) for c in claims_with_evidence)
     total_elements = sum(len(c.get("elements", [])) for c in claims_with_evidence)
+    from app.services.report_revisions import snapshot_from_rows, identify_snapshot
+
+    report_identity = await identify_snapshot(session, snapshot_from_rows(check, snapshot_rows))
+    verify_url = f"{settings.FRONTEND_URL.rstrip('/')}/verify/{check.id}"
+    if report_identity["revisionId"]:
+        verify_url += f"?revision={report_identity['revisionId']}"
 
     # Render HTML template
     try:
@@ -2175,6 +2184,8 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
             tier_counts=tier_counts,
             type_counts=type_counts,
             font_face_css=FONT_FACE_CSS,
+            report_identity=report_identity,
+            verify_url=verify_url,
             now=datetime.now(timezone.utc),
         )
     except Exception as e:
@@ -2770,6 +2781,7 @@ async def get_public_check(
     # Build detailed response for public report page
     # Build claims with evidence
     claims_data = []
+    snapshot_rows = []
     for claim in claims:
         # Get evidence for this claim
         evidence_stmt = (
@@ -2784,6 +2796,7 @@ async def get_public_check(
             _serialize_evidence(ev, include_factcheck_detail=True)
             for ev in evidence_list
         ]
+        snapshot_rows.append((claim, evidence_list))
 
         claim_map = (
             _claim_map_to_camel_case(claim.claim_map) if claim.claim_map else None
@@ -2801,6 +2814,10 @@ async def get_public_check(
                 "evidence": evidence_data,
             }
         )
+
+    from app.services.report_revisions import snapshot_from_rows, identify_snapshot
+
+    report_identity = await identify_snapshot(session, snapshot_from_rows(check, snapshot_rows))
 
     # Fetch video recommendations for public report
     from app.models.video_recommendation import VideoRecommendation
@@ -2829,6 +2846,7 @@ async def get_public_check(
         "completedAt": check.completed_at.isoformat() if check.completed_at else None,
         # Full claims with evidence
         "claims": claims_data,
+        "reportIdentity": report_identity,
         # Video recommendations
         "videos": [
             {

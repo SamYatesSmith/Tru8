@@ -4,7 +4,15 @@ User authorised implementation of the hands-on improvement map, with a commit af
 
 ## Sequence and status
 
-Latest checkpoint: [owner revision viewer and retry header fix](2026-09-08_revision_viewer.md).
+Latest checkpoint: [public/export evidence-snapshot identity](2026-09-08_report_identity.md).
+Owner/public/PDF views now identify their loaded evidence snapshot and match retained
+revision content rather than selecting the newest history row. Historical verification
+is revision-specific; unsigned/unmatched content is disclosed. Backend 75 checks,
+web 186 plus final affected checks, TypeScript, visual PDF review and the unchanged
+185/1/13/2 replay baseline passed. Public/export local implementation is complete;
+live acceptance and the remaining quality plan are not. No deployment or flag activation.
+
+Previous checkpoint: [owner revision viewer and retry header fix](2026-09-08_revision_viewer.md).
 Owners can inspect and compare retained strengthening snapshots without replacing
 the current report. The API client now transmits its supplied idempotency key.
 TypeScript, 183 web tests and 10 PostgreSQL integration checks passed. This closes

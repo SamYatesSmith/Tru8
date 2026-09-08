@@ -16,6 +16,7 @@ import { SeekerView } from '@/components/evidence-views/seeker';
 import { ClaimSummaryPanel } from '@/components/evidence-views/ClaimSummaryPanel';
 import { capture } from '@/lib/analytics';
 import { EvidenceRelationship } from '@shared/types';
+import { ReportIdentityNotice } from '@/components/evidence-views/ReportIdentityNotice';
 
 interface PublicReportClientProps {
   check: any;
@@ -315,6 +316,8 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
 
       {/* Section 2: Evidence Meta Strip */}
       {claims.length > 0 && (
+        <>
+        <ReportIdentityNotice checkId={check.id} identity={check.reportIdentity} />
         <EvidenceMetaStrip
           referenceId={check.id}
           claimsCount={claims.length}
@@ -322,6 +325,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
           sourcesFoundCount={check.totalSearchResults || check.rawSourcesCount}
           processingTimeMs={check.processingTimeMs}
         />
+        </>
       )}
 
       {/* Section 3: Input Context */}
