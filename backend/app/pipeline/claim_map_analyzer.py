@@ -1446,6 +1446,7 @@ class _ScopeGate(NamedTuple):
 #: their receipts with the main pass's rather than overwrite them — losing a
 #: receipt is losing the record of an exclusion (invariant #5).
 _SCOPE_RECEIPT_KEYS = (
+    "fact_applicability",
     "temporal_scope",
     "jurisdiction_scope",
     "measure_scope",
@@ -2625,6 +2626,28 @@ class ClaimMapAnalyzer:
                 )
             )
 
+        if settings.ENABLE_PASSAGE_MAPPING:
+            from app.services.fact_applicability import target_day, source_time_anchor
+
+            day = target_day(elem.get("description"), claim_map.get("normalised_claim"))
+            if day:
+                gates.append(
+                    _ScopeGate(
+                        key="fact_applicability",
+                        label="FACT APPLICABILITY",
+                        pins=day,
+                        summary={"target_day": day, "scan_scope": "retained_passages"},
+                        fires=lambda item, _ref: source_time_anchor(
+                            item.ev, elem.get("description", ""), day
+                        ) is None,
+                        entry=lambda item, _ref: {
+                            "reason": "Time applicability is not established in retained source text.",
+                            "target_day": day,
+                            "original_reasoning": _ref.get("reasoning"),
+                        },
+                    )
+                )
+
         return gates
 
     def _apply_scope_gates(
@@ -2699,6 +2722,10 @@ class ClaimMapAnalyzer:
                     "was": value,
                 }
                 entry.update(gate.entry(item, ref))
+                if gate.key == "fact_applicability":
+                    ref["reasoning"] = (
+                        f"{entry['reason']} Required date: {entry['target_day']}."
+                    )
                 scoped[gate.key].append(entry)
                 # One gate owns the reference. Letting a second also claim it
                 # would double-count the same exclusion in two receipts.

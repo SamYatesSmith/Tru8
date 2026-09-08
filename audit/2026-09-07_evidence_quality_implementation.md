@@ -4,7 +4,15 @@ User authorised implementation of the hands-on improvement map, with a commit af
 
 ## Sequence and status
 
-Latest checkpoint: [element/time applicability candidate evaluation](2026-09-08_applicability_evaluation.md).
+Latest checkpoint: [explicit date-anchor gate](2026-09-08_fact_anchor_gate.md).
+The disabled candidate now passes 27 targeted conditions across 13 fixed-source
+cases after correcting a measured planned-change regression. Initial mapping and
+passage additions share the gate; EVIDENCE/GAPS explain exclusions. This narrow
+date/lexical prerequisite does not complete general semantic applicability or
+authorise rollout. Backend 97 checks, full web 173 plus final affected checks and
+TypeScript passed; final replay matched 185/1/13/2 with zero cassette drift.
+
+Previous checkpoint: [element/time applicability candidate evaluation](2026-09-08_applicability_evaluation.md).
 Twenty additional fixed-source arms preserve positive controls and remove two observed
 errors in the combined arm, but three historical-applicability assertions still fail.
 The shared prompt candidate remains behind the OFF passage flag (contract v3).

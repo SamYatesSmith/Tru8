@@ -1,0 +1,1973 @@
+{
+  "scope": "64 assembled arms: 56 from full sweep, 8 from targeted correction; not one live run.",
+  "gate_equivalence": {
+    "comparisons": 88,
+    "changes": [
+      {
+        "file": "synthetic-3-new-s0-p0.json",
+        "element": "e1",
+        "source": "fiction-1"
+      },
+      {
+        "file": "synthetic-3-new-s0-p1.json",
+        "element": "e1",
+        "source": "fiction-1"
+      },
+      {
+        "file": "synthetic-3-new-s1-p0.json",
+        "element": "e1",
+        "source": "fiction-1"
+      },
+      {
+        "file": "synthetic-3-new-s1-p1.json",
+        "element": "e1",
+        "source": "fiction-1"
+      }
+    ]
+  },
+  "runs": {
+    "fact-anchor-evaluation": {
+      "plan": {
+        "cases": 16,
+        "arms_per_case": 4,
+        "inputs_sha256": "becc4c7d3d6df7114ab67869ef408a8f16e9cee1fb60940a4bcf110f109e4e02",
+        "models": {
+          "GOOGLE_LLM_MODEL": "gemini-3.5-flash-lite",
+          "MAPPING_GOOGLE_MODEL": "gemini-3.7-flash",
+          "DISTIL_MODEL": "gemini-3.5-flash-lite",
+          "ANALYZER_MODEL": "gpt-4o"
+        },
+        "max_http_requests": 180,
+        "max_request_characters": 1500000,
+        "classification": "once on shared legacy source snippets; frozen for all arms",
+        "scope": "controlled fixed-element mapping; not live retrieval/decomposition/end-to-end evaluation",
+        "status": "completed",
+        "requests": 137,
+        "classification_source": "..\\tmp\\passage-factorial-evaluation\\classifications.json",
+        "request_characters": 1294755,
+        "completed_arms": 64
+      },
+      "usage": {
+        "promptTokenCount": 260815,
+        "candidatesTokenCount": 30877,
+        "totalTokenCount": 349275,
+        "thoughtsTokenCount": 57583
+      }
+    },
+    "fact-anchor-plan-correction": {
+      "plan": {
+        "cases": 2,
+        "arms_per_case": 4,
+        "inputs_sha256": "a1f485dbeea8e2f4ed3ebe8c6356774505d6a4984670d4325ab15f900547b981",
+        "models": {
+          "GOOGLE_LLM_MODEL": "gemini-3.5-flash-lite",
+          "MAPPING_GOOGLE_MODEL": "gemini-3.7-flash",
+          "DISTIL_MODEL": "gemini-3.5-flash-lite",
+          "ANALYZER_MODEL": "gpt-4o"
+        },
+        "max_http_requests": 25,
+        "max_request_characters": 200000,
+        "classification": "once on shared legacy source snippets; frozen for all arms",
+        "scope": "controlled fixed-element mapping; not live retrieval/decomposition/end-to-end evaluation",
+        "status": "completed",
+        "requests": 14,
+        "classification_source": "..\\tmp\\passage-factorial-evaluation\\classifications.json",
+        "request_characters": 125668,
+        "completed_arms": 8
+      },
+      "usage": {
+        "promptTokenCount": 25280,
+        "candidatesTokenCount": 3162,
+        "totalTokenCount": 36745,
+        "thoughtsTokenCount": 8303
+      }
+    }
+  },
+  "rows": [
+    {
+      "file": "bank-original-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/bank-original-s0-p0.json",
+      "sha256": "8b48d8ed559f327e290dba3b8ac0b265e39002ee30326eecc847094077efca41",
+      "case_id": "bank-original",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "bank-article",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "unresolved",
+          "relationships": [],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "bank-original-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/bank-original-s0-p1.json",
+      "sha256": "6b94bd7d5c3520025bf843c81354b9b83bba2cfbb6742fcf235652d7705824a8",
+      "case_id": "bank-original",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "bank-article",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 1
+        },
+        {
+          "id": "e2",
+          "state": "unresolved",
+          "relationships": [],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "bank-original-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/bank-original-s1-p0.json",
+      "sha256": "727d86d9d342416b45b2c131f41435241df2becf20c1501de3ddd9343821822d",
+      "case_id": "bank-original",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "supports"
+            },
+            {
+              "evidence_id": "bank-article",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "bank-original-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/bank-original-s1-p1.json",
+      "sha256": "09b15a21c6e0fad83e697c291cbc954cc3c6b0e3028c48f9887890855b074704",
+      "case_id": "bank-original",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "bank-article",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 2
+        },
+        {
+          "id": "e2",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 1
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "bank-reversed-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/bank-reversed-s0-p0.json",
+      "sha256": "b87e155b481e72896874671bcfdbcd724e5af60efab0a3902f3b19133ab85de8",
+      "case_id": "bank-reversed",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "unresolved",
+          "relationships": [
+            {
+              "evidence_id": "bank-article",
+              "relationship": "supports"
+            },
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "bank-reversed-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/bank-reversed-s0-p1.json",
+      "sha256": "2c3ec733e8d607515cefeaf5cf63ea6b5b2ac0cbd84b2711f51d2c63c29b042d",
+      "case_id": "bank-reversed",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "bank-article",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 1
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "bank-reversed-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/bank-reversed-s1-p0.json",
+      "sha256": "b33afd7d97f60a09227f0b9e66ff234bb9f4fe6bdec490c56c476836833fcaa5",
+      "case_id": "bank-reversed",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "bank-home",
+              "relationship": "challenges"
+            },
+            {
+              "evidence_id": "bank-article",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "bank-reversed-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/bank-reversed-s1-p1.json",
+      "sha256": "67ede8839cf7a22e1e9e1baeda0fd2097d1ef8e1f01696bafb8c63b5d8616fda",
+      "case_id": "bank-reversed",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "bank-article",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "bank-home",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 2
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "select-overgeneralised-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/select-overgeneralised-s0-p0.json",
+      "sha256": "8b601d718fb358bd56569ed87105700e8d9fda98ae06cf0faba672133f840030",
+      "case_id": "select-overgeneralised",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e3",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "select-overgeneralised-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/select-overgeneralised-s0-p1.json",
+      "sha256": "04154293d2b5d69ae17e0b7ae32e41a0d9c8688cb860a3c25f43bba8f3bfd555",
+      "case_id": "select-overgeneralised",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e3",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "select-overgeneralised-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/select-overgeneralised-s1-p0.json",
+      "sha256": "184a65e9363a29017dbb33064cfea9ce40293d5b03b95145c780d16f588f8172",
+      "case_id": "select-overgeneralised",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e3",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "select-overgeneralised-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/select-overgeneralised-s1-p1.json",
+      "sha256": "e82ba7e2ec00cbeb50200bc480d889352858e9d56a876b1a3c9417dfd6f00ec1",
+      "case_id": "select-overgeneralised",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e3",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "select-scope-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/select-scope-s0-p0.json",
+      "sha256": "dbba5c8ba74a50a7db024d15c0c63b94dc0f7d2bb312c438d0a91b4970629d02",
+      "case_id": "select-scope",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "unresolved",
+          "relationships": [],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e3",
+          "state": "unresolved",
+          "relationships": [],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "select-scope-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/select-scope-s0-p1.json",
+      "sha256": "f069a025671b5162aeca765f4daf68543258c559cfe21a1684cfd720cd1ae7b5",
+      "case_id": "select-scope",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e3",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "partial"
+    },
+    {
+      "file": "select-scope-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/select-scope-s1-p0.json",
+      "sha256": "c6aa72f31c7cf48ea062f716715ee43488e11a0bbe9ed6c4df1bee0c3e024ec4",
+      "case_id": "select-scope",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e3",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "select-scope-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/select-scope-s1-p1.json",
+      "sha256": "b97a6c91a66e13718574ee423f425c89a0fb71c9362921c6bf25cdeb6ca63212",
+      "case_id": "select-scope",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e3",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "select-fda",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "partial"
+    },
+    {
+      "file": "sqlite-busy-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-busy-s0-p0.json",
+      "sha256": "81c39c1a36dfb1d98af96c09d7b731345ed2b34b59f36bec1033990bcc15410c",
+      "case_id": "sqlite-busy",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "sqlite-busy-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-busy-s0-p1.json",
+      "sha256": "19919e1865bb085edc8f5e0ad77c1d57527dbe0d58acdc260f4816eac58aede9",
+      "case_id": "sqlite-busy",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "sqlite-busy-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-busy-s1-p0.json",
+      "sha256": "12f365f4395a40f9e8d85f5dfe4f7106845c58a72fec7d723c38899644cd40b4",
+      "case_id": "sqlite-busy",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "sqlite-busy-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-busy-s1-p1.json",
+      "sha256": "83a3135b5c52369df6d80f55be56e7d0d09372770961e14e0fcef4138b246af6",
+      "case_id": "sqlite-busy",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "sqlite-readonly-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-readonly-s0-p0.json",
+      "sha256": "c2dd5c5ba0830e32668db977ee8bc89af145fa6b43d5025418e95c2cc4516c4c",
+      "case_id": "sqlite-readonly",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "sqlite-readonly-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-readonly-s0-p1.json",
+      "sha256": "104a446758a962b2e47fb4ec68dfe7585e01d9086f4cccb1864e6e759902ee60",
+      "case_id": "sqlite-readonly",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            },
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            },
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "partial"
+    },
+    {
+      "file": "sqlite-readonly-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-readonly-s1-p0.json",
+      "sha256": "9b364b8b6ac4abf04d36389bb44e0f9453cdfe9bd0d28d37161e13d49e33d8b5",
+      "case_id": "sqlite-readonly",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "sqlite-readonly-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-readonly-s1-p1.json",
+      "sha256": "07b4fbdc38f085d6278065699ae9c90619259d7e589750995f4c90ad305abfbd",
+      "case_id": "sqlite-readonly",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            },
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            },
+            {
+              "evidence_id": "sqlite-release",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "partial"
+    },
+    {
+      "file": "sqlite-reversed-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-reversed-s0-p0.json",
+      "sha256": "20a9f7170c6bcc8b68115d16a7f1d719d73c0b5f1a9085f5f7d563ea8355f794",
+      "case_id": "sqlite-reversed",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "sqlite-reversed-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-reversed-s0-p1.json",
+      "sha256": "ca5f46fbba2ee75fdc67ae6543881c8e7f5db8d501e24e861bba4a2d874197b4",
+      "case_id": "sqlite-reversed",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "partial"
+    },
+    {
+      "file": "sqlite-reversed-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-reversed-s1-p0.json",
+      "sha256": "c1b48baeda15290afa952a84e7581674343f2452e62d71c5fd2eca2a90992a05",
+      "case_id": "sqlite-reversed",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "unresolved",
+          "relationships": [],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "sqlite-reversed-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/sqlite-reversed-s1-p1.json",
+      "sha256": "ffa464981f237a5ec70f95f5da218785b5929862c9cbcd24eb28292e875a1ffa",
+      "case_id": "sqlite-reversed",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        },
+        {
+          "id": "e2",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "sqlite-wal",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "synthetic-0-new-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-0-new-s0-p0.json",
+      "sha256": "f120cfec051929589e29fd63af38df324c3c33bcf34212bfc6ee5a2ea9f3cf7a",
+      "case_id": "synthetic-0-new",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-0-new-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-0-new-s0-p1.json",
+      "sha256": "0718cb1311b9244e5ccc2fc1d66af777db4327a09e70ac26d5d70649ab15035e",
+      "case_id": "synthetic-0-new",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "synthetic-0-new-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-0-new-s1-p0.json",
+      "sha256": "f34cd4f427381ba15f7d129f916ebc47ddd69673ea22e4adb723343b6dabe22f",
+      "case_id": "synthetic-0-new",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-0-new-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-0-new-s1-p1.json",
+      "sha256": "40e56c9da2b23fb99b4f1d9016f37e223c9b3bc3ddd9b7347521c271dd11393d",
+      "case_id": "synthetic-0-new",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "synthetic-0-reversed-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-0-reversed-s0-p0.json",
+      "sha256": "e3f7695ca7e28f772fbb8db75179da4411ac388990209b25073e969f4ceb2aca",
+      "case_id": "synthetic-0-reversed",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-0-reversed-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-0-reversed-s0-p1.json",
+      "sha256": "13638e5422239289792277c29cc7079c0f36c7c3fdcd590a9234860f02da2c55",
+      "case_id": "synthetic-0-reversed",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "synthetic-0-reversed-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-0-reversed-s1-p0.json",
+      "sha256": "4cba2ba0f17ef78c1eef90d3cfbe5e22d7ba146d9a47f8b263c6b34fc424a3d8",
+      "case_id": "synthetic-0-reversed",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-0-reversed-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-0-reversed-s1-p1.json",
+      "sha256": "97bb091b3e31fed93d719cdc70a0ba7b0972b32cca6c1e0b462e896b1bc51a53",
+      "case_id": "synthetic-0-reversed",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "synthetic-1-new-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-1-new-s0-p0.json",
+      "sha256": "5d009e3eb839d395bb9b32c9291236965df94001a676d332c72cc3142bebc6aa",
+      "case_id": "synthetic-1-new",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-1-new-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-1-new-s0-p1.json",
+      "sha256": "2b2a8d70b94315b3b94e772c9a5b1c0a599c31c7df21eb2c4de43771b354678f",
+      "case_id": "synthetic-1-new",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "synthetic-1-new-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-1-new-s1-p0.json",
+      "sha256": "f10c6d6aca1339b3f627fa3afff06e0cf3b004be2f3ad24d3b71a586e7768e5e",
+      "case_id": "synthetic-1-new",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-1-new-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-1-new-s1-p1.json",
+      "sha256": "aada3545edc1a5995ced9e4f1399eff380eaa108407d4bf1fa863a843f704cf3",
+      "case_id": "synthetic-1-new",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "synthetic-1-reversed-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-1-reversed-s0-p0.json",
+      "sha256": "c4b164e172f2b80838927e04ca288449c06a472a1dbd73300c2d925bbc6bfa4c",
+      "case_id": "synthetic-1-reversed",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-1-reversed-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-1-reversed-s0-p1.json",
+      "sha256": "31faf5f4b11011b5952d4d9f6f343cbf721faa5bd2b8729755ba39528652cb90",
+      "case_id": "synthetic-1-reversed",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "synthetic-1-reversed-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-1-reversed-s1-p0.json",
+      "sha256": "ec9e38c3b042bb28306e9dc3b3f5c1bcac110c5db37bd3aa5676bc9adb82931a",
+      "case_id": "synthetic-1-reversed",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-1-reversed-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-1-reversed-s1-p1.json",
+      "sha256": "ad05728290fae3a263c9b5305e402b965eddd493f221153db08c6eb9101e693f",
+      "case_id": "synthetic-1-reversed",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "synthetic-2-new-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-2-new-s0-p0.json",
+      "sha256": "11e294005d2671d246fc3b5f68740af20dd7e9ef7cdfb7a4469ab71e88106bc1",
+      "case_id": "synthetic-2-new",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-2-new-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-2-new-s0-p1.json",
+      "sha256": "dcf196f3e5e850912650aec81b86efb52661c5cca24a5ce56f6d385e5cc9213a",
+      "case_id": "synthetic-2-new",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "synthetic-2-new-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-2-new-s1-p0.json",
+      "sha256": "9cdfcfa0767e1e07b50d50e08ab8b05041325c7476ee9b31e6ba7ddc5648ee14",
+      "case_id": "synthetic-2-new",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-2-new-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-2-new-s1-p1.json",
+      "sha256": "96eab83642541ac837d226ccf8611490167438f7bef5931c4010821b3db15451",
+      "case_id": "synthetic-2-new",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "synthetic-2-reversed-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-2-reversed-s0-p0.json",
+      "sha256": "584a593faa0a95bee50c3303c785b6fc4d1ebdae2a78d05bcc2d640e464f34fd",
+      "case_id": "synthetic-2-reversed",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-2-reversed-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-2-reversed-s0-p1.json",
+      "sha256": "7839d2f521d6791918a1c7da55686c097848be9aa0ae02868b08aef27bff609d",
+      "case_id": "synthetic-2-reversed",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "synthetic-2-reversed-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-2-reversed-s1-p0.json",
+      "sha256": "483524bb3cd5d745494fb8ebc935671bf77861cdab5c86b426469c27ee821cd5",
+      "case_id": "synthetic-2-reversed",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-2-reversed-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/synthetic-2-reversed-s1-p1.json",
+      "sha256": "a69e7c4e0c570a06b3b66840b5034391c181c743457d0a358c229a3617021564",
+      "case_id": "synthetic-2-reversed",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "synthetic-3-new-s0-p0.json",
+      "source": "tmp/fact-anchor-plan-correction/synthetic-3-new-s0-p0.json",
+      "sha256": "eef8cb8ca2de6922cf40e70e4ed25518d2a5e2d1a42e6c823b5ee64ab99f95e9",
+      "case_id": "synthetic-3-new",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-3-new-s0-p1.json",
+      "source": "tmp/fact-anchor-plan-correction/synthetic-3-new-s0-p1.json",
+      "sha256": "da8d9b9b35ef3d7ebff1d244fae35e0c1d22af3a591701b7eafe975361294e20",
+      "case_id": "synthetic-3-new",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "synthetic-3-new-s1-p0.json",
+      "source": "tmp/fact-anchor-plan-correction/synthetic-3-new-s1-p0.json",
+      "sha256": "216586e66ddfdd407f628ee8cdbf2c8f8aa05c0c68ed061ecb94c0ba68033163",
+      "case_id": "synthetic-3-new",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-3-new-s1-p1.json",
+      "source": "tmp/fact-anchor-plan-correction/synthetic-3-new-s1-p1.json",
+      "sha256": "91adf88826a70362b735467fc61a2ec4644f3790ee8f4c2f735d620425baa74b",
+      "case_id": "synthetic-3-new",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "disputed",
+          "relationships": [
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "challenges"
+            },
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "needs_review"
+    },
+    {
+      "file": "synthetic-3-reversed-s0-p0.json",
+      "source": "tmp/fact-anchor-plan-correction/synthetic-3-reversed-s0-p0.json",
+      "sha256": "e35f0bc7edc4328cf0edeeb40cbf344364fec88d47328e07dcfa9bde4f5c1d42",
+      "case_id": "synthetic-3-reversed",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-3-reversed-s0-p1.json",
+      "source": "tmp/fact-anchor-plan-correction/synthetic-3-reversed-s0-p1.json",
+      "sha256": "68a327c8fc1442246c079a2190e64a5317b19a850826b8bd16288760481e6996",
+      "case_id": "synthetic-3-reversed",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 1
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "synthetic-3-reversed-s1-p0.json",
+      "source": "tmp/fact-anchor-plan-correction/synthetic-3-reversed-s1-p0.json",
+      "sha256": "cbfd45ab06fc29d367ba1f01e692055e2efe801a9e8e54d691c19857b4086173",
+      "case_id": "synthetic-3-reversed",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "supported",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "supports"
+            }
+          ],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "synthetic-3-reversed-s1-p1.json",
+      "source": "tmp/fact-anchor-plan-correction/synthetic-3-reversed-s1-p1.json",
+      "sha256": "fda2d48095ed73cb45658b296b05092884a42df96fff971142db8dcb6c170e25",
+      "case_id": "synthetic-3-reversed",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "contextual",
+          "relationships": [
+            {
+              "evidence_id": "fiction-0",
+              "relationship": "context"
+            },
+            {
+              "evidence_id": "fiction-1",
+              "relationship": "context"
+            }
+          ],
+          "date_exclusions": 1
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "unrelated-control-s0-p0.json",
+      "source": "tmp/fact-anchor-evaluation/unrelated-control-s0-p0.json",
+      "sha256": "26154422adf53ece94c0ae37927fe46d69307c9af2fe50282cfb5054c4137631",
+      "case_id": "unrelated-control",
+      "structured": false,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "unresolved",
+          "relationships": [],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "unrelated-control-s0-p1.json",
+      "source": "tmp/fact-anchor-evaluation/unrelated-control-s0-p1.json",
+      "sha256": "a7582f07045194014949befcc1447b44caa63260f87271865f8c5c7b3c1709d3",
+      "case_id": "unrelated-control",
+      "structured": false,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "unresolved",
+          "relationships": [],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    },
+    {
+      "file": "unrelated-control-s1-p0.json",
+      "source": "tmp/fact-anchor-evaluation/unrelated-control-s1-p0.json",
+      "sha256": "97ce2d51337035cac9ccecba64a73366b28aa11b8e3ff311a638baf88aa5f867",
+      "case_id": "unrelated-control",
+      "structured": true,
+      "passage": false,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "unresolved",
+          "relationships": [],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": null
+    },
+    {
+      "file": "unrelated-control-s1-p1.json",
+      "source": "tmp/fact-anchor-evaluation/unrelated-control-s1-p1.json",
+      "sha256": "3a7d6b1fac8444d3e0c494c290e2e72ef5a280fd01c58fc62726b102a1a8fd55",
+      "case_id": "unrelated-control",
+      "structured": true,
+      "passage": true,
+      "elements": [
+        {
+          "id": "e1",
+          "state": "unresolved",
+          "relationships": [],
+          "date_exclusions": 0
+        }
+      ],
+      "passage_review_status": "complete"
+    }
+  ],
+  "citations": 29,
+  "invalid_citations": 0
+}

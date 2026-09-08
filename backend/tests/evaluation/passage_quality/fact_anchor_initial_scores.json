@@ -1,0 +1,1207 @@
+{
+  "scope": "Targeted, manually reviewed fixed-source regressions; not overall accuracy.",
+  "expectations_version": 2,
+  "passed": false,
+  "combined_arm_passed": false,
+  "rows": [
+    {
+      "case": "bank-original",
+      "structured": false,
+      "passage": false,
+      "sha256": "8b48d8ed559f327e290dba3b8ac0b265e39002ee30326eecc847094077efca41",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": false,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "rate-discrepancy-not-decision-date-discrepancy",
+          "passed": true,
+          "observed": []
+        },
+        {
+          "check": "undated-schedule-not-historical-proof",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "bank-original",
+      "structured": true,
+      "passage": false,
+      "sha256": "727d86d9d342416b45b2c131f41435241df2becf20c1501de3ddd9343821822d",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": false,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "rate-discrepancy-not-decision-date-discrepancy",
+          "passed": true,
+          "observed": []
+        },
+        {
+          "check": "undated-schedule-not-historical-proof",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "bank-original",
+      "structured": false,
+      "passage": true,
+      "sha256": "6b94bd7d5c3520025bf843c81354b9b83bba2cfbb6742fcf235652d7705824a8",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "rate-discrepancy-not-decision-date-discrepancy",
+          "passed": true,
+          "observed": []
+        },
+        {
+          "check": "undated-schedule-not-historical-proof",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "bank-original",
+      "structured": true,
+      "passage": true,
+      "sha256": "09b15a21c6e0fad83e697c291cbc954cc3c6b0e3028c48f9887890855b074704",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "rate-discrepancy-not-decision-date-discrepancy",
+          "passed": true,
+          "observed": []
+        },
+        {
+          "check": "undated-schedule-not-historical-proof",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-1-new",
+      "structured": false,
+      "passage": false,
+      "sha256": "5d009e3eb839d395bb9b32c9291236965df94001a676d332c72cc3142bebc6aa",
+      "checks": [
+        {
+          "check": "page-clock-not-fact-time",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "earlier-value-not-carried-forward",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "synthetic-1-new",
+      "structured": true,
+      "passage": false,
+      "sha256": "f10c6d6aca1339b3f627fa3afff06e0cf3b004be2f3ad24d3b71a586e7768e5e",
+      "checks": [
+        {
+          "check": "page-clock-not-fact-time",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "earlier-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "synthetic-1-new",
+      "structured": false,
+      "passage": true,
+      "sha256": "2b2a8d70b94315b3b94e772c9a5b1c0a599c31c7df21eb2c4de43771b354678f",
+      "checks": [
+        {
+          "check": "page-clock-not-fact-time",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "earlier-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-1-new",
+      "structured": true,
+      "passage": true,
+      "sha256": "aada3545edc1a5995ced9e4f1399eff380eaa108407d4bf1fa863a843f704cf3",
+      "checks": [
+        {
+          "check": "page-clock-not-fact-time",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "earlier-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-new",
+      "structured": false,
+      "passage": false,
+      "sha256": "f120cfec051929589e29fd63af38df324c3c33bcf34212bfc6ee5a2ea9f3cf7a",
+      "checks": [
+        {
+          "check": "explicit-effective-change-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "superseded-value-is-context",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-new",
+      "structured": true,
+      "passage": false,
+      "sha256": "f34cd4f427381ba15f7d129f916ebc47ddd69673ea22e4adb723343b6dabe22f",
+      "checks": [
+        {
+          "check": "explicit-effective-change-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "superseded-value-is-context",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-new",
+      "structured": false,
+      "passage": true,
+      "sha256": "0718cb1311b9244e5ccc2fc1d66af777db4327a09e70ac26d5d70649ab15035e",
+      "checks": [
+        {
+          "check": "explicit-effective-change-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "superseded-value-is-context",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-new",
+      "structured": true,
+      "passage": true,
+      "sha256": "40e56c9da2b23fb99b4f1d9016f37e223c9b3bc3ddd9b7347521c271dd11393d",
+      "checks": [
+        {
+          "check": "explicit-effective-change-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "superseded-value-is-context",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "sqlite-reversed",
+      "structured": false,
+      "passage": false,
+      "sha256": "20a9f7170c6bcc8b68115d16a7f1d719d73c0b5f1a9085f5f7d563ea8355f794",
+      "checks": [
+        {
+          "check": "direct-concurrency-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "direct-busy-support-retained",
+          "passed": false,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "sqlite-reversed",
+      "structured": true,
+      "passage": false,
+      "sha256": "c1b48baeda15290afa952a84e7581674343f2452e62d71c5fd2eca2a90992a05",
+      "checks": [
+        {
+          "check": "direct-concurrency-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "direct-busy-support-retained",
+          "passed": false,
+          "observed": []
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "sqlite-reversed",
+      "structured": false,
+      "passage": true,
+      "sha256": "ca5f46fbba2ee75fdc67ae6543881c8e7f5db8d501e24e861bba4a2d874197b4",
+      "checks": [
+        {
+          "check": "direct-concurrency-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "direct-busy-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "sqlite-reversed",
+      "structured": true,
+      "passage": true,
+      "sha256": "ffa464981f237a5ec70f95f5da218785b5929862c9cbcd24eb28292e875a1ffa",
+      "checks": [
+        {
+          "check": "direct-concurrency-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "direct-busy-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "unrelated-control",
+      "structured": false,
+      "passage": false,
+      "sha256": "26154422adf53ece94c0ae37927fe46d69307c9af2fe50282cfb5054c4137631",
+      "checks": [
+        {
+          "check": "unrelated-source-not-directional",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "unrelated-control",
+      "structured": true,
+      "passage": false,
+      "sha256": "97ce2d51337035cac9ccecba64a73366b28aa11b8e3ff311a638baf88aa5f867",
+      "checks": [
+        {
+          "check": "unrelated-source-not-directional",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "unrelated-control",
+      "structured": false,
+      "passage": true,
+      "sha256": "a7582f07045194014949befcc1447b44caa63260f87271865f8c5c7b3c1709d3",
+      "checks": [
+        {
+          "check": "unrelated-source-not-directional",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "unrelated-control",
+      "structured": true,
+      "passage": true,
+      "sha256": "3a7d6b1fac8444d3e0c494c290e2e72ef5a280fd01c58fc62726b102a1a8fd55",
+      "checks": [
+        {
+          "check": "unrelated-source-not-directional",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "bank-reversed",
+      "structured": false,
+      "passage": false,
+      "sha256": "b87e155b481e72896874671bcfdbcd724e5af60efab0a3902f3b19133ab85de8",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "bank-reversed",
+      "structured": true,
+      "passage": false,
+      "sha256": "b33afd7d97f60a09227f0b9e66ff234bb9f4fe6bdec490c56c476836833fcaa5",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": false,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "bank-reversed",
+      "structured": false,
+      "passage": true,
+      "sha256": "2c3ec733e8d607515cefeaf5cf63ea6b5b2ac0cbd84b2711f51d2c63c29b042d",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "bank-reversed",
+      "structured": true,
+      "passage": true,
+      "sha256": "67ede8839cf7a22e1e9e1baeda0fd2097d1ef8e1f01696bafb8c63b5d8616fda",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "sqlite-busy",
+      "structured": false,
+      "passage": false,
+      "sha256": "81c39c1a36dfb1d98af96c09d7b731345ed2b34b59f36bec1033990bcc15410c",
+      "checks": [
+        {
+          "check": "concurrency-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "busy-exception-retained",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "sqlite-busy",
+      "structured": true,
+      "passage": false,
+      "sha256": "12f365f4395a40f9e8d85f5dfe4f7106845c58a72fec7d723c38899644cd40b4",
+      "checks": [
+        {
+          "check": "concurrency-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "busy-exception-retained",
+          "passed": false,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "sqlite-busy",
+      "structured": false,
+      "passage": true,
+      "sha256": "19919e1865bb085edc8f5e0ad77c1d57527dbe0d58acdc260f4816eac58aede9",
+      "checks": [
+        {
+          "check": "concurrency-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "busy-exception-retained",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "sqlite-busy",
+      "structured": true,
+      "passage": true,
+      "sha256": "83a3135b5c52369df6d80f55be56e7d0d09372770961e14e0fcef4138b246af6",
+      "checks": [
+        {
+          "check": "concurrency-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "busy-exception-retained",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-reversed",
+      "structured": false,
+      "passage": false,
+      "sha256": "e3f7695ca7e28f772fbb8db75179da4411ac388990209b25073e969f4ceb2aca",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-reversed",
+      "structured": true,
+      "passage": false,
+      "sha256": "4cba2ba0f17ef78c1eef90d3cfbe5e22d7ba146d9a47f8b263c6b34fc424a3d8",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-reversed",
+      "structured": false,
+      "passage": true,
+      "sha256": "13638e5422239289792277c29cc7079c0f36c7c3fdcd590a9234860f02da2c55",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-reversed",
+      "structured": true,
+      "passage": true,
+      "sha256": "97bb091b3e31fed93d719cdc70a0ba7b0972b32cca6c1e0b462e896b1bc51a53",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-1-reversed",
+      "structured": false,
+      "passage": false,
+      "sha256": "c4b164e172f2b80838927e04ca288449c06a472a1dbd73300c2d925bbc6bfa4c",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": false,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "synthetic-1-reversed",
+      "structured": true,
+      "passage": false,
+      "sha256": "ec9e38c3b042bb28306e9dc3b3f5c1bcac110c5db37bd3aa5676bc9adb82931a",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": false,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "synthetic-1-reversed",
+      "structured": false,
+      "passage": true,
+      "sha256": "31faf5f4b11011b5952d4d9f6f343cbf721faa5bd2b8729755ba39528652cb90",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-1-reversed",
+      "structured": true,
+      "passage": true,
+      "sha256": "ad05728290fae3a263c9b5305e402b965eddd493f221153db08c6eb9101e693f",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-2-new",
+      "structured": false,
+      "passage": false,
+      "sha256": "11e294005d2671d246fc3b5f68740af20dd7e9ef7cdfb7a4469ab71e88106bc1",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-2-new",
+      "structured": true,
+      "passage": false,
+      "sha256": "9cdfcfa0767e1e07b50d50e08ab8b05041325c7476ee9b31e6ba7ddc5648ee14",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-2-new",
+      "structured": false,
+      "passage": true,
+      "sha256": "dcf196f3e5e850912650aec81b86efb52661c5cca24a5ce56f6d385e5cc9213a",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-2-new",
+      "structured": true,
+      "passage": true,
+      "sha256": "96eab83642541ac837d226ccf8611490167438f7bef5931c4010821b3db15451",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-2-reversed",
+      "structured": false,
+      "passage": false,
+      "sha256": "584a593faa0a95bee50c3303c785b6fc4d1ebdae2a78d05bcc2d640e464f34fd",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-2-reversed",
+      "structured": true,
+      "passage": false,
+      "sha256": "483524bb3cd5d745494fb8ebc935671bf77861cdab5c86b426469c27ee821cd5",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-2-reversed",
+      "structured": false,
+      "passage": true,
+      "sha256": "7839d2f521d6791918a1c7da55686c097848be9aa0ae02868b08aef27bff609d",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-2-reversed",
+      "structured": true,
+      "passage": true,
+      "sha256": "a69e7c4e0c570a06b3b66840b5034391c181c743457d0a358c229a3617021564",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-3-new",
+      "structured": false,
+      "passage": false,
+      "sha256": "31910e471b0601ac7ad8cc22a3266f84e5039d0c948e473c0c3a4c7f7db38424",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-3-new",
+      "structured": true,
+      "passage": false,
+      "sha256": "6d2b38e73ee3bc009cfb424039c9708a828e35b5ade40d710d751110205c4614",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-3-new",
+      "structured": false,
+      "passage": true,
+      "sha256": "6de2e6ae6bd233eda08492b5715327f5a4261df8474f83767a4a9e97162f22fb",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": false,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "synthetic-3-new",
+      "structured": true,
+      "passage": true,
+      "sha256": "5312ba330d80c3c2c7cf0117f570490290e9253b7f2a0df671fc3f336c8d2b17",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": false,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "synthetic-3-reversed",
+      "structured": false,
+      "passage": false,
+      "sha256": "ffb80e29ab1d2a94ad29eb9e846585dedc091a91be6ab4e4bc58ed2cbb4dbb32",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-3-reversed",
+      "structured": true,
+      "passage": false,
+      "sha256": "5fb4af24526e7bb806537cf92a4ee8a65b15b90880c86fc63d66d2bd961ea7a2",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-3-reversed",
+      "structured": false,
+      "passage": true,
+      "sha256": "e4feb1588a88588ed43b9ee2e8233e199959b7660f11371bdc5e0340f62977c0",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-3-reversed",
+      "structured": true,
+      "passage": true,
+      "sha256": "c35e4861fc8b332b104cda5bd94a26b20a11e78c7d2fa0d3ded765d741b87174",
+      "checks": [
+        {
+          "check": "dated-record-relationship",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "old-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "expectations_sha256": "a654dd3ee09b975bf4554eda65cbf182a62503f12fcf8a04bdb2f906f672b357"
+}

@@ -308,6 +308,12 @@ export interface EvidenceSideStructure {
 // Per-element basis metadata. Only the fields the frontend reads are typed;
 // other keys (state_derivation, *_breakdown) are present but untyped.
 export interface ElementBasis {
+  fact_applicability?: {
+    target_day: string;
+    scan_scope: 'retained_passages';
+    scoped_count: number;
+    scoped: { evidence_id: string; was: EvidenceRelationship; reason: string; target_day: string }[];
+  };
   support_structure?: EvidenceSideStructure;
   challenge_structure?: EvidenceSideStructure;
   [key: string]: unknown;

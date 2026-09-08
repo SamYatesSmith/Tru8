@@ -1,0 +1,337 @@
+{
+  "version": 2,
+  "scope": "Fixed September 8 saved-source corpus and seed-419 controls only. Offline manual expectations, never runtime instructions or facts. Negative checks allow context/absence; positive controls require direction. A pass is necessary, not sufficient, for rollout.",
+  "cases": {
+    "bank-original": [
+      {
+        "id": "undated-home-value-not-historical-proof",
+        "element": "e1",
+        "source": "bank-home",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      },
+      {
+        "id": "article-header-not-fact-date",
+        "element": "e1",
+        "source": "bank-article",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      },
+      {
+        "id": "rate-discrepancy-not-decision-date-discrepancy",
+        "element": "e2",
+        "source": "bank-article",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      },
+      {
+        "id": "undated-schedule-not-historical-proof",
+        "element": "e2",
+        "source": "bank-home",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ],
+    "synthetic-1-new": [
+      {
+        "id": "page-clock-not-fact-time",
+        "element": "e1",
+        "source": "fiction-1",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      },
+      {
+        "id": "earlier-value-not-carried-forward",
+        "element": "e1",
+        "source": "fiction-0",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ],
+    "synthetic-0-new": [
+      {
+        "id": "explicit-effective-change-retained",
+        "element": "e1",
+        "source": "fiction-1",
+        "require": [
+          "supports"
+        ],
+        "forbid": [
+          "challenges"
+        ]
+      },
+      {
+        "id": "superseded-value-is-context",
+        "element": "e1",
+        "source": "fiction-0",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ],
+    "sqlite-reversed": [
+      {
+        "id": "direct-concurrency-support-retained",
+        "element": "e1",
+        "source": "sqlite-wal",
+        "require": [
+          "supports"
+        ],
+        "forbid": [
+          "challenges"
+        ]
+      },
+      {
+        "id": "direct-busy-support-retained",
+        "element": "e2",
+        "source": "sqlite-wal",
+        "require": [
+          "supports"
+        ],
+        "forbid": [
+          "challenges"
+        ]
+      }
+    ],
+    "unrelated-control": [
+      {
+        "id": "unrelated-source-not-directional",
+        "element": "e1",
+        "source": "*",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ],
+    "bank-reversed": [
+      {
+        "id": "undated-home-value-not-historical-proof",
+        "element": "e1",
+        "source": "bank-home",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      },
+      {
+        "id": "article-header-not-fact-date",
+        "element": "e1",
+        "source": "bank-article",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ],
+    "sqlite-busy": [
+      {
+        "id": "concurrency-retained",
+        "element": "e1",
+        "source": "sqlite-wal",
+        "require": [
+          "supports"
+        ]
+      },
+      {
+        "id": "busy-exception-retained",
+        "element": "e2",
+        "source": "sqlite-wal",
+        "require": [
+          "challenges"
+        ]
+      }
+    ],
+    "synthetic-0-reversed": [
+      {
+        "id": "dated-record-relationship",
+        "element": "e1",
+        "source": "fiction-1",
+        "forbid": [
+          "supports"
+        ],
+        "require": [
+          "challenges"
+        ]
+      },
+      {
+        "id": "old-value-not-carried-forward",
+        "element": "e1",
+        "source": "fiction-0",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ],
+    "synthetic-1-reversed": [
+      {
+        "id": "dated-record-relationship",
+        "element": "e1",
+        "source": "fiction-1",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      },
+      {
+        "id": "old-value-not-carried-forward",
+        "element": "e1",
+        "source": "fiction-0",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ],
+    "synthetic-2-new": [
+      {
+        "id": "dated-record-relationship",
+        "element": "e1",
+        "source": "fiction-1",
+        "forbid": [
+          "supports"
+        ],
+        "require": [
+          "challenges"
+        ]
+      },
+      {
+        "id": "old-value-not-carried-forward",
+        "element": "e1",
+        "source": "fiction-0",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ],
+    "synthetic-2-reversed": [
+      {
+        "id": "dated-record-relationship",
+        "element": "e1",
+        "source": "fiction-1",
+        "forbid": [
+          "challenges"
+        ]
+      },
+      {
+        "id": "old-value-not-carried-forward",
+        "element": "e1",
+        "source": "fiction-0",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ],
+    "synthetic-3-new": [
+      {
+        "id": "dated-record-relationship",
+        "element": "e1",
+        "source": "fiction-1",
+        "forbid": [
+          "supports"
+        ],
+        "require": [
+          "challenges"
+        ]
+      },
+      {
+        "id": "old-value-not-carried-forward",
+        "element": "e1",
+        "source": "fiction-0",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ],
+    "synthetic-3-reversed": [
+      {
+        "id": "dated-record-relationship",
+        "element": "e1",
+        "source": "fiction-1",
+        "forbid": [
+          "challenges"
+        ]
+      },
+      {
+        "id": "old-value-not-carried-forward",
+        "element": "e1",
+        "source": "fiction-0",
+        "forbid": [
+          "supports",
+          "challenges"
+        ]
+      }
+    ]
+  },
+  "input_signatures": {
+    "bank-original": {
+      "0": "32d993f2d0f794b9c81bbe2587d6f135c01354b3cb99b5da08f20c7082142597",
+      "1": "b6af62f9cf3289ec47a49be1735e11d08c5ff2cedfecc7d6c869519251706b52"
+    },
+    "synthetic-1-new": {
+      "0": "5b7850014e72e7a8feb3d64de8837c719358b2ae416f9420d7bc0d8d3e92beaa",
+      "1": "5b7850014e72e7a8feb3d64de8837c719358b2ae416f9420d7bc0d8d3e92beaa"
+    },
+    "synthetic-0-new": {
+      "0": "d6fa1c419290707161bc3b0286a44e246477f926cfefe9e5fc15825991f51263",
+      "1": "d6fa1c419290707161bc3b0286a44e246477f926cfefe9e5fc15825991f51263"
+    },
+    "sqlite-reversed": {
+      "0": "3c7d38d355a019c6b94414f5d83673077446345c4758b31b532f5704968fec83",
+      "1": "3c7d38d355a019c6b94414f5d83673077446345c4758b31b532f5704968fec83"
+    },
+    "unrelated-control": {
+      "0": "b5950a863cb8e5eeb8af28960db13e2ef76b802282fc3f2244df4640e8526ba8",
+      "1": "b5950a863cb8e5eeb8af28960db13e2ef76b802282fc3f2244df4640e8526ba8"
+    },
+    "bank-reversed": {
+      "0": "d1d981b722c50823c88c12567bc8b09adb13bb8fef849892ee2c1386c8086e0b",
+      "1": "e9ff1459bfb4b31049bf5e51692a21eb8a3666ce05d073a6ef7d59d2a431411a"
+    },
+    "sqlite-busy": {
+      "0": "79d920f130fdc354e007f0f8504650f16194160221b25d2fd19f7489ce9cc35e",
+      "1": "79d920f130fdc354e007f0f8504650f16194160221b25d2fd19f7489ce9cc35e"
+    },
+    "synthetic-0-reversed": {
+      "0": "ceb5c213ed5f43cfff425bbee1271baeceb64915b8368a037c1379f8ff69a6ed",
+      "1": "ceb5c213ed5f43cfff425bbee1271baeceb64915b8368a037c1379f8ff69a6ed"
+    },
+    "synthetic-1-reversed": {
+      "0": "185809f9e7e3e9be2d65b2d273ff2671d4bbd8ab7767d52b43ce3f1eb72d7c0d",
+      "1": "185809f9e7e3e9be2d65b2d273ff2671d4bbd8ab7767d52b43ce3f1eb72d7c0d"
+    },
+    "synthetic-2-new": {
+      "0": "2b2377f2ace3a643dc02a898ee8b574ca1e3ac63dea624f546b4756db6ecafd0",
+      "1": "2b2377f2ace3a643dc02a898ee8b574ca1e3ac63dea624f546b4756db6ecafd0"
+    },
+    "synthetic-2-reversed": {
+      "0": "c3a66c367bf0764ed9310ed592f5df8aa5503450355c53d78ac1e0cf4c79f8d6",
+      "1": "c3a66c367bf0764ed9310ed592f5df8aa5503450355c53d78ac1e0cf4c79f8d6"
+    },
+    "synthetic-3-new": {
+      "0": "53fbd3df6d83c9dfb606d2be97e3870358c14c95e7f485d1ad1bdffa5785846f",
+      "1": "53fbd3df6d83c9dfb606d2be97e3870358c14c95e7f485d1ad1bdffa5785846f"
+    },
+    "synthetic-3-reversed": {
+      "0": "3c6c3a01cd1966c76582869a8475c3ba10410dc857ebcf9ce23523e91b976b33",
+      "1": "3c6c3a01cd1966c76582869a8475c3ba10410dc857ebcf9ce23523e91b976b33"
+    }
+  }
+}
