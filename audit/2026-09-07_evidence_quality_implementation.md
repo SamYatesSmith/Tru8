@@ -4,6 +4,14 @@ User authorised implementation of the hands-on improvement map, with a commit af
 
 ## Sequence and status
 
+Latest checkpoint: [element/time applicability candidate evaluation](2026-09-08_applicability_evaluation.md).
+Twenty additional fixed-source arms preserve positive controls and remove two observed
+errors in the combined arm, but three historical-applicability assertions still fail.
+The shared prompt candidate remains behind the OFF passage flag (contract v3).
+Hash-bound offline semantic checks now distinguish this failure from successful
+processing/quotation validation. 44 backend checks and the exact 185/1/13/2 replay
+baseline passed. Step 5/6 semantic acceptance remains open; no deployment.
+
 1. **Locally verified:** truthful Gaps coverage and review status. Contextual/disputed material remains visible; evidence presence never implies all questions are settled. Web suite: 151 passed; TypeScript check passed.
 2. **Locally verified:** Compare relationship semantics and display identity. Context/directional pairs are contextual; identical directional mappings say “same direction”, not whole-source agreement. Selected A/B order preserves summaries, text receipts and one-sided rows while the cache remains canonical. Fresh-read versus saved-map distinction is visible; extraction is no longer labelled “full article”. All nine relationship combinations, missing mappings, live recomputation and reversed display covered: 20 backend tests and 4 web regressions passed; TypeScript passed. Existing API `aligned` responses containing context render honestly during rollout.
 3. **Locally verified:** research completion explicitly fetches and replaces the client report with a fresh token; failures retain the old report and expose retry, and older overlapping responses cannot overwrite newer results. Compare reloads saved mappings after report changes. The source panel exposes each relationship and its saved reasoning as “System interpretation”, explicitly discloses unavailable exact passages, and receives focus/scroll on opening. Claim-wide explanations preserve their own claim/element descriptions. Web suite: 158 passed; TypeScript passed. Production UI acceptance remains outstanding.

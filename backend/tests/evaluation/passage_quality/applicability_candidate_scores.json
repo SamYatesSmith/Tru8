@@ -1,0 +1,475 @@
+{
+  "scope": "Targeted, manually reviewed fixed-source regressions; not overall accuracy.",
+  "expectations_version": 1,
+  "passed": false,
+  "combined_arm_passed": false,
+  "rows": [
+    {
+      "case": "bank-original",
+      "structured": false,
+      "passage": false,
+      "sha256": "bef1179ef31c6f1d5119cc75fb74952b96dddf4847dae4349bda92c82a7fa028",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": false,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "rate-discrepancy-not-decision-date-discrepancy",
+          "passed": true,
+          "observed": []
+        },
+        {
+          "check": "undated-schedule-not-historical-proof",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "bank-original",
+      "structured": true,
+      "passage": false,
+      "sha256": "c22d6c2fda97ad391eba88910bed207e68627c64349b8d39226a0c5aa6156d3b",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": false,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "rate-discrepancy-not-decision-date-discrepancy",
+          "passed": true,
+          "observed": []
+        },
+        {
+          "check": "undated-schedule-not-historical-proof",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "bank-original",
+      "structured": false,
+      "passage": true,
+      "sha256": "4408a4ef79c12a0004764a175b4b5175cfd737f8d1db8888f96ddfd8a055bc6f",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "rate-discrepancy-not-decision-date-discrepancy",
+          "passed": true,
+          "observed": []
+        },
+        {
+          "check": "undated-schedule-not-historical-proof",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "bank-original",
+      "structured": true,
+      "passage": true,
+      "sha256": "348db4c9d126a10cdf5cc25db74a983dc4b1f42c176754f742b8a15699f19ac5",
+      "checks": [
+        {
+          "check": "undated-home-value-not-historical-proof",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "article-header-not-fact-date",
+          "passed": false,
+          "observed": [
+            "challenges"
+          ]
+        },
+        {
+          "check": "rate-discrepancy-not-decision-date-discrepancy",
+          "passed": true,
+          "observed": []
+        },
+        {
+          "check": "undated-schedule-not-historical-proof",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "synthetic-1-new",
+      "structured": false,
+      "passage": false,
+      "sha256": "5f806050577c5243969ffdafd520d4c1c646ee67e221ee16a5fa3cb7f47ef72e",
+      "checks": [
+        {
+          "check": "page-clock-not-fact-time",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "earlier-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "synthetic-1-new",
+      "structured": true,
+      "passage": false,
+      "sha256": "7424844466a692e39df61775a1c3cbfc10c87a13da2182a51d3fb810705f0fde",
+      "checks": [
+        {
+          "check": "page-clock-not-fact-time",
+          "passed": false,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "earlier-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "synthetic-1-new",
+      "structured": false,
+      "passage": true,
+      "sha256": "0d2d12ca27cf3b7e6143802b84c6754e680a77dbae19087826bd11c5fa2662ee",
+      "checks": [
+        {
+          "check": "page-clock-not-fact-time",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "earlier-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-1-new",
+      "structured": true,
+      "passage": true,
+      "sha256": "631384ef96e606a5419a3359bf7d84280e6c358016db184d2fc2cb4cc9ce820d",
+      "checks": [
+        {
+          "check": "page-clock-not-fact-time",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        },
+        {
+          "check": "earlier-value-not-carried-forward",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-new",
+      "structured": false,
+      "passage": false,
+      "sha256": "aefc6a7aa663fea79d05d665b83ab209add56039f4858029b56713e4665f1207",
+      "checks": [
+        {
+          "check": "explicit-effective-change-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "superseded-value-is-context",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-new",
+      "structured": true,
+      "passage": false,
+      "sha256": "6de80f0e6bac3786f839ccfb1e69f0fa00cb60daefe06ae1f4fb8fa14c938085",
+      "checks": [
+        {
+          "check": "explicit-effective-change-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "superseded-value-is-context",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-new",
+      "structured": false,
+      "passage": true,
+      "sha256": "50104ec13e5117c81a147f4e5d089411081727ef315e26fc4faf6ee41fd2fdd5",
+      "checks": [
+        {
+          "check": "explicit-effective-change-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "superseded-value-is-context",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "synthetic-0-new",
+      "structured": true,
+      "passage": true,
+      "sha256": "72dc084a14adaed61da35726c285e19f2caf07d0834e50bbea2ae4c0091edbfe",
+      "checks": [
+        {
+          "check": "explicit-effective-change-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "superseded-value-is-context",
+          "passed": true,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "sqlite-reversed",
+      "structured": false,
+      "passage": false,
+      "sha256": "8ca733729b88709c2e54f3dc48efb1fccb074f2a77878a42afe7744683ceb0bc",
+      "checks": [
+        {
+          "check": "direct-concurrency-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "direct-busy-support-retained",
+          "passed": false,
+          "observed": [
+            "context"
+          ]
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "sqlite-reversed",
+      "structured": true,
+      "passage": false,
+      "sha256": "f5dc7ea0e19421f0ddedb9abebbfc60661c13896497630480e09298faca6f82e",
+      "checks": [
+        {
+          "check": "direct-concurrency-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "direct-busy-support-retained",
+          "passed": false,
+          "observed": []
+        }
+      ],
+      "passed": false
+    },
+    {
+      "case": "sqlite-reversed",
+      "structured": false,
+      "passage": true,
+      "sha256": "8d347aad15d37cd93c316e011ef15363dbaeaa68b9501f45efb7d370fa9f466f",
+      "checks": [
+        {
+          "check": "direct-concurrency-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "direct-busy-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "sqlite-reversed",
+      "structured": true,
+      "passage": true,
+      "sha256": "b79801dd03b9633c68e806bebcd59c2193ed5200e14c4af4ff1be793cc9e0603",
+      "checks": [
+        {
+          "check": "direct-concurrency-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        },
+        {
+          "check": "direct-busy-support-retained",
+          "passed": true,
+          "observed": [
+            "supports"
+          ]
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "unrelated-control",
+      "structured": false,
+      "passage": false,
+      "sha256": "9e54d651e42972743bb3882282df5d0829b7052643026c5246f0546ce0c13ea3",
+      "checks": [
+        {
+          "check": "unrelated-source-not-directional",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "unrelated-control",
+      "structured": true,
+      "passage": false,
+      "sha256": "29cfe21995094fae25cf851ad7f3450b39ed4786f2b08f52e3a3937d4fcecfd7",
+      "checks": [
+        {
+          "check": "unrelated-source-not-directional",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "unrelated-control",
+      "structured": false,
+      "passage": true,
+      "sha256": "a8695d455727c214d9545046b2b7afed92dfe52d7a8a9f15943d9d4e2f11fa38",
+      "checks": [
+        {
+          "check": "unrelated-source-not-directional",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "case": "unrelated-control",
+      "structured": true,
+      "passage": true,
+      "sha256": "cb54b0d7026940ef841df9bc1dcd81c13a7aaf8e001c3946e62d3d4945cd8114",
+      "checks": [
+        {
+          "check": "unrelated-source-not-directional",
+          "passed": true,
+          "observed": []
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "expectations_sha256": "2e75dd419b5add606cc682c0382da66ce8c4018cad4c6a1ededb4512e9471ced"
+}

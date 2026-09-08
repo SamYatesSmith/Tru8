@@ -2021,6 +2021,17 @@ class ClaimMapAnalyzer:
         """
         self._last_model_used = "unknown"
 
+        if settings.ENABLE_PASSAGE_MAPPING and label in (
+            "mapping",
+            "batch_mapping",
+            "map_completion",
+            "recovery_mapping",
+            "passage_review",
+        ):
+            from app.services.mapping_applicability import APPLICABILITY_RULES
+
+            prompt = prompt + "\n" + APPLICABILITY_RULES
+
         # Mapping calls use the thinking model which needs more time
         is_mapping = label in ("mapping", "batch_mapping")
         google_timeout = self.mapping_timeout if is_mapping else self.timeout
