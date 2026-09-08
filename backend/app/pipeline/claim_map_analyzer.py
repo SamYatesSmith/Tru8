@@ -2722,6 +2722,15 @@ class ClaimMapAnalyzer:
                     "was": value,
                 }
                 entry.update(gate.entry(item, ref))
+                if gate.key == "temporal_scope" and settings.ENABLE_PASSAGE_MAPPING:
+                    # A scoped label must not retain a directional explanation.
+                    # Keep the model's interpretation in the audit receipt.
+                    entry["original_reasoning"] = ref.get("reasoning")
+                    ref["reasoning"] = (
+                        "Retained as context: the source's identified time period "
+                        "does not match this element's required period "
+                        f"({entry['element_period']})."
+                    )
                 if gate.key == "fact_applicability":
                     ref["reasoning"] = (
                         f"{entry['reason']} Required date: {entry['target_day']}."

@@ -38,6 +38,25 @@ def fixture(text, day="2031-04-12", value=37):
     return cm, ev
 
 
+@pytest.mark.parametrize("period", ["morning", "afternoon", "evening"])
+def test_explicit_part_of_day_retains_calendar_date(period):
+    text = f"The release setting was 37 units on the {period} of April 12, 2031."
+    cm, ev = fixture(text)
+    day = target_day(cm["elements"][0]["description"], "")
+    anchor = source_time_anchor(ev, cm["elements"][0]["description"], day)
+    assert anchor and anchor["quote"] == text
+    assert target_day(text, "") == day
+
+
+@pytest.mark.parametrize("phrase", ["evening before", "morning after", "eve of"])
+def test_relative_day_phrase_does_not_establish_named_date(phrase):
+    text = f"The release setting was 37 units on the {phrase} April 12, 2031."
+    cm, ev = fixture(text)
+    day = target_day(cm["elements"][0]["description"], "")
+    assert source_time_anchor(ev, cm["elements"][0]["description"], day) is None
+    assert target_day(text, "") is None
+
+
 @pytest.mark.parametrize(
     "text",
     [

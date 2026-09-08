@@ -1,0 +1,814 @@
+{
+  "scope": "Fixed extracted real-source text, manual primary labels and fixed elements; actual distillation and mapping. No retrieval, decomposition, classification, persistence or UI test.",
+  "spec_sha256": "4f055c84cf51656342b3b5d9e1bedef4ad59e2ebfc7874f26fa4a4d6bd2c8eac",
+  "capture_method": "BeautifulSoup: remove script/style/nav/header/footer, then main/article/body text; not application HTML extraction",
+  "sources": [
+    {
+      "id": "pg18",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html",
+      "title": "PostgreSQL 18 Transaction Isolation",
+      "html_sha256": "beef1cd1c5f512e3934fd049454730e3cc9d459e69db8e938bf941125387cefc",
+      "text_sha256": "48df011d35b86b3f92ecc6e5b1d2eb2705d7a21223cb95679d2b033134c63b38",
+      "characters": 24235
+    },
+    {
+      "id": "pg90",
+      "url": "https://www.postgresql.org/docs/9.0/transaction-iso.html",
+      "title": "PostgreSQL 9.0 Transaction Isolation",
+      "html_sha256": "1a28c4779662cde063200bebb55de4361fe0192c9c9266c442920a47f6ef56e0",
+      "text_sha256": "30a337d5d111764b25888dbf7eb4f70c748c707eaea544f186f1a4f2cd67b3bd",
+      "characters": 14033
+    },
+    {
+      "id": "dart-plan",
+      "url": "https://www.nasa.gov/news-release/nasa-invites-media-to-witness-worlds-first-planetary-defense-test/",
+      "title": "NASA invites media to witness planned DART test",
+      "html_sha256": "b1a3dd94a1034817f6aee711f7fb6193a1203f66bb5dcb9f499326227e9aa19f",
+      "text_sha256": "aca6e7a62ff1c2f28b9a9d37851fa1a9d82534df2ebe12b747b21171ae531b86",
+      "characters": 4589
+    },
+    {
+      "id": "dart-completed",
+      "url": "https://www.nasa.gov/science-research/planetary-science/from-impact-to-innovation-a-year-of-science-and-triumph-for-historic-dart-mission/",
+      "title": "NASA retrospective: A year of DART science and triumph",
+      "html_sha256": "1b3ca77cdba12ad536ca48e616d4c27a3e303cbf0af91982bcfec3f1fec52298",
+      "text_sha256": "b03325ec692d206d9b2d0892584cf5bfed76864b39e041828128029531a9bd64",
+      "characters": 11738
+    }
+  ],
+  "sweeps": [
+    {
+      "name": "initial_v6",
+      "raw_sha256": "474c22f593cbbaef89b217f92f1cbd9f8ffd41335f6d26dbed649cb29ab43178",
+      "requests": 20,
+      "request_characters": 293781,
+      "totals": {
+        "default": {
+          "passed": 14,
+          "checks": 18
+        },
+        "candidate": {
+          "passed": 15,
+          "checks": 18
+        }
+      },
+      "arms": [
+        {
+          "case": "versions",
+          "arm": 0,
+          "candidate": false,
+          "checks": [
+            {
+              "element": 0,
+              "source": "pg18",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg18",
+              "expected": "challenges",
+              "actual": [],
+              "pass": false
+            },
+            {
+              "element": 2,
+              "source": "pg90",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "versions",
+          "arm": 1,
+          "candidate": true,
+          "checks": [
+            {
+              "element": 0,
+              "source": "pg18",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg18",
+              "expected": "challenges",
+              "actual": [
+                "challenges"
+              ],
+              "pass": true
+            },
+            {
+              "element": 2,
+              "source": "pg90",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "versions",
+          "arm": 2,
+          "candidate": true,
+          "checks": [
+            {
+              "element": 0,
+              "source": "pg18",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg18",
+              "expected": "challenges",
+              "actual": [
+                "challenges"
+              ],
+              "pass": true
+            },
+            {
+              "element": 2,
+              "source": "pg90",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "versions",
+          "arm": 3,
+          "candidate": false,
+          "checks": [
+            {
+              "element": 0,
+              "source": "pg18",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg18",
+              "expected": "challenges",
+              "actual": [],
+              "pass": false
+            },
+            {
+              "element": 2,
+              "source": "pg90",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "dated-event",
+          "arm": 0,
+          "candidate": false,
+          "checks": [
+            {
+              "element": 0,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "dart-plan",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [],
+              "pass": false
+            },
+            {
+              "element": 1,
+              "source": "dart-plan",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "dated-event",
+          "arm": 1,
+          "candidate": true,
+          "checks": [
+            {
+              "element": 0,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "context"
+              ],
+              "pass": false
+            },
+            {
+              "element": 0,
+              "source": "dart-plan",
+              "expected": "nondirectional",
+              "actual": [
+                "context"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-plan",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "dated-event",
+          "arm": 2,
+          "candidate": true,
+          "checks": [
+            {
+              "element": 0,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "context"
+              ],
+              "pass": false
+            },
+            {
+              "element": 0,
+              "source": "dart-plan",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [],
+              "pass": false
+            },
+            {
+              "element": 1,
+              "source": "dart-plan",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "dated-event",
+          "arm": 3,
+          "candidate": false,
+          "checks": [
+            {
+              "element": 0,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "dart-plan",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [],
+              "pass": false
+            },
+            {
+              "element": 1,
+              "source": "dart-plan",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "date_corrected_v7_before_explanation_fix",
+      "raw_sha256": "0bd10d35dc7b83bf7d3cbd1dcb9494d9f7d579b95ac82595b30604d1f68a14e6",
+      "requests": 20,
+      "request_characters": 294351,
+      "totals": {
+        "default": {
+          "passed": 14,
+          "checks": 18
+        },
+        "candidate": {
+          "passed": 18,
+          "checks": 18
+        }
+      },
+      "arms": [
+        {
+          "case": "versions",
+          "arm": 0,
+          "candidate": false,
+          "checks": [
+            {
+              "element": 0,
+              "source": "pg18",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg18",
+              "expected": "challenges",
+              "actual": [],
+              "pass": false
+            },
+            {
+              "element": 2,
+              "source": "pg90",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "versions",
+          "arm": 1,
+          "candidate": true,
+          "checks": [
+            {
+              "element": 0,
+              "source": "pg18",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg18",
+              "expected": "challenges",
+              "actual": [
+                "challenges"
+              ],
+              "pass": true
+            },
+            {
+              "element": 2,
+              "source": "pg90",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "versions",
+          "arm": 2,
+          "candidate": true,
+          "checks": [
+            {
+              "element": 0,
+              "source": "pg18",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg18",
+              "expected": "challenges",
+              "actual": [
+                "challenges"
+              ],
+              "pass": true
+            },
+            {
+              "element": 2,
+              "source": "pg90",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "versions",
+          "arm": 3,
+          "candidate": false,
+          "checks": [
+            {
+              "element": 0,
+              "source": "pg18",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg18",
+              "expected": "challenges",
+              "actual": [],
+              "pass": false
+            },
+            {
+              "element": 2,
+              "source": "pg90",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "pg90",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "dated-event",
+          "arm": 0,
+          "candidate": false,
+          "checks": [
+            {
+              "element": 0,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "dart-plan",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [],
+              "pass": false
+            },
+            {
+              "element": 1,
+              "source": "dart-plan",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "dated-event",
+          "arm": 1,
+          "candidate": true,
+          "checks": [
+            {
+              "element": 0,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "dart-plan",
+              "expected": "nondirectional",
+              "actual": [
+                "context"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-plan",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "dated-event",
+          "arm": 2,
+          "candidate": true,
+          "checks": [
+            {
+              "element": 0,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "dart-plan",
+              "expected": "nondirectional",
+              "actual": [
+                "context"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-plan",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            }
+          ]
+        },
+        {
+          "case": "dated-event",
+          "arm": 3,
+          "candidate": false,
+          "checks": [
+            {
+              "element": 0,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            },
+            {
+              "element": 0,
+              "source": "dart-plan",
+              "expected": "nondirectional",
+              "actual": [],
+              "pass": true
+            },
+            {
+              "element": 1,
+              "source": "dart-completed",
+              "expected": "supports",
+              "actual": [],
+              "pass": false
+            },
+            {
+              "element": 1,
+              "source": "dart-plan",
+              "expected": "supports",
+              "actual": [
+                "supports"
+              ],
+              "pass": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "explanation_correction": {
+    "method": "Deterministic reapplication of actual scope gates to saved model outputs, restoring only the pre-gate relationship from its receipt; no new model calls.",
+    "input_sha256": "0bd10d35dc7b83bf7d3cbd1dcb9494d9f7d579b95ac82595b30604d1f68a14e6",
+    "verified": [
+      {
+        "case": "dated-event",
+        "arm": 1,
+        "element": "e1",
+        "evidence_id": "ev-1d190cb3000b",
+        "before_reasoning": "The evidence explicitly confirms that the DART mission successfully impacted its target asteroid on September 26, 2022.",
+        "after_reasoning": "Retained as context: the source's identified time period does not match this element's required period (2022-09).",
+        "receipt": {
+          "evidence_id": "ev-1d190cb3000b",
+          "was": "supports",
+          "element_period": "2022-09",
+          "original_reasoning": "The evidence explicitly confirms that the DART mission successfully impacted its target asteroid on September 26, 2022."
+        },
+        "citations_unchanged": true
+      },
+      {
+        "case": "dated-event",
+        "arm": 2,
+        "element": "e1",
+        "evidence_id": "ev-1d190cb3000b",
+        "before_reasoning": "The passage confirms that DART impacted the asteroid Dimorphos on September 26, 2022.",
+        "after_reasoning": "Retained as context: the source's identified time period does not match this element's required period (2022-09).",
+        "receipt": {
+          "evidence_id": "ev-1d190cb3000b",
+          "was": "supports",
+          "element_period": "2022-09",
+          "original_reasoning": "The passage confirms that DART impacted the asteroid Dimorphos on September 26, 2022."
+        },
+        "citations_unchanged": true
+      }
+    ]
+  },
+  "acceptance": "Candidate remains disabled. Relationship checks pass after date correction; misleading explanations corrected and verified deterministically on saved outputs, not a new live model sweep. No 8/10 finished-report score established."
+}

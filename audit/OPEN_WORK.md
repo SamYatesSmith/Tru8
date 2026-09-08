@@ -1,6 +1,6 @@
 # Open Work Register
 
-> **2026-09-08 — Real-source acceptance pilot: no regression on three captured documents; activation still withheld.** PostgreSQL, NASA and NOAA each passed two default and two candidate repeats with fixed expectations (36/36 relationship checks). USGS acquisition returned empty content and remains untested. Both versions omitted the optional context links; no superiority or 8/10 claim follows. Initial generic-ID harness results were invalidated and both arms rerun with production-shaped IDs. Replay matched 185/1/13/2 with no cassette drift. Details: [real-source pilot](2026-09-08_real_source_pilot.md).
+> **2026-09-08 — Competing-source pilot: candidate date handling and temporal explanations corrected; activation still withheld.** Four captured documents include long, versioned and planned/completed-event evidence. After a generic date-phrase correction, two repeats scored candidate 18/18 versus default 14/18 relationship checks. Review also caught a misleading explanation on a context-labelled source; candidate temporal demotions now replace it and retain the original in the audit receipt, verified against both saved outputs. Focused checks: 105 passed; full replay matched 185/1/13/2 with zero cassette drift. This is a bounded mapping result, not an 8/10 finished-report assessment. Details: [competing-source pilot](2026-09-08_competing_source_pilot.md).
 
 > **Single source of truth for what's currently open in Tru8.**
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.

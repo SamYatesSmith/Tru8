@@ -10,7 +10,10 @@ import re
 from app.services.temporal_provenance import _DATE, _parse_stated_date
 from app.services.text_provenance import _terms
 
-_POINT = re.compile(rf"\b(?:as\s+of|on)\s+(?P<date>{_DATE})\b", re.I)
+_POINT = re.compile(
+    rf"\b(?:as\s+of|on(?:\s+the\s+(?:morning|afternoon|evening)\s+of)?)\s+(?P<date>{_DATE})\b",
+    re.I,
+)
 _START = re.compile(rf"\b(?:effective|in\s+force)\s+from\s+(?P<date>{_DATE})\b", re.I)
 _END = re.compile(
     rf"\b(?:effective\s+|in\s+force\s+)?until\s+(?P<date>{_DATE})\b", re.I

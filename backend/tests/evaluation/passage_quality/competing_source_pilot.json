@@ -1,0 +1,13 @@
+{
+  "scope":"Fixed long/versioned and planned-versus-completed real-source evidence; manual elements and primary classifications. Expectations set before execution.",
+  "sources":[
+    {"id":"pg18","url":"https://www.postgresql.org/docs/18/transaction-iso.html","title":"PostgreSQL 18 Transaction Isolation"},
+    {"id":"pg90","url":"https://www.postgresql.org/docs/9.0/transaction-iso.html","title":"PostgreSQL 9.0 Transaction Isolation"},
+    {"id":"dart-plan","url":"https://www.nasa.gov/news-release/nasa-invites-media-to-witness-worlds-first-planetary-defense-test/","title":"NASA invites media to witness planned DART test"},
+    {"id":"dart-completed","url":"https://www.nasa.gov/science-research/planetary-science/from-impact-to-innovation-a-year-of-science-and-triumph-for-historic-dart-mission/","title":"NASA retrospective: A year of DART science and triumph"}
+  ],
+  "cases":[
+    {"id":"versions","source_ids":["pg18","pg90"],"elements":["PostgreSQL 18 Repeatable Read prevents phantom reads.","PostgreSQL 18 Repeatable Read prevents serialization anomalies.","PostgreSQL 9.0 implemented Repeatable Read as Serializable."],"expectations":[[0,"pg18","supports"],[1,"pg18","challenges"],[2,"pg90","supports"],[0,"pg90","nondirectional"],[1,"pg90","nondirectional"]],"unscored":"PG18 commentary about historical versions against element 2 is not scored because indirect historical wording may permit more than one interpretation."},
+    {"id":"dated-event","source_ids":["dart-plan","dart-completed"],"elements":["On 26 September 2022, DART successfully impacted the asteroid Dimorphos.","DART was designed as a planetary defence technology test."],"expectations":[[0,"dart-completed","supports"],[0,"dart-plan","nondirectional"],[1,"dart-completed","supports"],[1,"dart-plan","supports"]]}
+  ]
+}
