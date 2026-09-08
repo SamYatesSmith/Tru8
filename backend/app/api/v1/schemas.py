@@ -927,6 +927,9 @@ class ResearchStatusResponse(BaseModel):
     newEvidenceCount: Optional[int] = Field(
         None, description="Number of new evidence items found (when completed)"
     )
+    operationId: Optional[str] = None
+    elementIds: Optional[List[str]] = None
+    revisionId: Optional[str] = None
 
 
 # ============================================================================

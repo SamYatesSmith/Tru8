@@ -408,10 +408,12 @@ class ApiClient {
   async startGapResearch(
     checkId: string,
     claimId: string,
-    token?: string | null
-  ): Promise<{ status: string; message: string; elementIds: string[]; gapCount: number; creditsUsed: number }> {
+    token?: string | null,
+    requestKey?: string
+  ): Promise<{ status: string; message: string; elementIds: string[]; gapCount: number; creditsUsed: number; operationId?: string }> {
     return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/research-gaps`, {
       method: 'POST',
+      headers: { 'Idempotency-Key': requestKey || crypto.randomUUID() },
     }, token);
   }
 
@@ -422,10 +424,12 @@ class ApiClient {
   async startThinResearch(
     checkId: string,
     claimId: string,
-    token?: string | null
-  ): Promise<{ status: string; message: string; elementIds: string[]; thinCount: number; creditsUsed: number }> {
+    token?: string | null,
+    requestKey?: string
+  ): Promise<{ status: string; message: string; elementIds: string[]; thinCount: number; creditsUsed: number; operationId?: string }> {
     return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/research-thin`, {
       method: 'POST',
+      headers: { 'Idempotency-Key': requestKey || crypto.randomUUID() },
     }, token);
   }
 
@@ -437,10 +441,12 @@ class ApiClient {
     checkId: string,
     claimId: string,
     elementId: string,
-    token?: string | null
-  ): Promise<{ status: string; message: string; elementId: string }> {
+    token?: string | null,
+    requestKey?: string
+  ): Promise<{ status: string; message: string; elementId: string; elementIds?: string[]; operationId?: string }> {
     return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/elements/${elementId}/research`, {
       method: 'POST',
+      headers: { 'Idempotency-Key': requestKey || crypto.randomUUID() },
     }, token);
   }
 
@@ -452,9 +458,10 @@ class ApiClient {
     checkId: string,
     claimId: string,
     elementId: string,
-    token?: string | null
-  ): Promise<{ status: string; message: string; newEvidenceCount?: number }> {
-    return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/elements/${elementId}/research/status`, {}, token);
+    token?: string | null,
+    operationId?: string
+  ): Promise<{ status: string; message: string; newEvidenceCount?: number; operationId?: string }> {
+    return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/elements/${elementId}/research/status${operationId ? `?operation_id=${encodeURIComponent(operationId)}` : ''}`, {}, token);
   }
 
   /**

@@ -24,6 +24,32 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get(
+    "/verify/{check_id}/revisions/{revision_id}",
+    summary="Verify a retained report revision",
+)
+async def verify_report_revision(check_id: str, revision_id: str):
+    from app.models import ReportRevision
+    from app.services.report_revisions import verify_snapshot
+
+    async with async_session() as session:
+        row = (
+            await session.execute(
+                select(ReportRevision).where(
+                    ReportRevision.id == revision_id,
+                    ReportRevision.check_id == check_id,
+                )
+            )
+        ).scalar_one_or_none()
+        if not row:
+            return {"valid": False, "reason": "not_found"}
+        return {
+            **verify_snapshot(row.snapshot),
+            "checkId": check_id,
+            "revisionId": revision_id,
+        }
+
+
 async def _load_claims_for_verify(check_id: str, session: AsyncSession) -> list[dict]:
     """Load claims with ClaimMaps for canonical hash computation.
 

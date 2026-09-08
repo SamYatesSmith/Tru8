@@ -26,6 +26,7 @@ const STATUS_MESSAGES: Record<string, string> = {
   retrieving: 'Searching...',
   classifying: 'Classifying...',
   mapping: 'Mapping evidence...',
+  distilling: 'Reading evidence...',
 };
 
 // Backend pipeline can take a couple of minutes for slow claims. Cap polling at
@@ -50,7 +51,7 @@ export interface UseResearchPoll {
    * `[elementId]`, or the thin ids the bundle endpoint returns).
    * `startingMessage` seeds the running label.
    */
-  run: (start: (token: string) => Promise<string[]>, startingMessage?: string) => Promise<void>;
+  run: (start: (token: string, requestKey: string) => Promise<string[] | { elementIds: string[]; operationId?: string }>, startingMessage?: string) => Promise<void>;
   reset: () => void;
 }
 
@@ -64,6 +65,9 @@ export function useResearchPoll({ checkId, claimId, token, onComplete }: UseRese
   const [message, setMessage] = useState('');
   const [newCount, setNewCount] = useState(0);
   const pollRef = useRef<ReturnType<typeof setInterval>>();
+  const requestKeyRef = useRef<string>();
+  const generation = useRef(0);
+  const running = useRef(false);
 
   const cleanup = useCallback(() => {
     if (pollRef.current) {
@@ -72,52 +76,76 @@ export function useResearchPoll({ checkId, claimId, token, onComplete }: UseRese
     }
   }, []);
 
-  useEffect(() => cleanup, [cleanup]);
+  useEffect(() => {
+    running.current = false;
+    requestKeyRef.current = undefined;
+    setStatus('idle');
+    setMessage('');
+    setNewCount(0);
+    return () => { generation.current++; cleanup(); };
+  }, [cleanup, checkId, claimId]);
 
   const reset = useCallback(() => {
     cleanup();
+    generation.current++;
+    running.current = false;
     setStatus('idle');
     setMessage('');
     setNewCount(0);
   }, [cleanup]);
 
   const run = useCallback(
-    async (start: (token: string) => Promise<string[]>, startingMessage?: string) => {
-      if (!token || status === 'running') return;
+    async (start: (token: string, requestKey: string) => Promise<string[] | { elementIds: string[]; operationId?: string }>, startingMessage?: string) => {
+      if (!token || running.current) return;
+      running.current = true;
+      const currentGeneration = ++generation.current;
+      requestKeyRef.current ||= crypto.randomUUID();
 
       setStatus('running');
       setMessage(startingMessage || 'Searching...');
 
       try {
         const startToken = await getToken();
+        if (currentGeneration !== generation.current) return;
         if (!startToken) {
+          running.current = false;
           setStatus('error');
           setMessage('Authentication expired — please refresh');
           return;
         }
 
-        const elementIds = await start(startToken);
+        const started = await start(startToken, requestKeyRef.current);
+        if (currentGeneration !== generation.current) return;
+        const elementIds = Array.isArray(started) ? started : started.elementIds;
+        const operationId = Array.isArray(started) ? undefined : started.operationId;
         if (!elementIds || elementIds.length === 0) {
+          running.current = false;
           setStatus('error');
           setMessage('Nothing to search');
           return;
         }
 
         const startedAt = Date.now();
+        let polling = false;
 
         pollRef.current = setInterval(async () => {
+          if (polling || currentGeneration !== generation.current) return;
           // Hard timeout — never poll forever
           if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
             cleanup();
+            running.current = false;
             setStatus('error');
             setMessage('Search timed out — refresh to see what completed');
             return;
           }
 
           try {
+            polling = true;
             const pollToken = await getToken();
+            if (currentGeneration !== generation.current) return;
             if (!pollToken) {
               cleanup();
+              running.current = false;
               setStatus('error');
               setMessage('Session expired — please refresh');
               return;
@@ -127,15 +155,21 @@ export function useResearchPoll({ checkId, claimId, token, onComplete }: UseRese
             let anyError = false;
             let totalNew = 0;
             let latestMessage = '';
+            let errorMessage = '';
+            const counted = new Set<string>();
 
-            for (const eid of elementIds) {
-              const result = await apiClient.getResearchStatus(checkId, claimId, eid, pollToken);
+            for (const eid of (operationId ? elementIds.slice(0, 1) : elementIds)) {
+              const result = await apiClient.getResearchStatus(checkId, claimId, eid, pollToken, operationId);
+              if (currentGeneration !== generation.current) return;
               if (!result) { allDone = false; continue; }
 
               if (result.status === 'completed') {
-                totalNew += result.newEvidenceCount || 0;
+                const countKey = result.operationId || eid;
+                if (!counted.has(countKey)) totalNew += result.newEvidenceCount || 0;
+                counted.add(countKey);
               } else if (result.status === 'error') {
                 anyError = true;
+                errorMessage = result.message;
               } else {
                 allDone = false;
                 latestMessage = STATUS_MESSAGES[result.status] || result.message;
@@ -148,11 +182,13 @@ export function useResearchPoll({ checkId, claimId, token, onComplete }: UseRese
 
             if (allDone) {
               cleanup();
+              running.current = false;
+              requestKeyRef.current = undefined;
               setNewCount(totalNew);
 
               if (anyError && totalNew === 0) {
                 setStatus('error');
-                setMessage('Some searches failed');
+                setMessage(errorMessage || 'Some searches failed');
               } else {
                 setStatus('completed');
                 setMessage(
@@ -162,14 +198,17 @@ export function useResearchPoll({ checkId, claimId, token, onComplete }: UseRese
                 );
               }
 
-              // Trigger data refresh after a short delay
-              setTimeout(() => { onComplete?.(); }, 1500);
+              onComplete?.();
             }
           } catch {
             // Per-poll transient error — keep polling; hard timeout will bail.
+          } finally {
+            polling = false;
           }
         }, 2500);
       } catch (err) {
+        if (currentGeneration !== generation.current) return;
+        running.current = false;
         const errMsg = err instanceof Error ? err.message : String(err);
         if (errMsg.includes('402') || errMsg.toLowerCase().includes('limit') || errMsg.toLowerCase().includes('credit')) {
           setStatus('limit_reached');

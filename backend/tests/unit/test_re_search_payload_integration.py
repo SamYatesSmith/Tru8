@@ -1,7 +1,7 @@
 """Exercise the research orchestrator's mapping and persistence boundary offline."""
 
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -10,15 +10,22 @@ from app.pipeline import re_search
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("distilled", [False, True])
 async def test_research_retains_existing_primary_metadata_and_persists_mapped_ids(
     monkeypatch,
+    distilled,
 ):
     claim = Claim(
         id="claim",
         check_id="check",
         text="Claim",
         position=0,
-        claim_map={"elements": [{"element_id": "e1", "description": "Question"}]},
+        claim_map={
+            "elements": [
+                {"element_id": "e1", "description": "Question"},
+                {"element_id": "e2", "description": "Second"},
+            ]
+        },
     )
     old = Evidence(
         claim_id="claim",
@@ -33,17 +40,7 @@ async def test_research_retains_existing_primary_metadata_and_persists_mapped_id
         content_basis="api",
         date_basis="api_adapter",
     )
-    session = AsyncMock()
-    session.add = MagicMock()
-    claim_result, evidence_result = MagicMock(), MagicMock()
-    claim_result.scalar_one_or_none.return_value = claim
-    evidence_result.scalars.return_value.all.return_value = [old]
-    session.execute.side_effect = [claim_result, evidence_result]
-    context = MagicMock()
-    context.__aenter__ = AsyncMock(return_value=session)
-    context.__aexit__ = AsyncMock(return_value=False)
-    monkeypatch.setattr(re_search, "async_session", lambda: context)
-    monkeypatch.setattr(re_search, "_update_status", MagicMock())
+    monkeypatch.setattr(re_search.settings, "ENABLE_EVIDENCE_DISTILLATION", distilled)
     planner = SimpleNamespace(
         plan_queries_batch=AsyncMock(return_value=[{"queries": ["query"]}])
     )
@@ -54,6 +51,7 @@ async def test_research_retains_existing_primary_metadata_and_persists_mapped_id
                     "0": [
                         {
                             "url": "https://new",
+                            "evidence_id": "old",
                             "title": "New",
                             "text": "New facts",
                             "tier": "reporting",
@@ -83,6 +81,18 @@ async def test_research_retains_existing_primary_metadata_and_persists_mapped_id
     # Only external stages are replaced; actual payload helpers and ORM rows run.
     import sys
 
+    async def distil(text, items):
+        items[0].update(text="Selected facts", snippet="Stale snippet", _distilled=True)
+        return items
+
+    monkeypatch.setitem(
+        sys.modules,
+        "app.pipeline.evidence_distiller",
+        SimpleNamespace(
+            EvidenceDistiller=lambda: SimpleNamespace(distil_evidence_for_claim=distil)
+        ),
+    )
+
     monkeypatch.setitem(
         sys.modules,
         "app.utils.query_planner",
@@ -103,11 +113,26 @@ async def test_research_retains_existing_primary_metadata_and_persists_mapped_id
         "app.pipeline.claim_map_analyzer",
         SimpleNamespace(ClaimMapAnalyzer=lambda: analyzer),
     )
-    await re_search.run_element_re_search("check", "claim", "e1")
-    session.commit.assert_awaited_once()
+    updated, candidates = await re_search.research_claim(
+        {
+            "text": claim.text,
+            "claimMap": claim.claim_map,
+            "evidence": [old.model_dump()],
+        },
+        ["e1", "e2"],
+        AsyncMock(),
+    )
+    analyzer.map_evidence_to_elements.assert_awaited_once()
+    retriever.retrieve_evidence_for_claims.assert_awaited_once()
+    assert len(planner.plan_queries_batch.call_args.args[0][0]["elements"]) == 2
+    assert candidates[0]["evidence_id"] != "old"
     assert captured[0]["tier"] == "primary"
     assert captured[0]["date_basis"] == "api_adapter"
-    saved = session.add.call_args.args[0]
+    from app.services.evidence_payload import evidence_from_mapping
+
+    saved = evidence_from_mapping(claim.id, candidates[0])
     assert saved.evidence_id == captured[1]["evidence_id"]
     assert saved.content_basis == "full"
-    assert len(claim.claim_map["elements"][0]["evidence_refs"]) == 2
+    if distilled:
+        assert saved.snippet == captured[1]["snippet"] == "Selected facts"
+    assert len(updated["elements"][0]["evidence_refs"]) == 2

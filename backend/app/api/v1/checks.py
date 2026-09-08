@@ -1523,7 +1523,11 @@ async def update_bounty_text(
         )
 
     # 3. Load claim
-    claim_stmt = select(Claim).where(Claim.id == claim_id, Claim.check_id == check_id)
+    claim_stmt = (
+        select(Claim)
+        .where(Claim.id == claim_id, Claim.check_id == check_id)
+        .with_for_update()
+    )
     claim_result = await session.execute(claim_stmt)
     db_claim = claim_result.scalar_one_or_none()
 
@@ -1595,17 +1599,40 @@ async def _reserve_re_search_credit(
     return user
 
 
+async def _start_research_operation(
+    check_id, claim_id, request, current_user, session, mode, element_id=None
+):
+    _require_console_submission(request)
+    from app.services.research_operations import admit_research, launch_operation
+
+    user = await get_or_create_user(session, current_user)
+    request_key = request.headers.get("Idempotency-Key") or str(uuid.uuid4())
+    operation, created = await admit_research(
+        session, user, check_id, claim_id, mode, request_key, element_id
+    )
+    await session.commit()  # admission + debit are durable before dispatch
+    if created:
+        launch_operation(operation.id)
+        from app.services.lifecycle_emails import schedule_trial_exhausted_email
+
+        schedule_trial_exhausted_email(user.id)
+    return {
+        "status": "started",
+        "message": operation.message,
+        "operationId": operation.id,
+        "checkId": check_id,
+        "claimId": claim_id,
+        "elementIds": operation.element_ids,
+        "elementId": element_id,
+        "gapCount": len(operation.element_ids),
+        "thinCount": len(operation.element_ids),
+        "creditsUsed": 1 if created else 0,
+    }
+
+
 @router.post(
     "/{check_id}/claims/{claim_id}/research-gaps",
-    summary="Start re-search for all gap elements in a claim",
-    responses={
-        200: {"description": "Re-search started for gap elements"},
-        404: {"description": "Check or claim not found", "model": ErrorResponse},
-        409: {
-            "description": "Check is not completed or research already in progress",
-            "model": ErrorResponse,
-        },
-    },
+    summary="Research all gap elements as one operation",
 )
 async def start_gap_research(
     check_id: str,
@@ -1614,106 +1641,14 @@ async def start_gap_research(
     current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
-    """Start targeted re-search for ALL gap elements in a claim (1 credit)."""
-    # Console-only: re-search bills the subscription, so reject API-key callers
-    # (the metered /agent path has no re-search). See the path-separation wall.
-    _require_console_submission(request)
-    from app.pipeline.re_search import run_element_re_search, get_research_status
-
-    # 1. Validate check
-    stmt = select(Check).where(
-        Check.id == check_id, Check.user_id == current_user["id"]
+    return await _start_research_operation(
+        check_id, claim_id, request, current_user, session, "gaps"
     )
-    result = await session.execute(stmt)
-    check = result.scalar_one_or_none()
-
-    if not check:
-        raise HTTPException(status_code=404, detail="Check not found")
-
-    if check.status != "completed":
-        raise HTTPException(
-            status_code=409,
-            detail="Re-search is only available on completed checks",
-        )
-
-    # 2. Validate claim + find gap elements
-    claim_stmt = select(Claim).where(Claim.id == claim_id, Claim.check_id == check_id)
-    claim_result = await session.execute(claim_stmt)
-    db_claim = claim_result.scalar_one_or_none()
-
-    if not db_claim:
-        raise HTTPException(status_code=404, detail="Claim not found")
-
-    claim_map = db_claim.claim_map
-    if isinstance(claim_map, str):
-        claim_map = json.loads(claim_map)
-
-    if not claim_map or not isinstance(claim_map, dict):
-        raise HTTPException(status_code=404, detail="Claim map not found")
-
-    # Find gap elements (no evidence refs)
-    gap_element_ids = []
-    for elem in claim_map.get("elements", []):
-        refs = elem.get("evidence_refs", [])
-        if not refs:
-            eid = elem.get("element_id")
-            if eid:
-                gap_element_ids.append(eid)
-
-    if not gap_element_ids:
-        raise HTTPException(
-            status_code=409,
-            detail="No gap elements found — all elements have evidence",
-        )
-
-    # 3. Check none are already running
-    for eid in gap_element_ids:
-        existing_status = get_research_status(check_id, claim_id, eid)
-        if existing_status and existing_status.get("status") in (
-            "planning",
-            "retrieving",
-            "classifying",
-            "mapping",
-        ):
-            raise HTTPException(
-                status_code=409,
-                detail="Research is already in progress for one or more gap elements",
-            )
-
-    # 4. Gate + debit — 1 credit for all gaps, committed before work starts
-    await _reserve_re_search_credit(
-        session, current_user, kind="re_search", check_id=check_id
-    )
-
-    # 5. Start background tasks for each gap element
-    for eid in gap_element_ids:
-        supervise_re_search_task(
-            run_element_re_search(check_id, claim_id, eid),
-            check_id=check_id,
-            claim_id=claim_id,
-            element_id=eid,
-        )
-
-    return {
-        "status": "started",
-        "message": f"Research started for {len(gap_element_ids)} gap element{'s' if len(gap_element_ids) != 1 else ''}",
-        "elementIds": gap_element_ids,
-        "gapCount": len(gap_element_ids),
-        "creditsUsed": 1,
-    }
 
 
 @router.post(
     "/{check_id}/claims/{claim_id}/research-thin",
-    summary="Start top-up re-search for all thin elements in a claim",
-    responses={
-        200: {"description": "Top-up re-search started for thin elements"},
-        404: {"description": "Check or claim not found", "model": ErrorResponse},
-        409: {
-            "description": "Check is not completed or research already in progress",
-            "model": ErrorResponse,
-        },
-    },
+    summary="Strengthen thin elements as one operation",
 )
 async def start_thin_research(
     check_id: str,
@@ -1722,110 +1657,14 @@ async def start_thin_research(
     current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
-    """Top up ALL thin (not-gap) elements in a claim in one run (1 credit).
-
-    Mirrors ``start_gap_research`` but targets thin elements — pulling MORE
-    evidence into the existing pool for elements that came back weak. "Thin"
-    is defined in ``app.pipeline.support_structure`` (the backend twin of the
-    frontend digest read). Gaps (0 sources) are the Seeker's territory and are
-    excluded here.
-    """
-    # Console-only: re-search bills the subscription, so reject API-key callers
-    # (the metered /agent path has no re-search). See the path-separation wall.
-    _require_console_submission(request)
-    from app.pipeline.re_search import run_element_re_search, get_research_status
-    from app.pipeline.support_structure import thin_element_ids
-
-    # 1. Validate check
-    stmt = select(Check).where(
-        Check.id == check_id, Check.user_id == current_user["id"]
+    return await _start_research_operation(
+        check_id, claim_id, request, current_user, session, "thin"
     )
-    result = await session.execute(stmt)
-    check = result.scalar_one_or_none()
-
-    if not check:
-        raise HTTPException(status_code=404, detail="Check not found")
-
-    if check.status != "completed":
-        raise HTTPException(
-            status_code=409,
-            detail="Re-search is only available on completed checks",
-        )
-
-    # 2. Validate claim + find thin elements
-    claim_stmt = select(Claim).where(Claim.id == claim_id, Claim.check_id == check_id)
-    claim_result = await session.execute(claim_stmt)
-    db_claim = claim_result.scalar_one_or_none()
-
-    if not db_claim:
-        raise HTTPException(status_code=404, detail="Claim not found")
-
-    claim_map = db_claim.claim_map
-    if isinstance(claim_map, str):
-        claim_map = json.loads(claim_map)
-
-    if not claim_map or not isinstance(claim_map, dict):
-        raise HTTPException(status_code=404, detail="Claim map not found")
-
-    thin_ids = thin_element_ids(claim_map)
-
-    if not thin_ids:
-        raise HTTPException(
-            status_code=409,
-            detail="No thin elements found — nothing to strengthen",
-        )
-
-    # 3. Check none are already running
-    for eid in thin_ids:
-        existing_status = get_research_status(check_id, claim_id, eid)
-        if existing_status and existing_status.get("status") in (
-            "planning",
-            "retrieving",
-            "classifying",
-            "mapping",
-        ):
-            raise HTTPException(
-                status_code=409,
-                detail="Research is already in progress for one or more elements",
-            )
-
-    # 4. Gate + debit — 1 credit for the whole top-up run, committed first
-    await _reserve_re_search_credit(
-        session, current_user, kind="top_up", check_id=check_id
-    )
-
-    # 5. Start background tasks for each thin element
-    for eid in thin_ids:
-        supervise_re_search_task(
-            run_element_re_search(check_id, claim_id, eid),
-            check_id=check_id,
-            claim_id=claim_id,
-            element_id=eid,
-        )
-
-    return {
-        "status": "started",
-        "message": f"Top-up started for {len(thin_ids)} element{'s' if len(thin_ids) != 1 else ''}",
-        "elementIds": thin_ids,
-        "thinCount": len(thin_ids),
-        "creditsUsed": 1,
-    }
 
 
 @router.post(
     "/{check_id}/claims/{claim_id}/elements/{element_id}/research",
-    summary="Start element re-search",
-    responses={
-        200: {"description": "Re-search started", "model": ResearchStartResponse},
-        404: {
-            "description": "Check, claim, or element not found",
-            "model": ErrorResponse,
-        },
-        409: {
-            "description": "Check is not completed or research already in progress",
-            "model": ErrorResponse,
-        },
-    },
+    summary="Research an element",
 )
 async def start_element_research(
     check_id: str,
@@ -1835,123 +1674,137 @@ async def start_element_research(
     current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
-    """Start targeted re-search for a single element (G02)."""
-    # Console-only: re-search bills the subscription, so reject API-key callers
-    # (the metered /agent path has no re-search). See the path-separation wall.
-    _require_console_submission(request)
-    from app.pipeline.re_search import run_element_re_search, get_research_status
-
-    # 1. Validate check exists + user owns it
-    stmt = select(Check).where(
-        Check.id == check_id, Check.user_id == current_user["id"]
+    return await _start_research_operation(
+        check_id, claim_id, request, current_user, session, "element", element_id
     )
-    result = await session.execute(stmt)
-    check = result.scalar_one_or_none()
-
-    if not check:
-        raise HTTPException(status_code=404, detail="Check not found")
-
-    if check.status != "completed":
-        raise HTTPException(
-            status_code=409,
-            detail="Re-search is only available on completed checks",
-        )
-
-    # 2. Validate claim exists
-    claim_stmt = select(Claim).where(Claim.id == claim_id, Claim.check_id == check_id)
-    claim_result = await session.execute(claim_stmt)
-    db_claim = claim_result.scalar_one_or_none()
-
-    if not db_claim:
-        raise HTTPException(status_code=404, detail="Claim not found")
-
-    # 3. Validate element exists
-    claim_map = db_claim.claim_map
-    if isinstance(claim_map, str):
-        claim_map = json.loads(claim_map)
-
-    if not claim_map or not isinstance(claim_map, dict):
-        raise HTTPException(status_code=404, detail="Claim map not found")
-
-    target_element = None
-    for elem in claim_map.get("elements", []):
-        if elem.get("element_id") == element_id:
-            target_element = elem
-            break
-
-    if not target_element:
-        raise HTTPException(status_code=404, detail=f"Element {element_id} not found")
-
-    # 4. Check if research is already running
-    existing_status = get_research_status(check_id, claim_id, element_id)
-    if existing_status and existing_status.get("status") in (
-        "planning",
-        "retrieving",
-        "classifying",
-        "mapping",
-    ):
-        raise HTTPException(
-            status_code=409,
-            detail="Research is already in progress for this element",
-        )
-
-    # 5. Gate + debit — committed before the background task launches
-    await _reserve_re_search_credit(
-        session, current_user, kind="re_search", check_id=check_id
-    )
-
-    # 6. Start background task
-    supervise_re_search_task(
-        run_element_re_search(check_id, claim_id, element_id),
-        check_id=check_id,
-        claim_id=claim_id,
-        element_id=element_id,
-    )
-
-    return {
-        "status": "started",
-        "message": "Research started for element",
-        "elementId": element_id,
-        "creditsUsed": 1,
-    }
 
 
 @router.get(
     "/{check_id}/claims/{claim_id}/elements/{element_id}/research/status",
-    summary="Get re-search status",
-    responses={
-        200: {
-            "description": "Current re-search status",
-            "model": ResearchStatusResponse,
-        },
-        404: {"description": "Check not found", "model": ErrorResponse},
-    },
+    summary="Get durable research status",
 )
 async def get_element_research_status(
     check_id: str,
     claim_id: str,
     element_id: str,
+    operation_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
-    """Get re-search status for a single element (G02)."""
+    from app.models import ResearchOperation
+    from app.models.check import _utcnow_naive
+    from app.services.research_operations import ACTIVE, status_payload, fail_operation
+
+    check = (
+        await session.execute(
+            select(Check).where(
+                Check.id == check_id, Check.user_id == current_user["id"]
+            )
+        )
+    ).scalar_one_or_none()
+    if not check:
+        raise HTTPException(404, "Check not found")
+    query = select(ResearchOperation).where(
+        ResearchOperation.check_id == check_id,
+        ResearchOperation.claim_id == claim_id,
+        ResearchOperation.element_ids.contains([element_id]),
+    )
+    if operation_id:
+        query = query.where(ResearchOperation.id == operation_id)
+    operation = (
+        await session.execute(
+            query.order_by(ResearchOperation.created_at.desc()).limit(1)
+        )
+    ).scalar_one_or_none()
+    if operation:
+        if operation.status in ACTIVE and operation.deadline_at <= _utcnow_naive():
+            await fail_operation(
+                operation.id, "Research timed out. Your credit has been refunded."
+            )
+            await session.refresh(operation)
+        return status_payload(operation)
+    if operation_id:
+        raise HTTPException(404, "Research operation not found")
     from app.pipeline.re_search import get_research_status
 
-    # Validate check ownership
-    stmt = select(Check).where(
-        Check.id == check_id, Check.user_id == current_user["id"]
-    )
-    result = await session.execute(stmt)
-    check = result.scalar_one_or_none()
+    return get_research_status(check_id, claim_id, element_id) or {
+        "status": "idle",
+        "message": "No research in progress",
+    }
 
+
+@router.get("/{check_id}/revisions", summary="List retained report revisions")
+async def list_report_revisions(
+    check_id: str,
+    current_user: dict = Depends(get_current_user_or_api_key),
+    session: AsyncSession = Depends(get_session),
+):
+    from app.models import ReportRevision
+
+    check = (
+        await session.execute(
+            select(Check).where(
+                Check.id == check_id, Check.user_id == current_user["id"]
+            )
+        )
+    ).scalar_one_or_none()
     if not check:
-        raise HTTPException(status_code=404, detail="Check not found")
+        raise HTTPException(404, "Check not found")
+    rows = (
+        (
+            await session.execute(
+                select(ReportRevision)
+                .where(ReportRevision.check_id == check_id)
+                .order_by(ReportRevision.created_at, ReportRevision.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return {
+        "revisions": [
+            {
+                "id": row.id,
+                "operationId": row.operation_id,
+                "phase": row.phase,
+                "createdAt": row.created_at.isoformat(),
+                "signedAt": (row.snapshot.get("manifest") or {}).get("signed_at"),
+            }
+            for row in rows
+        ]
+    }
 
-    status = get_research_status(check_id, claim_id, element_id)
-    if not status:
-        return {"status": "idle", "message": "No research in progress"}
 
-    return status
+@router.get(
+    "/{check_id}/revisions/{revision_id}", summary="Read a retained report revision"
+)
+async def get_report_revision(
+    check_id: str,
+    revision_id: str,
+    current_user: dict = Depends(get_current_user_or_api_key),
+    session: AsyncSession = Depends(get_session),
+):
+    from app.models import ReportRevision
+
+    check = (
+        await session.execute(
+            select(Check).where(
+                Check.id == check_id, Check.user_id == current_user["id"]
+            )
+        )
+    ).scalar_one_or_none()
+    if not check:
+        raise HTTPException(404, "Check not found")
+    row = (
+        await session.execute(
+            select(ReportRevision).where(
+                ReportRevision.id == revision_id, ReportRevision.check_id == check_id
+            )
+        )
+    ).scalar_one_or_none()
+    if not row:
+        raise HTTPException(404, "Revision not found")
+    return {"id": row.id, "phase": row.phase, "snapshot": row.snapshot}
 
 
 # ============================================================================

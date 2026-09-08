@@ -1,3 +1,4 @@
+import asyncio
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -117,7 +118,18 @@ async def lifespan(app: FastAPI):
     async with tru8_mcp_server.session_manager.run():
         logger.info("[STARTUP] MCP streamable-HTTP transport ready at /mcp")
 
-        yield
+        from app.services.research_operations import (
+            reconciliation_loop,
+            stop_research_tasks,
+        )
+
+        research_reconciler = asyncio.create_task(reconciliation_loop())
+        try:
+            yield
+        finally:
+            research_reconciler.cancel()
+            await asyncio.gather(research_reconciler, return_exceptions=True)
+            await stop_research_tasks()
 
     # Deploy-shutdown guard (2026-07-21): pipeline tasks die with the process
     # (no Celery). Fail + refund whatever is still in flight so no check is
@@ -558,9 +570,7 @@ app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(checks.router, prefix="/api/v1/checks", tags=["checks"])
 # COMPARE tab (2026-08-26): same /checks prefix, separate module. Create is
 # Clerk-session-only; the /public list variant serves /r/.
-app.include_router(
-    comparisons.router, prefix="/api/v1/checks", tags=["comparisons"]
-)
+app.include_router(comparisons.router, prefix="/api/v1/checks", tags=["comparisons"])
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"])
 app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
 app.include_router(api_keys.router, prefix="/api/v1/api-keys", tags=["api-keys"])

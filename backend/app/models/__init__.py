@@ -17,6 +17,7 @@ from .agent_transaction import AgentTransaction
 from .usage_event import UsageEvent
 from .claim_consensus import ClaimConsensus
 from .claim_comparison import ClaimComparison
+from .research_operation import ResearchOperation, ReportRevision
 
 # EVERY table-backed model MUST be imported here, not merely defined.
 # entrypoint.sh bootstraps a fresh database with `from app.models import *`
@@ -52,4 +53,6 @@ __all__ = [
     "UsageEvent",
     "ClaimConsensus",
     "ClaimComparison",
+    "ResearchOperation",
+    "ReportRevision",
 ]

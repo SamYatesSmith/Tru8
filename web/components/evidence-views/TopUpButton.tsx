@@ -36,14 +36,13 @@ export function TopUpButton({ mode, checkId, claimId, token, elementId, thinCoun
   const startTopUp = useCallback(() => {
     if (mode === 'element') {
       if (!elementId) return;
-      return run(async (t) => {
-        await apiClient.startElementResearch(checkId, claimId, elementId, t);
-        return [elementId];
+      return run(async (t, requestKey) => {
+        const result = await apiClient.startElementResearch(checkId, claimId, elementId, t, requestKey);
+        return { elementIds: result.elementIds || [elementId], operationId: result.operationId };
       }, 'Searching...');
     }
-    return run(async (t) => {
-      const res = await apiClient.startThinResearch(checkId, claimId, t);
-      return res.elementIds || [];
+    return run(async (t, requestKey) => {
+      return apiClient.startThinResearch(checkId, claimId, t, requestKey);
     }, 'Strengthening...');
   }, [mode, checkId, claimId, elementId, run]);
 

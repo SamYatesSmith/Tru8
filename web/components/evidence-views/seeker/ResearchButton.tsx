@@ -29,9 +29,8 @@ export function ResearchButton({
 
   const startResearch = useCallback(() => {
     if (gapElementIds.length === 0) return;
-    return run(async (t) => {
-      await apiClient.startGapResearch(checkId, claimId, t);
-      return gapElementIds;
+    return run(async (t, requestKey) => {
+      return apiClient.startGapResearch(checkId, claimId, t, requestKey);
     }, `Searching ${gapElementIds.length} gap${gapElementIds.length !== 1 ? 's' : ''}...`);
   }, [checkId, claimId, gapElementIds, run]);
 
