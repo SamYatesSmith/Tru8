@@ -16,6 +16,13 @@ No production deployment, paid benchmark or production-log inspection has been p
 
 ## Resume checkpoint — 8 September 2026
 
+### Evaluation preparation checkpoint
+
+- After `3a5894b`, user chose evaluation preparation and clarified that no maintained values, institution-specific runtime rules or AI triggers are acceptable. Added only test tooling/specifications/docs, with 8 real-source cases and 8 generated fictional value/date controls. No application code change or model execution.
+- Public capture and offline extraction completed. Five of six pages available; trial abstract HTTP 203 is recorded as unavailable. These are new snapshots, not original production inputs. Reviewer guidance is separated from model inputs; source classifications and both model arms remain unrun.
+- The saved homepage's current-value/decision widget is absent from normal extraction, which instead retains a rate in a news headline. General extraction coverage is therefore the next concrete implementation priority before model evaluation; no publisher-specific value rule is proposed.
+- Three preparation checks passed. Full replay `tmp/quality-replay-evaluation-pack.log`: expected **185 ok / 1 warn / 13 known fail / 2 unexercised**, zero cassette drift; no golden changes. Full checkpoint and local pack location: [evaluation preparation](2026-09-08_passage_evaluation_preparation.md).
+
 ### Step 6b checkpoint
 
 - Prior commit: `d49489a`. Additive `text_provenance.temporal` version-1 receipt uses the existing JSONB column; no migration, model or prompt change. Capture remains fresh-extraction-only and never backfills an old receipt. `ENABLE_PASSAGE_MAPPING=False` remains unchanged.

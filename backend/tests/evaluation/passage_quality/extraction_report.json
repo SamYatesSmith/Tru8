@@ -1,0 +1,42 @@
+[
+  {
+    "id": "sqlite-wal",
+    "fetch_status": "captured",
+    "extraction_characters": 27246,
+    "extracted_sha256": "bb4a73cb699e9dbb61c792f618b5e8df4fb62ee6bf007b5174f43c82ee4d028e",
+    "status": "extracted"
+  },
+  {
+    "id": "sqlite-release",
+    "fetch_status": "captured",
+    "extraction_characters": 4268,
+    "extracted_sha256": "9faf084357c13575dba5bca13d97feca4a6810aa94ae0740a9b5aa95e2a598fa",
+    "status": "extracted"
+  },
+  {
+    "id": "bank-home",
+    "fetch_status": "captured",
+    "extraction_characters": 668,
+    "extracted_sha256": "7455d0ba2015494e9ccf7ff3a443e6b9301efb5a5d7aa4d1363f02f443dc197c",
+    "status": "extracted"
+  },
+  {
+    "id": "bank-article",
+    "fetch_status": "captured",
+    "extraction_characters": 780,
+    "extracted_sha256": "d3e3bb3cea809c779b11dfdae2945516bdc251a264f10757a6dbe359622d6c88",
+    "status": "extracted"
+  },
+  {
+    "id": "select-fda",
+    "fetch_status": "captured",
+    "extraction_characters": 4761,
+    "extracted_sha256": "c68ac968c602baf3ed20ca9bf38671165bdab7f70105ba60309d03b1959cf3a1",
+    "status": "extracted"
+  },
+  {
+    "id": "select-abstract",
+    "fetch_status": "http_error",
+    "status": "unavailable"
+  }
+]

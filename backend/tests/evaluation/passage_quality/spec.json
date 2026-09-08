@@ -1,0 +1,188 @@
+{
+  "version": 1,
+  "purpose": "Evaluation only; never imported by application code",
+  "sources": [
+    {
+      "id": "sqlite-wal",
+      "url": "https://www.sqlite.org/wal.html",
+      "title": "SQLite WAL documentation"
+    },
+    {
+      "id": "sqlite-release",
+      "url": "https://www.sqlite.org/releaselog/3_22_0.html",
+      "title": "SQLite 3.22.0 release notes"
+    },
+    {
+      "id": "bank-home",
+      "url": "https://www.bankofengland.co.uk/",
+      "title": "Bank of England homepage"
+    },
+    {
+      "id": "bank-article",
+      "url": "https://londondaily.com/bank-of-england-holds-rates-steady-at-4-25",
+      "title": "London Daily rate article from original assessment"
+    },
+    {
+      "id": "select-fda",
+      "url": "https://www.fda.gov/news-events/press-announcements/fda-approves-first-treatment-reduce-risk-serious-heart-problems-specifically-adults-obesity-or",
+      "title": "FDA SELECT-related announcement"
+    },
+    {
+      "id": "select-abstract",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/37952131/",
+      "title": "SELECT primary trial abstract; not full text"
+    }
+  ],
+  "cases": [
+    {
+      "id": "sqlite-busy",
+      "claim": "SQLite WAL permits concurrent reading and writing and therefore SQLITE_BUSY cannot occur.",
+      "elements": [
+        {
+          "element_id": "e1",
+          "description": "WAL permits concurrent reading and writing."
+        },
+        {
+          "element_id": "e2",
+          "description": "SQLITE_BUSY cannot occur in WAL mode."
+        }
+      ],
+      "source_ids": [
+        "sqlite-wal"
+      ],
+      "review_guidance": "Check both directions from the same source. Locate the BUSY exception beyond the lead. Review its exact context, not just a heading."
+    },
+    {
+      "id": "sqlite-reversed",
+      "claim": "SQLite WAL permits concurrent reads and writes, but SQLITE_BUSY remains possible.",
+      "elements": [
+        {
+          "element_id": "e1",
+          "description": "WAL permits concurrent reading and writing."
+        },
+        {
+          "element_id": "e2",
+          "description": "SQLITE_BUSY can occur in WAL mode."
+        }
+      ],
+      "source_ids": [
+        "sqlite-wal"
+      ],
+      "review_guidance": "Reversal control: the same exception should support the possibility; never force a challenge because the prior case had one."
+    },
+    {
+      "id": "sqlite-readonly",
+      "claim": "SQLite version 3.22.0 relaxed the restrictions on opening read-only WAL databases.",
+      "elements": [
+        {
+          "element_id": "e1",
+          "description": "Version 3.22.0 changed read-only WAL access."
+        },
+        {
+          "element_id": "e2",
+          "description": "Access remains subject to documented conditions."
+        }
+      ],
+      "source_ids": [
+        "sqlite-wal",
+        "sqlite-release"
+      ],
+      "review_guidance": "Retain version, conditions and release date. Two pages from the same documentation do not become two independent experiments."
+    },
+    {
+      "id": "bank-original",
+      "claim": "As of 7 September 2026, Bank Rate was 3.75% and the next decision was scheduled for 17 September 2026.",
+      "elements": [
+        {
+          "element_id": "e1",
+          "description": "Bank Rate was 3.75% on 7 September 2026."
+        },
+        {
+          "element_id": "e2",
+          "description": "The next decision as of that date was scheduled for 17 September 2026."
+        }
+      ],
+      "source_ids": [
+        "bank-home",
+        "bank-article"
+      ],
+      "review_guidance": "Historical motivating input, not a current truth assertion. New homepage bytes cannot reconstruct yesterday automatically. Review whether source dates actually establish the target period. Undated contrary text and header clocks do not establish a live contradiction; apply symmetrically. Do not infer applicability from domain."
+    },
+    {
+      "id": "bank-reversed",
+      "claim": "As of 7 September 2026, Bank Rate was 4.25%.",
+      "elements": [
+        {
+          "element_id": "e1",
+          "description": "Bank Rate was 4.25% on 7 September 2026."
+        }
+      ],
+      "source_ids": [
+        "bank-home",
+        "bank-article"
+      ],
+      "review_guidance": "Reversed numeric control over identical sources. Judge temporal evidence rather than agreeing with the submitted number. May remain unestablished if the saved texts cannot establish that date."
+    },
+    {
+      "id": "select-overgeneralised",
+      "claim": "SELECT proves heart-attack prevention in everyone overweight, with a 20% absolute reduction.",
+      "elements": [
+        {
+          "element_id": "e1",
+          "description": "SELECT establishes prevention for everyone overweight."
+        },
+        {
+          "element_id": "e2",
+          "description": "The reported primary outcome is heart attacks alone."
+        },
+        {
+          "element_id": "e3",
+          "description": "The reported reduction is 20 percentage points."
+        }
+      ],
+      "source_ids": [
+        "select-fda",
+        "select-abstract"
+      ],
+      "review_guidance": "Separate study population, composite endpoint and effect measure. Review actual trial data; do not treat failure to establish a universal claim as proof of no benefit. FDA summary and primary abstract describe one underlying trial."
+    },
+    {
+      "id": "select-scope",
+      "claim": "SELECT studied a composite cardiovascular outcome in a defined population and reported a relative rather than 20-percentage-point absolute reduction.",
+      "elements": [
+        {
+          "element_id": "e1",
+          "description": "The studied population has specific inclusion criteria."
+        },
+        {
+          "element_id": "e2",
+          "description": "The primary endpoint combines multiple cardiovascular outcomes."
+        },
+        {
+          "element_id": "e3",
+          "description": "Relative and absolute effect measures differ."
+        }
+      ],
+      "source_ids": [
+        "select-fda",
+        "select-abstract"
+      ],
+      "review_guidance": "Opposing control using the identical study texts. Review endpoint, comparator, population, follow-up and effect metric independently; preserve genuine favourable findings."
+    },
+    {
+      "id": "unrelated-control",
+      "claim": "These SQLite documents establish that copper bracelets prevent dementia.",
+      "elements": [
+        {
+          "element_id": "e1",
+          "description": "Copper bracelets prevent dementia."
+        }
+      ],
+      "source_ids": [
+        "sqlite-wal",
+        "sqlite-release"
+      ],
+      "review_guidance": "No relationship control. Retrieved text does not establish this health claim. Do not force mappings or fabricate a study; no medical advice is requested."
+    }
+  ]
+}

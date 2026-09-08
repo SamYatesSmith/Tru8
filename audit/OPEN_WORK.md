@@ -1,6 +1,6 @@
 # Open Work Register
 
-> **2026-09-08 — Step 6b temporal capture contract locally verified.** Fresh extraction receipts preserve supplied publication precision and retain exact effective-date/as-of statements with sentence context and source-version citations. Source details expose these as unreviewed; current applicability remains unestablished. Initial persistence and strengthening preserve year-only values. Backend 105 checks; web 171 plus TypeScript passed. Replay matches 185/1/13/2 with zero cassette drift. Step 5b remains OFF. Next: fixed-source applicability evaluation and semantic linking, decomposition/source roles, and end-to-end acceptance. Details: [implementation register](2026-09-07_evidence_quality_implementation.md). No deployment or paid evaluation performed.
+> **2026-09-08 — Evaluation pack prepared; models not run.** Eight real-source cases plus eight generated fictional value/date controls, separate unscored review guidance, raw-source hashes and offline preparation. Five public pages captured; trial abstract unavailable (HTTP 203). Normal extraction drops the Bank homepage decision-date widget: next implementation priority is general extraction coverage, not maintained values or institution rules. No application code changed; Step 5b remains OFF. Details: [evaluation checkpoint](2026-09-08_passage_evaluation_preparation.md). No deployment or paid evaluation.
 
 > **Single source of truth for what's currently open in Tru8.**
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
