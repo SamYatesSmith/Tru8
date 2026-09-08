@@ -1,0 +1,346 @@
+{
+  "scope": "fixed extracted real-source text; actual distillation and mapping; manual primary classification and fixed elements",
+  "spec_sha256": "f8f986b37ba7647d7a0ef902734007934a8565889c2bae77331fe1ac05f23986",
+  "evidence_id_policy": "ev- plus first 12 SHA256 characters of source URL",
+  "capture_method": "BeautifulSoup: remove script/style/nav/header/footer, then main/article/body text; not application HTML extraction",
+  "sources": [
+    {
+      "id": "postgres-retry",
+      "url": "https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html",
+      "html_sha256": "e00499d69ddeaa7be0618b65cd48003c27cbbb4693ecd8e50f24bd911a904936",
+      "text_sha256": "225c9c9a5535d0a45bf4918f58dc95f448f604ac7d65469d34cf334f2144ab8a",
+      "characters": 2966
+    },
+    {
+      "id": "usgs-prediction",
+      "url": "https://www.usgs.gov/faqs/can-you-predict-earthquakes",
+      "html_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "characters": 0
+    },
+    {
+      "id": "nasa-seasons",
+      "url": "https://spaceplace.nasa.gov/seasons/en/",
+      "html_sha256": "365094fe1709e25aa27ff11ff7906510bab724122e92a395de2eb7665bb693ad",
+      "text_sha256": "0ff9875478c4a10c65f451773c2e98e2bd4a741f2529b6f0bded205dae988197",
+      "characters": 3945
+    },
+    {
+      "id": "noaa-weather",
+      "url": "https://www.ncei.noaa.gov/news/weather-vs-climate",
+      "html_sha256": "a6179a54e4049619586a7c90d619d1245392c7f70cd43d9c1acbff9fb77870c5",
+      "text_sha256": "6510ffc111d0a609a9eed8950d584fdd6d79e355b54444872dee87d51527f9e6",
+      "characters": 5698
+    }
+  ],
+  "acquisition_failures": [
+    {
+      "id": "usgs-prediction",
+      "reason": "empty content; public indexed URL retry returned HTTP 202 and zero bytes"
+    }
+  ],
+  "requests": 30,
+  "request_characters": 296623,
+  "results": [
+    {
+      "case": "postgres-retry",
+      "arm": 0,
+      "passage": false,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "postgres-retry",
+      "arm": 1,
+      "passage": true,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "postgres-retry",
+      "arm": 2,
+      "passage": true,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "postgres-retry",
+      "arm": 3,
+      "passage": false,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "nasa-seasons",
+      "arm": 0,
+      "passage": false,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "nasa-seasons",
+      "arm": 1,
+      "passage": true,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "nasa-seasons",
+      "arm": 2,
+      "passage": true,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "nasa-seasons",
+      "arm": 3,
+      "passage": false,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "noaa-weather",
+      "arm": 0,
+      "passage": false,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "noaa-weather",
+      "arm": 1,
+      "passage": true,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "noaa-weather",
+      "arm": 2,
+      "passage": true,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    },
+    {
+      "case": "noaa-weather",
+      "arm": 3,
+      "passage": false,
+      "actual": [
+        [
+          "supports"
+        ],
+        [
+          "challenges"
+        ],
+        []
+      ],
+      "expected": [
+        "supports",
+        "challenges",
+        "context"
+      ],
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "missing_context": 1
+    }
+  ]
+}

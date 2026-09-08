@@ -1,6 +1,6 @@
 # Open Work Register
 
-> **2026-09-08 — Pair-local passage alignment: bounded improvement, no activation.** Exact element descriptions now accompany each source/excerpt pair in the disabled candidate. Both captured SQLite candidate repeats map the official exception correctly; both defaults miss it. Eight new synthetic cases tested twice: baseline and candidate each 15/16; candidate still omits expected context once. Seventy-six checks passed; replay matched 185/1/13/2, no cassette drift. This is not an 8/10 re-score or broad real-source acceptance. Details: [pair alignment](2026-09-08_pair_alignment.md).
+> **2026-09-08 — Real-source acceptance pilot: no regression on three captured documents; activation still withheld.** PostgreSQL, NASA and NOAA each passed two default and two candidate repeats with fixed expectations (36/36 relationship checks). USGS acquisition returned empty content and remains untested. Both versions omitted the optional context links; no superiority or 8/10 claim follows. Initial generic-ID harness results were invalidated and both arms rerun with production-shaped IDs. Replay matched 185/1/13/2 with no cassette drift. Details: [real-source pilot](2026-09-08_real_source_pilot.md).
 
 > **Single source of truth for what's currently open in Tru8.**
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.

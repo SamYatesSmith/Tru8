@@ -1,0 +1,11 @@
+{
+  "scope": "Four new real-source fixed-element distillation/mapping cases. Not retrieval, extraction, classification, decomposition or product accuracy.",
+  "frozen_before_execution": true,
+  "scoring": "Directional expectations require the exact relationship. Context expectations reject directional claims; missing context is separately counted.",
+  "cases": [
+    {"id":"postgres-retry","url":"https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html","title":"PostgreSQL 18 Serialization Failure Handling","elements":[["A serialization failure requires retrying the complete PostgreSQL transaction, including the logic deciding which SQL to issue.","supports"],["Retrying a failed PostgreSQL transaction guarantees completion on the next attempt.","challenges"],["A retried PostgreSQL transaction finishes within one millisecond.","context"]]},
+    {"id":"usgs-prediction","url":"https://www.usgs.gov/faqs/can-you-predict-earthquakes","title":"USGS: Can you predict earthquakes?","elements":[["USGS can calculate the probability of a significant earthquake in an area over a number of years.","supports"],["USGS can currently predict the exact date, location and magnitude of a future major earthquake.","challenges"],["A significant earthquake will occur in London tomorrow.","context"]]},
+    {"id":"nasa-seasons","url":"https://spaceplace.nasa.gov/seasons/en/","title":"NASA: What Causes the Seasons?","elements":[["Earth's axial tilt causes its seasons.","supports"],["Northern Hemisphere summer occurs because Earth is closest to the Sun then.","challenges"],["London will have a temperature of 25 degrees Celsius tomorrow.","context"]]},
+    {"id":"noaa-weather","url":"https://www.ncei.noaa.gov/news/weather-vs-climate","title":"NOAA: Weather versus Climate","elements":[["Climate describes weather over a long period in a particular area.","supports"],["An area's Climate Normals provide specific details of the weather on any given day.","challenges"],["Rain will fall in London tomorrow.","context"]]}
+  ]
+}
