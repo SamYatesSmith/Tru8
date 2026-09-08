@@ -32,7 +32,22 @@ def _sanitize_strings(obj):
     if isinstance(obj, str):
         return fix_mojibake(obj)
     elif isinstance(obj, dict):
-        return {k: _sanitize_strings(v) for k, v in obj.items()}
+        # Captured quotations must retain exact Unicode content and offsets.
+        return {
+            k: (
+                v
+                if k
+                in {
+                    "textProvenance",
+                    "text_provenance",
+                    "citations",
+                    "passageReview",
+                    "passage_review",
+                }
+                else _sanitize_strings(v)
+            )
+            for k, v in obj.items()
+        }
     elif isinstance(obj, list):
         return [_sanitize_strings(item) for item in obj]
     return obj

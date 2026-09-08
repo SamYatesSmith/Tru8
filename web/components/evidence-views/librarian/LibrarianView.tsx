@@ -7,6 +7,7 @@ import { computeDiagnosticValues } from '@/lib/diagnostic-value';
 import { EvidenceHeatmap } from './EvidenceHeatmap';
 import { FilterPills } from './FilterPills';
 import { EvidenceLedger } from './EvidenceLedger';
+import { PassageReviewNotice } from '../PassageReviewNotice';
 import { ReadingTable } from './ReadingTable';
 import { RetrievalFunnel } from './RetrievalFunnel';
 import { SortField } from './SortControl';
@@ -232,6 +233,7 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
         description: element.description,
         relationship: ref.relationship,
         reasoning: ref.reasoning,
+        citations: ref.citations,
         claimLabel: scope === 'check' ? `Claim ${index + 1}` : undefined,
       }))
     ));
@@ -325,7 +327,9 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
         </div>
       )}
 
+      {claims.map(claim => <PassageReviewNotice key={claim.id} claim={claim} />)}
       <EvidenceLedger
+        activeElementDescriptions={activeElementDescriptions}
         evidence={filteredEvidence}
         totalCount={includedEvidence.length}
         sortField={sortField}

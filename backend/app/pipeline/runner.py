@@ -2226,7 +2226,15 @@ async def run_pipeline_phase2(
                 claim_lookup = {str(c.get("position", 0)): c for c in selected_claims}
 
                 async def _distil_one_claim(claim_pos, ev_list, claim_text):
-                    await distiller.distil_evidence_for_claim(claim_text, ev_list)
+                    if settings.ENABLE_PASSAGE_MAPPING:
+                        elements = (claim_lookup[claim_pos].get("claim_map") or {}).get(
+                            "elements", []
+                        )
+                        await distiller.distil_evidence_for_claim(
+                            claim_text, ev_list, elements=elements
+                        )
+                    else:
+                        await distiller.distil_evidence_for_claim(claim_text, ev_list)
                     return claim_pos, ev_list
 
                 tasks = []

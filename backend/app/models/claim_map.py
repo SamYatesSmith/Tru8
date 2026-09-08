@@ -38,6 +38,9 @@ class EvidenceRef(TypedDict):
     evidence_id: str
     relationship: EvidenceRelationship
     reasoning: Optional[str]  # One-sentence explanation of the relationship
+    citations: NotRequired[
+        list[dict]
+    ]  # Exact retained-extraction quotes, not entailment certification
 
 
 class ClaimElement(TypedDict):
@@ -64,6 +67,9 @@ class ClaimMapMetadata(TypedDict):
     # parallel arrays. Diagnostic provenance only — absent on pre-R2e rows
     # and when query planning fell back.
     query_plan: NotRequired[dict]
+    passage_review: NotRequired[
+        dict
+    ]  # Bounded pair coverage; includes failed/uninspected/conflicting reviews
     # §20 slice 2 (2026-07-17, additive — audit/2026-07-15_decoupling_build_plan.md
     # §20.6): opinion grounds stage disclosure. {applied: bool, converged: bool,
     # element_count: int}. Present ONLY on normative-hinted claims processed

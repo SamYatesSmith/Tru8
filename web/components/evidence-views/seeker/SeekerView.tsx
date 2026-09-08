@@ -10,6 +10,7 @@ import { ResearchButton } from './ResearchButton';
 import { SeekerProvenanceNote } from './SeekerProvenanceNote';
 import { ExplorePanel } from './ExplorePanel';
 import { DiagnosticFlag } from '../DiagnosticFlag';
+import { PassageReviewNotice } from '../PassageReviewNotice';
 import { evidenceCoverage, hasMappedEvidence, needsEvidenceReview } from '@/lib/evidence-coverage';
 
 interface SeekerViewProps {
@@ -75,7 +76,9 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
   const metrics = useMemo(() => evidenceCoverage(elements), [elements]);
 
   // Determine if explore mode should activate
-  const hasUnknowns = metrics.gaps > 0 || metrics.needsReview > 0;
+  const passageReview = claim.claimMap?.metadata?.passageReview;
+  const hasUnknowns = metrics.gaps > 0 || metrics.needsReview > 0 ||
+    !!(passageReview && passageReview.status !== 'complete');
 
   // Fetch explore data when no unknowns remain
   useEffect(() => {
@@ -150,6 +153,7 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
 
   return (
     <div className="space-y-6">
+      <PassageReviewNotice claim={claim} />
       <UnknownsSummaryStrip {...metrics} />
       <CoverageMap elements={elements} />
 

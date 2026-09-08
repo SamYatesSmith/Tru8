@@ -43,6 +43,8 @@ def compute_pipeline_fingerprint() -> str:
         "decomposition_model": settings.DECOMPOSITION_MODEL,
         "analyzer_model": settings.ANALYZER_MODEL,
     }
+    if settings.ENABLE_PASSAGE_MAPPING:
+        config["passage_mapping_contract"] = "v1"
     return hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()[:12]
 
 

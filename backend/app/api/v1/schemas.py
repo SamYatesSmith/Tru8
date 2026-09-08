@@ -224,6 +224,11 @@ class EvidenceItem(BaseModel):
 class EvidenceRef(BaseModel):
     """Reference linking evidence to a claim element."""
 
+    citations: Optional[List[Dict[str, Any]]] = Field(
+        None,
+        description="Exact retained-extraction quotations; relationship is model interpretation",
+    )
+
     evidenceId: str = Field(description="ID of the referenced evidence item")
     relationship: EvidenceRelationship = Field(
         description="How this evidence relates to the element: supports, challenges, or context"

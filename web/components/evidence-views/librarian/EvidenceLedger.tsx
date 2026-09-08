@@ -63,6 +63,7 @@ interface EvidenceLedgerProps {
   /** Distinct disposition(s) per evidenceId (Slice 0b); undefined → no marker. */
   relationshipMap?: Map<string, EvidenceRelationship[]>;
   mobileReadingTable?: React.ReactNode;
+  activeElementDescriptions?: React.ComponentProps<typeof ReadingTable>['elementDescriptions'];
 }
 
 export function EvidenceLedger({
@@ -79,6 +80,7 @@ export function EvidenceLedger({
   onCardClick,
   elementDescriptionMap,
   relationshipMap,
+  activeElementDescriptions,
 }: EvidenceLedgerProps) {
   // Group evidence by tier, then sort within each group
   const tierGroups = TIER_GROUPS.map((tier) => {
@@ -142,7 +144,7 @@ export function EvidenceLedger({
                       <ReadingTable
                         evidence={ev}
                         callNumber={callNumberMap.get(evId) || ''}
-                        elementDescriptions={elDescs}
+                        elementDescriptions={activeElementDescriptions || elDescs}
                         claimLabel={claimLabelMap?.get(evId)}
                         onClose={() => onCardClick?.(ev)}
                       />

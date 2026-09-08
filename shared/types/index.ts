@@ -259,6 +259,15 @@ export interface EvidenceRef {
   // in this direction. Present on every ref since Track B (measured 100%,
   // avg 178 chars) — typed late (2026-08-26); no current UI reads it.
   reasoning?: string;
+  citations?: PassageCitation[];
+}
+
+export interface PassageCitation {
+  passage_id: string;
+  quote: string;
+  start: number;
+  end: number;
+  extraction_sha256: string;
 }
 
 // Mechanical, no-LLM structural summary of the evidence on ONE side
@@ -312,6 +321,7 @@ export interface ClaimMap {
     // Diagnostic provenance — absent on pre-R2e checks and planner fallback.
     // Inner keys stay snake_case (only top-level metadata keys are camelCased).
     queryPlan?: { queries: string[]; element_ids: string[]; freshness: string[] };
+    passageReview?: PassageReview;
     // Opinion decoupling: written by the grounds stage when it rebuilt this
     // claim's elements into neutral open questions. `applied` is the canonical
     // "these elements are QUESTIONS, not assertions" signal — see
@@ -394,4 +404,12 @@ export interface ExploreData {
   relatedClaims: RelatedClaim[];
   mode: 'gaps' | 'explore';
   explorationBasis: string;
+}
+
+export interface PassageReview {
+  status: string;
+  candidate_pairs: number;
+  assessed_pairs: number;
+  uninspected_pairs: number;
+  pairs: { element_id: string; evidence_id: string; status: string; proposed_relationship?: EvidenceRelationship; citations?: PassageCitation[] }[];
 }

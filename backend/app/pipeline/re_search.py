@@ -114,8 +114,9 @@ async def research_claim(claim: dict, element_ids: list[str], progress):
         ev["receipt_status"] = "classified"
     if settings.ENABLE_EVIDENCE_DISTILLATION:
         await progress("distilling", "Reading the new evidence...")
+        kwargs = {"elements": cm["elements"]} if settings.ENABLE_PASSAGE_MAPPING else {}
         candidates = await EvidenceDistiller().distil_evidence_for_claim(
-            claim["text"], candidates
+            claim["text"], candidates, **kwargs
         )
         # Mapper reads snippet first: do not bypass distilled facts with a stale
         # search snippet or persist that snippet under a 'distilled' receipt.

@@ -1954,7 +1954,7 @@ class ClaimMapAnalyzer:
         if successful_items:
             import asyncio as _asyncio
 
-            _COMPLETION_TIMEOUT = 25  # seconds per claim; fails open
+            _COMPLETION_TIMEOUT = 50 if settings.ENABLE_PASSAGE_MAPPING else 25
 
             async def _run_completion(item):
                 try:
@@ -2666,6 +2666,16 @@ class ClaimMapAnalyzer:
             if item is None:
                 continue
 
+            if ref.get("citations"):
+                from app.services.passage_mapping import cited_context
+
+                context = cited_context(ref["citations"], item.ev)
+                if context:
+                    reviewed = {**item.ev, "text": context, "snippet": context}
+                    item = _index_evidence([reviewed])[ref["evidence_id"]]._replace(
+                        original_id=item.original_id
+                    )
+
             for gate in gates:
                 if not gate.fires(item, ref):
                     continue
@@ -2755,6 +2765,24 @@ class ClaimMapAnalyzer:
         )
 
     async def _complete_unmapped_evidence(
+        self, claim_map: ClaimMap, evidence_list: List[Dict[str, Any]]
+    ) -> None:
+        await self._complete_unmapped_sources(claim_map, evidence_list)
+        if settings.ENABLE_PASSAGE_MAPPING:
+            from app.services.passage_mapping import complete_passage_pairs
+
+            try:
+                await complete_passage_pairs(self, claim_map, evidence_list)
+            except Exception:
+                logger.exception("Passage review failed; preserving prior mapping")
+                receipt = claim_map.get("metadata", {}).get("passage_review")
+                if receipt:
+                    receipt["status"] = "failed"
+                    for pair in receipt.get("pairs", []):
+                        if pair.get("status") == "linked":
+                            pair["status"] = "not_applied"
+
+    async def _complete_unmapped_sources(
         self,
         claim_map: ClaimMap,
         evidence_list: List[Dict[str, Any]],
@@ -2771,7 +2799,7 @@ class ClaimMapAnalyzer:
         census, not the display sample. See
         audit/2026-06-16_nf19_design_review.md (Option D).
 
-        This pass is that guarantee. It:
+        This is a whole-source backstop, not a complete source/element census. It:
           1. Computes the set of evidence items not referenced by ANY
              element after the main pass (the leftovers).
           2. Whenever there is ≥1 leftover, calls the LLM with
@@ -2837,7 +2865,7 @@ class ClaimMapAnalyzer:
         if len(leftover) < MIN_LEFTOVER_FOR_COMPLETION:
             logger.info(
                 f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "
-                f"no leftover items — census already complete"
+                f"no wholly unmapped sources; pair coverage is not established"
             )
             return
 

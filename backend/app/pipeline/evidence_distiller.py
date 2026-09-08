@@ -2,8 +2,8 @@
 
 Sits between CLASSIFY and MAP. For each evidence item that has full article text,
 uses Gemini Flash Lite to extract only the atomic facts relevant to the claim.
-The model currently reads a bounded leading slice. Separate exact extraction
-windows are retained for review; their retention does not expand model coverage.
+By default the model reads a bounded leading slice. The opt-in passage contract
+uses retained element-selected windows under the same input ceiling instead.
 
 Falls back to existing snippets on failure. Generated facts are not quotations.
 
@@ -80,6 +80,7 @@ class EvidenceDistiller:
         self,
         claim_text: str,
         evidence_items: List[Dict[str, Any]],
+        elements: Optional[List[dict]] = None,
     ) -> List[Dict[str, Any]]:
         """Distil full article text into atomic facts for each evidence item.
 
@@ -100,7 +101,12 @@ class EvidenceDistiller:
         from app.services.text_provenance import capture_text_provenance
 
         for item in evidence_items:
-            capture_text_provenance(item, claim_text)
+            capture_text_provenance(item, claim_text, elements)
+
+        if settings.ENABLE_PASSAGE_MAPPING and elements:
+            claim_text += "\nResearch elements:\n" + "\n".join(
+                f"{e['element_id']}: {e['description']}" for e in elements
+            )
 
         # Partition into distillable vs skip
         distillable_indices: List[int] = []
@@ -176,6 +182,14 @@ class EvidenceDistiller:
         article_parts = []
         for i, item in enumerate(batch_items):
             full_text = (item.get("_full_text") or "")[:MAX_ARTICLE_CHARS]
+            if settings.ENABLE_PASSAGE_MAPPING:
+                from app.services.passage_mapping import valid_passages
+
+                passages = valid_passages(item)
+                if passages:
+                    full_text = "\n\n".join(p["text"] for p in passages)[
+                        :MAX_ARTICLE_CHARS
+                    ]
             title = item.get("title", "Untitled")[:200]
             source = item.get("source", item.get("domain", "Unknown"))[:100]
             article_parts.append(

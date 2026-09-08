@@ -295,6 +295,8 @@ class Settings(BaseSettings):
 
     # Evidence distillation
     ENABLE_EVIDENCE_DISTILLATION: bool = Field(True, env="ENABLE_EVIDENCE_DISTILLATION")
+    # Changes model input: enable only after fixed-source model evaluation.
+    ENABLE_PASSAGE_MAPPING: bool = Field(False, env="ENABLE_PASSAGE_MAPPING")
     DISTIL_MODEL: str = Field("gemini-3.5-flash-lite", env="DISTIL_MODEL")
     # Migrated 2026-08-27. The 2026-08-25 migration moved GOOGLE_LLM_MODEL and
     # MAPPING_GOOGLE_MODEL and recorded "the whole pipeline is off the retiring
