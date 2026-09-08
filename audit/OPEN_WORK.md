@@ -1,6 +1,6 @@
 # Open Work Register
 
-> **2026-09-08 — Source preservation acceptance added.** A synthetic 42-source report retains all original sources after strengthening to 43, across retained revisions, owner/public responses and PDF HTML; retry adds no duplicate. Thirteen real PostgreSQL integration tests passed. This is not live retrieval or native PDF acceptance. Public/export snapshot identity remains implemented; no deployment or candidate activation. Live strengthening/share/export acceptance and broader semantic/operational validation remain open. Details: [source preservation](2026-09-08_source_preservation.md).
+> **2026-09-08 — Live local acceptance: preservation passes; semantic gap reproduced.** SQLite research returned 19 sources and strengthening increased this to 32, preserving every original URL across owner/public responses and retained revisions. Both historical signatures verified; real export rendered with 32 sources. Default distillation still omits the official WAL BUSY exception despite its presence in retained passages, and domain concentration relabels that documentation as commentary. PDF review also found a split source entry and an isolated footer page. Browser interaction, deployment and broad quality acceptance remain open; candidate flags remain off. Details: [live acceptance](2026-09-08_live_acceptance.md).
 
 > **Single source of truth for what's currently open in Tru8.**
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
