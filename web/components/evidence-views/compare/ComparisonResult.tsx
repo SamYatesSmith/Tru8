@@ -113,6 +113,11 @@ export function ComparisonResult({
         {comparison.divergence}
       </p>
 
+      <p className="text-[11px] text-zinc-500 mb-3">
+        The table uses the report’s saved evidence mappings. The summaries use the
+        text read for this comparison, which may differ. Matching directions do
+        not establish agreement on every assertion; this comparison does not update the report.
+      </p>
       <CollisionTable
         rows={comparison.collisions}
         descriptions={elementDescriptions}

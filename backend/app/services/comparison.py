@@ -89,9 +89,8 @@ def compute_collisions(
 
     Verdicts (a sort key — the UI prints the two relationships themselves):
       'opposed'  — exactly {supports, challenges}: the money row.
-      'aligned'  — both sides present and not opposed (identical, or a
-                   context/directional mix; the printed relationships carry
-                   the nuance, no fifth verdict is introduced).
+      'aligned'  — identical directional relationships (not whole-source agreement).
+      'contextual' — at least one side supplies context, not a direction.
       'only_a' / 'only_b' — one side is silent on the element.
     """
     if not claim_map:
@@ -113,6 +112,8 @@ def compute_collisions(
         if rel_a is not None and rel_b is not None:
             if {rel_a, rel_b} == {"supports", "challenges"}:
                 verdict = "opposed"
+            elif "context" in {rel_a, rel_b}:
+                verdict = "contextual"
             else:
                 verdict = "aligned"
         elif rel_a is not None:
@@ -123,7 +124,7 @@ def compute_collisions(
             {"elementId": element_id, "a": rel_a, "b": rel_b, "verdict": verdict}
         )
     # Opposed first — it is the money row.
-    order = {"opposed": 0, "aligned": 1, "only_a": 2, "only_b": 3}
+    order = {"opposed": 0, "aligned": 1, "contextual": 2, "only_a": 3, "only_b": 4}
     rows.sort(key=lambda r: (order.get(r["verdict"], 9), r["elementId"] or ""))
     return rows
 

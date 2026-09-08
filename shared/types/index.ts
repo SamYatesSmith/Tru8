@@ -318,7 +318,7 @@ export interface ClaimMap {
 // comparisons, measured). Load-bearing for the receipt line.
 export type ComparisonBasis = 'full' | 'stored';
 
-export type CollisionVerdict = 'opposed' | 'aligned' | 'only_a' | 'only_b';
+export type CollisionVerdict = 'opposed' | 'aligned' | 'contextual' | 'only_a' | 'only_b';
 
 export interface CollisionRow {
   elementId: string;

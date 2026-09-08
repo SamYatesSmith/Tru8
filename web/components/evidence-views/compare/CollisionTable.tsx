@@ -25,13 +25,14 @@ interface CollisionTableProps {
 
 const VERDICT_LABELS: Record<CollisionRow['verdict'], string> = {
   opposed: 'OPPOSED',
-  aligned: 'ALIGNED',
+  aligned: 'SAME DIRECTION',
+  contextual: 'CONTEXT INVOLVED',
   only_a: 'ONLY A',
   only_b: 'ONLY B',
 };
 
 function relLabel(rel: string | null): string {
-  return rel ?? 'not addressed';
+  return rel ?? 'not mapped';
 }
 
 export function CollisionTable({ rows, descriptions, domainA, domainB }: CollisionTableProps) {
@@ -76,7 +77,11 @@ export function CollisionTable({ rows, descriptions, domainA, domainB }: Collisi
                       isOpposed ? 'font-bold text-zinc-900' : 'text-zinc-400'
                     }`}
                   >
-                    {VERDICT_LABELS[row.verdict]}
+                    {row.a === 'context' && row.b === 'context'
+                      ? 'BOTH CONTEXT'
+                      : row.a && row.b && (row.a === 'context' || row.b === 'context')
+                        ? VERDICT_LABELS.contextual
+                        : VERDICT_LABELS[row.verdict]}
                   </span>
                 </td>
                 <td className={`py-2 pr-3 font-mono text-[10px] italic ${row.a ? 'text-zinc-600' : 'text-zinc-300'}`}>

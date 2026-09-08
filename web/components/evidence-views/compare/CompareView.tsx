@@ -12,6 +12,7 @@ import { capture } from '@/lib/analytics';
 import { ComparisonSlot } from './ComparisonSlot';
 import { SourcePicker } from './SourcePicker';
 import { ComparisonResult } from './ComparisonResult';
+import { comparisonInDisplayOrder } from '@/lib/comparison-display';
 import { extractDomain } from '../shared-utils';
 
 /**
@@ -463,13 +464,14 @@ export function CompareView({ claim, checkId, readOnly, getToken }: CompareViewP
       {effective === 'done' && activeResult && (
         <div className="mb-10">
           {(() => {
-            const resultA = evidenceById.get(activeResult.evidenceA);
-            const resultB = evidenceById.get(activeResult.evidenceB);
+            const displayed = comparisonInDisplayOrder(activeResult, idA || activeResult.evidenceA);
+            const resultA = evidenceById.get(displayed.evidenceA);
+            const resultB = evidenceById.get(displayed.evidenceB);
             return (
               <ComparisonResult
-                comparison={activeResult}
-                domainA={resultA ? extractDomain(resultA.url) : activeResult.evidenceA}
-                domainB={resultB ? extractDomain(resultB.url) : activeResult.evidenceB}
+                comparison={displayed}
+                domainA={resultA ? extractDomain(resultA.url) : displayed.evidenceA}
+                domainB={resultB ? extractDomain(resultB.url) : displayed.evidenceB}
                 urlA={resultA?.url}
                 urlB={resultB?.url}
                 elementDescriptions={elementDescriptions}

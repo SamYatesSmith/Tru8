@@ -8,6 +8,8 @@ If someone persists collisions "for performance", the staleness test at the
 bottom is the one that should stop them.
 """
 
+import pytest
+
 from app.services.comparison import compute_collisions, sorted_pair
 
 
@@ -48,13 +50,13 @@ class TestComputeCollisions:
         cm = _claim_map([_element("e1", [("ev-a", "supports"), ("ev-b", "supports")])])
         assert compute_collisions(cm, "ev-a", "ev-b")[0]["verdict"] == "aligned"
 
-    def test_context_vs_directional_is_aligned_not_opposed(self):
+    def test_context_vs_directional_is_contextual(self):
         # Context vs supports is NOT a collision — 'opposed' is reserved for
         # exactly {supports, challenges}. The printed relationships carry
         # the nuance.
         cm = _claim_map([_element("e1", [("ev-a", "context"), ("ev-b", "supports")])])
         rows = compute_collisions(cm, "ev-a", "ev-b")
-        assert rows[0]["verdict"] == "aligned"
+        assert rows[0]["verdict"] == "contextual"
         assert rows[0]["a"] == "context"
         assert rows[0]["b"] == "supports"
 
@@ -120,7 +122,16 @@ class TestComputeCollisions:
         )
         new = _claim_map([_element("e1", [("ev-a", "supports"), ("ev-b", "context")])])
         assert compute_collisions(old, "ev-a", "ev-b")[0]["verdict"] == "opposed"
-        assert compute_collisions(new, "ev-a", "ev-b")[0]["verdict"] == "aligned"
+        assert compute_collisions(new, "ev-a", "ev-b")[0]["verdict"] == "contextual"
+
+    @pytest.mark.parametrize("a", ["supports", "challenges", "context"])
+    @pytest.mark.parametrize("b", ["supports", "challenges", "context"])
+    def test_all_relationship_pairs(self, a, b):
+        cm = _claim_map([_element("e1", [("ev-a", a), ("ev-b", b)])])
+        expected = (
+            "contextual" if "context" in (a, b) else "aligned" if a == b else "opposed"
+        )
+        assert compute_collisions(cm, "ev-a", "ev-b")[0]["verdict"] == expected
 
 
 class TestSortedPair:

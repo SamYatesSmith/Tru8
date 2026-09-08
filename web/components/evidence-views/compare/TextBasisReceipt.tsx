@@ -21,8 +21,8 @@ interface TextBasisReceiptProps {
 export function TextBasisReceipt({ basis, words }: TextBasisReceiptProps) {
   const label =
     basis === 'full'
-      ? `full article${words ? ` (${words.toLocaleString('en-GB')} words)` : ''}`
-      : 'stored extract — the publisher blocked our fetch';
+      ? `extracted page text${words ? ` (${words.toLocaleString('en-GB')} words)` : ''}`
+      : 'stored extract — a fresh read was unavailable';
 
   return (
     <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-zinc-500">
