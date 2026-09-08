@@ -1,0 +1,169 @@
+{
+  "model_evaluation": "not_run",
+  "sources": [
+    {
+      "id": "sqlite-wal",
+      "source_sha256": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e",
+      "arms": {
+        "legacy": {
+          "characters": 27246,
+          "seconds": 0.034877800000685966,
+          "sha256": "bb4a73cb699e9dbb61c792f618b5e8df4fb62ee6bf007b5174f43c82ee4d028e"
+        },
+        "structured": {
+          "characters": 27246,
+          "seconds": 0.06007010000030277,
+          "sha256": "bb4a73cb699e9dbb61c792f618b5e8df4fb62ee6bf007b5174f43c82ee4d028e"
+        }
+      },
+      "retention": [
+        {
+          "case_id": "sqlite-busy",
+          "retained_characters": 7161,
+          "retains_added_region": false
+        },
+        {
+          "case_id": "sqlite-reversed",
+          "retained_characters": 7161,
+          "retains_added_region": false
+        },
+        {
+          "case_id": "sqlite-readonly",
+          "retained_characters": 7167,
+          "retains_added_region": false
+        },
+        {
+          "case_id": "unrelated-control",
+          "retained_characters": 3586,
+          "retains_added_region": false
+        }
+      ],
+      "narrative_preserved": true,
+      "added_characters": 0
+    },
+    {
+      "id": "sqlite-release",
+      "source_sha256": "cbd1d5ca7fb8ac82fad2365bdf75ced3084018229368633dec8aad8b3913b266",
+      "arms": {
+        "legacy": {
+          "characters": 4268,
+          "seconds": 0.010993300000336603,
+          "sha256": "9faf084357c13575dba5bca13d97feca4a6810aa94ae0740a9b5aa95e2a598fa"
+        },
+        "structured": {
+          "characters": 4268,
+          "seconds": 0.018142400000215275,
+          "sha256": "9faf084357c13575dba5bca13d97feca4a6810aa94ae0740a9b5aa95e2a598fa"
+        }
+      },
+      "retention": [
+        {
+          "case_id": "sqlite-readonly",
+          "retained_characters": 1579,
+          "retains_added_region": false
+        },
+        {
+          "case_id": "unrelated-control",
+          "retained_characters": 892,
+          "retains_added_region": false
+        }
+      ],
+      "narrative_preserved": true,
+      "added_characters": 0
+    },
+    {
+      "id": "bank-home",
+      "source_sha256": "f18ccffd13003ffbaa667f0dbb48190a11d31fd7f3ba72d26685f13510f75940",
+      "arms": {
+        "legacy": {
+          "characters": 668,
+          "seconds": 0.03593609999916225,
+          "sha256": "7455d0ba2015494e9ccf7ff3a443e6b9301efb5a5d7aa4d1363f02f443dc197c"
+        },
+        "structured": {
+          "characters": 761,
+          "seconds": 0.10501389999990351,
+          "sha256": "8c5d924cbede0bf8c4779031f0feca69fdb7297ebb306d550174bbaa71cd1b3d"
+        }
+      },
+      "retention": [
+        {
+          "case_id": "bank-original",
+          "retained_characters": 761,
+          "retains_added_region": true
+        },
+        {
+          "case_id": "bank-reversed",
+          "retained_characters": 761,
+          "retains_added_region": true
+        }
+      ],
+      "narrative_preserved": true,
+      "added_characters": 93
+    },
+    {
+      "id": "bank-article",
+      "source_sha256": "3e06997d0bdb99babcaf606eb65dbb6d1a79092ced9f34b228a36cf261af61de",
+      "arms": {
+        "legacy": {
+          "characters": 780,
+          "seconds": 0.15861880000011297,
+          "sha256": "d3e3bb3cea809c779b11dfdae2945516bdc251a264f10757a6dbe359622d6c88"
+        },
+        "structured": {
+          "characters": 780,
+          "seconds": 0.11165609999989101,
+          "sha256": "d3e3bb3cea809c779b11dfdae2945516bdc251a264f10757a6dbe359622d6c88"
+        }
+      },
+      "retention": [
+        {
+          "case_id": "bank-original",
+          "retained_characters": 780,
+          "retains_added_region": false
+        },
+        {
+          "case_id": "bank-reversed",
+          "retained_characters": 780,
+          "retains_added_region": false
+        }
+      ],
+      "narrative_preserved": true,
+      "added_characters": 0
+    },
+    {
+      "id": "select-fda",
+      "source_sha256": "b4fee2f15e074192a1ab44621f4185b7a881d4eb05f37ef9ba7f6e6405a790fc",
+      "arms": {
+        "legacy": {
+          "characters": 4761,
+          "seconds": 0.012147600000389502,
+          "sha256": "c68ac968c602baf3ed20ca9bf38671165bdab7f70105ba60309d03b1959cf3a1"
+        },
+        "structured": {
+          "characters": 4800,
+          "seconds": 0.0354869000002509,
+          "sha256": "bde53269311c61f45273ab468047c84cf8fdb3484f42be82e747956d7827cd06"
+        }
+      },
+      "retention": [
+        {
+          "case_id": "select-overgeneralised",
+          "retained_characters": 4483,
+          "retains_added_region": false
+        },
+        {
+          "case_id": "select-scope",
+          "retained_characters": 2689,
+          "retains_added_region": false
+        }
+      ],
+      "narrative_preserved": true,
+      "added_characters": 39
+    },
+    {
+      "id": "select-abstract",
+      "status": "unavailable"
+    }
+  ]
+}

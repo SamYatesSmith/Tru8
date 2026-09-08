@@ -175,7 +175,10 @@ class CacheService:
         """Piece 3 (2026-09-02): the retrieval version is part of the key, so a
         deploy that changes what retrieval gathers starts every claim fresh
         instead of replaying a pool the old code built (24 h TTL)."""
-        return f"{settings.RETRIEVAL_CACHE_VERSION}:{self._hash_content(claim)}"
+        version = settings.RETRIEVAL_CACHE_VERSION
+        if settings.ENABLE_STRUCTURED_EXTRACTION:
+            version += ":structured-v1"
+        return f"{version}:{self._hash_content(claim)}"
 
     async def cache_evidence_extraction(
         self, claim: str, evidence_data: List[Dict], ttl: Optional[int] = None

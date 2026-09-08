@@ -1,6 +1,6 @@
 # Open Work Register
 
-> **2026-09-08 — Evaluation pack prepared; models not run.** Eight real-source cases plus eight generated fictional value/date controls, separate unscored review guidance, raw-source hashes and offline preparation. Five public pages captured; trial abstract unavailable (HTTP 203). Normal extraction drops the Bank homepage decision-date widget: next implementation priority is general extraction coverage, not maintained values or institution rules. No application code changed; Step 5b remains OFF. Details: [evaluation checkpoint](2026-09-08_passage_evaluation_preparation.md). No deployment or paid evaluation.
+> **2026-09-08 — General structured-extraction fix locally validated; rollout OFF.** Omitted main-content value/label blocks, small tables and definition lists are recovered without domain selectors or maintained facts. On saved pages, the lost rate/decision widget reaches retained passages; original narrative remains intact. Backend 98 checks passed; replay matches 185/1/13/2 with zero cassette drift. `ENABLE_STRUCTURED_EXTRACTION=False` and passage mapping remain OFF pending integrated quality evaluation. Initial-plan target: extraction loss before mapping, not a new product direction. Details: [extraction checkpoint](2026-09-08_structured_extraction.md). No deployment or paid model calls.
 
 > **Single source of truth for what's currently open in Tru8.**
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.

@@ -615,6 +615,16 @@ class EvidenceExtractor:
 
     def _extract_main_content(self, html: str, url: str) -> Optional[str]:
         """Extract main content from HTML"""
+        def finish(text):
+            narrative = self._sanitize_content(text)
+            if settings.ENABLE_STRUCTURED_EXTRACTION:
+                from app.services.structured_extraction import supplement_main_content
+                try:
+                    return supplement_main_content(html, narrative)
+                except Exception:
+                    logger.warning("Structured extraction failed; retaining narrative", exc_info=True)
+            return narrative
+
         try:
             # Try trafilatura first (better for news articles)
             extracted = trafilatura.extract(
@@ -626,7 +636,7 @@ class EvidenceExtractor:
             )
 
             if extracted and len(extracted.strip()) > 100:
-                return self._sanitize_content(extracted)
+                return finish(extracted)
 
             # Fallback to readability
             doc = Document(html)
@@ -635,8 +645,10 @@ class EvidenceExtractor:
             if content and len(content.strip()) > 100:
                 # Extract text from HTML
                 clean_content = bleach.clean(content, tags=[], strip=True)
-                return self._sanitize_content(clean_content)
+                return finish(clean_content)
 
+            if settings.ENABLE_STRUCTURED_EXTRACTION:
+                return finish("") or None
             return None
 
         except Exception as e:

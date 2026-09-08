@@ -16,6 +16,15 @@ No production deployment, paid benchmark or production-log inspection has been p
 
 ## Resume checkpoint — 8 September 2026
 
+### Structured extraction checkpoint
+
+- After evaluation-preparation commit `63e89ea`, user authorised resolving the measured extraction issue while staying within the original improvement plan. This implements the extraction-coverage part of original finding 4: source content was missing before distillation/mapping. No publisher-specific selectors, values, current answers, or AI triggers were added.
+- `ENABLE_STRUCTURED_EXTRACTION=False` is separately gated. Enabled extraction supplements normal narrative with omitted compact numeric value/label groups, small tables (captions/header rows preserved) and definition lists inside main/article regions. Hidden controls, navigation, footer/header/form content are ineligible for supplementation. Maximum 12 blocks / 6,000 added characters; oversized blocks are skipped whole. Existing narrative is retained on failure; no claim of complete extraction.
+- The enabled contract has a distinct retrieval-cache namespace and pipeline fingerprint. Default-off keys/fingerprints remain compatible; old cached snippets cannot mask activation. The existing source-detail UI receives recovered retained passages through the same receipt/API contract; no new frontend state or date interpretation is introduced.
+- Frozen-byte audit: Bank homepage 668→761 characters, with the missing rate/decision block retained for both opposing cases. FDA 4,761→4,800 (publication block recovered, not an effective date); both SQLite pages and the comparison article unchanged. All five original narrative prefixes preserved; source hashes checked. SQLite's late BUSY exception was already present in retained passages, confirming a separate downstream mapping evaluation need rather than another extraction edit.
+- Backend 98 checks passed, including generic non-financial widgets, tables/units, hidden/navigation exclusion, signed-number dedup, bounds, fallback, switch/cache/fingerprint isolation, receipt/API persistence, dates, distillation and strengthening. Full replay `tmp/quality-replay-structured-extraction.log`: expected **185 ok / 1 warn / 13 known fail / 2 unexercised**, zero cassette drift. No cassette/golden edits. Details and limitations: [structured extraction checkpoint](2026-09-08_structured_extraction.md).
+- Next: classify once and freeze shared evidence, then compare integrated model paths on identical saved sources plus generated/held-out controls. Current applicability, false directional additions, underlying-study grouping and decomposition remain open. Do not claim measured research-quality improvement or activate based only on extraction tests.
+
 ### Evaluation preparation checkpoint
 
 - After `3a5894b`, user chose evaluation preparation and clarified that no maintained values, institution-specific runtime rules or AI triggers are acceptable. Added only test tooling/specifications/docs, with 8 real-source cases and 8 generated fictional value/date controls. No application code change or model execution.
