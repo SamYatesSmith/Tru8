@@ -129,6 +129,11 @@ async def test_already_mapped_source_reaches_other_element_with_exact_quote():
     prompt = analyzer._call_llm.call_args.kwargs["prompt"]
     assert '"elements": [' not in prompt
     assert '"pairs":[' in prompt
+    import json
+    pair_payload = json.loads(prompt.split("\nPairs:\n", 1)[1])
+    for pair in pair_payload:
+        element = next(e for e in cm["elements"] if e["element_id"] == pair["element_id"])
+        assert pair["element_description"] == element["description"]
     assert analyzer._call_llm.call_args.kwargs["label"] == "passage_review"
     assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "supports"
     ref = cm["elements"][1]["evidence_refs"][0]

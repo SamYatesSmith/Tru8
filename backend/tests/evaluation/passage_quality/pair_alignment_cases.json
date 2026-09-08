@@ -1,0 +1,13 @@
+{
+  "scope": "New synthetic regression cases; not real-world held-out accuracy",
+  "cases": [
+    {"id":"cache", "text":"The fictional Luma cache reduces average request latency. It does not eliminate outages: requests still fail when the origin is unavailable.", "elements":[["The Luma cache reduces average request latency.","supports"],["The Luma cache eliminates all request failures.","challenges"]]},
+    {"id":"backup", "text":"The fictional Cedar backup restores deleted files after a successful sync. Files deleted before their first sync cannot be restored.", "elements":[["Cedar restores deleted files after a successful sync.","supports"],["Cedar can restore every deleted file regardless of sync status.","challenges"]]},
+    {"id":"filter", "text":"The fictional Delta screen reduces dust in the exhaust. Fine particles can still pass through the screen during normal operation.", "elements":[["The Delta screen reduces dust in the exhaust.","supports"],["The Delta screen removes all exhaust particles during normal operation.","challenges"]]},
+    {"id":"quiet", "text":"The fictional Orin motor usually operates quietly. Under heavy load it can emit audible vibration.", "elements":[["The Orin motor usually operates quietly.","supports"],["The Orin motor never emits audible vibration under any load.","challenges"]]},
+    {"id":"bounded_positive", "text":"During every documented trial at room temperature, the fictional Pavo latch remained closed. Performance outside room temperature was not tested.", "elements":[["The Pavo latch remained closed in every documented trial at room temperature.","supports"],["The Pavo latch remains closed outside room temperature.","context"]]},
+    {"id":"negative_proposition", "text":"The fictional Vega retry system reduces lost messages, but permanent connection failures can still cause message loss.", "elements":[["The Vega retry system does not eliminate all message loss.","supports"],["The Vega retry system eliminates all message loss.","challenges"]]},
+    {"id":"distinct_endpoints", "text":"The fictional Kestrel controller reduced power use. Its effect on machine stoppages was not measured.", "elements":[["The Kestrel controller reduced power use.","supports"],["The Kestrel controller eliminated machine stoppages.","context"]]},
+    {"id":"explicit_full_support", "text":"The fictional Neri inspection covered all twelve crates in shipment Z. Every crate passed the seal test; none failed.", "elements":[["All twelve crates in shipment Z passed the seal test.","supports"],["At least one crate in shipment Z failed the seal test.","challenges"]]}
+  ]
+}

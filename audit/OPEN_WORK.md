@@ -1,6 +1,6 @@
 # Open Work Register
 
-> **2026-09-08 — Captured SQLite mapping comparison: candidate still fails activation gate.** Four repeated default/candidate sweeps on the same 19 saved sources isolated passage selection and full-proposition judgement. Generic identifier-preserving passage ranking now recovers the official BUSY exception, but the final candidate still wrongly supports the related universal element in one of two repeats. Candidate remains OFF; 8/10 not demonstrated. Seventy-six focused checks passed; final replay matched 185/1/13/2, no cassette drift. Details: [captured mapping gate](2026-09-08_captured_mapping_gate.md).
+> **2026-09-08 — Pair-local passage alignment: bounded improvement, no activation.** Exact element descriptions now accompany each source/excerpt pair in the disabled candidate. Both captured SQLite candidate repeats map the official exception correctly; both defaults miss it. Eight new synthetic cases tested twice: baseline and candidate each 15/16; candidate still omits expected context once. Seventy-six checks passed; replay matched 185/1/13/2, no cassette drift. This is not an 8/10 re-score or broad real-source acceptance. Details: [pair alignment](2026-09-08_pair_alignment.md).
 
 > **Single source of truth for what's currently open in Tru8.**
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.

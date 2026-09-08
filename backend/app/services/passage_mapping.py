@@ -233,10 +233,12 @@ async def complete_passage_pairs(analyzer, claim_map, evidence):
     metadata["passage_review"] = receipt
     if not pairs:
         return
+    descriptions = {e["element_id"]: e.get("description", "") for e in claim_map["elements"]}
     context = [
         {
             "pair_id": p["pair_id"],
             "element_id": p["element_id"],
+            "element_description": descriptions[p["element_id"]],
             "evidence_id": p["evidence_id"],
             "title": p["evidence"].get("title"),
             "passages": [

@@ -1,0 +1,751 @@
+{
+  "scope": "synthetic pair-review regressions and captured SQLite mapping; not product accuracy",
+  "synthetic": [
+    {
+      "name": "pair-alignment-baseline-corrected",
+      "input_sha256": "c2adb33b7b7fc049fe6897619ad7b753dab37f83b87586fb4926eb08802d7a14",
+      "requests": 16,
+      "passing_runs": 15,
+      "total_runs": 16,
+      "results": [
+        {
+          "case": "cache",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "backup",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "filter",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "quiet",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "bounded_positive",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "negative_proposition",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "distinct_endpoints",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "explicit_full_support",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "cache",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "backup",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "filter",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "quiet",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "bounded_positive",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "pass": false
+        },
+        {
+          "case": "negative_proposition",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "distinct_endpoints",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "explicit_full_support",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        }
+      ]
+    },
+    {
+      "name": "pair-alignment-local-description",
+      "input_sha256": "c2adb33b7b7fc049fe6897619ad7b753dab37f83b87586fb4926eb08802d7a14",
+      "requests": 16,
+      "passing_runs": 15,
+      "total_runs": 16,
+      "results": [
+        {
+          "case": "cache",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "backup",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "filter",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "quiet",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "bounded_positive",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            []
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "pass": false
+        },
+        {
+          "case": "negative_proposition",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "distinct_endpoints",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "explicit_full_support",
+          "repeat": 0,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "cache",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "backup",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "filter",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "quiet",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "bounded_positive",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "negative_proposition",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "distinct_endpoints",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "context"
+            ]
+          ],
+          "pass": true
+        },
+        {
+          "case": "explicit_full_support",
+          "repeat": 1,
+          "actual": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "expected": [
+            [
+              "supports"
+            ],
+            [
+              "challenges"
+            ]
+          ],
+          "pass": true
+        }
+      ]
+    }
+  ],
+  "sqlite": {
+    "input_sha256": "cca6ba58670cc0ee7f1477d77e4196912ba6b0ff322c91a5646b3d0becc7eb28",
+    "requests": 10,
+    "results": [
+      {
+        "arm": 0,
+        "passage": false,
+        "relationships": {
+          "e1": [
+            "supports"
+          ],
+          "e2": [],
+          "e3": []
+        }
+      },
+      {
+        "arm": 1,
+        "passage": true,
+        "relationships": {
+          "e1": [
+            "supports"
+          ],
+          "e2": [
+            "challenges"
+          ],
+          "e3": [
+            "challenges"
+          ]
+        }
+      },
+      {
+        "arm": 2,
+        "passage": true,
+        "relationships": {
+          "e1": [
+            "supports"
+          ],
+          "e2": [
+            "challenges"
+          ],
+          "e3": [
+            "challenges"
+          ]
+        }
+      },
+      {
+        "arm": 3,
+        "passage": false,
+        "relationships": {
+          "e1": [
+            "supports"
+          ],
+          "e2": [],
+          "e3": []
+        }
+      }
+    ]
+  }
+}
