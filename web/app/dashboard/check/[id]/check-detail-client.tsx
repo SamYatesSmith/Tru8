@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { parseServerDate } from '@/lib/utils';
 import { useCheckProgress } from '@/hooks/use-check-progress';
+import { useReportRefresh } from '@/hooks/use-report-refresh';
 import { ClaimSelectionView } from '@/components/claim-selection';
 import { CheckMetadataCard } from './components/check-metadata-card';
 import { ProgressSection } from './components/progress-section';
@@ -207,9 +208,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   );
 
   // G02: Refresh page data after element re-search completes
-  const handleResearchComplete = useCallback(() => {
-    router.refresh();
-  }, [router]);
+  const { refresh: handleResearchComplete, error: reportRefreshError } = useReportRefresh(checkId, setCheckData);
 
   // Video recommendations — per-claim (fetched eagerly to enable conditional tab display)
   const focusedClaim = activeClaimIndex !== null ? claims[activeClaimIndex] : null;
@@ -434,6 +433,12 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     <div className="space-y-6">
       {/* Metadata Card - Always shown (now includes transparency score) */}
       <CheckMetadataCard check={checkData} />
+      {reportRefreshError && (
+        <div role="alert" className="text-sm text-zinc-600">
+          {reportRefreshError}{' '}
+          <button className="underline" onClick={handleResearchComplete}>Retry loading report</button>
+        </div>
+      )}
 
       {/* Upgrade Modal for Sources */}
       {showUpgradeModal && (

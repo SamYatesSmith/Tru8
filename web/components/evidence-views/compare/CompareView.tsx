@@ -181,6 +181,9 @@ export function CompareView({ claim, checkId, readOnly, getToken }: CompareViewP
       .then((data) => {
         if (cancelled) return;
         setComparisons(data.comparisons || []);
+        setActiveResult(previous => previous
+          ? (data.comparisons || []).find(comparison => comparison.id === previous.id) || null
+          : null);
         if (data.budget) setBudget(data.budget);
         if (readOnly && (data.comparisons || []).length > 0) {
           capture('comparison_viewed_readonly', { claimId: claim.id });
@@ -192,7 +195,7 @@ export function CompareView({ claim, checkId, readOnly, getToken }: CompareViewP
     return () => {
       cancelled = true;
     };
-  }, [checkId, claim.id, readOnly, getToken]);
+  }, [checkId, claim.id, claim.claimMap, readOnly, getToken]);
 
   // ---- state machine ------------------------------------------------------
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { Evidence, EvidenceTier } from '@shared/types';
+import { useEffect, useRef } from 'react';
+import { Evidence, EvidenceTier, EvidenceRelationship } from '@shared/types';
 import { TierStamp } from './TierStamp';
 import { TypeStamp } from './TypeStamp';
 import { FactCheckRating } from '../FactCheckRating';
@@ -34,12 +35,17 @@ const TIER_BORDER_COLORS: Record<EvidenceTier, string> = {
 interface ReadingTableProps {
   evidence: Evidence;
   callNumber: string;
-  elementDescriptions: { elementId: string; description: string }[];
+  elementDescriptions: { elementId: string; description: string; relationship?: EvidenceRelationship; reasoning?: string; claimLabel?: string }[];
   claimLabel?: string;
   onClose: () => void;
 }
 
 export function ReadingTable({ evidence, callNumber, elementDescriptions, claimLabel, onClose }: ReadingTableProps) {
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    panel.current?.focus({ preventScroll: true });
+    panel.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+  }, [evidence.id]);
   const domain = extractDomain(evidence.url);
   const date = formatDate(evidence.publishedDate);
   const faviconUrl = getFaviconUrl(evidence.url);
@@ -47,7 +53,7 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
   const firstLetter = domain.charAt(0).toUpperCase();
 
   return (
-    <div className="border border-zinc-200 bg-[#FAFAF8] p-5 relative">
+    <div ref={panel} tabIndex={-1} aria-label="Source details" className="border border-zinc-200 bg-[#FAFAF8] p-5 relative">
       {/* Close button */}
       <button
         onClick={onClose}
@@ -109,10 +115,14 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
             <span className="flex-1 h-px bg-zinc-200" />
           </div>
           <div className="space-y-1">
-            {elementDescriptions.map(({ elementId, description }) => (
-              <div key={elementId} className="font-mono text-[11px] text-zinc-600">
+            {elementDescriptions.map(({ elementId, description, relationship, reasoning, claimLabel }, index) => (
+              <div key={`${claimLabel}-${elementId}-${index}`} className="text-[11px] text-zinc-600 pb-3">
+                {claimLabel && <span>{claimLabel} · </span>}
                 <span className="text-zinc-400">Element {elementId.replace('e', '')}</span>
                 {description && <span> &mdash; {description}</span>}
+                {relationship && <p className="font-mono uppercase mt-1">{relationship}</p>}
+                <p className="mt-1">System interpretation: {reasoning || 'No relationship explanation was saved for this record.'}</p>
+                <p className="text-zinc-400 mt-1">An exact supporting passage is not available in this record.</p>
               </div>
             ))}
           </div>

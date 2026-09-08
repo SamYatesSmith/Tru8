@@ -1,6 +1,6 @@
 # Open Work Register
 
-> **2026-09-08 — evidence-quality steps 1–2 locally verified.** Work proceeds on `codex/evidence-quality`, one validated commit per step. Compare distinguishes contextual mappings, preserves selected source order and discloses read differences. Next: report refresh and relationship explanations. Scope, checks and remaining production validation: [implementation register](2026-09-07_evidence_quality_implementation.md). Existing commercial/outreach changes are preserved separately; this programme does not authorise account deletion or outreach.
+> **2026-09-08 — evidence-quality steps 1–3 locally verified.** Work proceeds on `codex/evidence-quality`, one validated commit per step. Compare semantics/order, report refresh and source relationship explanations are repaired. Next: coherent strengthening and evidence metadata. Scope, checks and remaining production validation: [implementation register](2026-09-07_evidence_quality_implementation.md). Existing commercial/outreach changes are preserved separately; this programme does not authorise account deletion or outreach.
 
 > **Single source of truth for what's currently open in Tru8.**
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.

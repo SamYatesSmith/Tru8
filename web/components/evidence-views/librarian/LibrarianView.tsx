@@ -225,13 +225,17 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
   // Build element descriptions for the active evidence reading table
   const activeElementDescriptions = useMemo(() => {
     if (!activeEvidence) return [];
-    const evId = activeEvidence.evidenceId || activeEvidence.id;
-    const elIds = elementMap.get(evId) || [];
-    return elIds.map((eid) => ({
-      elementId: eid,
-      description: elementDescriptionMap.get(eid) || '',
-    }));
-  }, [activeEvidence, elementMap, elementDescriptionMap]);
+    const ids = new Set([activeEvidence.evidenceId, activeEvidence.id]);
+    return claims.flatMap((claim, index) => (claim.claimMap?.elements || []).flatMap(element =>
+      (element.evidenceRefs || []).filter(ref => ids.has(ref.evidenceId)).map(ref => ({
+        elementId: element.elementId,
+        description: element.description,
+        relationship: ref.relationship,
+        reasoning: ref.reasoning,
+        claimLabel: scope === 'check' ? `Claim ${index + 1}` : undefined,
+      }))
+    ));
+  }, [activeEvidence, claims, scope]);
 
   return (
     <div>
