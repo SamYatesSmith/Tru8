@@ -1,0 +1,355 @@
+{
+  "protocol": {
+    "cases": [
+      [
+        "venus",
+        "Venus takes longer to rotate once on its axis than to orbit the Sun."
+      ],
+      [
+        "creatine",
+        "Taking creatine supplements prevents Parkinson's disease."
+      ],
+      [
+        "select",
+        "In the SELECT trial, semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes."
+      ]
+    ],
+    "scope": "Three live candidate local reports, actual retrieval, extraction, decomposition, classification, distillation and mapping; owner/public service responses. No HTTP browser/worker test or controlled candidate comparison.",
+    "criteria": [
+      "No vacuous decomposition",
+      "Population, endpoint, comparator and effect measure preserved",
+      "Directional labels justified by available source text",
+      "Source roles and independence honestly represented",
+      "Access limitations and incomplete evidence visible",
+      "Owner/public source ledger and identity agree"
+    ],
+    "limits": "600 seconds per case; stop on timeout/error; no automatic paid retries",
+    "flags": {
+      "passage_mapping": true,
+      "structured_extraction": false
+    }
+  },
+  "comparison_limit": "Single live candidate runs; prior default pools differ, so neither source counts nor total times establish a causal improvement.",
+  "cases": [
+    {
+      "case": "venus",
+      "check_id": "f6f414d8-4085-40b3-8d79-a5b9133d8470",
+      "status": {
+        "status": "completed",
+        "seconds": 39.6720000000023,
+        "unique_sources": 16,
+        "identity": {
+          "basis": "evidence_snapshot_v1",
+          "contentHash": "deaaa854c2d63500e547c0db79d874e3fdf4426dcbca1aa3ccb60f230406bbe4",
+          "revisionId": null,
+          "status": "unretained"
+        }
+      },
+      "elements": [
+        {
+          "description": "The time required for Venus to complete one full rotation on its axis is greater than the time required for Venus to complete one full orbit around the Sun.",
+          "state": "supported",
+          "uncertainty": null,
+          "relationships": 14
+        }
+      ],
+      "owner_public_url_sets_and_identity_equal": true,
+      "reported_tokens": {
+        "input_tokens": 32821,
+        "output_tokens": 5115,
+        "thinking_tokens": 1073
+      },
+      "reported_usage_by_stage": {
+        "analyzer": {
+          "input_tokens": 17555,
+          "output_tokens": 3554,
+          "thinking_tokens": 1073,
+          "models_used": {
+            "decomposition": "gemini-3.5-flash-lite",
+            "mapping": "gemini-3.7-flash",
+            "map_completion": "gemini-3.5-flash-lite",
+            "passage_review": "gemini-3.5-flash-lite",
+            "scope_review": "gemini-3.5-flash-lite"
+          },
+          "fallback_fired": {}
+        },
+        "classifier": {
+          "input_tokens": 2293,
+          "output_tokens": 614
+        },
+        "distiller": {
+          "input_tokens": 12973,
+          "output_tokens": 947
+        }
+      },
+      "timed_analyzer_calls": [
+        {
+          "label": "decomposition",
+          "seconds": 0.7339999999967404
+        },
+        {
+          "label": "mapping",
+          "seconds": 5.39100000000326
+        },
+        {
+          "label": "map_completion",
+          "seconds": 0.6409999999996217
+        },
+        {
+          "label": "passage_review",
+          "seconds": 5.40599999999904
+        },
+        {
+          "label": "scope_review",
+          "seconds": 1.610000000000582
+        }
+      ],
+      "review_coverage": {
+        "passage_review": {
+          "version": 1,
+          "coverage_scope": "lexically_matched_retained_passages",
+          "candidate_pairs": 13,
+          "selected_pairs": 12,
+          "assessed_pairs": 7,
+          "uninspected_pairs": 6,
+          "status": "needs_review"
+        },
+        "scope_review": {
+          "version": 1,
+          "method": "model_scope_review_not_entailment_proof",
+          "candidate_pairs": 4,
+          "selected_pairs": 4,
+          "assessed_pairs": 4,
+          "uninspected_pairs": 0,
+          "status": "complete"
+        }
+      },
+      "artifacts": {
+        "pipeline.json": "11b989f7c43fadf535bd340052c231ef28fc972ed1103844da31400007027484",
+        "owner.json": "cb4bceb212ec389ec34216acb98403b2e74554e6d6f728258cfc665e4b3aabc3",
+        "public.json": "b95e682b632aa089255a3fafdfa11fe712d795ee268e5cfe7b2054cc91478645",
+        "run.json": "b6ec40861054268317db9ce046f83f533edb59f2fedcca5afef7ce92d85def1d",
+        "status.json": "efcfb033d5b70deb97056598b7a5d79fadf9e081b7156e4c57f2ca3a73010ff2",
+        "stage-timing.json": "c0afd1b50e0013070042b04da790ad2dc9ad554c7dfc621eb162500b682bb78e"
+      }
+    },
+    {
+      "case": "creatine",
+      "check_id": "2f109e16-38b5-4e23-acba-0d1418fe6b88",
+      "status": {
+        "status": "completed",
+        "seconds": 47.25,
+        "unique_sources": 19,
+        "identity": {
+          "basis": "evidence_snapshot_v1",
+          "contentHash": "b5c4da44e23003a833e2968066fb1a2d8f63c141b681d4997792395fe6c1cd46",
+          "revisionId": null,
+          "status": "unretained"
+        }
+      },
+      "elements": [
+        {
+          "description": "Taking creatine supplements causes the prevention of Parkinson's disease.",
+          "state": "contextual",
+          "uncertainty": "Available sources discuss potential benefits for managing or supporting brain health in Parkinson's disease, but lack evidence demonstrating that creatine prevents the onset of the disease.",
+          "relationships": 14
+        }
+      ],
+      "owner_public_url_sets_and_identity_equal": true,
+      "reported_tokens": {
+        "input_tokens": 37187,
+        "output_tokens": 4302,
+        "thinking_tokens": 2146
+      },
+      "reported_usage_by_stage": {
+        "analyzer": {
+          "input_tokens": 18132,
+          "output_tokens": 2636,
+          "thinking_tokens": 2146,
+          "models_used": {
+            "decomposition": "gemini-3.5-flash-lite",
+            "mapping": "gemini-3.7-flash",
+            "map_completion": "gemini-3.5-flash-lite",
+            "passage_review": "gemini-3.5-flash-lite",
+            "recovery_mapping": "gemini-3.5-flash-lite"
+          },
+          "fallback_fired": {}
+        },
+        "classifier": {
+          "input_tokens": 2550,
+          "output_tokens": 572
+        },
+        "distiller": {
+          "input_tokens": 16505,
+          "output_tokens": 1094
+        }
+      },
+      "timed_analyzer_calls": [
+        {
+          "label": "decomposition",
+          "seconds": 0.7190000000009604
+        },
+        {
+          "label": "mapping",
+          "seconds": 8.514999999999418
+        },
+        {
+          "label": "map_completion",
+          "seconds": 1.235000000000582
+        },
+        {
+          "label": "passage_review",
+          "seconds": 3.75
+        },
+        {
+          "label": "recovery_mapping",
+          "seconds": 1.5940000000009604
+        }
+      ],
+      "review_coverage": {
+        "passage_review": {
+          "version": 1,
+          "coverage_scope": "lexically_matched_retained_passages",
+          "candidate_pairs": 12,
+          "selected_pairs": 12,
+          "assessed_pairs": 10,
+          "uninspected_pairs": 2,
+          "status": "needs_review"
+        },
+        "scope_review": {
+          "version": 1,
+          "method": "model_scope_review_not_entailment_proof",
+          "candidate_pairs": 0,
+          "selected_pairs": 0,
+          "assessed_pairs": 0,
+          "uninspected_pairs": 0,
+          "status": "not_run"
+        }
+      },
+      "artifacts": {
+        "pipeline.json": "e43f5b84ec14cb7675ad86134ee7729be14f627b032f5f7a7b422864660771f6",
+        "owner.json": "7b1bf353d89923d3b01070b426d99e1af3f6c25aaf88da5707b84f36334fc957",
+        "public.json": "c1ee33238674087fbcda60a9788a748c6fc4f3e99e17e7cb730d3f49a5e1bdef",
+        "run.json": "bbd83144700c1985d8585569686c876eb15890963bb0cd1b6351b7ee04dcb185",
+        "status.json": "42430e399938374c862077eb4b4964d0e6bf7fb4c5a6550f045d3f1a1db032e6",
+        "stage-timing.json": "527d3a1243745c0e09977b348f14cdf145efa8d215ff57dd856cce9ce4bf3df9"
+      }
+    },
+    {
+      "case": "select",
+      "check_id": "1682893b-b3ac-4a0c-b2ba-c5767daac3a5",
+      "status": {
+        "status": "completed",
+        "seconds": 44.76499999999942,
+        "unique_sources": 19,
+        "identity": {
+          "basis": "evidence_snapshot_v1",
+          "contentHash": "abf08ff7f05c71515b199cc3af5b2abecbb15e86dd2a211c093e9e541794f7d5",
+          "revisionId": null,
+          "status": "unretained"
+        }
+      },
+      "elements": [
+        {
+          "description": "In the SELECT trial, treatment with semaglutide resulted in a 20% reduction in major adverse cardiovascular events relative to placebo among adults with overweight or obesity and established cardiovascular disease without diabetes.",
+          "state": "supported",
+          "uncertainty": "Some evidence has a different scope from this element and is retained as context; see the relationship explanations.",
+          "relationships": 19
+        }
+      ],
+      "owner_public_url_sets_and_identity_equal": true,
+      "reported_tokens": {
+        "input_tokens": 50504,
+        "output_tokens": 7863,
+        "thinking_tokens": 1552
+      },
+      "reported_usage_by_stage": {
+        "analyzer": {
+          "input_tokens": 23663,
+          "output_tokens": 4419,
+          "thinking_tokens": 1552,
+          "models_used": {
+            "decomposition": "gemini-3.5-flash-lite",
+            "mapping": "gemini-3.7-flash",
+            "map_completion": "gemini-3.5-flash-lite",
+            "passage_review": "gemini-3.5-flash-lite",
+            "scope_review": "gemini-3.5-flash-lite"
+          },
+          "fallback_fired": {}
+        },
+        "classifier": {
+          "input_tokens": 3110,
+          "output_tokens": 749
+        },
+        "distiller": {
+          "input_tokens": 23731,
+          "output_tokens": 2695
+        }
+      },
+      "timed_analyzer_calls": [
+        {
+          "label": "decomposition",
+          "seconds": 0.7809999999990396
+        },
+        {
+          "label": "mapping",
+          "seconds": 8.0779999999977
+        },
+        {
+          "label": "map_completion",
+          "seconds": 1.0309999999990396
+        },
+        {
+          "label": "passage_review",
+          "seconds": 4.8439999999973224
+        },
+        {
+          "label": "scope_review",
+          "seconds": 2.5
+        }
+      ],
+      "review_coverage": {
+        "passage_review": {
+          "version": 1,
+          "coverage_scope": "lexically_matched_retained_passages",
+          "candidate_pairs": 15,
+          "selected_pairs": 12,
+          "assessed_pairs": 9,
+          "uninspected_pairs": 6,
+          "status": "needs_review"
+        },
+        "scope_review": {
+          "version": 1,
+          "method": "model_scope_review_not_entailment_proof",
+          "candidate_pairs": 9,
+          "selected_pairs": 9,
+          "assessed_pairs": 9,
+          "uninspected_pairs": 0,
+          "status": "complete"
+        }
+      },
+      "artifacts": {
+        "pipeline.json": "28138c85d4c443ffd4a01be74dc442bc3d34cc66d3fd05dafaed1fedb59645c2",
+        "owner.json": "06f857b2b8d675b78874a96830688c579c1c3b48249c1867df6c699023600bbd",
+        "public.json": "f4b2463192269556ce8e4f19955ac854d2bbab628a436134e12a147741422c06",
+        "run.json": "5e4e6f3e1b7234f9b2ce0c082ef4d22973bf75900d6e9304ccde819726dcc71b",
+        "status.json": "71ca8319e8800a2f3805c3cd51e9a39331173c9bb32e2c8b9bca6f6a55e261b5",
+        "stage-timing.json": "6458c24f34f6d28daa0dc3abb690a61b371c0436f8dff0a2ed795e27a9dd20a4"
+      }
+    }
+  ],
+  "unresolved_fidelity_failure": {
+    "case": "select",
+    "evidence_id": "ev-9a4a90c5321b",
+    "relationship": "supports",
+    "finding": "Saved methods/background PDF fragment and its explanation do not establish the complete 20% relative-effect assertion."
+  },
+  "decision": "Integrated runs complete, but wider evidence-fidelity acceptance fails. Candidate stays OFF; no 8/10 rating.",
+  "replay": {
+    "ok": 185,
+    "warn": 1,
+    "known_fail": 13,
+    "unexercised": 2,
+    "cassette_drift": 0
+  }
+}

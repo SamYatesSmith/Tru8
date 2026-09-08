@@ -1,0 +1,402 @@
+{
+  "protocol": {
+    "synthetic": true,
+    "cases": [
+      {
+        "id": "named_trial",
+        "claim": "In the LANE trial, intervention Q reduced hospital admissions in adults compared with placebo.",
+        "sources": [
+          [
+            "direct",
+            "LANE trial results",
+            "In the LANE randomized trial, intervention Q significantly reduced hospital admissions in adults compared with placebo.",
+            "supports"
+          ],
+          [
+            "different",
+            "RIVER trial results",
+            "In the RIVER randomized trial, intervention Q significantly reduced hospital admissions in adults compared with placebo. No LANE trial data are reported.",
+            "context"
+          ],
+          [
+            "null",
+            "LANE trial results",
+            "The LANE randomized placebo-controlled trial found identical hospital admission rates in adults receiving Q and placebo, excluding a meaningful reduction.",
+            "challenges"
+          ]
+        ]
+      },
+      {
+        "id": "population",
+        "claim": "Intervention Q reduces endpoint R in children compared with placebo.",
+        "sources": [
+          [
+            "direct",
+            "Pediatric trial",
+            "A randomized placebo-controlled trial enrolling children found intervention Q significantly reduced endpoint R.",
+            "supports"
+          ],
+          [
+            "adult",
+            "Adult trial",
+            "A randomized placebo-controlled trial enrolling only adults found intervention Q significantly reduced endpoint R. Children were excluded.",
+            "context"
+          ],
+          [
+            "null",
+            "Pediatric trial",
+            "A large randomized placebo-controlled trial enrolling children found no reduction in endpoint R with Q and excluded a meaningful benefit.",
+            "challenges"
+          ]
+        ]
+      },
+      {
+        "id": "association",
+        "claim": "Practice Q is associated with lower endpoint R in adults.",
+        "sources": [
+          [
+            "direct",
+            "Observational survey",
+            "In an observational adult survey, practice Q was associated with significantly lower endpoint R. Causation was not established.",
+            "supports"
+          ],
+          [
+            "child",
+            "Pediatric survey",
+            "In an observational survey limited to children, practice Q was associated with lower endpoint R. No adult participants were included.",
+            "context"
+          ],
+          [
+            "null",
+            "Adult survey",
+            "A large observational adult survey found no association between practice Q and lower endpoint R, with narrow intervals excluding a meaningful association.",
+            "challenges"
+          ]
+        ]
+      },
+      {
+        "id": "endpoint",
+        "claim": "Intervention Q reduces deaths in adults compared with placebo.",
+        "sources": [
+          [
+            "direct",
+            "Mortality trial",
+            "A randomized placebo-controlled adult trial found intervention Q significantly reduced deaths.",
+            "supports"
+          ],
+          [
+            "admissions",
+            "Hospitalization trial",
+            "A randomized adult trial found Q reduced hospital admissions compared with placebo. Deaths were not measured.",
+            "context"
+          ],
+          [
+            "null",
+            "Mortality trial",
+            "A large randomized placebo-controlled adult trial found identical death rates with Q and placebo, excluding a meaningful mortality reduction.",
+            "challenges"
+          ]
+        ]
+      }
+    ],
+    "repeats": 2,
+    "note": "Expectations fixed before execution; no factual application constants. Candidate only, not a human-held-out benchmark."
+  },
+  "results": [
+    {
+      "case": "named_trial",
+      "repeat": 0,
+      "seconds": 4.5,
+      "checks": [
+        {
+          "id": "direct",
+          "expected": "supports",
+          "actual": "context",
+          "pass": false
+        },
+        {
+          "id": "different",
+          "expected": "context",
+          "actual": "context",
+          "pass": true
+        },
+        {
+          "id": "null",
+          "expected": "challenges",
+          "actual": "challenges",
+          "pass": true
+        }
+      ],
+      "recital_receipt": {
+        "claim_subjects": [],
+        "subject_free": true,
+        "scoped_count": 1,
+        "scoped": [
+          {
+            "evidence_id": "ev-direct",
+            "was": "supports",
+            "marker": "restates the claim",
+            "excerpt": "LANE trial results In the LANE randomized trial, intervention Q significantly reduced hosp",
+            "found_in": "evidence",
+            "matched_chars": "52",
+            "claim_chars": "79"
+          }
+        ]
+      }
+    },
+    {
+      "case": "population",
+      "repeat": 0,
+      "seconds": 4.577999999997701,
+      "checks": [
+        {
+          "id": "direct",
+          "expected": "supports",
+          "actual": "supports",
+          "pass": true
+        },
+        {
+          "id": "adult",
+          "expected": "context",
+          "actual": "context",
+          "pass": true
+        },
+        {
+          "id": "null",
+          "expected": "challenges",
+          "actual": "challenges",
+          "pass": true
+        }
+      ],
+      "recital_receipt": null
+    },
+    {
+      "case": "association",
+      "repeat": 0,
+      "seconds": 4.688000000001921,
+      "checks": [
+        {
+          "id": "direct",
+          "expected": "supports",
+          "actual": "supports",
+          "pass": true
+        },
+        {
+          "id": "child",
+          "expected": "context",
+          "actual": null,
+          "pass": false
+        },
+        {
+          "id": "null",
+          "expected": "challenges",
+          "actual": "challenges",
+          "pass": true
+        }
+      ],
+      "recital_receipt": null
+    },
+    {
+      "case": "endpoint",
+      "repeat": 0,
+      "seconds": 4.171999999998661,
+      "checks": [
+        {
+          "id": "direct",
+          "expected": "supports",
+          "actual": "supports",
+          "pass": true
+        },
+        {
+          "id": "admissions",
+          "expected": "context",
+          "actual": "context",
+          "pass": true
+        },
+        {
+          "id": "null",
+          "expected": "challenges",
+          "actual": "challenges",
+          "pass": true
+        }
+      ],
+      "recital_receipt": null
+    },
+    {
+      "case": "named_trial",
+      "repeat": 1,
+      "seconds": 4.343000000000757,
+      "checks": [
+        {
+          "id": "direct",
+          "expected": "supports",
+          "actual": "context",
+          "pass": false
+        },
+        {
+          "id": "different",
+          "expected": "context",
+          "actual": null,
+          "pass": false
+        },
+        {
+          "id": "null",
+          "expected": "challenges",
+          "actual": "challenges",
+          "pass": true
+        }
+      ],
+      "recital_receipt": {
+        "claim_subjects": [],
+        "subject_free": true,
+        "scoped_count": 1,
+        "scoped": [
+          {
+            "evidence_id": "ev-direct",
+            "was": "supports",
+            "marker": "restates the claim",
+            "excerpt": "LANE trial results In the LANE randomized trial, intervention Q significantly reduced hosp",
+            "found_in": "evidence",
+            "matched_chars": "52",
+            "claim_chars": "79"
+          }
+        ]
+      }
+    },
+    {
+      "case": "population",
+      "repeat": 1,
+      "seconds": 4.265999999999622,
+      "checks": [
+        {
+          "id": "direct",
+          "expected": "supports",
+          "actual": "supports",
+          "pass": true
+        },
+        {
+          "id": "adult",
+          "expected": "context",
+          "actual": "context",
+          "pass": true
+        },
+        {
+          "id": "null",
+          "expected": "challenges",
+          "actual": "challenges",
+          "pass": true
+        }
+      ],
+      "recital_receipt": null
+    },
+    {
+      "case": "association",
+      "repeat": 1,
+      "seconds": 3.8909999999996217,
+      "checks": [
+        {
+          "id": "direct",
+          "expected": "supports",
+          "actual": "supports",
+          "pass": true
+        },
+        {
+          "id": "child",
+          "expected": "context",
+          "actual": "context",
+          "pass": true
+        },
+        {
+          "id": "null",
+          "expected": "challenges",
+          "actual": "challenges",
+          "pass": true
+        }
+      ],
+      "recital_receipt": null
+    },
+    {
+      "case": "endpoint",
+      "repeat": 1,
+      "seconds": 3.937000000001717,
+      "checks": [
+        {
+          "id": "direct",
+          "expected": "supports",
+          "actual": "supports",
+          "pass": true
+        },
+        {
+          "id": "admissions",
+          "expected": "context",
+          "actual": "context",
+          "pass": true
+        },
+        {
+          "id": "null",
+          "expected": "challenges",
+          "actual": "challenges",
+          "pass": true
+        }
+      ],
+      "recital_receipt": null
+    }
+  ],
+  "passed": 20,
+  "checks": 24,
+  "failure_breakdown": {
+    "false_restatement_exclusions": 2,
+    "expected_context_omissions": 2
+  },
+  "isolation": {
+    "method": "Offline real mapping parser, same forced support response; default and candidate settings. No model call.",
+    "results": [
+      {
+        "candidate_enabled": false,
+        "relationship": "context",
+        "receipt": {
+          "claim_subjects": [],
+          "subject_free": true,
+          "scoped_count": 1,
+          "scoped": [
+            {
+              "evidence_id": "ev-direct",
+              "was": "supports",
+              "marker": "restates the claim",
+              "excerpt": "LANE trial results In the LANE randomized trial, intervention Q significantly reduced hosp",
+              "found_in": "evidence",
+              "matched_chars": "52",
+              "claim_chars": "79"
+            }
+          ]
+        }
+      },
+      {
+        "candidate_enabled": true,
+        "relationship": "context",
+        "receipt": {
+          "claim_subjects": [],
+          "subject_free": true,
+          "scoped_count": 1,
+          "scoped": [
+            {
+              "evidence_id": "ev-direct",
+              "was": "supports",
+              "marker": "restates the claim",
+              "excerpt": "LANE trial results In the LANE randomized trial, intervention Q significantly reduced hosp",
+              "found_in": "evidence",
+              "matched_chars": "52",
+              "claim_chars": "79"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "artifacts": {
+    "protocol.json": "b80e6e14e785934dcd5c8b9f6c9e010abf4ebdfc0b294154346140352cdb4a54",
+    "results.json": "81c3c2e36dbd9f023a12b87459fcc69d741c0d33eca4834d6aed58b6f0535e81",
+    "recital-isolation.json": "d1eaac2b5c12b84d003ac9e49f2a5330cf99785ee19f57afd7f528bf7711aff2"
+  },
+  "decision": "Strict predeclared gate fails. Recital false exclusion reproduces with default and candidate flags; no post-hoc relaxation of expected context labels."
+}
