@@ -4,11 +4,34 @@ import asyncio
 import copy
 import json
 import re
+from collections import Counter
 
 from app.services.text_provenance import _terms
 
 MAX_PAIRS = 12
 MAX_PASSAGES_PER_PAIR = 2
+
+
+def rank_passages(passages, terms):
+    """Prefer terms that distinguish passages within this document.
+
+    Raw overlap lets repeated background vocabulary crowd out a specific
+    exception or endpoint. Frequency is computed from these retained passages,
+    never from a maintained topic/domain dictionary.
+    """
+    tokens = [_terms(p["text"]) for p in passages]
+    frequency = Counter(term for words in tokens for term in words)
+    # Preserve exact compound identifiers (error codes, API/config names).
+    # Their components are not interchangeable with surrounding prose.
+    identifiers = {t for t in terms if re.fullmatch(r"\w+_\w+", t)}
+    ranked = sorted(
+        zip(passages, tokens),
+        key=lambda pair: (
+            -len(identifiers & pair[1]),
+            -sum(1 / frequency[t] for t in terms & pair[1]),
+        ),
+    )
+    return [passage for passage, words in ranked if terms & words]
 
 PASSAGE_RESPONSE_SCHEMA = {
     "type": "OBJECT",
@@ -115,10 +138,7 @@ def plan_pairs(claim_map, evidence):
             ):
                 continue
             passages = valid_passages(ev)
-            passages.sort(key=lambda p: -len(terms & _terms(p["text"])))
-            passages = [p for p in passages if terms & _terms(p["text"])][
-                :MAX_PASSAGES_PER_PAIR
-            ]
+            passages = rank_passages(passages, terms)[:MAX_PASSAGES_PER_PAIR]
             if passages:
                 queue.append(
                     {

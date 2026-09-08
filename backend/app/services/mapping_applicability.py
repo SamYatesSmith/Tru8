@@ -10,6 +10,13 @@ ELEMENT AND TIME APPLICABILITY:
   For challenges, explain the incompatible proposition actually stated by the
   source. Missing information is not contradiction. A quotation's exact presence
   proves text occurrence, not that it entails the chosen relationship.
+- Preserve the element's quantifiers and full conclusion. Evidence that a
+  mechanism reduces a problem does not support a claim that it eliminates all
+  occurrences. Read the complete supplied excerpts before selecting a quote:
+  an explicit exception can challenge a universal claim even when the preceding
+  sentence describes the usual benefit. Do not quote the benefit as support for
+  a universal conclusion while ignoring its stated exception. Explain how the
+  quotation bears on the complete element, not just its premise or topic.
 - For a time-qualified changing fact, distinguish when the fact applied from
   when the page was published, updated, retrieved, or displayed a clock. None of
   those page dates alone establishes the fact's effective date or interval.

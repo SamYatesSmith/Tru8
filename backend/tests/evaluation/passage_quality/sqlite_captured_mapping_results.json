@@ -1,0 +1,271 @@
+{
+  "scope": "captured mapping only; not live retrieval, full distillation or product score",
+  "expected_official_relationships": {
+    "e1": [
+      "supports"
+    ],
+    "e2": [
+      "challenges"
+    ],
+    "e3": [
+      "challenges"
+    ]
+  },
+  "activation_gate": "failed",
+  "sweeps": [
+    {
+      "name": "sqlite-captured-mapping-evaluation",
+      "input_sha256": "cca6ba58670cc0ee7f1477d77e4196912ba6b0ff322c91a5646b3d0becc7eb28",
+      "requests": 10,
+      "request_characters": 174958,
+      "arms": [
+        {
+          "arm": 0,
+          "passage": false,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [],
+            "e3": []
+          },
+          "all_three_expected": false
+        },
+        {
+          "arm": 1,
+          "passage": true,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [
+              "challenges"
+            ],
+            "e3": [
+              "context"
+            ]
+          },
+          "all_three_expected": false
+        },
+        {
+          "arm": 2,
+          "passage": true,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [
+              "challenges"
+            ],
+            "e3": [
+              "challenges"
+            ]
+          },
+          "all_three_expected": true
+        },
+        {
+          "arm": 3,
+          "passage": false,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [],
+            "e3": []
+          },
+          "all_three_expected": false
+        }
+      ]
+    },
+    {
+      "name": "sqlite-captured-mapping-correction",
+      "input_sha256": "cca6ba58670cc0ee7f1477d77e4196912ba6b0ff322c91a5646b3d0becc7eb28",
+      "requests": 10,
+      "request_characters": 175201,
+      "arms": [
+        {
+          "arm": 0,
+          "passage": false,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [],
+            "e3": []
+          },
+          "all_three_expected": false
+        },
+        {
+          "arm": 1,
+          "passage": true,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [
+              "challenges"
+            ],
+            "e3": [
+              "context"
+            ]
+          },
+          "all_three_expected": false
+        },
+        {
+          "arm": 2,
+          "passage": true,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [
+              "challenges"
+            ],
+            "e3": []
+          },
+          "all_three_expected": false
+        },
+        {
+          "arm": 3,
+          "passage": false,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [],
+            "e3": []
+          },
+          "all_three_expected": false
+        }
+      ]
+    },
+    {
+      "name": "sqlite-captured-mapping-identifiers",
+      "input_sha256": "cca6ba58670cc0ee7f1477d77e4196912ba6b0ff322c91a5646b3d0becc7eb28",
+      "requests": 10,
+      "request_characters": 177365,
+      "arms": [
+        {
+          "arm": 0,
+          "passage": false,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [],
+            "e3": []
+          },
+          "all_three_expected": false
+        },
+        {
+          "arm": 1,
+          "passage": true,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [
+              "supports"
+            ],
+            "e3": [
+              "challenges"
+            ]
+          },
+          "all_three_expected": false
+        },
+        {
+          "arm": 2,
+          "passage": true,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [
+              "supports"
+            ],
+            "e3": [
+              "challenges"
+            ]
+          },
+          "all_three_expected": false
+        },
+        {
+          "arm": 3,
+          "passage": false,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [],
+            "e3": []
+          },
+          "all_three_expected": false
+        }
+      ]
+    },
+    {
+      "name": "sqlite-captured-mapping-quantifiers",
+      "input_sha256": "cca6ba58670cc0ee7f1477d77e4196912ba6b0ff322c91a5646b3d0becc7eb28",
+      "requests": 10,
+      "request_characters": 180712,
+      "arms": [
+        {
+          "arm": 0,
+          "passage": false,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [],
+            "e3": []
+          },
+          "all_three_expected": false
+        },
+        {
+          "arm": 1,
+          "passage": true,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [
+              "supports"
+            ],
+            "e3": [
+              "challenges"
+            ]
+          },
+          "all_three_expected": false
+        },
+        {
+          "arm": 2,
+          "passage": true,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [
+              "challenges"
+            ],
+            "e3": [
+              "challenges"
+            ]
+          },
+          "all_three_expected": true
+        },
+        {
+          "arm": 3,
+          "passage": false,
+          "relationships": {
+            "e1": [
+              "supports"
+            ],
+            "e2": [],
+            "e3": []
+          },
+          "all_three_expected": false
+        }
+      ]
+    }
+  ]
+}

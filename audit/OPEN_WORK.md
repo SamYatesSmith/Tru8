@@ -1,6 +1,6 @@
 # Open Work Register
 
-> **2026-09-08 — Source role/concentration separation implemented and regression-checked.** Removed post-mapping relabelling based solely on domain share. New reports and strengthening record mapped-document concentration separately; evidence/Gaps notice explains that repeated publishers do not establish independence. Existing reports are not relabelled retrospectively. Twenty focused backend checks, web 187 full-suite plus 2 new notice checks, and TypeScript passed; replay matched 185/1/13/2 with no cassette drift. The 8/10 target remains unproven: official exception mapping, broader held-out review, decomposition/independence, PDF/browser acceptance and operational checks remain open. Details: [source roles and 8/10 gate](2026-09-08_source_roles.md).
+> **2026-09-08 — Captured SQLite mapping comparison: candidate still fails activation gate.** Four repeated default/candidate sweeps on the same 19 saved sources isolated passage selection and full-proposition judgement. Generic identifier-preserving passage ranking now recovers the official BUSY exception, but the final candidate still wrongly supports the related universal element in one of two repeats. Candidate remains OFF; 8/10 not demonstrated. Seventy-six focused checks passed; final replay matched 185/1/13/2, no cassette drift. Details: [captured mapping gate](2026-09-08_captured_mapping_gate.md).
 
 > **Single source of truth for what's currently open in Tru8.**
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.

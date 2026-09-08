@@ -4,6 +4,35 @@ from unittest.mock import AsyncMock
 import pytest
 
 
+def test_passage_ranking_recovers_distinguishing_exception_over_repeated_background():
+    from app.services.passage_mapping import rank_passages
+    from app.services.text_provenance import _terms
+
+    passages = [{"text": "Concurrent readers writers database logging."} for _ in range(6)]
+    exception = {"text": "The database can still return ERROR_LOCKED."}
+    passages.append(exception)
+    before = copy.deepcopy(passages)
+    ranked = rank_passages(passages, _terms("Concurrent readers writers database logging prevents ERROR_LOCKED"))
+    assert exception in ranked[:2]
+    assert passages == before
+
+
+def test_passage_ranking_keeps_stable_ties_and_rejects_no_overlap():
+    from app.services.passage_mapping import rank_passages
+    first, second = {"text": "alpha"}, {"text": "alpha beta"}
+    assert rank_passages([first, second, {"text": "gamma"}], {"alpha"}) == [first, second]
+
+
+def test_exact_identifier_survives_distracting_rare_operational_words():
+    from app.services.passage_mapping import rank_passages
+    from app.services.text_provenance import _terms
+
+    relevant = {"text": "Operations can return ERROR_LOCKED."}
+    distractor = {"text": "Unusual operational conditions occur during maintenance."}
+    passages = [distractor, {"text": "Conditions never change automatically."}, relevant]
+    assert rank_passages(passages, _terms("ERROR_LOCKED never occurs under unusual operational conditions"))[0] == relevant
+
+
 @pytest.mark.asyncio
 async def test_pair_review_uses_dedicated_provider_schema(monkeypatch):
     from app.services.passage_mapping import PASSAGE_RESPONSE_SCHEMA
