@@ -6,7 +6,6 @@ for a single element, appending new evidence to the existing claim.
 
 import asyncio
 import copy
-import hashlib
 import json
 import logging
 from datetime import datetime, timezone
@@ -20,7 +19,11 @@ from sqlalchemy.orm.attributes import flag_modified
 from app.core.config import settings
 from app.core.database import async_session
 from app.models import Claim, Evidence
-from app.utils.date_utils import parse_date
+from app.services.evidence_payload import (
+    evidence_for_mapping,
+    evidence_from_mapping,
+    prepare_new_evidence,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -214,11 +217,7 @@ async def run_element_re_search(
                 ev["receipt_status"] = "classified"
 
             # 5. Deduplicate against existing evidence
-            deduped = [
-                ev
-                for ev in new_evidence_list
-                if ev.get("url", "") not in existing_urls and ev.get("url", "")
-            ]
+            deduped = prepare_new_evidence(new_evidence_list, existing_urls)
 
             if not deduped:
                 update(
@@ -232,18 +231,7 @@ async def run_element_re_search(
             update("mapping", "Mapping evidence to elements...")
 
             # Build evidence dicts from existing DB records
-            existing_ev_dicts = []
-            for ev in existing_evidence:
-                existing_ev_dicts.append(
-                    {
-                        "evidence_id": ev.evidence_id,
-                        "title": ev.title,
-                        "snippet": ev.snippet,
-                        "text": ev.snippet,
-                        "url": ev.url,
-                        "source": ev.source,
-                    }
-                )
+            existing_ev_dicts = [evidence_for_mapping(ev) for ev in existing_evidence]
 
             all_evidence_for_mapping = existing_ev_dicts + deduped
 
@@ -270,28 +258,7 @@ async def run_element_re_search(
             # 7. Save to DB
             # Save new evidence records
             for ev_data in deduped:
-                evidence_id = ev_data.get("evidence_id")
-                if not evidence_id:
-                    url_hash = hashlib.sha256(
-                        ev_data.get("url", "").encode()
-                    ).hexdigest()[:12]
-                    evidence_id = f"ev-{url_hash}"
-
-                new_ev = Evidence(
-                    claim_id=claim_id,
-                    evidence_id=evidence_id,
-                    source=ev_data.get("source", "Unknown"),
-                    url=ev_data.get("url", ""),
-                    title=ev_data.get("title", ""),
-                    snippet=ev_data.get("snippet", ev_data.get("text", "")),
-                    published_date=parse_date(ev_data.get("published_date")),
-                    date_basis=ev_data.get("date_basis"),
-                    relevance_score=float(ev_data.get("relevance_score", 0.0) or 0.0),
-                    tier=ev_data.get("tier"),
-                    evidence_type=ev_data.get("evidence_type"),
-                    receipt_status=ev_data.get("receipt_status", "shown"),
-                    external_source_provider=ev_data.get("external_source_provider"),
-                )
+                new_ev = evidence_from_mapping(claim_id, ev_data)
                 session.add(new_ev)
 
             # Update claim_map on claim
