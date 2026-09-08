@@ -1,0 +1,220 @@
+{
+  "protocol": {
+    "cases": [
+      [
+        "venus",
+        "Venus takes longer to rotate once on its axis than to orbit the Sun."
+      ],
+      [
+        "creatine",
+        "Taking creatine supplements prevents Parkinson's disease."
+      ],
+      [
+        "select",
+        "In the SELECT trial, semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes."
+      ]
+    ],
+    "scope": "Three live default local reports, actual retrieval, extraction, decomposition, classification, distillation and mapping; owner/public service responses. No HTTP browser/worker test or controlled candidate comparison.",
+    "criteria": [
+      "No vacuous decomposition",
+      "Population, endpoint, comparator and effect measure preserved",
+      "Directional labels justified by available source text",
+      "Source roles and independence honestly represented",
+      "Access limitations and incomplete evidence visible",
+      "Owner/public source ledger and identity agree"
+    ],
+    "limits": "600 seconds per case; stop on timeout/error; no automatic paid retries",
+    "flags": {
+      "passage_mapping": false,
+      "structured_extraction": false
+    }
+  },
+  "candidate_comparison": false,
+  "review_type": "Agent diagnostic review of all 39 displayed relationships and available source payloads; not blinded human adjudication or a precision score.",
+  "excluded_run": "tmp/report-quality-pilot: restricted external sockets (WinError 10013), fallback processing; stopped and excluded from quality results.",
+  "cases": [
+    {
+      "case": "venus",
+      "check_id": "1a087b93-ffd5-4d8b-9551-5154b2262e3a",
+      "status": {
+        "status": "completed",
+        "seconds": 41.45300000000134,
+        "unique_sources": 11,
+        "identity": {
+          "basis": "evidence_snapshot_v1",
+          "contentHash": "fbfbb2e4e71b5b9734c003d1b300c00e3e93d99d7cbe31b65e751236f783a8d0",
+          "revisionId": null,
+          "status": "unretained"
+        }
+      },
+      "models": {
+        "decomposition_model": "gemini-3.5-flash-lite",
+        "mapping_model": "gemini-3.7-flash"
+      },
+      "elements": [
+        {
+          "id": "e1",
+          "description": "The rotational period of Venus on its axis exceeds its orbital period around the Sun.",
+          "state": "supported",
+          "uncertainty": null,
+          "relationships": 9
+        }
+      ],
+      "relationship_count": 9,
+      "directional_count": 4,
+      "source_access_counts": {
+        "full": 2,
+        "distilled": 7,
+        "snippet": 1,
+        "None": 1
+      },
+      "owner_public_identity_and_url_sets_equal": true,
+      "findings": [
+        "One useful comparative element; supported by retained NASA content.",
+        "Unmapped YouTube boilerplate labelled full; one mapped source lacks content basis."
+      ],
+      "artifacts": {
+        "run.json": "0ad013739e1c771c7c804e541463f6b6d20080473f7289a1afcd100d02f29c42",
+        "pipeline.json": "42c290b7eddae0d05e23da09efb4ec6b9e16369059dd06c74e13005987f93017",
+        "owner.json": "1322baf3d817c38b280e25b5f4accd640321e47321338a7dd098d7a4d397dfe2",
+        "public.json": "a70c077e8518d20aeddf7f60f37123b7490b67527a69477b1c7c0bc822b75e29",
+        "status.json": "043dceebd2614978bed4a2f06fab9192cd966471da7d6b03ac5f63de8dba3d84"
+      }
+    },
+    {
+      "case": "creatine",
+      "check_id": "705c9a59-8ac3-46fb-9f5c-d848828513b8",
+      "status": {
+        "status": "completed",
+        "seconds": 63.71900000000096,
+        "unique_sources": 21,
+        "identity": {
+          "basis": "evidence_snapshot_v1",
+          "contentHash": "41b3fc5516c12e07507f048c8565d0f589261f8a4bddd90ef5b91c5c17e624b1",
+          "revisionId": null,
+          "status": "unretained"
+        }
+      },
+      "models": {
+        "decomposition_model": "gemini-3.5-flash-lite",
+        "mapping_model": "gemini-3.7-flash"
+      },
+      "elements": [
+        {
+          "id": "e1",
+          "description": "Creatine supplements are successfully ingested and absorbed by the human body.",
+          "state": "unresolved",
+          "uncertainty": "No evidence was provided addressing the ingestion and absorption of creatine supplements in the human body.",
+          "relationships": 0
+        },
+        {
+          "id": "e2",
+          "description": "Creatine supplementation produces biological changes in the brain that protect neurological cells from degeneration associated with Parkinson's disease.",
+          "state": "contextual",
+          "uncertainty": "Available evidence is limited to preclinical or rat models regarding brain protection mechanisms, lacking direct confirmation in humans.",
+          "relationships": 4
+        },
+        {
+          "id": "e3",
+          "description": "The biological mechanisms induced by creatine directly prevent the development of Parkinson's disease compared to not taking creatine.",
+          "state": "disputed",
+          "uncertainty": "Extensive clinical trial data contradicts the claim that creatine prevents or slows Parkinson's disease.",
+          "relationships": 10
+        }
+      ],
+      "relationship_count": 14,
+      "directional_count": 7,
+      "source_access_counts": {
+        "full": 1,
+        "distilled": 6,
+        "snippet": 14,
+        "None": 0
+      },
+      "owner_public_identity_and_url_sets_equal": true,
+      "findings": [
+        "Vacuous ingestion/absorption element and unrequested mechanistic premise.",
+        "Progression/treatment evidence used as challenge to onset prevention; uncertainty conflates endpoints.",
+        "Preclinical mechanism sources correctly contextual; 14 of 21 sources snippet-only."
+      ],
+      "artifacts": {
+        "run.json": "4873be8d51995852dbec6e2a651b9e1044e9295db0bf0650c7afdc9663c17bd8",
+        "pipeline.json": "e8fbd790ea1108259b56f22244feb0a5517a844f17a6055863e30b71f3ff4f08",
+        "owner.json": "2d615150b38d0186791beec9d4a270f79af1593f6bd0a6aa2bf5b78b669311c5",
+        "public.json": "45f456b2537f7da45983d35375d189d47ba6a8d86a8e5fe5f44e1eb2dc48561e",
+        "status.json": "ebc7db511ee4bafd324f819927948a6ce707e81c3e72162a5b24744dafccc49b"
+      }
+    },
+    {
+      "case": "select",
+      "check_id": "cb7ea7a2-076c-44db-bdb0-180b051afbfb",
+      "status": {
+        "status": "completed",
+        "seconds": 35.21900000000096,
+        "unique_sources": 16,
+        "identity": {
+          "basis": "evidence_snapshot_v1",
+          "contentHash": "04147e33ce18c11525aea4598c6ac9e227ac53985114afbfd936115ca1235efa",
+          "revisionId": null,
+          "status": "unretained"
+        }
+      },
+      "models": {
+        "decomposition_model": "gemini-3.5-flash-lite",
+        "mapping_model": "gemini-3.7-flash"
+      },
+      "elements": [
+        {
+          "id": "e1",
+          "description": "The SELECT trial was conducted on a population consisting of adults with overweight or obesity and established cardiovascular disease without diabetes.",
+          "state": "supported",
+          "uncertainty": "Trial inclusion criteria defined overweight/obesity as BMI \u226527 kg/m\u00b2 with prior cardiovascular events rather than general population obesity.",
+          "relationships": 4
+        },
+        {
+          "id": "e2",
+          "description": "Semaglutide administration resulted in a causal reduction of major adverse cardiovascular events relative to placebo within the SELECT trial cohort.",
+          "state": "supported",
+          "uncertainty": "Reductions were observed over a mean follow-up of 40 months when added to standard secondary cardiovascular prevention care.",
+          "relationships": 5
+        },
+        {
+          "id": "e3",
+          "description": "The magnitude of the reduction in major adverse cardiovascular events achieved by semaglutide was exactly 20% compared to the placebo group in the SELECT trial.",
+          "state": "supported",
+          "uncertainty": "The 20% figure represents relative risk reduction (HR 0.80 with 95% CI 0.72-0.90), corresponding to an absolute risk reduction of 1.5% (6.5% vs 8.0%).",
+          "relationships": 7
+        }
+      ],
+      "relationship_count": 16,
+      "directional_count": 12,
+      "source_access_counts": {
+        "full": 0,
+        "distilled": 13,
+        "snippet": 3,
+        "None": 0
+      },
+      "owner_public_identity_and_url_sets_equal": true,
+      "findings": [
+        "Population and composite endpoint retained.",
+        "Relative-effect wording dropped and exactly added to magnitude element.",
+        "Original trial result unavailable in retained introductory NEJM snippet.",
+        "SCORE association mapped as causal support for SELECT; cited background counted as primary and apparent alternate publication hosts counted separately."
+      ],
+      "artifacts": {
+        "run.json": "4f2423ce346677f3c8aa79640b0b73297e9fce9fc1e0cd9a9a82675b34266c9c",
+        "pipeline.json": "5b4e89a2b293f925df6b97bd636793fa590f416b47ac1b5e374ad15a89283eae",
+        "owner.json": "00268a422ed7ad5bd5b98c3fe5bdcaa1f121153230a221b90808c47592d32424",
+        "public.json": "ffbb1ab4c39ea3e1e1a9f010699fbb7219748a43662517cc31677f88a4eb4f95",
+        "status.json": "2101611ebbf85ccfc30d7b82be4a2cff750b55771acca5ef55e8084afc01bc6a"
+      }
+    }
+  ],
+  "replay": {
+    "ok": 185,
+    "warn": 1,
+    "known_fail": 13,
+    "unexercised": 2,
+    "cassette_drift": 0
+  },
+  "decision": "Not ready for 8/10 reassessment or candidate activation. Next bounded correction: decomposition and population/endpoint/study-design fidelity, preserving sources."
+}
