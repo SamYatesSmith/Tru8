@@ -7,6 +7,7 @@ import { TierStamp } from './TierStamp';
 import { TypeStamp } from './TypeStamp';
 import { FactCheckRating } from '../FactCheckRating';
 import { DateHint } from '../DateHint';
+import { TemporalDetails } from '../TemporalDetails';
 import { cleanTitle, getFaviconUrl } from '../shared-utils';
 
 function extractDomain(url: string): string {
@@ -50,7 +51,9 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
     panel.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
   }, [evidence.id]);
   const domain = extractDomain(evidence.url);
-  const date = formatDate(evidence.publishedDate);
+  const publication = evidence.textProvenance?.temporal?.publication;
+  const date = formatDate(publication?.representation === 'supplied_string'
+    ? publication.supplied_value || undefined : evidence.publishedDate);
   const faviconUrl = getFaviconUrl(evidence.url);
   const tier = evidence.tier || 'commentary';
   const firstLetter = domain.charAt(0).toUpperCase();
@@ -173,6 +176,8 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
           </details>
         </section>
       )}
+
+      <TemporalDetails evidence={evidence} />
 
       {/* Claim label (check-wide) */}
       {claimLabel && (

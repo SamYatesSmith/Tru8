@@ -9,6 +9,8 @@ import hashlib
 import re
 from datetime import datetime, timezone
 
+from app.services.temporal_provenance import temporal_receipt
+
 WINDOW_CHARS = 900
 MAX_PASSAGES = 8
 STOP_WORDS = set(
@@ -92,19 +94,23 @@ def capture_text_provenance(item: dict, claim_text: str = "", elements=None):
     if not isinstance(full_text, str) or not full_text.strip():
         return
     passages = select_passages(full_text, claim_text, elements or [])
+    digest = hashlib.sha256(full_text.encode("utf-8")).hexdigest()
     item["text_provenance"] = {
         "version": 1,
         "capture_kind": "extracted_text",
         "captured_at": datetime.now(timezone.utc).isoformat(),
         "source_url": item.get("url"),
         "input_content_basis": item.get("content_basis"),
-        "extraction_sha256": hashlib.sha256(full_text.encode("utf-8")).hexdigest(),
+        "extraction_sha256": digest,
         "extraction_characters": len(full_text),
         "retained_characters": sum(len(p["text"]) for p in passages),
         "offset_unit": "unicode_code_points",
         "selection_method": "lexical_element_windows_v1",
         "original_snippet": item.get("snippet") or item.get("text") or "",
         "passages": passages,
+        "temporal": temporal_receipt(
+            passages, digest, item.get("published_date"), item.get("date_basis")
+        ),
     }
 
 

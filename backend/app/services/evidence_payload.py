@@ -15,6 +15,13 @@ def evidence_for_mapping(evidence: Evidence) -> dict[str, Any]:
     payload = evidence.model_dump(mode="json", exclude={"id", "claim_id", "created_at"})
     payload["evidence_id"] = evidence.evidence_id or evidence.id
     payload["text"] = evidence.snippet
+    publication = ((evidence.text_provenance or {}).get("temporal") or {}).get(
+        "publication"
+    ) or {}
+    if publication.get("representation") == "supplied_string":
+        # Preserve pre-storage precision on strengthening. Do not reconstruct it
+        # from a January 1 datetime or manufacture receipts for old records.
+        payload["published_date"] = publication.get("supplied_value")
     return payload
 
 

@@ -90,6 +90,22 @@ export type ReceiptStatus =
   | 'unmapped'
   | 'shown';
 
+export interface TemporalProvenance {
+  version: 1;
+  publication: {
+    supplied_value: string | null;
+    representation: 'supplied_string' | 'normalised_date' | 'missing';
+    precision: 'year' | 'month' | 'day' | 'timestamp' | 'unknown';
+    date_basis?: string | null;
+  };
+  applicability_status: 'unestablished';
+  scan_scope: 'retained_passages';
+  candidate_count: number;
+  unretained_candidates: number;
+  statements: { kind: 'effective_start' | 'effective_end' | 'as_of'; stated_date: string;
+    review_status: 'unreviewed'; citation: PassageCitation }[];
+}
+
 export interface TextProvenance {
   version: number;
   capture_kind: 'extracted_text';
@@ -99,6 +115,7 @@ export interface TextProvenance {
   retained_characters: number;
   original_snippet: string;
   derived_text?: string;
+  temporal?: TemporalProvenance;
   passages: { id: string; start: number; end: number; text: string; matched_element_ids: string[] }[];
 }
 

@@ -22,6 +22,7 @@ async def test_initial_save_retains_exact_extraction(database):
         "evidence_id": "captured",
         "url": "https://example.invalid",
         "text": "Stored snippet",
+        "published_date": "2025",
         "_full_text": "Exact source text including late exceptions. " * 30,
     }
     capture_text_provenance(item, "exceptions")
@@ -44,6 +45,10 @@ async def test_initial_save_retains_exact_extraction(database):
     async with database() as session:
         row = (await session.execute(select(Evidence))).scalar_one()
         assert row.text_provenance == item["text_provenance"]
+        from app.services.evidence_payload import evidence_for_mapping
+
+        assert evidence_for_mapping(row)["published_date"] == "2025"
+        assert row.text_provenance["temporal"]["publication"]["precision"] == "year"
         assert (
             _serialize_evidence(row)["textProvenance"]["original_snippet"]
             == "Stored snippet"
