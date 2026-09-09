@@ -17,9 +17,13 @@
 > **Later the same night (`f77e5e2`):** the widened invented-precision list strips
 > "specifically" from one element each on `TRU-C1A0-0003` and `TRU-C1A0-0004`, which
 > re-keys their mapping cassettes (bisected: reverting the two utils replays 0004 at
-> 20 ok). Both need a `--record` (owed). Until then the replay reads
-> **83 ok / 0 warn / 11 fail with drift on 82CF, 0003, 0004** (5647 replayed CLEAN on
-> that run — the flaky pair drifts at random, not always).
+> 20 ok). 0003 and 0004 were re-recorded the same night (`--record` +
+> `--record-missing`, replay-verified at zero misses; 0003 gains one thin-pool fail,
+> 3 domains). The same strip ALSO re-keys `TRU-018F-44AA` (e1 "specifically";
+> deterministic, 28 misses) — its re-record is DEFERRED on purpose: the next build
+> (decomposition specificity, a prompt change) re-keys every cassette again, so
+> record once after it. **End-of-day pass state: `117 ok / 4 warn / 10 fail` + 3
+> drift (82CF and 5647 at random; 018F re-keyed, owed).**
 >
 > So: **`140 ok / 1 warn / 11 fail / 3 unexercised` + 2 cassette-drift claims is the
 > current PASS state** (2026-09-09 full corpus re-record after the decomposition
