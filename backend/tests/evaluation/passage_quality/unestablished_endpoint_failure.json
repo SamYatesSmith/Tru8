@@ -1,0 +1,116 @@
+{
+  "origin": "2026-09-09 integrated creatine report; unproven benefit is not a measured prevention null result",
+  "pipeline_sha256": "cbf6c078d9245831bf482478b1c2504f0de53329aa87a0199273005d5956c5b1",
+  "claim": "Taking creatine supplements is a cause of preventing the onset of Parkinson's disease.",
+  "evidence": {
+    "id": "evidence_12",
+    "evidence_id": "ev-509d49fe0811",
+    "element_ids": [
+      "c0"
+    ],
+    "text": "- No therapy has yet been proven to slow, stop, or prevent Parkinson's disease.\n- In Parkinson\u2019s, researchers have investigated certain supplements, such as creatine, coenzyme Q, inosine, and vitamin E, but unfortunately none demonstrated benefit.",
+    "source": "michaeljfox.org",
+    "url": "https://www.michaeljfox.org/news/ask-md-supplements-and-parkinsons-disease",
+    "title": "Ask the MD: Supplements and Parkinson\u2019s Disease",
+    "published_date": "2019-06-03",
+    "date_basis": "page_metadata",
+    "relevance_score": 0.0,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 52,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+      "query_index": 1,
+      "query_used": "creatine supplements prevent Parkinsons disease clinical trial",
+      "claim_type": "general",
+      "source_path": "query_planning",
+      "extraction_status": "success",
+      "is_snippet_fallback": false,
+      "element_ids": [
+        "c0"
+      ],
+      "staleness_check": {
+        "is_stale": true,
+        "is_warning": true,
+        "age_days": 2655,
+        "max_age_days": 365,
+        "warning_age_days": 730,
+        "message": "STALE: Evidence is 2655 days old, max allowed for annual data is 365 days"
+      }
+    },
+    "content_basis": "distilled",
+    "content_hash": "0cb34765aad52be7f25002b09b0cc2c3",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "Directly addresses scientific evidence regarding creatine supplementation for Parkinson's disease.",
+    "llm_relevant_claims": [
+      0
+    ],
+    "text_provenance": {
+      "version": 1,
+      "capture_kind": "extracted_text",
+      "captured_at": "2026-09-09T09:59:43.922563+00:00",
+      "source_url": "https://www.michaeljfox.org/news/ask-md-supplements-and-parkinsons-disease",
+      "input_content_basis": "full",
+      "extraction_sha256": "f46a3983ff480962295c2a82c22334b3cc133c32456fe3ec712021c7dc1a8e6b",
+      "extraction_characters": 2587,
+      "retained_characters": 2587,
+      "offset_unit": "unicode_code_points",
+      "selection_method": "lexical_element_windows_v1",
+      "original_snippet": "- Ask about scientific evidence. Ask whether clinical trials have been performed and what the results show. In Parkinson\u2019s, researchers have investigated certain supplements, such as creatine, coenzyme Q, inosine and vitamin E. (Unfortunately none demonstrated benefit. ) Clinical trials also have evaluated whether gingko biloba can decrease the risk of dementia",
+      "passages": [
+        {
+          "id": "p-f46a3983ff480962-0-898",
+          "start": 0,
+          "end": 898,
+          "text": "Many people with Parkinson\u2019s and other brain diseases, such as Alzheimer\u2019s, are interested in dietary supplements and other complementary therapies to ease symptoms or treat disease. Even though no therapy has yet been proven to slow, stop or prevent disease, some supplements have made statements suggestive of such benefits. In early 2019, the U.S. Food and Drug Administration (FDA) sent advisory letters to several companies selling products with false or misleading claims. When considering supplements, know that: - The FDA does not regulate dietary supplements like drugs. Because these products are regulated as foods instead of drugs, they don\u2019t have to undergo rigorous clinical trial testing to prove their safety or effectiveness prior to marketing. - \u201cNatural\u201d does not equal safe. Even when a product is herbal, \u201call natural\u201d or organic, it is not free from potential side effects or ",
+          "matched_element_ids": [
+            "e1"
+          ]
+        },
+        {
+          "id": "p-f46a3983ff480962-898-1796",
+          "start": 898,
+          "end": 1796,
+          "text": "drug interactions. - What you see may not be what you get. The actual dose of a supplement could differ from what the label lists. And other, possibly even toxic, ingredients may be present. - There are potential downsides. When it comes to supplements, some people think, \u201cit may not help, but it won\u2019t hurt.\u201d When considering any therapy, always weigh the pros and cons. Supplements can be costly and can prevent you from pursuing proven, effective therapies. Before you take a supplement or herbal product with the goal of improving general health, boosting memory, easing Parkinson\u2019s symptoms or any other reason, talk with your doctor and pharmacist. Tips to make these conversations more productive: - Bring detailed information. Be sure you have the supplement\u2019s name, ingredients and doses, as well as its seller and website, if there is one. Make sure to include statements about what the ",
+          "matched_element_ids": [
+            "e1"
+          ]
+        },
+        {
+          "id": "p-f46a3983ff480962-1796-2587",
+          "start": 1796,
+          "end": 2587,
+          "text": "product intends to do and how. - Ask about scientific evidence. Ask whether clinical trials have been performed and what the results show. In Parkinson\u2019s, researchers have investigated certain supplements, such as creatine, coenzyme Q, inosine and vitamin E. (Unfortunately none demonstrated benefit.) Clinical trials also have evaluated whether gingko biloba can decrease the risk of dementia. (Also without positive results.) Learn about the data for and against the supplements you\u2019re considering. - Compare to current therapies. Talk about how the supplement compares to known effective therapies. Is it equal to or better than medications you are taking or considering? Discuss the pros and cons of pursuing supplements instead of or in addition to therapies recommended by your doctor.",
+          "matched_element_ids": [
+            "e1"
+          ]
+        }
+      ],
+      "temporal": {
+        "version": 1,
+        "publication": {
+          "supplied_value": "2019-06-03",
+          "representation": "supplied_string",
+          "precision": "day",
+          "date_basis": "page_metadata"
+        },
+        "applicability_status": "unestablished",
+        "scan_scope": "retained_passages",
+        "candidate_count": 0,
+        "unretained_candidates": 0,
+        "statements": []
+      },
+      "derived_text": "- No therapy has yet been proven to slow, stop, or prevent Parkinson's disease.\n- In Parkinson\u2019s, researchers have investigated certain supplements, such as creatine, coenzyme Q, inosine, and vitamin E, but unfortunately none demonstrated benefit.",
+      "derivation": "model_generated_facts"
+    },
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis",
+    "_distilled": true,
+    "snippet": "- No therapy has yet been proven to slow, stop, or prevent Parkinson's disease.\n- In Parkinson\u2019s, researchers have investigated certain supplements, such as creatine, coenzyme Q, inosine, and vitamin E, but unfortunately none demonstrated benefit."
+  },
+  "expected": "context"
+}

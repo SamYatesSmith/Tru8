@@ -172,6 +172,43 @@ _MIN_MATCH_CHARS = 28
 #: Share of the claim that must appear contiguously in the evidence.
 _RESTATEMENT_RATIO = 0.6
 
+# A reported study finding may naturally repeat the proposition it establishes.
+# This is a narrow candidate-only exemption from lexical overlap, not from
+# explicit attribution or distancing, and not a certification of the result.
+_STUDY_FRAME = re.compile(r"\b(?:trial|study|survey|analysis|experiment)\b", re.I)
+_RESULT_VERB = re.compile(
+    r"\b(?:found|observed|reported|demonstrated|reduced|increased|showed)\b", re.I
+)
+_FINDING_DETAIL = re.compile(
+    r"\b(?:randomi[sz]ed|observational|survey|experiment|cohort|"
+    r"found|observed|reported|demonstrated|showed)\b",
+    re.I,
+)
+_NON_RESULT = re.compile(
+    r"\b(?:claim\w*|says?|said|saying|according\s+to|allegedly|purportedly|"
+    r"supposedly|hypothes\w*|expect\w*|predict\w*|will|would|could|may|might|"
+    r"aim\w*|plan\w*|whether|protocol|not|no|never)\b|[\"“”]",
+    re.I,
+)
+
+
+def _reports_overlapping_result(evidence_text: str, claim_sq: str) -> bool:
+    """Require finding framing in the overlapping sentence, not elsewhere."""
+    for sentence in re.split(r"(?<=[.!?])\s+|[\r\n]+", evidence_text):
+        if (
+            _STUDY_FRAME.search(sentence)
+            and _RESULT_VERB.search(sentence)
+            and any(
+                _squash(m[0]) not in claim_sq
+                for m in _FINDING_DETAIL.finditer(sentence)
+            )
+            and not _NON_RESULT.search(sentence)
+            and _longest_common_run(claim_sq, _squash(sentence))
+            >= max(_MIN_MATCH_CHARS, int(len(claim_sq) * _RESTATEMENT_RATIO))
+        ):
+            return True
+    return False
+
 
 def _squash(text: Optional[str]) -> str:
     """Lowercase, keep only a-z0-9, drop ALL whitespace.
@@ -205,7 +242,10 @@ def _longest_common_run(a: str, b: str) -> int:
 
 
 def claim_restatement_match(
-    evidence_text: Optional[str], claim_text: Optional[str]
+    evidence_text: Optional[str],
+    claim_text: Optional[str],
+    *,
+    allow_reported_results: bool = False,
 ) -> Optional[Dict[str, str]]:
     """Receipt entry when the evidence simply RESTATES the claim, else None.
 
@@ -247,6 +287,9 @@ def claim_restatement_match(
     if run < max(_MIN_MATCH_CHARS, int(len(claim_sq) * _RESTATEMENT_RATIO)):
         return None
 
+    if allow_reported_results and _reports_overlapping_result(evidence_text, claim_sq):
+        return None
+
     return {
         "marker": "restates the claim",
         "excerpt": (evidence_text or "").strip()[:_EXCERPT_CHARS],
@@ -261,6 +304,8 @@ def recital_match(
     evidence_text: Optional[str],
     tokens: List[Tuple[str, str]],
     claim_text: Optional[str] = None,
+    *,
+    allow_reported_results: bool = False,
 ) -> Optional[Dict[str, str]]:
     """The receipt entry if this reference rests on recital, else None.
 
@@ -288,4 +333,6 @@ def recital_match(
     # Subject-free fallback. Runs when the claim names nobody, and also when it
     # names someone but the attribution wording never appeared — a source can
     # recite a claim without naming who made it.
-    return claim_restatement_match(evidence_text, claim_text)
+    return claim_restatement_match(
+        evidence_text, claim_text, allow_reported_results=allow_reported_results
+    )

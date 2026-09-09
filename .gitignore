@@ -136,6 +136,8 @@ audit/_archive/
 audit/2026-06-18_outreach_contact_map.md
 # Send sheets carry the same named third parties — same privacy rule.
 audit/*_send_sheet.md
+# Test-account briefings carry live credentials — never tracked.
+audit/*_test_account.md
 
 
 # A/B mapping harness (scripts + run artefacts, kept untracked)

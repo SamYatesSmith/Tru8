@@ -1,0 +1,62 @@
+{
+  "origin": "2026-09-08 integrated SELECT report, unchanged captured source payload",
+  "pipeline_sha256": "28138c85d4c443ffd4a01be74dc442bc3d34cc66d3fd05dafaed1fedb59645c2",
+  "claim": "In the SELECT trial, treatment with semaglutide resulted in a 20% reduction in major adverse cardiovascular events relative to placebo among adults with overweight or obesity and established cardiovascular disease without diabetes.",
+  "evidence": {
+    "id": "evidence_16",
+    "evidence_id": "ev-9a4a90c5321b",
+    "element_ids": [
+      "c0"
+    ],
+    "text": "2% among patients with overweight\nor obesity who did not have diabetes. 18 In the Intervention and Management\nSemaglutide Effects on Cardiovascular Outcomes Patients were randomly assigned, with the use of\nin People with Overweight or Obesity (SELECT) a centralized system in a double-blind manner\ntr...",
+    "source": "mediacenteratypon.nejmgroup-production.org",
+    "url": "https://mediacenteratypon.nejmgroup-production.org/NEJMoa2307563.pdf",
+    "title": "[PDF] Semaglutide and Cardiovascular Outcomes in Obesity without ... (p. 2)",
+    "published_date": "Nov 11, 2023",
+    "date_basis": "engine",
+    "relevance_score": 0.8333333333333334,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 46,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+      "page_number": 2,
+      "context_before": "",
+      "context_after": "",
+      "query_index": 2,
+      "query_used": "semaglutide SELECT trial major adverse cardiovascular events placebo overweight",
+      "claim_type": "general",
+      "source_path": "query_planning",
+      "extraction_status": "success",
+      "is_snippet_fallback": false,
+      "element_ids": [
+        "c0"
+      ],
+      "staleness_check": {
+        "is_stale": false,
+        "is_warning": false,
+        "age_days": null,
+        "max_age_days": 365,
+        "warning_age_days": 730,
+        "message": "Evidence date unknown - cannot verify recency"
+      }
+    },
+    "content_basis": "pdf",
+    "content_hash": "bfbed91e85e3982b4e13f5eca6109a79",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-7b74f53be6af",
+    "corroborating_sources": 1,
+    "llm_relevance_score": 4,
+    "llm_relevance_rationale": "Excerpts the primary publication text for the SELECT trial evaluating semaglutide cardiovascular outcomes in obesity without diabetes.",
+    "llm_relevant_claims": [
+      0
+    ],
+    "classification_method": "llm",
+    "tier": "primary",
+    "evidence_type": "academic"
+  },
+  "expected": "context"
+}

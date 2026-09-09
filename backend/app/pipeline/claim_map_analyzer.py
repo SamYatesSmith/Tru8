@@ -2024,7 +2024,8 @@ class ClaimMapAnalyzer:
         self._last_model_used = "unknown"
 
         if settings.ENABLE_PASSAGE_MAPPING and label in (
-            "decomposition", "batch_decomposition"
+            "decomposition",
+            "batch_decomposition",
         ):
             from app.services.mapping_applicability import DECOMPOSITION_SCOPE_RULES
 
@@ -2061,6 +2062,7 @@ class ClaimMapAnalyzer:
             response_schema = _BATCH_MAPPING_RESPONSE_SCHEMA
         elif label == "passage_review":
             from app.services.passage_mapping import PASSAGE_RESPONSE_SCHEMA
+
             response_schema = PASSAGE_RESPONSE_SCHEMA
         elif label == "scope_review":
             from app.services.relationship_scope_review import RESPONSE_SCHEMA
@@ -2589,11 +2591,24 @@ class ClaimMapAnalyzer:
                             "subject_free": not tokens,
                         },
                         fires=lambda item, ref, _t=tokens, _c=claim_text_for_recital: (
-                            recital_match(ref.get("reasoning"), item.text, _t, _c)
+                            recital_match(
+                                ref.get("reasoning"),
+                                item.text,
+                                _t,
+                                _c,
+                                allow_reported_results=settings.ENABLE_PASSAGE_MAPPING,
+                            )
                             is not None
                         ),
                         entry=lambda item, ref, _t=tokens, _c=claim_text_for_recital: (
-                            recital_match(ref.get("reasoning"), item.text, _t, _c) or {}
+                            recital_match(
+                                ref.get("reasoning"),
+                                item.text,
+                                _t,
+                                _c,
+                                allow_reported_results=settings.ENABLE_PASSAGE_MAPPING,
+                            )
+                            or {}
                         ),
                     )
                 )
@@ -2657,7 +2672,8 @@ class ClaimMapAnalyzer:
                         summary={"target_day": day, "scan_scope": "retained_passages"},
                         fires=lambda item, _ref: source_time_anchor(
                             item.ev, elem.get("description", ""), day
-                        ) is None,
+                        )
+                        is None,
                         entry=lambda item, _ref: {
                             "reason": "Time applicability is not established in retained source text.",
                             "target_day": day,
@@ -2961,6 +2977,13 @@ class ClaimMapAnalyzer:
             f"LEFTOVER Evidence (not referenced by the main pass):\n"
             f"{leftover_desc}"
         )
+        if settings.ENABLE_PASSAGE_MAPPING:
+            prompt += (
+                "\nRetain a context relationship when a source addresses the same intervention or association "
+                "but explicitly studies a different population, endpoint or named study. Explain that boundary. "
+                "Such a source is relevant context, not directional evidence for this element. "
+                "Leave sources with no substantive connection unmapped; do not force all leftovers into context."
+            )
 
         logger.info(
             f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "

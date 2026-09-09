@@ -1,0 +1,380 @@
+{
+  "origin": "2026-09-09 integrated source pool, final scope re-review; failed acceptance cases, not fixed",
+  "claim": "In the SELECT trial, treatment with semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes.",
+  "expected": "context",
+  "evidence": [
+    {
+      "id": "evidence_3",
+      "evidence_id": "ev-e034ece5a149",
+      "element_ids": [
+        "c0"
+      ],
+      "text": "- SELECT was a randomized, placebo-controlled, phase 3 trial evaluating whether semaglutide was superior to placebo in decreasing MACE risk in 17,604 non-diabetic patients with obesity or overweight and cardiovascular disease.\n- Eligible patients in the SELECT trial were aged 45 years or older, with a body mass index of 27 kg/m\u00b2 or higher and established cardiovascular disease.\n- Participants in the SELECT trial received dose-escalation of once-weekly semaglutide up to a target dose of 2.4 mg or placebo.\n- Semaglutide reduced MACE incidence in the SELECT trial.",
+      "source": "news-medical.net",
+      "url": "https://www.news-medical.net/news/20251026/Semaglutide-protects-the-heart-beyond-weight-loss-SELECT-trial-shows.aspx",
+      "title": "Semaglutide protects the heart beyond weight loss, SELECT trial shows",
+      "published_date": "2025-10-26",
+      "date_basis": "page_metadata",
+      "relevance_score": 0.40625,
+      "semantic_similarity": 0.0,
+      "combined_score": 0.0,
+      "word_count": 118,
+      "external_source_provider": null,
+      "receipt_status": "shown",
+      "metadata": {
+        "query_index": 3,
+        "query_used": "SELECT trial semaglutide cardiovascular events 20 percent reduction site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+        "claim_type": "general",
+        "source_path": "query_planning",
+        "extraction_status": "success",
+        "is_snippet_fallback": false,
+        "element_ids": [
+          "c0"
+        ],
+        "staleness_check": {
+          "is_stale": false,
+          "is_warning": false,
+          "age_days": 318,
+          "max_age_days": 365,
+          "warning_age_days": 730,
+          "message": "Evidence is 318 days old (acceptable for annual data)"
+        }
+      },
+      "content_basis": "distilled",
+      "content_hash": "d9aefad0c1a125b7f76abfe0bae76bf2",
+      "is_syndicated": false,
+      "original_source_url": null,
+      "corroboration_group_id": 2,
+      "corroborating_evidence_ids": "ev-cf3d65c8bcd9",
+      "corroborating_sources": 1,
+      "llm_relevance_score": 3,
+      "llm_relevance_rationale": "Discusses the SELECT trial evaluating semaglutide to decrease MACE risk, but focuses specifically on adiposity changes rather than the 20% reduction claim.",
+      "llm_relevant_claims": [],
+      "text_provenance": {
+        "version": 1,
+        "capture_kind": "extracted_text",
+        "captured_at": "2026-09-09T10:01:23.258665+00:00",
+        "source_url": "https://www.news-medical.net/news/20251026/Semaglutide-protects-the-heart-beyond-weight-loss-SELECT-trial-shows.aspx",
+        "input_content_basis": "full",
+        "extraction_sha256": "9d178f8601ae4a9b8b30d9f1f6df65fc595708a1ec25e243c68eccc24fa009a1",
+        "extraction_characters": 6685,
+        "retained_characters": 6685,
+        "offset_unit": "unicode_code_points",
+        "selection_method": "lexical_element_windows_v1",
+        "original_snippet": "The relationship between baseline adiposity, treatment-induced changes in adiposity, and subsequent MACE is unclear in GLP-1RA trials. About the study In the present study, researchers investigated associations between baseline adiposity measures, treatment-induced adiposity changes, and MACE risk in the SELECT trial. SELECT was a randomized, placebo-controlled, phase 3 trial evaluating whether semaglutide as an adjunct to standard of care was superior to placebo in decreasing MACE risk in 17,604 non-diabetic patients with obesity or overweight and cardiovascular disease (CVD). Eligible patients were aged \u2265 45 years, with a body mass index (BMI) \u2265 27 kg/m\u00b2 and established CVD (prior stroke, symptomatic peripheral artery disease, or myocardial infarction). Participants were randomized to increasing doses of once-weekly semaglutide or placebo",
+        "passages": [
+          {
+            "id": "p-9d178f8601ae4a9b-0-895",
+            "start": 0,
+            "end": 895,
+            "text": "New findings from the landmark SELECT trial reveal that semaglutide\u2019s cardiovascular benefits are only partly explained by reductions in waist size, suggesting broader protective effects beyond fat loss. Study: Semaglutide and cardiovascular outcomes by baseline and changes in adiposity measurements: a prespecified analysis of the SELECT trial. Image Credit: Liya Graphics / Shutterstock In a recent study published in The Lancet, researchers examined the associations between baseline adiposity measures, treatment-induced adiposity changes, and the risk of major adverse cardiovascular events (MACE) in the semaglutide effects on cardiovascular outcomes in people with overweight and obesity (SELECT) trial. Glucagon-Like Peptide 1 Receptor Agonists\">GLP-1RAs were initially developed for glycemic control in type 2 diabetes, and some have been effective in reducing cardiovascular risk and ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-9d178f8601ae4a9b-895-1789",
+            "start": 895,
+            "end": 1789,
+            "text": "weight in people without diabetes. Obesity is a risk factor for cardiovascular mortality and morbidity, operating through metabolic, inflammatory, and hemodynamic pathways. Weight alone fails to capture differences between subcutaneous and visceral fat or distinguish between lean and fat mass. Visceral adiposity has been causally implicated in adverse cardiovascular outcomes. The relationship between baseline adiposity, treatment-induced changes in adiposity, and subsequent MACE is unclear in GLP-1RA trials. About the study In the present study, researchers investigated associations between baseline adiposity measures, treatment-induced adiposity changes, and MACE risk in the SELECT trial. SELECT was a randomized, placebo-controlled, phase 3 trial evaluating whether semaglutide as an adjunct to standard of care was superior to placebo in decreasing MACE risk in 17,604 non-diabetic ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-9d178f8601ae4a9b-1789-2678",
+            "start": 1789,
+            "end": 2678,
+            "text": "patients with obesity or overweight and cardiovascular disease (CVD). Eligible patients were aged \u2265 45 years, with a body mass index (BMI) \u2265 27 kg/m\u00b2 and established CVD (prior stroke, symptomatic peripheral artery disease, or myocardial infarction). Participants were randomized to increasing doses of once-weekly semaglutide or placebo. Participants were randomized to receive a 16-week semaglutide dose-escalation or placebo injection. Semaglutide doses were 0.24 mg, 0.5 mg, 1 mg, and 1.7 mg, with the target dose (2.4 mg) starting at week 17. The primary outcome was MACE, defined as a composite of non-fatal myocardial infarction, non-fatal stroke, or cardiovascular death. Changes in waist circumference (WC) and body weight were estimated from baseline, and treatment arms were compared. MACE risk was summarized based on baseline adiposity measures and changes in adiposity after ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-9d178f8601ae4a9b-2678-3575",
+            "start": 2678,
+            "end": 3575,
+            "text": "randomization. Analyses of changes after randomization used a landmark approach, beginning at week 20 and excluding events before that point, and were observational rather than causal. The association between changes in adiposity during the first 20 weeks and subsequent MACE risk was assessed. In addition, MACE risk was analyzed based on changes in adiposity throughout the trial, up to death or week 104. A Cox proportional hazards model evaluated the extent to which adiposity changes might be markers or mediators of the effect of semaglutide on MACE reduction. Findings Higher BMI was associated with female sex, younger age, and non-Asian nationality. Prediabetes prevalence, blood pressure, and inflammatory burden showed an increase from the lowest to the highest BMI categories. The mean exposure duration was 33.3 and 35.1 months for semaglutide and placebo, respectively, and the mean ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-9d178f8601ae4a9b-3575-4474",
+            "start": 3575,
+            "end": 4474,
+            "text": "follow-up period was 39.8 months. Semaglutide reduced MACE incidence, with no heterogeneity in effect across baseline body habitus measures. Within each group, MACE risk was lower among those with lower baseline adiposity measures. In the semaglutide arm, risk fell by about 4% per 5 kg lower baseline weight (HR 0.96), whereas this trend was not significant in the placebo arm; for waist circumference, both arms showed about 4% lower risk per 5 cm smaller baseline WC. By 20 weeks, first-event MACE had already diverged between arms (HR 0.58), supporting an early treatment effect. At week 20, the mean changes in body weight and WC were \u22126.4% and \u22125.0 cm for the semaglutide group, and \u22120.8% and \u22121.1 cm for the placebo group, respectively. Adiposity changes at week 20 in the semaglutide arm accounted for 68% of the reduction in WC and 71% of the weight loss observed at week 104. Further, 11% ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-9d178f8601ae4a9b-4474-5374",
+            "start": 4474,
+            "end": 5374,
+            "text": "of the total MACE occurred within the first 20 weeks. In the semaglutide arm, there was no linear or non-linear trend in subsequent MACE risk by the amount of weight loss at week 20; however, a linear association was observed between greater WC reduction and lower subsequent MACE risk (HR 0.91, 95% CI 0.84\u20130.98, p = 0.02). Non-linear effects were observed in the placebo group, driven by higher MACE incidence among participants with at least 5% weight loss, consistent with possible unintentional or illness-related weight loss. Among those who lost weight at week 20, the semaglutide group had a lower MACE incidence than the placebo group. At week 104, placebo recipients with the greatest weight loss had the highest MACE incidence, whereas semaglutide recipients with the greatest weight reduction had the lowest incidence. The semaglutide group showed a linear trend towards reduced in-trial ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-9d178f8601ae4a9b-5374-6266",
+            "start": 5374,
+            "end": 6266,
+            "text": "MACE risk with increasing weight loss. Moreover, the semaglutide group showed a linear trend towards lower MACE with changes in WC at week 20. Notably, there was no evidence that time-varying weight loss mediated the effect of semaglutide on MACE. Accounting for early WC change attenuated the treatment HR from 0.80 to 0.86, indicating partial rather than complete mediation. Early WC reduction accounted for an estimated 33% of the effect. Among placebo recipients, those with at least 5% weight loss had higher all-cause mortality than placebo participants with smaller losses or weight gain. Conclusions In sum, semaglutide was superior to placebo in reducing MACE across all baseline WC or weight levels from early in the study. However, early in-trial body weight reduction was not related to cardiovascular benefits after 20 weeks. Further, WC was linearly associated with semaglutide ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-9d178f8601ae4a9b-6266-6685",
+            "start": 6266,
+            "end": 6685,
+            "text": "effects. Mediation analyses showed that WC reduction accounted for 33% of the effect. Analyses after randomization were exploratory and cannot confirm causation, and the authors noted that the predominantly White, male population may limit generalizability. These results indicate that the cardioprotective effects of semaglutide extend beyond adiposity reduction. Funding: Novo Nordisk; ClinicalTrials.gov NCT03574597.",
+            "matched_element_ids": [
+              "e1"
+            ]
+          }
+        ],
+        "temporal": {
+          "version": 1,
+          "publication": {
+            "supplied_value": "2025-10-26",
+            "representation": "supplied_string",
+            "precision": "day",
+            "date_basis": "page_metadata"
+          },
+          "applicability_status": "unestablished",
+          "scan_scope": "retained_passages",
+          "candidate_count": 0,
+          "unretained_candidates": 0,
+          "statements": []
+        },
+        "derived_text": "- SELECT was a randomized, placebo-controlled, phase 3 trial evaluating whether semaglutide was superior to placebo in decreasing MACE risk in 17,604 non-diabetic patients with obesity or overweight and cardiovascular disease.\n- Eligible patients in the SELECT trial were aged 45 years or older, with a body mass index of 27 kg/m\u00b2 or higher and established cardiovascular disease.\n- Participants in the SELECT trial received dose-escalation of once-weekly semaglutide up to a target dose of 2.4 mg or placebo.\n- Semaglutide reduced MACE incidence in the SELECT trial.",
+        "derivation": "model_generated_facts"
+      },
+      "_distilled": true,
+      "tier": "commentary",
+      "evidence_type": "news_reporting",
+      "classification_method": "heuristic",
+      "snippet": "- SELECT was a randomized, placebo-controlled, phase 3 trial evaluating whether semaglutide was superior to placebo in decreasing MACE risk in 17,604 non-diabetic patients with obesity or overweight and cardiovascular disease.\n- Eligible patients in the SELECT trial were aged 45 years or older, with a body mass index of 27 kg/m\u00b2 or higher and established cardiovascular disease.\n- Participants in the SELECT trial received dose-escalation of once-weekly semaglutide up to a target dose of 2.4 mg or placebo.\n- Semaglutide reduced MACE incidence in the SELECT trial."
+    },
+    {
+      "id": "evidence_4",
+      "evidence_id": "ev-49522d797c58",
+      "element_ids": [
+        "c0"
+      ],
+      "text": "- The SELECT cardiovascular outcomes trial enrolled 17,604 adults with overweight or obesity and established atherosclerotic cardiovascular disease but not diabetes.\n- The SELECT trial previously reported that semaglutide reduced major adverse cardiovascular events compared with placebo over a mean follow-up of 39.8 months.\n- Semaglutide lowered high-sensitivity C-reactive protein by 37.8% at 104 weeks relative to placebo in a prespecified secondary analysis of the SELECT trial.",
+      "source": "peptidesciencedaily.com",
+      "url": "https://peptidesciencedaily.com/research/select-trial-semaglutide-hscrp-inflammation-analysis",
+      "title": "Prespecified SELECT Analysis Finds Semaglutide Lowered Inflammation Marker Tied to Cardiovascular Risk | Peptide Science Daily",
+      "published_date": "2026-08-18",
+      "date_basis": "page_metadata",
+      "relevance_score": 0.6413793103448276,
+      "semantic_similarity": 0.0,
+      "combined_score": 0.0,
+      "word_count": 106,
+      "external_source_provider": null,
+      "receipt_status": "shown",
+      "metadata": {
+        "query_index": 0,
+        "query_used": "SELECT trial semaglutide cardiovascular events 20 percent reduction",
+        "claim_type": "general",
+        "source_path": "query_planning",
+        "extraction_status": "success",
+        "is_snippet_fallback": false,
+        "element_ids": [
+          "c0"
+        ],
+        "staleness_check": {
+          "is_stale": false,
+          "is_warning": false,
+          "age_days": 22,
+          "max_age_days": 365,
+          "warning_age_days": 730,
+          "message": "Evidence is 22 days old (acceptable for annual data)"
+        }
+      },
+      "content_basis": "distilled",
+      "content_hash": "4d758ae7282fca358481cdab0caacc04",
+      "is_syndicated": false,
+      "original_source_url": null,
+      "corroboration_group_id": 2,
+      "corroborating_evidence_ids": "ev-cf3d65c8bcd9",
+      "corroborating_sources": 1,
+      "llm_relevance_score": 3,
+      "llm_relevance_rationale": "References the SELECT trial population (adults with overweight/obesity and established CVD without diabetes) in the context of an inflammation analysis.",
+      "llm_relevant_claims": [],
+      "text_provenance": {
+        "version": 1,
+        "capture_kind": "extracted_text",
+        "captured_at": "2026-09-09T10:01:23.258665+00:00",
+        "source_url": "https://peptidesciencedaily.com/research/select-trial-semaglutide-hscrp-inflammation-analysis",
+        "input_content_basis": "full",
+        "extraction_sha256": "cbbb650e55998ff59cfd8a2c030d807fdaa6b07422a2639b52c1192722981268",
+        "extraction_characters": 3937,
+        "retained_characters": 3937,
+        "offset_unit": "unicode_code_points",
+        "selection_method": "lexical_element_windows_v1",
+        "original_snippet": "The findings were published August 18, 2026 in Circulation. Circulation published a prespecified secondary analysis of the SELECT cardiovascular outcomes trial on August 18, 2026, examining the relationship between semaglutide, weight loss, and high-sensitivity C-reactive protein (hsCRP), a blood marker of systemic inflammation. SELECT enrolled 17,604 adults with overweight or obesity and established atherosclerotic cardiovascular disease but not diabetes, and previously reported that semaglutide reduced major adverse cardiovascular events (MACE) compared with placebo over a mean follow-up of 39. The new analysis was funded by Novo Nordisk, which manufactures semaglutide and markets it as Wegovy. Baseline hsCRP was similar between the semaglutide group (geometric mean 1",
+        "passages": [
+          {
+            "id": "p-cbbb650e55998ff5-0-900",
+            "start": 0,
+            "end": 900,
+            "text": "Prespecified SELECT Analysis Finds Semaglutide Lowered Inflammation Marker Tied to Cardiovascular Risk A prespecified secondary analysis of the SELECT cardiovascular outcomes trial found semaglutide reduced high-sensitivity C-reactive protein by nearly 38 percent, with the change linked to lower risk of major cardiovascular events independent of weight loss. The findings were published August 18, 2026 in Circulation. Circulation published a prespecified secondary analysis of the SELECT cardiovascular outcomes trial on August 18, 2026, examining the relationship between semaglutide, weight loss, and high-sensitivity C-reactive protein (hsCRP), a blood marker of systemic inflammation. SELECT enrolled 17,604 adults with overweight or obesity and established atherosclerotic cardiovascular disease but not diabetes, and previously reported that semaglutide reduced major adverse cardiovascular ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-cbbb650e55998ff5-900-1793",
+            "start": 900,
+            "end": 1793,
+            "text": "events (MACE) compared with placebo over a mean follow-up of 39.8 months. The new analysis was funded by Novo Nordisk, which manufactures semaglutide and markets it as Wegovy. Baseline hsCRP was similar between the semaglutide group (geometric mean 1.96 mg/L) and the placebo group (geometric mean 1.91 mg/L), and was prognostic of future cardiovascular events: risk of MACE rose across subgroups with baseline hsCRP under 2, 2 to under 10, and 10 mg/L or higher, including significant associations with cardiovascular death and all-cause death. Researchers tracked hsCRP changes and their relationship to time to first MACE, body weight, and other measures over 104 to 208 weeks using Cox modeling and related statistical approaches. Semaglutide lowered hsCRP by 37.8% at 104 weeks relative to placebo, and reduced MACE risk across every baseline hsCRP subgroup. Larger hsCRP reductions were ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-cbbb650e55998ff5-1793-2692",
+            "start": 1793,
+            "end": 2692,
+            "text": "associated with greater weight loss, but the inflammation changes were evident by weeks 4 and 8, before most weight loss had occurred, and were also observed among participants who did not lose significant weight. The hsCRP changes were independent of LDL cholesterol levels, statin use, and the cardiovascular disease criteria used to enroll participants. The trial is registered with ClinicalTrials.gov as NCT03574597 and is listed as completed. The authors conclude that hsCRP data, both at baseline and in response to treatment, support inflammation as a prognostic factor for cardiovascular risk in this population, and that the reduction in inflammation may have partially contributed to the MACE benefit semaglutide showed in the main SELECT results. Several authors are Novo Nordisk employees. Semaglutide is already approved by the FDA and the European Medicines Agency and registered with ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-cbbb650e55998ff5-2692-3591",
+            "start": 2692,
+            "end": 3591,
+            "text": "Australia's Therapeutic Goods Administration, marketed as Wegovy for chronic weight management and cardiovascular risk reduction and as Ozempic and Rybelsus for type 2 diabetes. This analysis does not change that regulatory status in any market. It reports associations observed in a prespecified analysis of trial data, not a controlled test of an inflammation-targeted treatment, and is not treatment or dosing guidance; cardiovascular risk management decisions should be made with a qualified clinician. Sources - Effect of Semaglutide on the Inflammatory Biomarker High-Sensitivity CRP in Patients With Established Cardiovascular Disease and Overweight or Obesity in SELECT: A Prespecified Secondary Analysis \u00b7 Circulation (via PubMed) (2026) (opens in a new tab) - Effect of Semaglutide on the Inflammatory Biomarker High-Sensitivity CRP in Patients With Established Cardiovascular Disease and ",
+            "matched_element_ids": [
+              "e1"
+            ]
+          },
+          {
+            "id": "p-cbbb650e55998ff5-3591-3937",
+            "start": 3591,
+            "end": 3937,
+            "text": "Overweight or Obesity in SELECT \u00b7 Circulation (American Heart Association Journals, publisher record via DOI) (2026) (opens in a new tab) - Semaglutide Effects on Cardiovascular Outcomes in People With Overweight or Obesity (SELECT) - registry record NCT03574597 \u00b7 ClinicalTrials.gov, U.S. National Library of Medicine (2026) (opens in a new tab)",
+            "matched_element_ids": [
+              "e1"
+            ]
+          }
+        ],
+        "temporal": {
+          "version": 1,
+          "publication": {
+            "supplied_value": "2026-08-18",
+            "representation": "supplied_string",
+            "precision": "day",
+            "date_basis": "page_metadata"
+          },
+          "applicability_status": "unestablished",
+          "scan_scope": "retained_passages",
+          "candidate_count": 0,
+          "unretained_candidates": 0,
+          "statements": []
+        },
+        "derived_text": "- The SELECT cardiovascular outcomes trial enrolled 17,604 adults with overweight or obesity and established atherosclerotic cardiovascular disease but not diabetes.\n- The SELECT trial previously reported that semaglutide reduced major adverse cardiovascular events compared with placebo over a mean follow-up of 39.8 months.\n- Semaglutide lowered high-sensitivity C-reactive protein by 37.8% at 104 weeks relative to placebo in a prespecified secondary analysis of the SELECT trial.",
+        "derivation": "model_generated_facts"
+      },
+      "_distilled": true,
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "classification_method": "heuristic",
+      "snippet": "- The SELECT cardiovascular outcomes trial enrolled 17,604 adults with overweight or obesity and established atherosclerotic cardiovascular disease but not diabetes.\n- The SELECT trial previously reported that semaglutide reduced major adverse cardiovascular events compared with placebo over a mean follow-up of 39.8 months.\n- Semaglutide lowered high-sensitivity C-reactive protein by 37.8% at 104 weeks relative to placebo in a prespecified secondary analysis of the SELECT trial."
+    }
+  ],
+  "supplied_pairs": [
+    {
+      "element_id": "e1",
+      "element_description": "In the SELECT trial, treatment with semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes.",
+      "evidence_id": "ev-e034ece5a149",
+      "title": "Semaglutide protects the heart beyond weight loss, SELECT trial shows",
+      "relationship": "supports",
+      "blocks": [
+        {
+          "id": "mapping-text",
+          "basis": "distilled",
+          "text": "- SELECT was a randomized, placebo-controlled, phase 3 trial evaluating whether semaglutide was superior to placebo in decreasing MACE risk in 17,604 non-diabetic patients with obesity or overweight and cardiovascular disease.\n- Eligible patients in the SELECT trial were aged 45 years or older, with a body mass index of 27 kg/m\u00b2 or higher and established cardiovascular disease.\n- Participants in the SELECT trial received dose-escalation of once-weekly semaglutide up to a target dose of 2.4 mg or placebo.\n- Semaglutide reduced MACE incidence in the SELECT trial.",
+          "excerpts": [
+            {
+              "id": "line-0",
+              "text": "- SELECT was a randomized, placebo-controlled, phase 3 trial evaluating whether semaglutide was superior to placebo in decreasing MACE risk in 17,604 non-diabetic patients with obesity or overweight and cardiovascular disease."
+            },
+            {
+              "id": "line-1",
+              "text": "- Eligible patients in the SELECT trial were aged 45 years or older, with a body mass index of 27 kg/m\u00b2 or higher and established cardiovascular disease."
+            },
+            {
+              "id": "line-2",
+              "text": "- Participants in the SELECT trial received dose-escalation of once-weekly semaglutide up to a target dose of 2.4 mg or placebo."
+            },
+            {
+              "id": "line-3",
+              "text": "- Semaglutide reduced MACE incidence in the SELECT trial."
+            }
+          ]
+        },
+        {
+          "id": "p-9d178f8601ae4a9b-0-895",
+          "basis": "retained_extraction",
+          "text": "New findings from the landmark SELECT trial reveal that semaglutide\u2019s cardiovascular benefits are only partly explained by reductions in waist size, suggesting broader protective effects beyond fat loss. Study: Semaglutide and cardiovascular outcomes by baseline and changes in adiposity measurements: a prespecified analysis of the SELECT trial. Image Credit: Liya Graphics / Shutterstock In a recent study published in The Lancet, researchers examined the associations between baseline adiposity measures, treatment-induced adiposity changes, and the risk of major adverse cardiovascular events (MACE) in the semaglutide effects on cardiovascular outcomes in people with overweight and obesity (SELECT) trial. Glucagon-Like Peptide 1 Receptor Agonists\">GLP-1RAs were initially developed for glycemic control in type 2 diabetes, and some have been effective in reducing cardiovascular risk and ",
+          "excerpts": []
+        },
+        {
+          "id": "p-9d178f8601ae4a9b-895-1789",
+          "basis": "retained_extraction",
+          "text": "weight in people without diabetes. Obesity is a risk factor for cardiovascular mortality and morbidity, operating through metabolic, inflammatory, and hemodynamic pathways. Weight alone fails to capture differences between subcutaneous and visceral fat or distinguish between lean and fat mass. Visceral adiposity has been causally implicated in adverse cardiovascular outcomes. The relationship between baseline adiposity, treatment-induced changes in adiposity, and subsequent MACE is unclear in GLP-1RA trials. About the study In the present study, researchers investigated associations between baseline adiposity measures, treatment-induced adiposity changes, and MACE risk in the SELECT trial. SELECT was a randomized, placebo-controlled, phase 3 trial evaluating whether semaglutide as an adjunct to standard of care was superior to placebo in decreasing MACE risk in 17,604 non-diabetic ",
+          "excerpts": []
+        }
+      ],
+      "pair_id": "scope-10"
+    },
+    {
+      "element_id": "e1",
+      "element_description": "In the SELECT trial, treatment with semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease but without diabetes.",
+      "evidence_id": "ev-49522d797c58",
+      "title": "Prespecified SELECT Analysis Finds Semaglutide Lowered Inflammation Marker Tied to Cardiovascular Risk | Peptide Science Daily",
+      "relationship": "supports",
+      "blocks": [
+        {
+          "id": "mapping-text",
+          "basis": "distilled",
+          "text": "- The SELECT cardiovascular outcomes trial enrolled 17,604 adults with overweight or obesity and established atherosclerotic cardiovascular disease but not diabetes.\n- The SELECT trial previously reported that semaglutide reduced major adverse cardiovascular events compared with placebo over a mean follow-up of 39.8 months.\n- Semaglutide lowered high-sensitivity C-reactive protein by 37.8% at 104 weeks relative to placebo in a prespecified secondary analysis of the SELECT trial.",
+          "excerpts": [
+            {
+              "id": "line-0",
+              "text": "- The SELECT cardiovascular outcomes trial enrolled 17,604 adults with overweight or obesity and established atherosclerotic cardiovascular disease but not diabetes."
+            },
+            {
+              "id": "line-1",
+              "text": "- The SELECT trial previously reported that semaglutide reduced major adverse cardiovascular events compared with placebo over a mean follow-up of 39.8 months."
+            },
+            {
+              "id": "line-2",
+              "text": "- Semaglutide lowered high-sensitivity C-reactive protein by 37.8% at 104 weeks relative to placebo in a prespecified secondary analysis of the SELECT trial."
+            }
+          ]
+        },
+        {
+          "id": "p-cbbb650e55998ff5-0-900",
+          "basis": "retained_extraction",
+          "text": "Prespecified SELECT Analysis Finds Semaglutide Lowered Inflammation Marker Tied to Cardiovascular Risk A prespecified secondary analysis of the SELECT cardiovascular outcomes trial found semaglutide reduced high-sensitivity C-reactive protein by nearly 38 percent, with the change linked to lower risk of major cardiovascular events independent of weight loss. The findings were published August 18, 2026 in Circulation. Circulation published a prespecified secondary analysis of the SELECT cardiovascular outcomes trial on August 18, 2026, examining the relationship between semaglutide, weight loss, and high-sensitivity C-reactive protein (hsCRP), a blood marker of systemic inflammation. SELECT enrolled 17,604 adults with overweight or obesity and established atherosclerotic cardiovascular disease but not diabetes, and previously reported that semaglutide reduced major adverse cardiovascular ",
+          "excerpts": []
+        },
+        {
+          "id": "p-cbbb650e55998ff5-2692-3591",
+          "basis": "retained_extraction",
+          "text": "Australia's Therapeutic Goods Administration, marketed as Wegovy for chronic weight management and cardiovascular risk reduction and as Ozempic and Rybelsus for type 2 diabetes. This analysis does not change that regulatory status in any market. It reports associations observed in a prespecified analysis of trial data, not a controlled test of an inflammation-targeted treatment, and is not treatment or dosing guidance; cardiovascular risk management decisions should be made with a qualified clinician. Sources - Effect of Semaglutide on the Inflammatory Biomarker High-Sensitivity CRP in Patients With Established Cardiovascular Disease and Overweight or Obesity in SELECT: A Prespecified Secondary Analysis \u00b7 Circulation (via PubMed) (2026) (opens in a new tab) - Effect of Semaglutide on the Inflammatory Biomarker High-Sensitivity CRP in Patients With Established Cardiovascular Disease and ",
+          "excerpts": []
+        }
+      ],
+      "pair_id": "scope-11"
+    }
+  ]
+}

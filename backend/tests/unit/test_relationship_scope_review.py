@@ -1,4 +1,6 @@
 import copy
+import json
+from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
@@ -124,6 +126,74 @@ async def test_unestablished_scope_is_context_with_explicit_receipt():
 
 
 @pytest.mark.asyncio
+async def test_actual_pdf_fragment_result_unknown_retains_original_and_source():
+    frozen = json.loads(
+        (
+            Path(__file__).parents[1]
+            / "evaluation/passage_quality/result_fragment_failure.json"
+        ).read_text()
+    )
+    cm, _, row = fixture("supports")
+    cm["elements"][0]["description"] = frozen["claim"]
+    ev = [frozen["evidence"]]
+    cm["elements"][0]["evidence_refs"][0]["evidence_id"] = ev[0]["evidence_id"]
+    before = copy.deepcopy(ev)
+    row.update(
+        decision="unknown",
+        dimension="result",
+        claim_scope="20% relative MACE reduction",
+        source_scope="methods/background fragment",
+        quote=ev[0]["text"],
+        reasoning="The supplied fragment describes randomisation but does not report the asserted effect size.",
+    )
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "context"
+    receipt = cm["elements"][0]["basis"]["relationship_scope"]["scoped"][0]
+    assert receipt["original_ref"]["relationship"] == "supports"
+    assert receipt["dimension"] == "result" and ev == before
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "quote", ["", "A fabricated result not present in the supplied text."]
+)
+async def test_compatible_without_valid_result_excerpt_is_unassessed(quote):
+    cm, ev, row = fixture("supports")
+    row.update(decision="compatible", quote=quote)
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["metadata"]["scope_review"]["status"] == "needs_review"
+    assert cm["metadata"]["scope_review"]["assessed_pairs"] == 0
+
+
+@pytest.mark.asyncio
+async def test_compatible_result_retains_auditable_excerpt():
+    cm, ev, row = fixture("supports")
+    ev[0][
+        "snippet"
+    ] = "The adult prevention trial reported fewer new diagnoses with A than placebo."
+    row.update(
+        decision="compatible",
+        dimension="result",
+        quote=ev[0]["snippet"],
+        source_scope="fewer new diagnoses",
+        reasoning="Reports the preventive result in adults.",
+    )
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    record = cm["metadata"]["scope_review"]["pairs"][0]
+    assert record["status"] == "compatible" and record["quote"] == row["quote"]
+    assert (
+        record["input_sha256"]
+        and cm["elements"][0]["evidence_refs"][0]["relationship"] == "supports"
+    )
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "source_name,expected",
     [
@@ -161,6 +231,53 @@ def test_bounded_round_robin_and_no_context_promotion():
     assert [p["element_id"] for p in pairs[:2]] == ["e1", "e2"]
     cm, ev, _ = fixture("context")
     assert plan_review(cm, ev) == ([], 0)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "excerpt_id,expected", [("line-1", "context"), ("invented", "supports")]
+)
+async def test_selected_excerpt_is_resolved_from_exact_block(excerpt_id, expected):
+    cm, ev, row = fixture("supports")
+    ev[0][
+        "snippet"
+    ] = "Trial background fragment\nPatients were randomly assigned, with the use of\na centralized system."
+    row.update(
+        decision="unknown",
+        dimension="result",
+        excerpt_id=excerpt_id,
+        quote="Patients were randomly assigned, with the use of a centralized system.",
+    )
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == expected
+    if expected == "context":
+        record = cm["metadata"]["scope_review"]["pairs"][0]
+        assert record["quote"] == "Patients were randomly assigned, with the use of"
+        assert record["quote_basis"] == "selected_exact_excerpt"
+        assert record["quote"] in ev[0]["snippet"]
+
+
+@pytest.mark.asyncio
+async def test_compatible_cannot_substitute_an_excerpt_for_invalid_result_quote():
+    cm, ev, row = fixture("supports")
+    row.update(
+        decision="compatible", excerpt_id="line-0", quote="Invented full result."
+    )
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["metadata"]["scope_review"]["assessed_pairs"] == 0
+    assert cm["metadata"]["scope_review"]["status"] == "needs_review"
+
+
+def test_excerpt_options_never_truncate_a_long_line():
+    cm, ev, _ = fixture()
+    ev[0]["snippet"] = "Background " * 70 + "actual outcome at the end."
+    pairs, _ = plan_review(cm, ev)
+    assert pairs[0]["blocks"][0]["excerpts"] == []
+    assert pairs[0]["blocks"][0]["text"] == ev[0]["snippet"]
 
 
 @pytest.mark.asyncio
