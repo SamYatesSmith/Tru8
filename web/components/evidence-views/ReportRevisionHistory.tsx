@@ -64,13 +64,16 @@ export function ReportRevisionHistory({ checkId, refreshKey }: { checkId: string
   const visible = result?.key === resultKey ? result : null;
   const changes = visible?.baseline ? revisionChanges(visible.baseline.snapshot, visible.revision.snapshot) : null;
   const label = (r: RevisionSummary) => `${r.phase === 'before' ? 'Before' : 'After'} strengthening · ${parseServerDate(r.createdAt).toLocaleString()} · ${r.id}`;
-  return <section className="border border-zinc-200 p-4 my-4" aria-label="Report revision history">
-    <button type="button" aria-expanded={open} className="text-sm font-medium underline" onClick={() => {
+  // Same compact disclosure line as ReportIdentityNotice (2026-09-09): the two
+  // sat as bare boxes and made the report read as clutter.
+  return <section className="border border-zinc-200 my-3 text-xs text-zinc-600" aria-label="Report revision history">
+    <button type="button" aria-expanded={open} className="w-full text-left cursor-pointer select-none px-3 py-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500" onClick={() => {
       setSelected(''); setComparison(''); setResult(null); setList(null); setOpen(value => !value);
     }}>
+      <span aria-hidden className={`inline-block transition-transform ${open ? 'rotate-90' : ''}`}>▸</span>
       {open ? 'Close revision history' : 'Revision history'}
     </button>
-    {open && <div className="mt-3 space-y-3 text-sm">
+    {open && <div className="px-3 pb-3 space-y-3 text-sm">
       <p>Read-only snapshots retained around strengthening. Selecting one does not replace the current report below. This is not a complete edit history.</p>
       {listError ? <p role="alert">Revision history could not be loaded. <button type="button" className="underline" onClick={() => setRetry(value => value + 1)}>Retry history</button></p>
         : list === null ? <p role="status">Loading revision history…</p>
