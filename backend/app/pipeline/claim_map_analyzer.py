@@ -49,6 +49,7 @@ from app.utils.jurisdiction_scope import (
     is_out_of_jurisdiction_for_country,
 )
 from app.utils.study_identity import study_identifier
+from app.utils.absence_of_evidence import absence_of_evidence_match
 from app.utils.recital_scope import element_asserts_attribution, recital_match
 from app.utils.temporal_scope import (
     Period,
@@ -1458,6 +1459,7 @@ _SCOPE_RECEIPT_KEYS = (
     "measure_scope",
     "interested_party",
     "recital_scope",
+    "absence_of_evidence",
     "same_study_scope",
     "echo_scope",
 )
@@ -2622,6 +2624,35 @@ class ClaimMapAnalyzer:
                         ),
                     )
                 )
+
+        # Absence-of-evidence gate (2026-09-09, Track Q — Astra finding 3,
+        # reproduced on the regrade). "There isn't enough evidence", "no strong
+        # evidence linking", "no large trials have demonstrated" were mapped as
+        # challenges and the creatine prevention element read
+        # `disputed / all_challenges`. A statement that evidence is LACKING is
+        # not a contrary finding — and mapped as support ("no evidence of
+        # harm") it is not a supporting one: symmetric. A MEASURED null
+        # ("found identical rates") is a result and is never matched. Reads
+        # the mapper's own reasoning first, then the source text. Placed
+        # after recital (both read what the source SAYS) and before the
+        # redundancy gates. ROLLBACK: ENABLE_ABSENCE_OF_EVIDENCE_GATE=False.
+        if getattr(settings, "ENABLE_ABSENCE_OF_EVIDENCE_GATE", True):
+            gates.append(
+                _ScopeGate(
+                    key="absence_of_evidence",
+                    label="ABSENCE OF EVIDENCE",
+                    pins="reference rests on evidence being absent, not on a contrary finding",
+                    summary={},
+                    fires=lambda item, ref: absence_of_evidence_match(
+                        ref.get("reasoning"), item.text
+                    )
+                    is not None,
+                    entry=lambda item, ref: absence_of_evidence_match(
+                        ref.get("reasoning"), item.text
+                    )
+                    or {},
+                )
+            )
 
         # Same-study gate (2026-09-09, Track Q — Astra finding 10). Two hosts
         # of ONE study (journal article + PubMed abstract + PMC full text, or a

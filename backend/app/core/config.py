@@ -734,6 +734,15 @@ class Settings(BaseSettings):
     # identifier only, never a trial name. ROLLBACK: ENABLE_SAME_STUDY_SCOPE_GATE=False.
     ENABLE_SAME_STUDY_SCOPE_GATE: bool = Field(True, env="ENABLE_SAME_STUDY_SCOPE_GATE")
 
+    # Absence-of-evidence gate (2026-09-09, Track Q — Astra finding 3). A
+    # reference whose basis is that evidence is LACKING ("not enough
+    # evidence", "no trials have demonstrated") becomes `context` in either
+    # direction; a measured null result is never matched. ROLLBACK:
+    # ENABLE_ABSENCE_OF_EVIDENCE_GATE=False.
+    ENABLE_ABSENCE_OF_EVIDENCE_GATE: bool = Field(
+        True, env="ENABLE_ABSENCE_OF_EVIDENCE_GATE"
+    )
+
     # Item 7 stage 1 (2026-08-28): the factcheck signal. When ON, the evidence
     # classifier (1) asks the LLM for a conservative `factcheck` boolean (a
     # genre judgement — content property, never an outlet roster), (2) marks
