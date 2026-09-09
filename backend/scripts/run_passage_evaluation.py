@@ -16,7 +16,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-logging.disable(logging.CRITICAL)  # never spill provider URLs/API credentials
+# Logging is disabled in main() (never spill provider URLs/API credentials),
+# NOT at import: test_passage_factorial_evaluation imports this module, and a
+# module-level logging.disable() silenced every later test in the process
+# (the Sentry behavioural tests went red whole-suite only). Found 2026-09-09.
 
 from app.core.config import settings
 from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
@@ -326,6 +329,7 @@ async def evaluate(args):
 
 
 if __name__ == "__main__":
+    logging.disable(logging.CRITICAL)  # never spill provider URLs/API credentials
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pack", type=Path, required=True)
     parser.add_argument("--extraction", type=Path, required=True)

@@ -4,7 +4,15 @@ User authorised implementation of the hands-on improvement map, with a commit af
 
 ## Sequence and status
 
-Latest checkpoint: [public/export evidence-snapshot identity](2026-09-08_report_identity.md).
+**Ownership changed 9 September 2026:** the founder handed the branch to Claude after a three-reviewer audit. Founder decisions and the phase plan live in the [takeover record](2026-09-09_takeover_stabilise.md) and `OPEN_WORK.md` START HERE. Astra's original proposal: `tmp/tru8-hands-on/tru8-route-to-eight.md`.
+
+Latest checkpoint: [takeover stabilise](2026-09-09_takeover_stabilise.md). Fixed and pinned: strengthening refunds now write `research_refund` (a second failed operation on one check violated the ledger's one-`refund`-per-check index and stranded the operation — the test fixture now carries that production index); 21 existing serialisation tests broken by an unguarded `text_provenance` read; `archived_url` excluded from report snapshots (Wayback writes it after completion, failing any strengthening started in that window); `/verify/{id}/revisions/{rev}` returns the signed fields the page prints; public "System interpretation" text gated fail-closed; Seeker no longer treats a review that never ran as unknowns. Whole backend suite, web suite (195), TypeScript and default replay 185/1/13/2 (zero drift) passed — figures in the record. Candidate flags remain OFF; no deployment.
+
+Previous checkpoint: [result fidelity correction](2026-09-09_result_fidelity.md) (Codex, committed 9 September by Claude with its doc). The candidate's recital fallback now exempts an explicitly reported study finding; final scope review requires the complete result with effect measure and can select exact source lines for context corrections; passage fingerprint v10. Fixed-source evaluation 38/38 across two repeats; default replay 185/1/13/2. Remaining failure pair frozen in `qualitative_effect_failures.json` (two SELECT sources supporting the full 20% assertion on qualitative MACE text). Integrated re-review: Venus timed out at its 25 s bound, SELECT 12/15 pairs assessed.
+
+Previous checkpoint: [integrated candidate and broader scope pilot](2026-09-08_integrated_candidate_pilot.md), `7d7c986`. Three local integrated reports completed in 40–47 seconds with all 54 ledger sources retained and matching owner/public identities. Broader controls 20/24; candidate activation and the 8/10 gate blocked by evidence-fidelity failures.
+
+Previous checkpoint: [public/export evidence-snapshot identity](2026-09-08_report_identity.md).
 Owner/public/PDF views now identify their loaded evidence snapshot and match retained
 revision content rather than selecting the newest history row. Historical verification
 is revision-specific; unsigned/unmatched content is disclosed. Backend 75 checks,

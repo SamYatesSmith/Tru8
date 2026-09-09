@@ -459,6 +459,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                     claims={[activeClaim]}
                     initialRelationships={evidenceFilter.rel}
                     focusElementId={evidenceFilter.element}
+                    readOnly
                   />
                 )}
                 {claimView === 'compare' && (

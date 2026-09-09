@@ -34,7 +34,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Claim, ClaimComparison, Evidence, UsageEvent
-from app.models.usage_event import KIND_RE_SEARCH, KIND_REFUND, KIND_TOP_UP
+from app.models.usage_event import (
+    KIND_RE_SEARCH,
+    KIND_REFUND,
+    KIND_RESEARCH_REFUND,
+    KIND_TOP_UP,
+)
 from app.services.article_reader import fetch_article_text
 from app.services.google_ai import call_google_ai_with_usage
 
@@ -153,7 +158,7 @@ async def get_comparison_budget(session: AsyncSession, check_id: str) -> Dict[st
             .select_from(UsageEvent)
             .where(
                 UsageEvent.check_id == check_id,
-                UsageEvent.kind == KIND_REFUND,
+                UsageEvent.kind.in_([KIND_REFUND, KIND_RESEARCH_REFUND]),
             )
         )
     ).scalar_one()

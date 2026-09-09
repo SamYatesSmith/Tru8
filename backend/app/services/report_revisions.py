@@ -59,8 +59,12 @@ def snapshot_from_rows(check, rows) -> dict:
                 "text": claim.text,
                 "claim_text_hash": claim.claim_text_hash,
                 "claimMap": copy.deepcopy(cm),
+                # archived_url is written AFTER completion by the fire-and-forget
+                # Wayback task (~15 rows/min), so a snapshot that carried it would
+                # change under a running strengthening (spurious "report changed"
+                # failure) and stop identify_snapshot matching a retained revision.
                 "evidence": [
-                    e.model_dump(mode="json", exclude={"claim_id"})
+                    e.model_dump(mode="json", exclude={"claim_id", "archived_url"})
                     for e in sorted(evidence, key=lambda e: e.id)
                 ],
             }

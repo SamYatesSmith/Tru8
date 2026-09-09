@@ -144,3 +144,14 @@ async def test_budget_stops_before_network_and_restores_settings(tmp_path, monke
         module.settings.ENABLE_STRUCTURED_EXTRACTION,
         module.settings.SENTRY_DSN,
     ) == before
+
+
+def test_importing_the_script_leaves_logging_enabled():
+    """Importing the evaluation module must not switch logging off for the
+    whole process. It once did (logging.disable at module level), which made
+    every test after it blind — the Sentry behavioural tests failed only in a
+    whole-suite run. The switch belongs in main()."""
+    import logging
+
+    assert logging.root.manager.disable == logging.NOTSET
+    assert logging.getLogger("app").isEnabledFor(logging.CRITICAL)

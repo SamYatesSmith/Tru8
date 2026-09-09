@@ -28,6 +28,15 @@ describe('evidence presence is not resolution', () => {
     expect(container.textContent).not.toContain('Resolved Elements');
   });
 
+  it('treats a passage review that never ran as no unknowns, and one that did not finish as unknowns', () => {
+    const settled = [element('supported', 'supports')];
+    const notRun = { claimMap: { elements: settled, metadata: { passageReview: { status: 'not_run', candidate_pairs: 0, assessed_pairs: 0, uninspected_pairs: 0, pairs: [] } } }, evidence: [] } as unknown as Claim;
+    const needsReview = { claimMap: { elements: settled, metadata: { passageReview: { status: 'needs_review', candidate_pairs: 2, assessed_pairs: 1, uninspected_pairs: 1, pairs: [] } } }, evidence: [] } as unknown as Claim;
+    // readOnly keeps the explore fetch off; the notice copy is the observable.
+    expect(render(<SeekerView claim={notRun} readOnly />).container.textContent).not.toContain('did not finish');
+    expect(render(<SeekerView claim={needsReview} readOnly />).container.textContent).toContain('1 eligible pairs remain uninspected');
+  });
+
   it('does not count empty evidence twice or treat a missing state as resolved', () => {
     expect(evidenceCoverage([element('unresolved'), element('', 'supports')])).toEqual({
       gaps: 1, needsReview: 1, coverage: 50, withEvidence: 1,

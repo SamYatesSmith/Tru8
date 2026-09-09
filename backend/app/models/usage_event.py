@@ -28,6 +28,11 @@ KIND_CHECK = "check"
 KIND_RE_SEARCH = "re_search"
 KIND_TOP_UP = "top_up"
 KIND_REFUND = "refund"
+# Refund of a strengthening (re_search/top_up) debit. Deliberately NOT "refund":
+# ux_usage_events_check_kind allows ONE "refund" row per check, so a second
+# failed strengthening on the same check would violate it (found 2026-09-09).
+# Every meter sums credits regardless of kind, so it nets like any refund.
+KIND_RESEARCH_REFUND = "research_refund"
 KIND_ADJUSTMENT = "adjustment"
 
 DEBIT_KINDS = frozenset({KIND_CHECK, KIND_RE_SEARCH, KIND_TOP_UP})

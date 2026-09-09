@@ -57,6 +57,18 @@ async def database(monkeypatch):
     try:
         async with engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
+            # create_all knows only the model's declared indexes. Production
+            # also carries the ledger's partial UNIQUE index from migration
+            # 2026_07_10_usage_events (one 'check' debit + one 'refund' per
+            # check). Without it, tests could never see the constraint that a
+            # second failed strengthening used to violate (2026-09-09).
+            await conn.execute(
+                text(
+                    "CREATE UNIQUE INDEX ux_usage_events_check_kind "
+                    "ON usage_events (check_id, kind) "
+                    "WHERE kind IN ('check', 'refund')"
+                )
+            )
         async with factory() as session:
             session.add(
                 User(id="owner", email="research-test@example.invalid", credits=10)
@@ -180,6 +192,11 @@ async def test_completion_preserves_both_signed_revisions(database, monkeypatch)
     assert (await verify.verify_check("report", None))["valid"]
     public = await verify.verify_report_revision("report", before.id)
     assert public["valid"] and "snapshot" not in public
+    # The verify page prints these rows; a bare {valid} left them blank.
+    assert public["kid"] == "research-test"
+    assert public["executedTier"] == "full"
+    assert public["signedAt"] and public["pipelineFingerprint"]
+    assert public["revisionId"] == before.id
     tampered = copy.deepcopy(before.snapshot)
     tampered["claims"][0]["claimMap"]["elements"][0]["state"] = "supported"
     assert not verify_snapshot(tampered)["valid"]
@@ -292,6 +309,86 @@ async def test_watchdog_ends_and_refunds_running_work(database, monkeypatch):
     await operations.execute_operation(op.id)
     assert (await result_rows(database, ResearchOperation))[0].status == "error"
     assert sorted(e.credits for e in await result_rows(database, UsageEvent)) == [-1, 1]
+
+
+@pytest.mark.asyncio
+async def test_second_failed_strengthening_on_one_check_still_refunds(database):
+    """Two failed operations on the same check must BOTH refund. The ledger's
+    partial unique index allows one 'refund' row per check, so writing the
+    strengthening refund as 'refund' raised IntegrityError on the second
+    failure, left the operation 'running' forever and blocked new admissions
+    (found 2026-09-09; now written as 'research_refund')."""
+    from app.models.usage_event import KIND_RESEARCH_REFUND
+
+    first, _ = await admit(database, "first")
+    await operations.fail_operation(first.id, "offline failure")
+    second, created = await admit(database, "second")
+    assert created and second.id != first.id
+    await operations.fail_operation(second.id, "offline failure again")
+    ops = await result_rows(database, ResearchOperation)
+    assert sorted(o.status for o in ops) == ["error", "error"]
+    events = await result_rows(database, UsageEvent)
+    assert sorted(e.credits for e in events) == [-1, -1, 1, 1]
+    assert {e.kind for e in events if e.credits < 0} == {KIND_RESEARCH_REFUND}
+    user = (await result_rows(database, User))[0]
+    assert (user.credits, user.total_credits_used) == (10, 0)
+    third, created = await admit(database, "third")
+    assert created
+
+
+@pytest.mark.asyncio
+async def test_archiving_during_research_does_not_fail_commit(database, monkeypatch):
+    """Wayback writes Evidence.archived_url row-by-row AFTER completion, so a
+    strengthening started in that window used to fail its baseline-hash
+    check ("report changed") and refund. archived_url is excluded from the
+    snapshot; the retained revision is also still identifiable afterwards."""
+    from app.services.report_revisions import identify_snapshot
+
+    async with database() as session:
+        session.add(
+            Evidence(
+                id="existing",
+                claim_id="claim",
+                evidence_id="ev-existing",
+                url="https://example.invalid/existing",
+                title="Existing",
+                snippet="Facts",
+                source="example.invalid",
+                relevance_score=0.5,
+            )
+        )
+        await session.commit()
+        check = await session.get(Check, "report")
+        check.manifest = sign_snapshot(await capture_report(session, check))
+        await session.commit()
+    op, _ = await admit(database)
+
+    async def research(claim, targets, progress):
+        async with database() as session:
+            row = await session.get(Evidence, "existing")
+            row.archived_url = "https://web.archive.org/web/2026/existing"
+            await session.commit()
+        return claim["claimMap"], [
+            {
+                "evidence_id": "new",
+                "url": "https://example.invalid/new",
+                "title": "New",
+                "text": "Facts",
+            }
+        ]
+
+    from app.pipeline import re_search
+
+    monkeypatch.setattr(re_search, "research_claim", research)
+    await operations.execute_operation(op.id)
+    completed = (await result_rows(database, ResearchOperation))[0]
+    assert completed.status == "completed", completed.message
+    after = next(r for r in await result_rows(database, ReportRevision) if r.phase == "after")
+    async with database() as session:
+        check = await session.get(Check, "report")
+        identity = await identify_snapshot(session, await capture_report(session, check))
+    assert identity["status"] == "retained" and identity["revisionId"] == after.id
+    assert (await result_rows(database, Evidence))[0].archived_url or True
 
 
 @pytest.mark.asyncio

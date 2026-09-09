@@ -57,3 +57,16 @@ def test_strengthening_recomputes_from_current_refs_not_old_receipts():
     assert source_concentration(evidence, cm)["domains"] == [
         {"domain": "b.example", "documents": 1}
     ]
+
+
+def test_runner_no_longer_relabels_sources_by_domain_share():
+    """The cap is GONE on purpose (founder decision 2026-09-09, keeping Codex's
+    6958152). It demoted official documentation (sqlite.org) to commentary for
+    domain share alone, feeding _STATE_TIER_WEIGHTS. Concentration is now
+    described in claim_map.metadata.source_concentration, never enforced.
+    Restoring a relabelling pass must be a deliberate, documented decision.
+    """
+    from app.pipeline import runner
+
+    assert not hasattr(runner, "_apply_domain_concentration_cap")
+    assert "domain_concentration_cap" not in open(runner.__file__, encoding="utf-8").read()

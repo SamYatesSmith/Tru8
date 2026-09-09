@@ -23,7 +23,7 @@ from app.models import (
     UsageEvent,
 )
 from app.models.check import _utcnow_naive, generate_uuid
-from app.models.usage_event import KIND_REFUND
+from app.models.usage_event import KIND_RESEARCH_REFUND
 from app.pipeline.support_structure import thin_element_ids
 from app.services.evidence_payload import evidence_from_mapping
 from app.services.report_revisions import (
@@ -166,7 +166,7 @@ async def _fail_locked(session, op, message):
                 id=generate_uuid(),
                 user_id=debit.user_id,
                 check_id=op.check_id,
-                kind=KIND_REFUND,
+                kind=KIND_RESEARCH_REFUND,
                 credits=-debit.credits,
                 drew_trial=debit.drew_trial,
             )

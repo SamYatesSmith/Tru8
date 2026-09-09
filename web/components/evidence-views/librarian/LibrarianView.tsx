@@ -28,9 +28,11 @@ interface LibrarianViewProps {
    *  `focusElementId` narrows to one claim element. Both are clearable in-view. */
   initialRelationships?: EvidenceRelationship[];
   focusElementId?: string;
+  /** Public record (/r/): model free text is gated fail-closed. */
+  readOnly?: boolean;
 }
 
-export function LibrarianView({ scope, claims, initialRelationships, focusElementId }: LibrarianViewProps) {
+export function LibrarianView({ scope, claims, initialRelationships, focusElementId, readOnly }: LibrarianViewProps) {
   const [activeTiers, setActiveTiers] = useState<Set<EvidenceTier>>(new Set());
   const [activeTypes, setActiveTypes] = useState<Set<EvidenceType>>(new Set());
   const [activeRelationships, setActiveRelationships] = useState<Set<EvidenceRelationship>>(
@@ -322,12 +324,13 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
             callNumber={callNumberMap.get(activeEvidence.evidenceId || activeEvidence.id) || ''}
             elementDescriptions={activeElementDescriptions}
             claimLabel={claimLabelMap?.get(activeEvidence.evidenceId || activeEvidence.id)}
+            readOnly={readOnly}
             onClose={() => setReadingTableEvId(null)}
           />
         </div>
       )}
 
-      {claims.map(claim => <PassageReviewNotice key={claim.id} claim={claim} />)}
+      {claims.map(claim => <PassageReviewNotice key={claim.id} claim={claim} readOnly={readOnly} />)}
       <EvidenceLedger
         activeElementDescriptions={activeElementDescriptions}
         evidence={filteredEvidence}
@@ -343,6 +346,7 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
         onCardClick={handleCardClick}
         elementDescriptionMap={elementDescriptionMap}
         relationshipMap={relationshipSummaryMap}
+        readOnly={readOnly}
       />
 
       <RetrievalFunnel

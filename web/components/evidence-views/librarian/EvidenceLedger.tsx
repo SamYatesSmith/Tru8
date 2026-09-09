@@ -48,6 +48,8 @@ function sortWithinGroup(items: Evidence[], field: SortField, elementMap: Map<st
 }
 
 interface EvidenceLedgerProps {
+  /** Public record (/r/): model free text in the reading table is gated. */
+  readOnly?: boolean;
   evidence: Evidence[];
   totalCount: number;
   sortField: SortField;
@@ -81,6 +83,7 @@ export function EvidenceLedger({
   elementDescriptionMap,
   relationshipMap,
   activeElementDescriptions,
+  readOnly,
 }: EvidenceLedgerProps) {
   // Group evidence by tier, then sort within each group
   const tierGroups = TIER_GROUPS.map((tier) => {
@@ -146,6 +149,7 @@ export function EvidenceLedger({
                         callNumber={callNumberMap.get(evId) || ''}
                         elementDescriptions={activeElementDescriptions || elDescs}
                         claimLabel={claimLabelMap?.get(evId)}
+                        readOnly={readOnly}
                         onClose={() => onCardClick?.(ev)}
                       />
                     </div>

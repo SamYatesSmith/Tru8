@@ -38,6 +38,15 @@ const INTENSIFIED_EVIDENCE_RE =
   /\b(evidence|sources?|data|studies|research)\b[^.;]{0,40}?\b(strongly|consistently|clearly|overwhelmingly|conclusively|decisively|unambiguously)\b|\b(strong|overwhelming|conclusive|clear|decisive|unambiguous)\s+(evidence|support|challenge)\b/i;
 
 /**
+ * True when a model-written sentence adjudicates the claim rather than
+ * describing a limit of the evidence. Shared by every reader-facing surface
+ * that prints model free text (element caveats, "System interpretation").
+ */
+export function containsVerdictLanguage(text: string): boolean {
+  return VERDICT_WORD_RE.test(text) || INTENSIFIED_EVIDENCE_RE.test(text);
+}
+
+/**
  * Returns the caveat sentence to display, or null when it must not be shown.
  */
 export function elementCaveatNote(uncertainty: string | null | undefined): string | null {

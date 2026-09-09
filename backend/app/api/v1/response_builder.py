@@ -124,7 +124,7 @@ def _serialize_evidence(ev, include_factcheck_detail: bool = False) -> dict:
         "llmRelevanceScore": ev.llm_relevance_score,
         "classificationMethod": ev.classification_method,
         "contentBasis": ev.content_basis,
-        "textProvenance": ev.text_provenance,
+        "textProvenance": getattr(ev, "text_provenance", None),
         # Date provenance (F2): page_metadata|engine|url_inferred_suspect|api_adapter
         "dateBasis": ev.date_basis,
     }

@@ -1,15 +1,34 @@
 # Open Work Register
 
-> **2026-09-08 — Integrated candidate pilot complete; broader acceptance still fails.** Three local candidate reports completed in 40/47/45 seconds with 16/19/19 sources and matching owner/public ledgers and identities. Decomposition and prevention/progression behavior improved in these runs. Broader synthetic checks: 20/24 (two restatement false exclusions, two context omissions); offline isolation reproduces the restatement exclusion with default and candidate flags. A SELECT methods/background PDF fragment still overclaims support for the full effect-size assertion. Next: result-level evidence fidelity and restatement false positives; preserve sources and recital protections. Candidate remains OFF; no 8/10 claim. Final replay matched 185/1/13/2 with zero cassette drift. Details: [integrated pilot](2026-09-08_integrated_candidate_pilot.md).
-
+> **2026-09-09 — Track Q handed to Claude; stabilised and committed.** Codex's 27-commit `codex/evidence-quality` branch was audited by three reviewers; one HIGH defect (a second failed strengthening on one check violated the ledger's one-`refund`-per-check index and stranded the operation), 21 broken existing tests, a spurious "report changed" failure during Wayback archiving, a verify page over-promising on revisions, and unchecked model free text on the public record — all fixed and pinned. Founder decisions: keep the concentration-cap deletion · **ask before every paid run** · gate public "System interpretation" fail-closed. Details: [takeover record](2026-09-09_takeover_stabilise.md).
 > **Single source of truth for what's currently open in Tru8.**
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session, Monday 2026-09-07 (updated 2026-09-04, sign-off — supersedes the 2026-09-03 block)
+## START HERE — Track Q (evidence quality), owned by Claude since 2026-09-09
 
-**This block is what to do next. Everything below the divider is history.**
+**Where it stands.** Astra's plan (`tmp/tru8-hands-on/tru8-route-to-eight.md`) has nine PR steps. Steps 1–6 are built on local branch `codex/evidence-quality` (unpushed; nothing deployed; `main` unmoved at `47664a1`, so the eventual merge is a fast-forward). Both candidate flags are OFF. Latest evidence: default replay **185 ok / 1 warn / 13 known fail / 2 unexercised, zero drift**; whole backend suite and web suite green as of the 2026-09-09 stabilise commit (numbers in the [takeover record](2026-09-09_takeover_stabilise.md)). Status doc, latest checkpoint first: [`2026-09-07_evidence_quality_implementation.md`](2026-09-07_evidence_quality_implementation.md).
+
+**Founder decisions 2026-09-09 (do not re-open):** keep the domain-concentration-cap deletion (pinned by test) · **ask before EVERY paid model run, with the estimated cost** · public "System interpretation" text is gated fail-closed (`web/lib/system-interpretation.ts`), owner sees it unchanged · docs current BEFORE each commit.
+
+**Phase plan (in order):**
+1. ✅ **Stabilise** (2026-09-09): refund kind, 21 tests, archive hash, revision verify fields, public text gate, Seeker `not_run`, docs.
+2. **Candidate fidelity (step 7 remainder).** Next predeclared failure pair is frozen: `backend/tests/evaluation/passage_quality/qualitative_effect_failures.json` — two SELECT sources labelled support for the complete 20% effect when their blocks establish only a qualitative MACE benefit. Complete-assertion grounding must need amount + measure + endpoint together; preserve equivalent-measure and true-null controls. Then source-role / study-independence grouping (alternate hosts of one study are one study). Runner: `backend/scripts/evaluate_result_fidelity.py` — **paid; ask first**.
+3. **Reviewer annotations + passage-backed export (step 8).** Not started; agree a bounded scope with the founder first.
+4. **Held-out benchmark + live/operational acceptance (step 9).** Founder-owned gates: human review of ≥200 directional relationships (≥95% justified target), 3–5 user usability tasks, and tracing Astra's three stalled checks (`10f35558…`, `6b70b074…`, `1eb6c8af…`) through Railway logs. Claude-owned: reliability runs across input paths and fault scenarios, review-timeout completeness (Venus final review hit its 25 s bound).
+5. **Merge.** Whole backend suite (run the WHOLE suite, never focused files), web suite, `tsc`, bench 185/1/13/2, `alembic heads` single head (`text_provenance`), `entrypoint.sh` bootstrap parity (both new models exported), flags OFF, then fast-forward onto `main` and push. Activation is a separate later decision.
+
+**Known open, not blocking:** `identify_snapshot` runs a full JSONB equality query on every completed GET (only `check_id` indexed) — measure before adding a hash column; `ReportRevisionHistory` refetches on every report update while open; `use-research-poll` has a dead `status` dep; borderline copy ("Predominantly Supported Elements", "CONTEXT INVOLVED"); passage-review coverage caps (12 pairs) leave larger pools partly unreviewed by design. The two commercial-assessment docs remain UNTRACKED until the founder has read them; `output/` holds two local PDFs.
+
+## Historical outreach handoff — Monday 2026-09-07 (written 2026-09-04)
+
+> **📌 2026-09-07 — INDEPENDENT COMMERCIAL ASSESSMENT written: `audit/2026-09-07_commercial_assessment.md`.** Read §0 first. Headline: the outreach rule ("never send a record that missed the recipient's rebuttal") is unsatisfiable under the Phase D finding (rebuttal discovery is structural), and the one product change that dissolves it is **author-supplied sources with receipts** (no such path exists in `backend/app` today; no embed/cite path in `web/`). Recommends: send the five today with a ten-minute read; ship author sources + signed-out runs + embed; 40 bespoke sends in 30 days with a written kill condition; NO pipeline work for 90 days; **in parallel, ten no-code conversations with UK small-firm litigators** (the buyer research ranks them first on budget + urgency: ~8 hallucinated-citation sanction cases/day, Clearbrief at $300/user/mo); publish Tru8's own DeepTRACE numbers. Investment verdict: NO today, with the flip conditions stated. Research companion: `audit/2026-09-07_commercial_assessment_research.md`. Uncommitted — founder to read before it lands.
+>
+> **🧪 2026-09-07 — first non-family tester ("GPT Astra", an AI agent operated by the founder) is running a product test on a disposable account** `sam+astra-test@trueight.com` / Clerk `user_3Izu5r4XIUwvHOl3hK7KMgl33uI`; allowance raised 3 → 15 (`grant_checks --checks 12`). Briefing + monitoring queries: `audit/2026-09-07_gpt_astra_test_account.md` (git-ignored, carries credentials). **Owed:** tag the row `signup_source='test-astra'` (SQL in the briefing) so it never counts as a stranger; read the DB + PostHog timeline before reading the tester's report; ban/delete the Clerk user after; log findings here. ⚠️ This is an AI tester, not a stranger — it does not move the "first ten strangers" count.
+
+
+**Historical outreach queue, retained for reference. Use the current engineering checkpoint above to resume the improvement plan.**
 
 ### ▶▶ WHERE 2026-09-04 ENDED — send day, second attempt: everything the five notes depend on is live and verified; the founder was sending all five by hand as the session closed. **The agent does NOT know which went, or by which route — ask first thing Monday.**
 

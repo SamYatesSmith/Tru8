@@ -77,8 +77,11 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
 
   // Determine if explore mode should activate
   const passageReview = claim.claimMap?.metadata?.passageReview;
-  const hasUnknowns = metrics.gaps > 0 || metrics.needsReview > 0 ||
-    !!(passageReview && passageReview.status !== 'complete');
+  // A review that ran and did not finish leaves unknowns; 'not_run' (the
+  // default-off candidate) and 'complete' do not.
+  const reviewIncomplete = !!passageReview &&
+    ['needs_review', 'partial', 'failed', 'interrupted', 'invalid_response'].includes(passageReview.status);
+  const hasUnknowns = metrics.gaps > 0 || metrics.needsReview > 0 || reviewIncomplete;
 
   // Fetch explore data when no unknowns remain
   useEffect(() => {
@@ -153,7 +156,7 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
 
   return (
     <div className="space-y-6">
-      <PassageReviewNotice claim={claim} />
+      <PassageReviewNotice claim={claim} readOnly={readOnly} />
       <UnknownsSummaryStrip {...metrics} />
       <CoverageMap elements={elements} />
 

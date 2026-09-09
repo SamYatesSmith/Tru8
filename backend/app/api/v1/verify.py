@@ -43,11 +43,17 @@ async def verify_report_revision(check_id: str, revision_id: str):
         ).scalar_one_or_none()
         if not row:
             return {"valid": False, "reason": "not_found"}
-        return {
-            **verify_snapshot(row.snapshot),
-            "checkId": check_id,
-            "revisionId": revision_id,
-        }
+        result = verify_snapshot(row.snapshot)
+        stored = (row.snapshot or {}).get("manifest") or {}
+        if result.get("valid"):
+            # Same shape as GET /verify/{check_id}: the page prints these rows.
+            result.update(
+                signedAt=stored.get("signed_at"),
+                kid=stored.get("kid"),
+                executedTier=stored.get("executed_tier"),
+                pipelineFingerprint=stored.get("pipeline_fingerprint"),
+            )
+        return {**result, "checkId": check_id, "revisionId": revision_id}
 
 
 async def _load_claims_for_verify(check_id: str, session: AsyncSession) -> list[dict]:

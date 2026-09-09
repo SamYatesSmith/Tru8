@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { Evidence, EvidenceTier, EvidenceRelationship, PassageCitation } from '@shared/types';
 import { citationText } from '@/lib/passage-citation';
+import { interpretationNote } from '@/lib/system-interpretation';
 import { TierStamp } from './TierStamp';
 import { TypeStamp } from './TypeStamp';
 import { FactCheckRating } from '../FactCheckRating';
@@ -41,10 +42,12 @@ interface ReadingTableProps {
   callNumber: string;
   elementDescriptions: { elementId: string; description: string; relationship?: EvidenceRelationship; reasoning?: string; claimLabel?: string; citations?: PassageCitation[] }[];
   claimLabel?: string;
+  /** Public record (/r/): model free text is gated fail-closed. */
+  readOnly?: boolean;
   onClose: () => void;
 }
 
-export function ReadingTable({ evidence, callNumber, elementDescriptions, claimLabel, onClose }: ReadingTableProps) {
+export function ReadingTable({ evidence, callNumber, elementDescriptions, claimLabel, readOnly, onClose }: ReadingTableProps) {
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
     panel.current?.focus({ preventScroll: true });
@@ -131,7 +134,7 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
                 <span className="text-zinc-400">Element {elementId.replace('e', '')}</span>
                 {description && <span> &mdash; {description}</span>}
                 {relationship && <p className="font-mono uppercase mt-1">{relationship}</p>}
-                <p className="mt-1">System interpretation: {reasoning || 'No relationship explanation was saved for this record.'}</p>
+                <p className="mt-1">System interpretation: {interpretationNote(reasoning, readOnly)}</p>
                 {citations?.some(c => citationText(evidence, c)) ? (
                   <div className="mt-2">
                     <p>Quoted basis from the captured extraction. The relationship remains a system interpretation.</p>
