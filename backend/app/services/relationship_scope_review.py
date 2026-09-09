@@ -5,11 +5,19 @@ import copy
 import hashlib
 import json
 import re
+import time
 
 from app.services.passage_mapping import rank_passages, valid_passages
 from app.services.text_provenance import _terms
 
 MAX_PAIRS = 12
+# Pairs per model call. The review used to send all 12 pairs in ONE call under
+# one 25 s deadline, so a single slow provider response lost every pair
+# (Venus final review, 2026-09-09: 8 pairs, 0 assessed, `failed`, while the
+# same review took 7 s on another run). Two concurrent calls of <=6 keep the
+# wall-time bound, halve each prompt, and a slow call now loses half at most.
+CALL_PAIRS = 6
+CALL_TIMEOUT_S = 25
 DIMENSIONS = [
     "population",
     "outcome",
@@ -176,6 +184,37 @@ def plan_review(claim_map, evidence):
     ], len(ordered)
 
 
+async def _review_call(analyzer, instructions, chunk):
+    """One bounded model call over <= CALL_PAIRS pairs. Never raises except
+    for cancellation; a failure is reported so the other calls still count."""
+    started = time.monotonic()
+    try:
+        parsed = await asyncio.wait_for(
+            analyzer._call_llm(
+                prompt=instructions + json.dumps(chunk, ensure_ascii=False),
+                temperature=0,
+                max_tokens=4800,
+                label="scope_review",
+            ),
+            timeout=CALL_TIMEOUT_S,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        return {"status": "failed", "seconds": time.monotonic() - started, "pairs": []}
+    if not isinstance(parsed, dict) or not isinstance(parsed.get("pairs"), list):
+        return {
+            "status": "invalid_response",
+            "seconds": time.monotonic() - started,
+            "pairs": [],
+        }
+    return {
+        "status": "ok",
+        "seconds": time.monotonic() - started,
+        "pairs": parsed["pairs"],
+    }
+
+
 async def review_relationship_scope(analyzer, claim_map, evidence):
     from app.pipeline.claim_map_analyzer import (
         _compute_element_basis,
@@ -238,30 +277,31 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
         "statement with an unspecified study result to invent a prevention trial. In contrast, a trial reporting equal "
         "rates of new diagnoses in initially unaffected participants is a relevant null result. "
         "Return every supplied pair exactly once using the pairs schema.\nPairs:\n"
-        + json.dumps(pairs, ensure_ascii=False)
     )
+    chunks = [pairs[i : i + CALL_PAIRS] for i in range(0, len(pairs), CALL_PAIRS)]
     try:
-        parsed = await asyncio.wait_for(
-            analyzer._call_llm(
-                prompt=prompt, temperature=0, max_tokens=4800, label="scope_review"
-            ),
-            timeout=25,
+        calls = await asyncio.gather(
+            *(_review_call(analyzer, prompt, chunk) for chunk in chunks)
         )
     except asyncio.CancelledError:
         receipt["status"] = "interrupted"
         raise
-    except Exception:
-        receipt["status"] = "failed"
-        return
-    if not isinstance(parsed, dict) or not isinstance(parsed.get("pairs"), list):
-        receipt["status"] = "invalid_response"
+    receipt["calls"] = [
+        {"pairs": len(chunk), "status": call["status"], "seconds": call["seconds"]}
+        for chunk, call in zip(chunks, calls)
+    ]
+    if all(call["status"] != "ok" for call in calls):
+        # Nothing usable came back: keep the old all-or-nothing statuses so
+        # callers and the UI read the failure the same way as before.
+        receipt["status"] = calls[0]["status"]
         return
     returned, duplicates = {}, set()
-    for row in parsed["pairs"]:
-        if isinstance(row, dict) and isinstance(row.get("pair_id"), str):
-            if row["pair_id"] in returned:
-                duplicates.add(row["pair_id"])
-            returned[row["pair_id"]] = row
+    for call in calls:
+        for row in call["pairs"]:
+            if isinstance(row, dict) and isinstance(row.get("pair_id"), str):
+                if row["pair_id"] in returned:
+                    duplicates.add(row["pair_id"])
+                returned[row["pair_id"]] = row
     staged = copy.deepcopy(claim_map["elements"])
     elements = {e["element_id"]: e for e in staged}
     changed = set()

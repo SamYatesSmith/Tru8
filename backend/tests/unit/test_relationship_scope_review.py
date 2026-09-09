@@ -525,3 +525,91 @@ async def test_support_mismatch_on_result_is_still_scoped_never_flipped():
     a._call_llm = AsyncMock(return_value={"pairs": [row]})
     await review_relationship_scope(a, cm, ev)
     assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "context"
+
+
+def _many_pairs(n):
+    """One element with n distinct directional references."""
+    cm, ev, row = fixture("supports")
+    cm["elements"][0]["evidence_refs"] = [
+        {"evidence_id": f"ev-{i}", "relationship": "supports", "reasoning": "prior"}
+        for i in range(n)
+    ]
+    ev = [
+        dict(ev[0], evidence_id=f"ev-{i}", url=f"https://example.org/{i}")
+        for i in range(n)
+    ]
+    return cm, ev, row
+
+
+@pytest.mark.asyncio
+async def test_review_splits_into_bounded_concurrent_calls():
+    """Eight pairs -> two calls of at most CALL_PAIRS each; every returned
+    decision is applied; the receipt lists both calls."""
+    from app.services.relationship_scope_review import CALL_PAIRS
+
+    cm, ev, row = _many_pairs(8)
+    seen = []
+
+    async def call(prompt, temperature, max_tokens, label):
+        chunk = json.loads(prompt.split("Pairs:\n", 1)[1])
+        seen.append(len(chunk))
+        return {
+            "pairs": [
+                dict(row, pair_id=p["pair_id"], decision="unknown") for p in chunk
+            ]
+        }
+
+    a = ClaimMapAnalyzer()
+    a._call_llm = call
+    await review_relationship_scope(a, cm, ev)
+    assert sorted(seen) == [2, 6] and max(seen) <= CALL_PAIRS
+    receipt = cm["metadata"]["scope_review"]
+    assert [c["status"] for c in receipt["calls"]] == ["ok", "ok"]
+    assert receipt["assessed_pairs"] == 8 and receipt["uninspected_pairs"] == 0
+    assert all(
+        r["relationship"] == "context" for r in cm["elements"][0]["evidence_refs"]
+    )
+
+
+@pytest.mark.asyncio
+async def test_one_slow_call_loses_only_its_own_pairs():
+    """The motivating failure: one call times out. The other call's decisions
+    still apply; the lost pairs are disclosed as uninspected, not silently
+    dropped, and the receipt shows which call failed."""
+    cm, ev, row = _many_pairs(8)
+    calls = 0
+
+    async def call(prompt, temperature, max_tokens, label):
+        nonlocal calls
+        calls += 1
+        chunk = json.loads(prompt.split("Pairs:\n", 1)[1])
+        if len(chunk) == 6:
+            raise asyncio.TimeoutError()
+        return {
+            "pairs": [
+                dict(row, pair_id=p["pair_id"], decision="unknown") for p in chunk
+            ]
+        }
+
+    a = ClaimMapAnalyzer()
+    a._call_llm = call
+    await review_relationship_scope(a, cm, ev)
+    receipt = cm["metadata"]["scope_review"]
+    assert calls == 2
+    assert sorted(c["status"] for c in receipt["calls"]) == ["failed", "ok"]
+    assert receipt["status"] == "needs_review"
+    assert receipt["assessed_pairs"] == 2 and receipt["uninspected_pairs"] == 6
+    refs = cm["elements"][0]["evidence_refs"]
+    assert sum(r["relationship"] == "context" for r in refs) == 2
+    assert sum(r["relationship"] == "supports" for r in refs) == 6
+
+
+@pytest.mark.asyncio
+async def test_all_calls_failing_keeps_the_old_failure_status():
+    cm, ev, row = _many_pairs(8)
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(side_effect=RuntimeError("provider unavailable"))
+    before = copy.deepcopy(cm["elements"])
+    await review_relationship_scope(a, cm, ev)
+    assert cm["metadata"]["scope_review"]["status"] == "failed"
+    assert cm["elements"] == before
