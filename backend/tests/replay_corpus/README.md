@@ -14,6 +14,13 @@
 > drift guard across the whole corpus to buy a green tick. Its golden is still the
 > 2026-07-21 `fdf3509` capture and is **not** comparable to post-Phase-2 behaviour.
 >
+> **Later the same night (`f77e5e2`):** the widened invented-precision list strips
+> "specifically" from one element each on `TRU-C1A0-0003` and `TRU-C1A0-0004`, which
+> re-keys their mapping cassettes (bisected: reverting the two utils replays 0004 at
+> 20 ok). Both need a `--record` (owed). Until then the replay reads
+> **83 ok / 0 warn / 11 fail with drift on 82CF, 0003, 0004** (5647 replayed CLEAN on
+> that run — the flaky pair drifts at random, not always).
+>
 > So: **`140 ok / 1 warn / 11 fail / 3 unexercised` + 2 cassette-drift claims is the
 > current PASS state** (2026-09-09 full corpus re-record after the decomposition
 > prompt gained its no-trivial-prerequisite rule, which re-keyed every cassette;
