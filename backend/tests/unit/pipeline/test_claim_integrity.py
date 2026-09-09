@@ -12,6 +12,7 @@ from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer, _is_causal_link
 from app.pipeline.extract import (
     is_single_declarative_sentence,
     recombine_single_thesis,
+    restore_single_thesis,
 )
 
 TECTONIC = (
@@ -269,3 +270,89 @@ class TestCausalTagReachesPromptBuilders:
             assert "driving the rise in eruptions [CAUSAL LINK]" in prompt
             # The non-causal element must NOT be tagged.
             assert "There is a rise in eruptions [CAUSAL LINK]" not in prompt
+
+
+JWST = (
+    "The James Webb Space Telescope orbits the Earth every 90 minutes, has a "
+    "6.5-metre primary mirror and was launched in December 2021."
+)
+SWEDEN = (
+    "Sweden's decision not to impose a general lockdown caused it to have lower "
+    "excess mortality in 2020-22 than every other European country."
+)
+
+
+def _one(text):
+    return [{"text": text, "position": 0, "confidence": 90, "key_entities": []}]
+
+
+class TestRestoreSingleThesis:
+    """The 2026-09-09 regrade: extraction returned ONE claim with the
+    contested conjunct removed, so a mixed true/false claim read as all true
+    and a causal claim became a bare ranking."""
+
+    def test_dropped_false_conjunct_is_restored(self):
+        claim = restore_single_thesis(
+            JWST,
+            _one(
+                "The James Webb Space Telescope has a 6.5-metre primary mirror and was launched in December 2021"
+            ),
+        )
+        assert claim is not None and claim["text"] == JWST
+        assert "orbits" in claim["restored_dropped_tokens"]
+        assert claim["restored_from"][0].startswith("The James Webb")
+
+    def test_dropped_causal_clause_is_restored(self):
+        claim = restore_single_thesis(
+            SWEDEN,
+            _one(
+                "Sweden had lower excess mortality in 2020-2022 than every other European country"
+            ),
+        )
+        assert claim is not None and claim["text"] == SWEDEN
+        assert "lockdown" in claim["restored_dropped_tokens"]
+
+    def test_dropped_quantifier_is_restored(self):
+        src = "The SELECT trial proved that semaglutide prevents heart attacks in everyone who is overweight."
+        claim = restore_single_thesis(
+            src,
+            _one(
+                "The SELECT trial proved that semaglutide prevents heart attacks in overweight individuals"
+            ),
+        )
+        assert claim is not None and claim["text"] == src
+        assert "everyone" in claim["restored_dropped_tokens"]
+
+    def test_pure_rewording_that_keeps_content_is_left_alone(self):
+        src = "Venus is the hottest planet in the Solar System."
+        assert (
+            restore_single_thesis(
+                src, _one("Venus is the hottest planet in the Solar System")
+            )
+            is None
+        )
+        assert (
+            restore_single_thesis(
+                src, _one("The hottest planet in the Solar System is Venus.")
+            )
+            is None
+        )
+
+    def test_guards(self):
+        assert restore_single_thesis(JWST, []) is None
+        assert (
+            restore_single_thesis(JWST, FRAGMENTS) is None
+        )  # two claims: recombine's seam
+        assert (
+            restore_single_thesis(
+                "GDP rose 2% in 2023. Arsenal won the league.",
+                _one("GDP rose 2% in 2023"),
+            )
+            is None
+        )
+        assert (
+            restore_single_thesis(
+                "Is the climate warming?", _one("The climate is warming")
+            )
+            is None
+        )

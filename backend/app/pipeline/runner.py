@@ -846,6 +846,19 @@ async def run_pipeline_phase1(
                 f"one intact single-thesis claim"
             )
             claims = [recombined]
+    # The quieter loss (2026-09-09 regrade): ONE claim came back with a
+    # conjunct dropped ("orbits the Earth every 90 minutes" gone; "caused"
+    # gone; "everyone" gone). Restore the user's sentence verbatim.
+    if extract_metadata.get("input_type") == "text" and len(claims) == 1:
+        from app.pipeline.extract import restore_single_thesis
+
+        restored = restore_single_thesis(extract_content, claims)
+        if restored is not None:
+            logger.info(
+                "[CLAIM INTEGRITY] Restored the submitted sentence over an "
+                f"extraction that dropped {restored['restored_dropped_tokens']}"
+            )
+            claims = [restored]
 
     # F-VERDICT / P13 (2026-07-26): mechanical evaluative-head detector as a
     # SECOND signal for the grounds gate. The LLM `normative` hint under-fires
@@ -2820,8 +2833,8 @@ async def run_pipeline_phase2(
     for claim in claims:
         cm = claim.get("claim_map")
         if isinstance(cm, dict):
-            cm.setdefault("metadata", {})["source_concentration"] = source_concentration(
-                evidence.get(str(claim.get("position", 0)), [])
+            cm.setdefault("metadata", {})["source_concentration"] = (
+                source_concentration(evidence.get(str(claim.get("position", 0)), []))
             )
 
     # V3 per-claim quality signals on MAPPED items only.

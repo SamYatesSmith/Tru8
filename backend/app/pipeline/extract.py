@@ -208,6 +208,58 @@ def recombine_single_thesis(
     }
 
 
+_CONTENT_TOKEN_RE = re.compile(r"[a-z]{4,}|\d+(?:[.,]\d+)?%?")
+
+
+def _content_tokens(text: str) -> Set[str]:
+    return set(_CONTENT_TOKEN_RE.findall((text or "").lower()))
+
+
+def restore_single_thesis(
+    source_text: str, claims: List[Dict[str, Any]]
+) -> Optional[Dict[str, Any]]:
+    """Restore the user's exact sentence when extraction returned ONE claim
+    that DROPPED part of it (claim integrity, 2026-09-09 regrade).
+
+    `recombine_single_thesis` guards the split case (>= 2 fragments). The
+    other way a single-sentence submission loses content is quieter: the
+    extractor returns one "normalised" claim with a conjunct missing. Seen on
+    the Astra regrade: "…orbits the Earth every 90 minutes, has a 6.5-metre
+    mirror and was launched in December 2021" came back without the FALSE
+    orbit conjunct and read "supports all"; "Sweden's decision not to impose
+    a lockdown CAUSED…" came back as a bare ranking claim; "everyone who is
+    overweight" became "overweight individuals". Three of fourteen inputs
+    had their contested part removed before research.
+
+    Rule: text input, one declarative sentence, exactly one claim, and the
+    claim text is missing at least one content token (a word of 4+ letters
+    or a number) that the source sentence carries. Pure rewording that keeps
+    every content token is left alone. Returns the claim with the user's
+    sentence verbatim and `restored_from`, or None.
+    """
+    if len(claims) != 1 or not is_single_declarative_sentence(source_text):
+        return None
+    source = (source_text or "").strip()
+    current = (claims[0].get("text") or "").strip()
+    if not source or not current:
+        return None
+    if _squash_for_compare(current) == _squash_for_compare(source):
+        return None
+    dropped = _content_tokens(source) - _content_tokens(current)
+    if not dropped:
+        return None
+    return {
+        **claims[0],
+        "text": source,
+        "restored_from": [current],
+        "restored_dropped_tokens": sorted(dropped),
+    }
+
+
+def _squash_for_compare(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", (text or "").lower())
+
+
 # ── F-VERDICT / P13 (2026-07-26): mechanical evaluative-head second signal ──
 # `_OPINION_REFRAME_RULE` above is an LLM judgement and under-fires on two
 # witnessed shapes (module docstring of `app/utils/evaluative_heads.py`). A hint
