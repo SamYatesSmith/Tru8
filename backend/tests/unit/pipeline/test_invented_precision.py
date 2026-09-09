@@ -81,3 +81,29 @@ def test_parser_strips_and_records_when_given_the_claim():
     cm2 = a._parse_decomposition_response(raw, "c")
     assert "exactly" in cm2["elements"][0]["description"]
     assert "precision_stripped" not in cm2["metadata"]
+
+
+@pytest.mark.parametrize(
+    "desc,expected",
+    [
+        (
+            "Healthy adults consistently consume 5g of creatine daily.",
+            "Healthy adults consume 5g of creatine daily.",
+        ),
+        (
+            "Venus has a quantified average surface temperature higher than any other planet.",
+            "Venus has a average surface temperature higher than any other planet.",
+        ),
+        (
+            "Write-ahead logging completely prevents SQLITE_BUSY errors.",
+            "Write-ahead logging prevents SQLITE_BUSY errors.",
+        ),
+        (
+            "The Bank Rate is 4.25% specifically for the date of 7 September 2026.",
+            "The Bank Rate is 4.25% for the date of 7 September 2026.",
+        ),
+    ],
+)
+def test_post_fix_regrade_words_are_stripped(desc, expected):
+    out, removed = strip_invented_precision(desc, "Some claim without those words.")
+    assert out == expected and removed

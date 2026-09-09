@@ -57,10 +57,34 @@ def stated_days(text: Optional[str]) -> Set[Day]:
     return out
 
 
+# A date framed as a STATE boundary ("as of 7 September 2026", "by", "until",
+# "since") is not the date of an event. A source about the same state that
+# names a different day (the next meeting, the last decision) is not off-day;
+# it was scoped wrongly on the 2026-09-09 post-fix regrade (Bank Rate: two
+# supports naming "17 September" lost). Only event dates arm the gate.
+_STATE_FRAMING = re.compile(
+    r"\b(?:as\s+of|as\s+at|by|until|till|since|from|before|after|through|effective)\s*(?:the\s+)?$",
+    re.I,
+)
+_ANY_DATE = re.compile(
+    rf"(?:{_DAY_MONTH_YEAR.pattern})|(?:{_MONTH_DAY_YEAR.pattern})|(?:{_ISO_DAY.pattern})",
+    re.I,
+)
+
+
 def element_day(description: Optional[str]) -> Optional[Day]:
-    """The single full date an element pins, or None (none, or more than one)."""
+    """The single EVENT date an element pins, or None.
+
+    None when the element names no full date, more than one, or frames its
+    one date as a state boundary ("as of …", "by …", "until …")."""
     days = stated_days(description)
-    return days.pop() if len(days) == 1 else None
+    if len(days) != 1:
+        return None
+    for m in _ANY_DATE.finditer(description or ""):
+        lead = (description or "")[max(0, m.start() - 24) : m.start()]
+        if _STATE_FRAMING.search(lead):
+            return None
+    return days.pop()
 
 
 def is_off_day(target: Day, evidence_text: Optional[str]) -> bool:

@@ -160,3 +160,22 @@ def test_flag_off_and_key_registered_and_order(monkeypatch):
     monkeypatch.setattr(settings, "ENABLE_DATE_SCOPE_GATE", False)
     elem = _parse([("ev-choco", "supports")])
     assert _rel(elem, "ev-choco") == "supports"
+
+
+def test_a_state_date_does_not_arm_the_gate():
+    """ "As of 7 September 2026 the Bank Rate stands at 3.75%" is a state, not
+    an event: a source naming the next meeting on 17 September is not off-day.
+    Two genuine supports were scoped this way on the post-fix regrade."""
+    assert (
+        element_day(
+            "As of 7 September 2026, the Bank of England's Bank Rate stands at 3.75%."
+        )
+        is None
+    )
+    assert element_day("The rate was held by 30 July 2026.") is None
+    assert element_day("The next decision takes place on 17 September 2026.") == Day(
+        2026, 9, 17
+    )
+    assert element_day("Version 3.22.0 was released on January 22, 2018.") == Day(
+        2018, 1, 22
+    )

@@ -19,7 +19,25 @@ uses the adverb.
 import re
 from typing import List, Optional, Tuple
 
-_ADVERBS = ("exactly", "precisely", "strictly", "solely", "purely")
+# Measured on the 2026-09-09 post-fix regrade: the decomposer's precision
+# words are open-ended — "consistently consume", "quantified average
+# temperature", "verified maximum", "completely prevents", "specifically for
+# the date". Each made an element demand something the claim never said.
+_ADVERBS = (
+    "exactly",
+    "precisely",
+    "strictly",
+    "solely",
+    "purely",
+    "consistently",
+    "specifically",
+    "completely",
+    "entirely",
+    "absolutely",
+    "wholly",
+    "quantified",
+    "verified",
+)
 _ADVERB_RE = re.compile(r"\b(" + "|".join(_ADVERBS) + r")\b\s*", re.I)
 
 

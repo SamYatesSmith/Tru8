@@ -112,6 +112,17 @@ Two follow-ups recorded: the decomposition rule did not stop the Venus premise (
 - **Day-level date scope** (`app/utils/date_scope.py`, eighth mechanical gate, `ENABLE_DATE_SCOPE_GATE`, after measure and before interested-party): an element pinning one full date is not supported or challenged by a source stating a different day of the same month ("released on Tuesday, January 23, 2018" against "January 22, 2018"); such a reference becomes context with both days in the receipt. A different month stays the temporal gate's; a source naming no full date is left alone; symmetric. One of the four genuine mislabels.
 - Left as model reading errors with no mechanical form: the inflation support attached to a false proposition, the Reddit Mercury-only comparison. The EV first-two-years label is defensible either way.
 
+## Post-fix regrade and blind review (founder-approved, ~50p)
+
+Fourteen inputs again on the fixed code (`tmp/astra-regrade-postfix/`), 14/14 complete, p90 84 s; blind review over 147 labels: **81.6% justified** (120/147) by the independent reviewer, 95.3% reviewer agreement. Down from 86.1%, not up. Read the rejections before reading the number:
+
+- **11 of 27 are one record, the EV claim**, which this run decomposed on the grounds path into questions that demand quantities the claim never stated ("What is the *total lifecycle emission volume*…", "What *proportion* of electricity…"). Sources that say EVs emit less over their life do not answer a question phrased for a figure, so the reviewer says "neither". Same disease as "exactly 5g", in question form, and on a record whose pool doubled (25 → 40 sources) because the grounds path fired this run and not last.
+- 7 more are the same disease in new words: "consistently consume", "quantified average temperature", "verified maximum", "completely prevents", "under all operational circumstances", "no other conditions". The adverb list is widened for the words seen; the decomposer's vocabulary for over-specifying is open-ended, so the durable fix is the decomposition prompt plus this strip, and the grounds question-builder needs the same rule.
+- 2 are the Nature Sweden paper read by the reviewer as supporting the causal claim it contradicts (reviewer error, twice now). 2 are date-year strictness on Bank Rate. 1 is the SELECT composite endpoint. The rest are arguable scope strictness.
+- The fixes fired where designed: `precision_stripped` on SELECT ("strictly") and Bank Rate 4.25% ("exactly"); `date_scope` on Bank Rate 3.75% — **and there it over-fired**: "as of 7 September 2026" is a state, not an event, and two genuine supports naming the next meeting (17 September) were scoped. Narrowed the same hour: only event dates arm the gate; state framings ("as of", "by", "until", "since") do not.
+
+**Reading the two runs together:** the rate moves ±5 points with the retrieval pool alone (the same fourteen inputs gave 86.1 then 81.6), so one run is not a measurement; the *kinds* of rejection are stable and they name one lever: **decomposition must not demand specificity the claim did not state**, in elements and in grounds questions. That is prompt work on the decomposer and the grounds builder, each of which re-keys cassettes, plus the mechanical strip as the backstop.
+
 ## What 8/10 still needs
 
 1. Re-verify the extraction fix on #2, #4, #6/#13 (three checks, ~15p).
