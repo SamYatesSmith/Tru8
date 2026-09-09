@@ -835,7 +835,7 @@
       <span class="el-desc">{{ element.description }}</span>
       {% set st_rule = ((element.get('basis') or {}).get('state_derivation') or {}).get('rule_applied') %}
       {% set st_challenged = element.state == 'disputed' and st_rule == 'all_challenges' %}
-      {% if element.state %}<span class="st st-{{ element.state }}"><span class="st-glyph">{% if element.state == 'supported' %}+{% elif st_challenged %}&minus;{% elif element.state == 'disputed' %}&plusmn;{% elif element.state == 'contextual' %}&#9432;{% else %}&#9675;{% endif %}</span>{% if st_challenged %}challenged{% else %}{{ element.state }}{% endif %}</span>{% endif %}
+      {% if element.state %}<span class="st st-{{ element.state }}"><span class="st-glyph">{% if element.state == 'supported' %}+{% elif st_challenged %}&minus;{% elif element.state == 'disputed' %}&plusmn;{% elif element.state == 'contextual' %}&#9432;{% else %}&#9675;{% endif %}</span>{% if st_challenged %}challenged{% else %}{{ element.state_label or element.state }}{% endif %}</span>{% endif %}
       {% if element.evidence_refs %}
       {% set ns = namespace(supports=[], challenges=[], context=[]) %}
       {% for ref in element.evidence_refs %}

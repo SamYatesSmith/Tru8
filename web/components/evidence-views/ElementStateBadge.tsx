@@ -12,7 +12,7 @@
  */
 
 import type { ElementBasis } from '@shared/types';
-import { CHALLENGED_GLYPH, CHALLENGED_LABEL, isChallengesOnly } from '@shared/constants';
+import { CHALLENGED_GLYPH, CHALLENGED_LABEL, QUESTION_STATE_LABELS, isChallengesOnly, isQuestionElement } from '@shared/constants';
 
 export type ElementStateKey = 'supported' | 'disputed' | 'unresolved' | 'contextual';
 
@@ -47,21 +47,26 @@ interface ElementStateBadgeProps {
   className?: string;
   /** Element basis — lets a challenges-only disputed element read "− Challenged". */
   basis?: ElementBasis;
+  /** The element's description — a question-shaped element reads Addressed /
+   *  Contested / Context only / Open instead of Supported / Disputed / …, because
+   *  a question cannot be "supported". Same enum, same styling; only the word. */
+  description?: string | null;
 }
 
-export function ElementStateBadge({ state, label, size = 'sm', className = '', basis }: ElementStateBadgeProps) {
+export function ElementStateBadge({ state, label, size = 'sm', className = '', basis, description }: ElementStateBadgeProps) {
   const cfg = ELEMENT_STATE[state] ?? ELEMENT_STATE.unresolved;
   // A challenges-only disputed element reads "− Challenged" (same neutral zinc
   // styling), so the badge matches the orientation prose. An explicit `label`
   // (e.g. "Gap") still wins. §4d fix 3.
   const challengesOnly = label == null && isChallengesOnly(state, basis);
   const icon = challengesOnly ? CHALLENGED_GLYPH : cfg.icon;
+  const questionLabel = label == null && isQuestionElement(description) ? QUESTION_STATE_LABELS[state] : undefined;
   return (
     <span
       className={`${BADGE_SIZE[size]} inline-flex items-center gap-1 font-mono font-bold uppercase tracking-wider shrink-0 rounded ${cfg.badge} ${className}`}
     >
       <span aria-hidden className="not-italic">{icon}</span>
-      {label ?? (challengesOnly ? CHALLENGED_LABEL : cfg.label)}
+      {label ?? (challengesOnly ? CHALLENGED_LABEL : questionLabel ?? cfg.label)}
     </span>
   );
 }

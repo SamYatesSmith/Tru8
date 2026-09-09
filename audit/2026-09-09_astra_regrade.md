@@ -64,6 +64,14 @@ Artefacts `tmp/astra-regrade-reverify/`; 58–80 s each; about 15p. With this, t
 
 The creatine element read `disputed / all_challenges` on three sources that say evidence is *lacking* ("there isn't enough evidence", "no strong evidence linking", "no large trials have demonstrated"). A new default-on mechanical gate, `absence_of_evidence` (`app/utils/absence_of_evidence.py`, `ENABLE_ABSENCE_OF_EVIDENCE_GATE`), re-labels such a reference to `context` in either direction, with a receipt quoting the sentence; a measured null result ("found identical rates", "no significant difference") never matches. Placed after recital, before the redundancy gates. Tests drive the three real creatine sentences through the real parser (element → `contextual`), keep a measured null as a challenge, scope a "no evidence of harm" support symmetrically, and pin order and receipt-key registration. Re-verification on a live creatine check is owed.
 
+## Question-shaped elements read Addressed, not Supported (default path, same day)
+
+Astra finding 8: the EV claim's grounds elements are open questions and read "+ Supported". A question cannot be supported; evidence addresses it. Both badge components and the PDF now print **Addressed / Contested / Context only / Open** for an element whose description is interrogative, from one table (`shared/constants/index.ts::QUESTION_STATE_LABELS`, parity-locked to `checks.py::QUESTION_STATE_LABELS` by tests on both sides). The state enum, styling, arithmetic and signed manifests are untouched; only the word the reader sees. Astra's fuller ask — show the substantive answer beside the question — needs the mapper to write one and is not attempted here.
+
+## The SQLite URL false gap is a design consequence, not a retrieval miss
+
+`retrieve_evidence_for_claims(exclude_source_url=…)` excludes the **whole domain** of a submitted URL from evidence: claims extracted from `sqlite.org/wal.html` cannot be evidenced by `sqlite.org/changes.html`, the page that proves the 3.22.0 change. The rule protects independence (an outlet must not corroborate its own article). For reference documentation it manufactures a gap. Changing it is a retrieval-semantics decision for the founder (see the register); the candidate change is to exclude only the submitted URL itself and let the interested-party and echo gates handle self-corroboration, with a receipt on same-domain items.
+
 ## What 8/10 still needs
 
 1. Re-verify the extraction fix on #2, #4, #6/#13 (three checks, ~15p).

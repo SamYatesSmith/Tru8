@@ -44,7 +44,7 @@ export function RelatedClaimCard({ claim }: RelatedClaimCardProps) {
           {claim.elements.map((el, idx) => (
             <div key={idx} className="flex items-center gap-2">
               <ElementBadge n={idx + 1} size="sm" />
-              {el.state && <ElementStateBadge state={el.state} size="sm" />}
+              {el.state && <ElementStateBadge state={el.state} size="sm" description={el.description} />}
               <span className="text-[12px] text-zinc-600 truncate">
                 {el.description}
               </span>

@@ -536,3 +536,36 @@ def test_scope_receipts_render_as_neutral_notes_and_withhold_verdict_wording():
     html = _render(ctx)
     assert "Source 2 retained as context" in html
     assert "consistently refutes" not in html
+
+
+# ── Question-shaped elements read Addressed, not Supported (Astra finding 8) ──
+
+
+def test_question_element_reads_addressed_in_pdf_and_matches_the_web_table():
+    from app.api.v1.checks import QUESTION_STATE_LABELS, _element_state_label
+
+    assert (
+        _element_state_label(
+            {"state": "supported", "description": "What do grid studies show?"}
+        )
+        == "Addressed"
+    )
+    assert (
+        _element_state_label({"state": "disputed", "description": "Is it cleaner?"})
+        == "Contested"
+    )
+    assert (
+        _element_state_label({"state": "supported", "description": "EVs are cleaner."})
+        == "supported"
+    )
+    ctx = _context()
+    el = ctx["claims"][0]["elements"][0]
+    el["description"] = "What do lifecycle analyses indicate about electric cars?"
+    el["state_label"] = _element_state_label(el)
+    html = _render(ctx)
+    assert "Addressed" in html
+    ts = (
+        Path(__file__).resolve().parents[3] / "shared" / "constants" / "index.ts"
+    ).read_text(encoding="utf-8")
+    for state, word in QUESTION_STATE_LABELS.items():
+        assert f"{state}: '{word}'" in ts, f"web table lacks {state}: {word}"

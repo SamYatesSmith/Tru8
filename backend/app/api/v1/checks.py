@@ -2070,6 +2070,31 @@ async def stream_check_progress(
     )
 
 
+# Question-shaped elements read Addressed / Contested / Context only / Open
+# (a question cannot be "supported"). PARITY-LOCKED with
+# shared/constants/index.ts::QUESTION_STATE_LABELS — the test reads both.
+QUESTION_STATE_LABELS = {
+    "supported": "Addressed",
+    "disputed": "Contested",
+    "contextual": "Context only",
+    "unresolved": "Open",
+}
+
+
+def _is_question_element(description) -> bool:
+    return isinstance(description, str) and description.strip().endswith("?")
+
+
+def _element_state_label(element: dict) -> str:
+    """The word the PDF prints for the state: the question form for a
+    question-shaped element, otherwise the state itself (the template still
+    substitutes "challenged" for a challenges-only disputed element)."""
+    state = str(element.get("state") or "")
+    if _is_question_element(element.get("description")):
+        return QUESTION_STATE_LABELS.get(state, state)
+    return state
+
+
 def _element_quality_notes(element: dict) -> list[dict]:
     """Per-element thin/echo/repetition notes for the PDF (parity-locked to the
     frontend via ``side_quality_note``), one per side that carries a note and
@@ -2251,6 +2276,7 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
         for el in elements:
             if isinstance(el, dict):
                 el["quality_notes"] = _element_quality_notes(el)
+                el["state_label"] = _element_state_label(el)
                 el["passage_basis"] = _element_passage_basis(
                     el, evidence_by_id, evidence_index
                 )

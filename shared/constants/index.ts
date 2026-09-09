@@ -84,6 +84,27 @@ export const ELEMENT_STATE_LABELS = {
 // prose ("challenged with none supporting"). State stays `disputed`; this is
 // presentation only, keyed off basis.state_derivation.rule_applied (§4d fix 3).
 export const CHALLENGED_LABEL = 'Challenged';
+
+/**
+ * Question-shaped elements (opinion/grounds decoupling rebuilds elements as
+ * NEUTRAL open questions: "What do lifecycle analyses indicate …?"). A question
+ * cannot be "supported" — evidence ADDRESSES it. The 2026-09-09 Astra regrade
+ * still showed "Supported" on "What do grid studies show …?" (finding 8). The
+ * state enum is unchanged (signed manifests, state arithmetic); only the word
+ * the reader sees changes. PARITY-LOCKED with backend
+ * `app/api/v1/checks.py::QUESTION_STATE_LABELS` (PDF) — test reads both.
+ */
+export const QUESTION_STATE_LABELS: Record<string, string> = {
+  supported: 'Addressed',
+  disputed: 'Contested',
+  contextual: 'Context only',
+  unresolved: 'Open',
+};
+
+/** A question-shaped element: the description is an interrogative. */
+export function isQuestionElement(description: string | null | undefined): boolean {
+  return typeof description === 'string' && /\?\s*$/.test(description.trim());
+}
 export const CHALLENGED_GLYPH = '−'; // minus sign
 
 // True when a disputed element's state was derived from challenges alone.

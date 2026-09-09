@@ -74,6 +74,7 @@ export function ElementList({ elements, topUp }: ElementListProps) {
                       state={isGap ? 'unresolved' : state}
                       label={isGap ? 'Gap' : undefined}
                       basis={element.basis}
+                      description={element.description}
                       size="md"
                     />
                   </div>

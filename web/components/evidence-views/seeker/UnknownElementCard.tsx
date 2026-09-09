@@ -71,7 +71,7 @@ export function UnknownElementCard({
       <div className="flex items-center gap-3 px-4 py-2.5 bg-zinc-50/50 border border-zinc-100">
         <ElementBadge n={index + 1} size="sm" />
         <span className="text-sm text-zinc-700 truncate flex-grow min-w-0">{element.description}</span>
-        {element.state && <ElementStateBadge state={element.state} size="sm" basis={element.basis} />}
+        {element.state && <ElementStateBadge state={element.state} size="sm" basis={element.basis} description={element.description} />}
         <span className="font-mono text-[10px] text-zinc-400 whitespace-nowrap">
           {refCount} {refCount === 1 ? 'source' : 'sources'}
         </span>
@@ -89,7 +89,7 @@ export function UnknownElementCard({
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
         <ElementBadge n={index + 1} size="md" />
-        {element.state && <ElementStateBadge state={element.state} size="md" basis={element.basis} />}
+        {element.state && <ElementStateBadge state={element.state} size="md" basis={element.basis} description={element.description} />}
       </div>
 
       {/* Description */}
