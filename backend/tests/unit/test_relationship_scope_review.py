@@ -455,3 +455,73 @@ async def test_quantitative_guard_leaves_challenges_alone():
     await review_relationship_scope(a, cm, ev)
     assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "challenges"
     assert cm["metadata"]["scope_review"]["pairs"][0]["status"] == "compatible"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "description,quote",
+    [
+        (
+            "In the LANE trial, intervention Q reduced hospital admissions in adults compared with placebo.",
+            "The LANE randomized placebo-controlled trial found identical hospital admission rates in adults receiving Q and placebo, excluding a meaningful reduction.",
+        ),
+        (
+            "Intervention Q reduces deaths in adults compared with placebo.",
+            "A randomized adult trial found identical death rates with Q and placebo.",
+        ),
+    ],
+)
+async def test_contrary_result_mismatch_keeps_the_challenge(description, quote):
+    """2026-09-09 broader controls, 3 of 8 null-result challenges: the model
+    returned mismatch/result ("claim says reduced, source says identical") and
+    the review demoted the challenge to context. A contrary result on the
+    result dimension IS the challenge; the model's decision is kept in the
+    receipt and the reference is left as challenges."""
+    cm, ev, row = fixture("challenges")
+    cm["elements"][0]["description"] = description
+    ev[0]["snippet"] = quote
+    row.update(
+        decision="mismatch",
+        dimension="result",
+        quote=quote,
+        claim_scope="reduced admissions",
+        source_scope="identical rates",
+        reasoning="The source reports identical rates, conflicting with the claimed reduction.",
+    )
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "challenges"
+    record = cm["metadata"]["scope_review"]["pairs"][0]
+    assert record["status"] == "compatible"
+    assert record["decision_basis"] == "contrary_result_is_the_challenge"
+    assert record["model_decision"] == "mismatch"
+    assert "relationship_scope" not in cm["elements"][0].get("basis", {})
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("dimension", ["population", "outcome", "study_identity"])
+async def test_challenge_mismatch_on_other_dimensions_still_scopes(dimension):
+    """Only the result dimension is exempt: a challenge from the wrong
+    population, endpoint or study is still scoped to context."""
+    cm, ev, row = fixture("challenges")
+    row.update(decision="mismatch", dimension=dimension)
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "context"
+
+
+@pytest.mark.asyncio
+async def test_support_mismatch_on_result_is_still_scoped_never_flipped():
+    """A support whose quoted result contradicts the element becomes context;
+    the review never flips a relationship."""
+    cm, ev, row = fixture("supports")
+    ev[0][
+        "snippet"
+    ] = "The trial found identical rates of new diagnoses with A and placebo."
+    row.update(decision="mismatch", dimension="result", quote=ev[0]["snippet"])
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "context"

@@ -304,6 +304,22 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
             record["decision_basis"] = "explicit_study_identifier_missing"
             record["model_decision"] = decision
             decision = "unknown"
+        # A CONTRARY RESULT IS THE CHALLENGE. The model sometimes returns
+        # mismatch/result for a null-result challenge ("claim says reduced,
+        # source says identical rates") and the review would demote the one
+        # thing that keeps a false claim from looking supported. Only the
+        # result dimension is exempt: population/outcome/design/identity/
+        # measure/time mismatches on a challenge still scope it. Seen 3/8 on
+        # the 2026-09-09 broader controls after two prompt tightenings.
+        if (
+            decision == "mismatch"
+            and pair["relationship"] == "challenges"
+            and row.get("dimension") == "result"
+        ):
+            record["decision_basis"] = "contrary_result_is_the_challenge"
+            record["model_decision"] = decision
+            row = dict(row, decision="compatible", excerpt_id="")
+            decision = "compatible"
         # A quantitative support needs the stated figure IN the quoted result.
         # "Reduced MACE" or a different endpoint's 37.8% cannot establish
         # "reduced MACE by 20%" (2026-09-09 SELECT pair). Absence of the figure

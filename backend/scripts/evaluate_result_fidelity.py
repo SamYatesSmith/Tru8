@@ -227,6 +227,9 @@ async def run(output, case_ids=None):
                         "seconds": time.monotonic() - start,
                         "checks": checks,
                         "sources_preserved": before == evidence,
+                        "token_usage": dict(
+                            getattr(analyzer, "_token_usage", {}) or {}
+                        ),
                         "map": cm,
                         "responses": responses,
                     }

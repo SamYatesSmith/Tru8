@@ -23,10 +23,16 @@ The prompt already says "a stray matching number does not establish the asserted
 
 ## Evidence
 
-- Unit tests drive the real parser with the frozen pair (both references → `context`, both receipts carry `quantitative_result_not_quoted` and `model_decision: compatible`, sources byte-identical), six form controls (risk ratio 0.70 ↔ 30%, "30 percent", hazard ratio 0.80 ↔ 20% all pass; 37.8% on another endpoint and a bare "reduced admissions" do not; an element with no figure is untouched), and a null-result challenge left alone. `test_relationship_scope_review.py`: 47 passed.
+- Unit tests drive the real parser with the frozen pair (both references → `context`, both receipts carry `quantitative_result_not_quoted` and `model_decision: compatible`, sources byte-identical), six form controls (risk ratio 0.70 ↔ 30%, "30 percent", hazard ratio 0.80 ↔ 20% all pass; 37.8% on another endpoint and a bare "reduced admissions" do not; an element with no figure is untouched), and a null-result challenge left alone. `test_relationship_scope_review.py`: 53 collected, all pass (with the second rule below).
 - The candidate fingerprint moves `v10 → v11` (flag-only; verification reads the stored fingerprint).
 - `scripts/evaluate_result_fidelity.py` now includes the pair as two result cases (`qualitative_effect_e034ec`, `qualitative_effect_49522d`) with the fixture's hash in the protocol.
-- **Paid confirmation not yet run.** The evaluator (two repeats × 4 broader mapping cases + 9 result cases) is the acceptance step for this correction; it makes model calls and is held for the founder's go-ahead under the ask-before-every-paid-run rule. Estimated well under 10p at the recorded token volumes.
+- **Paid run 1 (founder-approved, 2026-09-09, `tmp/result-fidelity-quant-guard-2026-09-09/`): 39 of 42.** The frozen SELECT pair passed both repeats (4/4) and all nine result controls passed both repeats (18/18), so the guard does what it was built for. The three failures are elsewhere and are NOT the guard: on three of eight null-result **challenges** in the broader controls (`named_trial` ×2, `endpoint` ×1) the model returned `mismatch` on the `result` dimension ("the claim says reduced, the source says identical rates") and the review demoted the challenge to context. That is the one demotion the review must never make: a contrary result on the result dimension IS the challenge. 38 model responses; token usage was not recorded by the evaluator on this run (it is from run 2 on).
+
+## Second rule: a contrary result is the challenge
+
+Same shape again: when the model returns `mismatch` on dimension `result` for a **challenges** pair, the decision is treated as `compatible` (the challenge stands) and the receipt records `decision_basis: contrary_result_is_the_challenge` with the model's decision beside it. Only the result dimension is exempt: a challenge from the wrong population, endpoint, study or measure is still scoped. A support whose quoted result contradicts the element still becomes context; the review never flips a relationship. Tests drive the exact failing decisions through the real parser (both challenges retained), the other dimensions still scope, and a support/result mismatch still demotes.
+
+- **Paid run 2 pending founder go-ahead** (same protocol; token usage now recorded). The evaluator (two repeats × 4 broader mapping cases + 9 result cases) is the acceptance step for this correction; it makes model calls and is held for the founder's go-ahead under the ask-before-every-paid-run rule. Estimated well under 10p at the recorded token volumes.
 
 ## Remaining, after this
 
