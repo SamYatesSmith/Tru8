@@ -48,6 +48,7 @@ from app.utils.jurisdiction_scope import (
     evidence_country,
     is_out_of_jurisdiction_for_country,
 )
+from app.utils.study_identity import study_identifier
 from app.utils.recital_scope import element_asserts_attribution, recital_match
 from app.utils.temporal_scope import (
     Period,
@@ -1422,6 +1423,10 @@ class _IndexedEvidence(NamedTuple):
     # chains (annotation runs once, post-classify), so there this is always
     # None and the gate is silent — the safe direction.
     original_id: Optional[str] = None
+    # Persistent identifier of the STUDY this item carries (doi:/pmid:/pmc:),
+    # per app.utils.study_identity — None when the item carries none. The
+    # same-study gate (2026-09-09) is the only reader.
+    study_id: Optional[str] = None
 
 
 class _ScopeGate(NamedTuple):
@@ -1453,6 +1458,7 @@ _SCOPE_RECEIPT_KEYS = (
     "measure_scope",
     "interested_party",
     "recital_scope",
+    "same_study_scope",
     "echo_scope",
 )
 
@@ -1514,6 +1520,7 @@ def _index_evidence(evidence_list: List[Dict[str, Any]]) -> Dict[str, _IndexedEv
             text=text,
             country=evidence_country(ev.get("url")),
             original_id=original_of.get(eid),
+            study_id=study_identifier(ev),
         )
     return index
 
@@ -2385,7 +2392,10 @@ class ClaimMapAnalyzer:
                 )
 
     def _armed_scope_gates(
-        self, elem: Dict[str, Any], claim_map: Dict[str, Any]
+        self,
+        elem: Dict[str, Any],
+        claim_map: Dict[str, Any],
+        ev_index: Optional[Dict[str, "_IndexedEvidence"]] = None,
     ) -> List["_ScopeGate"]:
         """The gates that have both a target and their flag on, in priority order.
 
@@ -2613,6 +2623,72 @@ class ClaimMapAnalyzer:
                     )
                 )
 
+        # Same-study gate (2026-09-09, Track Q — Astra finding 10). Two hosts
+        # of ONE study (journal article + PubMed abstract + PMC full text, or a
+        # DOI resolver link) share a persistent identifier; the state function
+        # weighs each by tier, so three primary hosts of one trial read as
+        # weight 9 for one observation. The first carrier on a side — highest
+        # tier weight, then earliest in the element's refs — keeps its
+        # direction; every other host of the same study on that side becomes
+        # `context` with a receipt naming the counted carrier. Symmetric by
+        # construction; a host mapped to the OTHER side is a disagreement to
+        # show, never hidden. Placed before echo so echo stays LAST. Identity
+        # is a shared DOI/PMID/PMC only — never a trial name or a title.
+        # ROLLBACK: ENABLE_SAME_STUDY_SCOPE_GATE=False.
+        if ev_index is not None and getattr(
+            settings, "ENABLE_SAME_STUDY_SCOPE_GATE", True
+        ):
+
+            def _counted_carrier(item: "_IndexedEvidence", ref: Dict[str, Any]):
+                """The ref that should carry this study on this side, or None
+                when the item has no study id / no other host on the side."""
+                sid = item.study_id
+                if not sid:
+                    return None
+                rel = ref.get("relationship")
+                side = getattr(rel, "value", rel)
+                members = []
+                for position, other in enumerate(elem.get("evidence_refs") or []):
+                    other_rel = other.get("relationship")
+                    if getattr(other_rel, "value", other_rel) != side:
+                        continue
+                    other_item = ev_index.get(other.get("evidence_id"))
+                    if other_item is None or other_item.study_id != sid:
+                        continue
+                    tier = other_item.ev.get("tier") or "commentary"
+                    members.append((-_STATE_TIER_WEIGHTS.get(tier, 1), position, other))
+                if len(members) < 2:
+                    return None
+                carrier = min(members)[2]
+                return None if carrier is ref else carrier
+
+            # The driver re-labels the ref to `context` BEFORE asking for the
+            # receipt, so the carrier must be remembered from `fires`.
+            carrier_of: Dict[int, Dict[str, Any]] = {}
+
+            def _same_study_fires(
+                item: "_IndexedEvidence", ref: Dict[str, Any]
+            ) -> bool:
+                carrier = _counted_carrier(item, ref)
+                if carrier is None:
+                    return False
+                carrier_of[id(ref)] = carrier
+                return True
+
+            gates.append(
+                _ScopeGate(
+                    key="same_study_scope",
+                    label="SAME STUDY",
+                    pins="another host of a study already counted on this side",
+                    summary={},
+                    fires=_same_study_fires,
+                    entry=lambda item, ref: {
+                        "study_id": item.study_id,
+                        "counted_as": carrier_of.get(id(ref), {}).get("evidence_id"),
+                    },
+                )
+            )
+
         # Echo gate (2026-08-17, quality-first Phase B — Shape B of the
         # design review's §1.3). A directional ref whose evidence is a
         # DERIVATIVE of an original ALREADY COUNTED on the same side of this
@@ -2721,7 +2797,7 @@ class ClaimMapAnalyzer:
         ENABLE_RECITAL_SCOPE_GATE, ENABLE_ECHO_SCOPE_GATE — each independently,
         plus ENABLE_TEMPORAL_PUBLICATION_RESOLUTION for the inferring half.
         """
-        gates = self._armed_scope_gates(elem, claim_map)
+        gates = self._armed_scope_gates(elem, claim_map, ev_index)
         if not gates:
             return {}
 

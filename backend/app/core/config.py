@@ -297,7 +297,9 @@ class Settings(BaseSettings):
     ENABLE_EVIDENCE_DISTILLATION: bool = Field(True, env="ENABLE_EVIDENCE_DISTILLATION")
     # Changes model input: enable only after fixed-source model evaluation.
     ENABLE_PASSAGE_MAPPING: bool = Field(False, env="ENABLE_PASSAGE_MAPPING")
-    ENABLE_STRUCTURED_EXTRACTION: bool = Field(False, env="ENABLE_STRUCTURED_EXTRACTION")
+    ENABLE_STRUCTURED_EXTRACTION: bool = Field(
+        False, env="ENABLE_STRUCTURED_EXTRACTION"
+    )
     DISTIL_MODEL: str = Field("gemini-3.5-flash-lite", env="DISTIL_MODEL")
     # Migrated 2026-08-27. The 2026-08-25 migration moved GOOGLE_LLM_MODEL and
     # MAPPING_GOOGLE_MODEL and recorded "the whole pipeline is off the retiring
@@ -450,9 +452,7 @@ class Settings(BaseSettings):
     # part of the key. **Bump it in the SAME commit as any change to what
     # retrieval gathers** (queries, lanes, windows, filters, blocklist policy).
     # Scope: audit/2026-09-02_pool_quality_gate_scope.md, Piece 3.
-    RETRIEVAL_CACHE_VERSION: str = Field(
-        "2026-09-02b", env="RETRIEVAL_CACHE_VERSION"
-    )
+    RETRIEVAL_CACHE_VERSION: str = Field("2026-09-02b", env="RETRIEVAL_CACHE_VERSION")
 
     # Fetch-phase deadline (2026-09-02). The per-claim 45 s wait in
     # retrieve.py (RETRIEVE_CLAIM_TIMEOUT_S) cancels the WHOLE web task when
@@ -464,9 +464,7 @@ class Settings(BaseSettings):
     # stragglers are cancelled, each with a ledger receipt. 30 s leaves the
     # outer 45 s room for search (~3 s) and post-processing, so the outer
     # all-or-nothing cut should never fire in practice. False = today.
-    ENABLE_FETCH_PHASE_DEADLINE: bool = Field(
-        True, env="ENABLE_FETCH_PHASE_DEADLINE"
-    )
+    ENABLE_FETCH_PHASE_DEADLINE: bool = Field(True, env="ENABLE_FETCH_PHASE_DEADLINE")
     RETRIEVE_FETCH_PHASE_TIMEOUT_S: float = Field(
         30.0, env="RETRIEVE_FETCH_PHASE_TIMEOUT_S"
     )
@@ -728,6 +726,13 @@ class Settings(BaseSettings):
     # record's failure). Symmetric; the first derivative stays directional
     # when its original is not counted. ROLLBACK: ENABLE_ECHO_SCOPE_GATE=False.
     ENABLE_ECHO_SCOPE_GATE: bool = Field(True, env="ENABLE_ECHO_SCOPE_GATE")
+
+    # Same-study scope gate (2026-09-09, Track Q — Astra finding 10). Hosts of
+    # ONE study (shared DOI / PubMed id / PMC id) count once per side of an
+    # element: the highest-tier, earliest host keeps its direction, the others
+    # become `context` with a receipt naming it. Identity is a persistent
+    # identifier only, never a trial name. ROLLBACK: ENABLE_SAME_STUDY_SCOPE_GATE=False.
+    ENABLE_SAME_STUDY_SCOPE_GATE: bool = Field(True, env="ENABLE_SAME_STUDY_SCOPE_GATE")
 
     # Item 7 stage 1 (2026-08-28): the factcheck signal. When ON, the evidence
     # classifier (1) asks the LLM for a conservative `factcheck` boolean (a
