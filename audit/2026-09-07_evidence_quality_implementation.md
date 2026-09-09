@@ -4,6 +4,8 @@ User authorised implementation of the hands-on improvement map, with a commit af
 
 ## Sequence and status
 
+**Status at sign-off 9 September 2026: MERGED AND DEPLOYED.** `main` = `247a6f8` + two docs/UI pushes (`955f442`, `6527d66`); Railway verified (health commit, `alembic current` = `text_provenance (head)`, `research_operation`/`report_revision` tables, `evidence.text_provenance`, `ux_usage_events_check_kind`). Astra's plan: steps 1–8 built; step 9 reduced to the blind AI label review (86.1% / 81.6% on two runs, below the 95% gate) because no human reviewer is available; the one remaining lever is decomposition specificity. Candidate flags OFF and not ready. Tomorrow's agenda is `OPEN_WORK.md` START HERE; the regrade record is `2026-09-09_astra_regrade.md`.
+
 **Final regrade 9 September 2026 (late):** after the evening's fixes (extraction restore, absence-of-evidence gate, question labels, page-level source exclusion, decomposition rule) Astra's 14 inputs read **about 8/10 by Claude's grading** on the default path; Astra's own gate (human review, usability, stall trace) remains unmet. Details in the regrade record.
 
 **Regrade 9 September 2026 (evening):** [Astra's 14 inputs re-run in both arms](2026-09-09_astra_regrade.md) — default ≈ **7/10**, candidate not ready. Three inputs lost their contested conjunct at extraction; `restore_single_thesis` now restores the user's sentence verbatim when one claim comes back missing a content token. 8/10 is not claimed.
