@@ -2088,6 +2088,106 @@ def _element_quality_notes(element: dict) -> list[dict]:
     return notes
 
 
+_SCOPE_NOTE_LABELS = {
+    "temporal_scope": "a different period",
+    "jurisdiction_scope": "another country's official source",
+    "measure_scope": "a different interval",
+    "interested_party": "the claimant's own organ",
+    "recital_scope": "reports the claim rather than making it",
+    "same_study_scope": "another host of a study already counted",
+    "echo_scope": "a copy of a source already counted",
+    "fact_applicability": "time applicability not established in the retained text",
+    "relationship_scope": "scope review",
+}
+
+
+def _element_passage_basis(
+    element: dict, evidence_by_id: dict, evidence_index: dict
+) -> list[dict]:
+    """Exact quoted passages behind each relationship, for the PDF (Track Q
+    step 8, 2026-09-09). A quote renders ONLY when it re-validates against the
+    captured extraction the citation names (same version hash, literal text
+    in the retained passage) — the web ``citationText`` rule. A paraphrase or
+    a stale citation renders nothing; the relationship stays a system
+    interpretation either way."""
+    from app.services.passage_mapping import valid_passages, validate_citations
+
+    out: list[dict] = []
+    if not isinstance(element, dict):
+        return out
+    for ref in element.get("evidence_refs") or []:
+        if not isinstance(ref, dict) or not ref.get("citations"):
+            continue
+        ev = evidence_by_id.get(ref.get("evidence_id"))
+        receipt = getattr(ev, "text_provenance", None) if ev is not None else None
+        if not isinstance(receipt, dict):
+            continue
+        digest = receipt.get("extraction_sha256")
+        if any(
+            c.get("extraction_sha256") != digest
+            for c in ref["citations"]
+            if isinstance(c, dict)
+        ):
+            continue
+        pair = {
+            "passages": valid_passages({"text_provenance": receipt}),
+            "evidence": {"text_provenance": receipt},
+        }
+        validated = validate_citations(ref["citations"], pair)
+        quotes = [c["quote"] for c in (validated or []) if c.get("quote")]
+        if quotes:
+            out.append(
+                {
+                    "ref_num": evidence_index.get(ref.get("evidence_id"), 0),
+                    "relationship": ref.get("relationship"),
+                    "quotes": quotes,
+                }
+            )
+    return out
+
+
+def _element_scope_notes(element: dict, evidence_index: dict) -> list[dict]:
+    """Every reference a mechanical gate or the scope review re-labelled to
+    context, with its reason — the receipts already in the element basis
+    (invariant #5), rendered grey and structural. Model-written reasoning
+    passes the same verdict-language rule as the web (parity-locked)."""
+    from app.pipeline.claim_map_analyzer import _SCOPE_RECEIPT_KEYS
+    from app.utils.verdict_language import public_note
+
+    notes: list[dict] = []
+    if not isinstance(element, dict):
+        return notes
+    basis = element.get("basis") or {}
+    for key in _SCOPE_RECEIPT_KEYS:
+        receipt = basis.get(key)
+        if not isinstance(receipt, dict):
+            continue
+        for entry in receipt.get("scoped") or []:
+            if not isinstance(entry, dict):
+                continue
+            detail = ""
+            counted = entry.get("counted_as") or entry.get("original_id")
+            if counted:
+                detail = f"counted as source {evidence_index.get(counted, '?')}"
+            elif key == "temporal_scope" and entry.get("element_period"):
+                detail = f"element period {entry['element_period']}"
+            elif key == "relationship_scope":
+                detail = public_note(entry.get("reasoning"))
+            elif entry.get("reason"):
+                detail = str(entry["reason"])
+            notes.append(
+                {
+                    "ref_num": evidence_index.get(entry.get("evidence_id"), 0),
+                    "was": entry.get("was")
+                    or (entry.get("original_ref") or {}).get("relationship")
+                    or "",
+                    "label": _SCOPE_NOTE_LABELS.get(key, key.replace("_", " ")),
+                    "detail": detail,
+                }
+            )
+    return notes
+
+
 def _claim_stance_counts(elements: list) -> dict:
     """Aggregate a claim's evidence stance across its elements' refs. Neutral
     disposition of the evidence (supports/context/challenges) — not a verdict."""
@@ -2147,9 +2247,14 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
         claim_map = copy.deepcopy(claim.claim_map) if claim.claim_map else None
         elements = claim_map.get("elements", []) if claim_map else []
         # Pre-compute presentation reads (like tier_counts) so Jinja stays dumb.
+        evidence_by_id = {(ev.evidence_id or str(ev.id)): ev for ev in evidence_list}
         for el in elements:
             if isinstance(el, dict):
                 el["quality_notes"] = _element_quality_notes(el)
+                el["passage_basis"] = _element_passage_basis(
+                    el, evidence_by_id, evidence_index
+                )
+                el["scope_notes"] = _element_scope_notes(el, evidence_index)
         claims_with_evidence.append(
             {
                 "text": claim.text,
@@ -2168,7 +2273,9 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
     total_elements = sum(len(c.get("elements", [])) for c in claims_with_evidence)
     from app.services.report_revisions import snapshot_from_rows, identify_snapshot
 
-    report_identity = await identify_snapshot(session, snapshot_from_rows(check, snapshot_rows))
+    report_identity = await identify_snapshot(
+        session, snapshot_from_rows(check, snapshot_rows)
+    )
     verify_url = f"{settings.FRONTEND_URL.rstrip('/')}/verify/{check.id}"
     if report_identity["revisionId"]:
         verify_url += f"?revision={report_identity['revisionId']}"
@@ -2817,7 +2924,9 @@ async def get_public_check(
 
     from app.services.report_revisions import snapshot_from_rows, identify_snapshot
 
-    report_identity = await identify_snapshot(session, snapshot_from_rows(check, snapshot_rows))
+    report_identity = await identify_snapshot(
+        session, snapshot_from_rows(check, snapshot_rows)
+    )
 
     # Fetch video recommendations for public report
     from app.models.video_recommendation import VideoRecommendation

@@ -414,6 +414,38 @@
       border-left: 2px solid var(--border);
     }
 
+    /* Track Q step 8 — passage-backed export. A quote renders only when it
+       re-validates against the captured extraction; grey, never a colour. */
+    .el-quote {
+      font-size: 7.5px;
+      color: var(--ink-3);
+      line-height: 1.45;
+      margin-top: 5px;
+      padding-left: 8px;
+      border-left: 2px solid var(--border);
+      white-space: pre-wrap;
+    }
+    .el-quote-src {
+      font-family: var(--mono);
+      font-size: 6.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-4);
+    }
+    .el-scope {
+      font-size: 7px;
+      color: var(--ink-4);
+      line-height: 1.4;
+      margin-top: 3px;
+    }
+    .el-scope-src {
+      font-family: var(--mono);
+      font-size: 6.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-4);
+    }
+
     /* ── ORIENTATION ──────────────────────────────────────────────── */
 
     .orient {
@@ -824,6 +856,8 @@
       {% set caveat = ((element.get('basis') or {}).get('state_derivation') or {}).get('caveat') %}
       {% if caveat %}<div class="el-caveat">{{ caveat }}</div>{% endif %}
       {% if element.quality_notes %}{% for qn in element.quality_notes %}<div class="el-note"><span class="el-note-side">{{ qn.side }}</span> {{ qn.label }} <span class="el-note-detail">&mdash; {{ qn.detail }}</span></div>{% endfor %}{% endif %}
+      {% for pb in element.passage_basis or [] %}{% for q in pb.quotes %}<div class="el-quote"><span class="el-quote-src">Source {{ pb.ref_num }} &middot; {{ pb.relationship }} &middot; quoted from the captured extraction</span><br />&ldquo;{{ q }}&rdquo;</div>{% endfor %}{% endfor %}
+      {% for sn in element.scope_notes or [] %}<div class="el-scope"><span class="el-scope-src">Source {{ sn.ref_num }} retained as context</span> &mdash; read as {{ sn.was }}; {{ sn.label }}{% if sn.detail %} ({{ sn.detail }}){% endif %}</div>{% endfor %}
     </div>
     {% endfor %}
     {% endif %}
