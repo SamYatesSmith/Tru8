@@ -106,6 +106,12 @@ Two follow-ups recorded: the decomposition rule did not stop the Venus premise (
 
 137 directional labels from the final regrade were reviewed blind by a different model from the mapper (`backend/scripts/review_labels.py`; element + passage only, never Tru8's label): **86.1% justified** (118/137); a second, weaker reviewer agreed with the first 95.7% of the time. Hand-read, 4 rejections are one over-precise decomposition ("exactly 5g" against sources saying 3–5 g), 3 are date-anchoring strictness on Bank Rate, 4 are genuine mislabels, 3 are reviewer errors; adjudicated ≈ 88–90%, **below Astra's 95%**, and the misses point at decomposition wording, not source reading. Details: `audit/review_sheets/2026-09-09/README.md`.
 
+## Fixes named by the blind review (same night)
+
+- **Invented precision** (`app/utils/invented_precision.py`, at decomposition parse): an element that is stricter than the claim loses the adverb the claim does not carry — "exactly 5g" → "5g", "strictly of healthy adults" → "of healthy adults" — and `metadata.precision_stripped` records what went. Measured on the regrade's records first: figures absent from the claim were only year-range expansions ("2020-22" → "2022"), so figures are never touched. Four of the nineteen rejected labels were this one element.
+- **Day-level date scope** (`app/utils/date_scope.py`, eighth mechanical gate, `ENABLE_DATE_SCOPE_GATE`, after measure and before interested-party): an element pinning one full date is not supported or challenged by a source stating a different day of the same month ("released on Tuesday, January 23, 2018" against "January 22, 2018"); such a reference becomes context with both days in the receipt. A different month stays the temporal gate's; a source naming no full date is left alone; symmetric. One of the four genuine mislabels.
+- Left as model reading errors with no mechanical form: the inflation support attached to a false proposition, the Reddit Mercury-only comparison. The EV first-two-years label is defensible either way.
+
 ## What 8/10 still needs
 
 1. Re-verify the extraction fix on #2, #4, #6/#13 (three checks, ~15p).

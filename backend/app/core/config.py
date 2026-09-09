@@ -743,6 +743,12 @@ class Settings(BaseSettings):
         True, env="ENABLE_ABSENCE_OF_EVIDENCE_GATE"
     )
 
+    # Day-level date scope gate (2026-09-09, blind review). An element pinning
+    # one full date is not supported or challenged by a source stating a
+    # different day of the same month; such a reference becomes context with a
+    # receipt naming both days. ROLLBACK: ENABLE_DATE_SCOPE_GATE=False.
+    ENABLE_DATE_SCOPE_GATE: bool = Field(True, env="ENABLE_DATE_SCOPE_GATE")
+
     # Item 7 stage 1 (2026-08-28): the factcheck signal. When ON, the evidence
     # classifier (1) asks the LLM for a conservative `factcheck` boolean (a
     # genre judgement — content property, never an outlet roster), (2) marks

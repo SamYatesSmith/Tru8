@@ -76,6 +76,10 @@ class ClaimMapMetadata(TypedDict):
     # with ENABLE_OPINION_REFRAME on; applied=false = stage failed or degenerate
     # input, baseline kept untouched. Feeds the 1c receipt.
     grounds: NotRequired[dict]
+    # Invented precision (2026-09-09): elements that were stricter than the
+    # claim ("exactly 5g" for "5g daily") and lost the adverb at decompose
+    # time. [{element_id, removed: [str], was: str}]. Absent when nothing fired.
+    precision_stripped: NotRequired[list]
 
 
 class ClaimMap(TypedDict):

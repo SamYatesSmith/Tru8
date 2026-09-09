@@ -2117,6 +2117,7 @@ _SCOPE_NOTE_LABELS = {
     "temporal_scope": "a different period",
     "jurisdiction_scope": "another country's official source",
     "measure_scope": "a different interval",
+    "date_scope": "a different day of the same month",
     "interested_party": "the claimant's own organ",
     "recital_scope": "reports the claim rather than making it",
     "same_study_scope": "another host of a study already counted",

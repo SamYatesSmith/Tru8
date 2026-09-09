@@ -50,6 +50,8 @@ from app.utils.jurisdiction_scope import (
 )
 from app.utils.study_identity import study_identifier
 from app.utils.absence_of_evidence import absence_of_evidence_match
+from app.utils.invented_precision import strip_invented_precision
+from app.utils.date_scope import element_day, is_off_day, format_day
 from app.utils.recital_scope import element_asserts_attribution, recital_match
 from app.utils.temporal_scope import (
     Period,
@@ -1459,6 +1461,7 @@ _SCOPE_RECEIPT_KEYS = (
     "temporal_scope",
     "jurisdiction_scope",
     "measure_scope",
+    "date_scope",
     "interested_party",
     "recital_scope",
     "absence_of_evidence",
@@ -1633,7 +1636,9 @@ class ClaimMapAnalyzer:
 
         if parsed is not None:
             try:
-                return self._parse_decomposition_response(parsed, claim_id)
+                return self._parse_decomposition_response(
+                    parsed, claim_id, claim_text=claim_text
+                )
             except Exception as e:
                 logger.warning(f"Decomposition parse failed for claim {claim_id}: {e}")
 
@@ -1803,7 +1808,7 @@ class ClaimMapAnalyzer:
                 if item is not None:
                     try:
                         results[c["claim_id"]] = self._parse_decomposition_response(
-                            item, c["claim_id"]
+                            item, c["claim_id"], claim_text=c.get("text")
                         )
                         continue
                     except Exception as e:
@@ -2247,9 +2252,15 @@ class ClaimMapAnalyzer:
     # ── Parse helpers ───────────────────────────────────────────────────
 
     def _parse_decomposition_response(
-        self, raw: Dict[str, Any], claim_id: str
+        self, raw: Dict[str, Any], claim_id: str, claim_text: Optional[str] = None
     ) -> ClaimMap:
-        """Validate decomposition response and build partial ClaimMap."""
+        """Validate decomposition response and build partial ClaimMap.
+
+        ``claim_text`` is the claim as submitted; when given, an element that
+        is stricter than the claim ("exactly 5g" for "5g daily") loses the
+        invented adverb (app/utils/invented_precision.py) and the removal is
+        recorded in metadata.precision_stripped.
+        """
         normalised = raw.get("normalised_claim", "")
         if not normalised:
             raise ValueError("Missing normalised_claim")
@@ -2268,10 +2279,22 @@ class ClaimMapAnalyzer:
         raw_elements = raw_elements[: self.max_elements]
 
         elements: List[ClaimElement] = []
+        precision_stripped: List[Dict[str, Any]] = []
         for i, elem in enumerate(raw_elements, start=1):
             desc = elem.get("description", "")
             if not desc:
                 continue
+            if claim_text:
+                stripped, removed = strip_invented_precision(desc, claim_text)
+                if removed:
+                    precision_stripped.append(
+                        {"element_id": f"e{i}", "removed": removed, "was": desc}
+                    )
+                    logger.info(
+                        f"[DECOMPOSE] Invented precision stripped from e{i}: "
+                        f"{removed} — the claim does not carry it"
+                    )
+                    desc = stripped
             elements.append(
                 ClaimElement(
                     element_id=f"e{i}",
@@ -2290,6 +2313,9 @@ class ClaimMapAnalyzer:
         # mapper prompt (id+description only); read by Phase B state derivation.
         apply_scope_flags(elements)
 
+        metadata_extra: Dict[str, Any] = (
+            {"precision_stripped": precision_stripped} if precision_stripped else {}
+        )
         return ClaimMap(
             claim_id=claim_id,
             normalised_claim=normalised,
@@ -2297,6 +2323,7 @@ class ClaimMapAnalyzer:
             elements=elements,
             orientation=None,
             metadata=ClaimMapMetadata(
+                **metadata_extra,
                 decomposition_model=self._last_model_used,
                 mapping_model=None,
                 element_count=len(elements),
@@ -2564,6 +2591,38 @@ class ClaimMapAnalyzer:
         # SOURCE is the subject, which is meaningless without one. The recital
         # gate does not: "does this source just restate the claim?" needs only
         # the claim.
+        # Day-level date gate (2026-09-09, blind review): an element pinning a
+        # FULL date ("released on January 22, 2018") was supported by a source
+        # saying "released on Tuesday, January 23, 2018" — same month, so the
+        # temporal gate is silent; the day disagrees. Fires only when the
+        # element pins exactly one full date and the evidence states a full
+        # date in that month and year that is not it. Silence never fires;
+        # a different month is the temporal gate's. After measure, before
+        # interested-party, by the additive argument. Symmetric.
+        # ROLLBACK: ENABLE_DATE_SCOPE_GATE=False.
+        if getattr(settings, "ENABLE_DATE_SCOPE_GATE", True):
+            day = element_day(elem.get("description"))
+            if day is not None:
+                gates.append(
+                    _ScopeGate(
+                        key="date_scope",
+                        label="DATE SCOPE",
+                        pins=f"element pins the day {format_day(day)}",
+                        summary={"element_day": format_day(day)},
+                        fires=lambda item, _ref, _d=day: is_off_day(_d, item.text),
+                        entry=lambda item, _ref, _d=day: {
+                            "element_day": format_day(_d),
+                            "evidence_days": sorted(
+                                format_day(x)
+                                for x in __import__(
+                                    "app.utils.date_scope", fromlist=["stated_days"]
+                                ).stated_days(item.text)
+                                if (x.year, x.month) == (_d.year, _d.month)
+                            ),
+                        },
+                    )
+                )
+
         subjects = claim_subjects((claim_map.get("metadata") or {}).get("subjects"))
         claim_text_for_recital = (
             claim_map.get("normalised_claim") or claim_map.get("claim_text") or ""
