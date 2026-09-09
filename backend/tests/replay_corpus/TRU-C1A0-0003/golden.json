@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-C1A0-0003",
-  "captured_at": "2026-09-03T10:25:07.521670+00:00",
-  "captured_with": "c29a86e",
+  "captured_at": "2026-09-09T13:06:26.235781+00:00",
+  "captured_with": "f82a5ee",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README.",
   "hard_invariants": {
     "freshness_inject_must_fire_on_claims": [
       0
@@ -30,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 20,
+      "value": 30,
       "tolerance": 8
     },
     "claims": {
@@ -42,25 +42,30 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 33,
+      "value": 34,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 4,
+      "value": 3,
       "tolerance": 8
     },
-    "tier_reporting": {
-      "value": 3,
+    "tier_commentary": {
+      "value": 4,
       "tolerance": 4
     },
     "tier_primary": {
-      "value": 17,
-      "tolerance": 8
+      "value": 7,
+      "tolerance": 4
+    },
+    "tier_reporting": {
+      "value": 2,
+      "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
+        "https://clinician.nejm.org/nejm-jw.NA54181",
         "https://doi.org/10.1038/s41577-021-00592-1",
         "https://doi.org/10.1056/nejmoa2107659",
         "https://doi.org/10.1056/nejmoa2119451",
@@ -69,14 +74,16 @@
         "https://en.wikipedia.org/wiki/Oxford%E2%80%93AstraZeneca_COVID-19_vaccine",
         "https://en.wikipedia.org/wiki/Pfizer%E2%80%93BioNTech_COVID-19_vaccine",
         "https://en.wikipedia.org/wiki/Sputnik_V_COVID-19_vaccine",
-        "https://pmc.ncbi.nlm.nih.gov/articles/PMC12465431/",
-        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8461570/",
-        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8717697/",
+        "https://pharmaceutical-journal.com/article/feature/everything-you-need-to-know-about-covid-19-vaccines",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8862159/",
+        "https://pubmed.ncbi.nlm.nih.gov/33301246/",
         "https://pubmed.ncbi.nlm.nih.gov/34942066/",
         "https://pubmed.ncbi.nlm.nih.gov/35767475/",
         "https://www.cdc.gov/acip/grade/covid-19-pfizer-biontech-vaccine.html",
         "https://www.cdc.gov/mmwr/volumes/70/wr/mm7042e1.htm",
-        "https://www.cidrap.umn.edu/covid-19/peer-reviewed-data-show-high-protection-leading-covid-vaccines",
+        "https://www.ipr.northwestern.edu/documents/working-papers/2021/wp-21-57.pdf",
+        "https://www.nejm.org/doi/full/10.1056/NEJMc2036242",
+        "https://www.nejm.org/doi/full/10.1056/NEJMc2104974",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2035389",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2101765",
@@ -84,12 +91,11 @@
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2110345",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2119451",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2200674",
-        "https://www.nejm.org/doi/full/10.1056/NEJMoa2211031",
-        "https://www.ovid.com/00006024-202112160-00015",
-        "https://www.ovid.com/journals/nejm/fulltext/10.1056/nejmoa2110345~safety-and-efficacy-of-the-bnt162b2-mrna-covid-19-vacc",
+        "https://www.pfizer.com/news/press-release/press-release-detail/follow-data-phase-3-trial-pfizer-biontech-covid-19-vaccin",
         "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-announce-publication-results-landmark",
-        "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-conclude-phase-3-study-covid-19-vacci",
         "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-confirm-high-efficacy-and-no-serious",
+        "https://www.pfizer.com/news/press-release/press-release-detail/real-world-evidence-confirms-high-effectiveness-pfizer",
+        "https://www.pfizer.com/science/coronavirus/updates",
         "https://www.sciencedirect.com/science/article/pii/S0024320525002449",
         "https://www.upstate.edu/news/articles/2021/2021-05-27-thomas.php"
       ],
@@ -98,12 +104,11 @@
     "domain_set": {
       "golden": [
         "cdc.gov",
-        "cidrap.umn.edu",
+        "clinician.nejm.org",
         "factcheck.org",
         "nejm.org",
-        "ovid.com",
         "pfizer.com",
-        "pmc.ncbi.nlm.nih.gov",
+        "pubmed.ncbi.nlm.nih.gov",
         "sciencedirect.com",
         "upstate.edu"
       ],

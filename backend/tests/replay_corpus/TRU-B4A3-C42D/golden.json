@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-B4A3-C42D",
-  "captured_at": "2026-09-03T10:24:44.718317+00:00",
-  "captured_with": "c29a86e",
+  "captured_at": "2026-09-09T13:06:09.304042+00:00",
+  "captured_with": "f82a5ee",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README.",
   "hard_invariants": {
     "classifier_inject": {
       "primary": "Finance",
@@ -37,7 +37,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 24,
+      "value": 19,
       "tolerance": 8
     },
     "claims": {
@@ -45,23 +45,27 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 4,
+      "value": 3,
       "tolerance": 3
     },
     "web_search": {
-      "value": 41,
+      "value": 38,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 3,
+      "value": 2,
       "tolerance": 8
     },
     "tier_commentary": {
-      "value": 6,
+      "value": 11,
+      "tolerance": 5
+    },
+    "tier_primary": {
+      "value": 4,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 2,
+      "value": 4,
       "tolerance": 4
     }
   },
@@ -69,36 +73,36 @@
     "url_ledger_flat": {
       "golden": [
         "https://cepr.org/voxeu/columns/role-borrowing-rise-gilt-yields-during-truss-episode-and-some-possible-implications",
-        "https://commonslibrary.parliament.uk/research-briefings/cbp-9624/",
-        "https://commonslibrary.parliament.uk/research-briefings/cbp-9643/",
-        "https://finadium.com/bank-of-england-working-paper-an-anatomy-of-the-2022-gilt-market-crisis/",
+        "https://en.wikipedia.org/wiki/September_2022_United_Kingdom_mini-budget",
         "https://finance.yahoo.com/markets/crypto/articles/bank-england-publishes-stablecoin-rules-162300272.html",
-        "https://ifs.org.uk/collections/mini-budget-2022-and-follow",
+        "https://gceps.princeton.edu/wp-content/uploads/2024/08/wp336_Carolyn-Wilkins_UK-LDI-Crisis.pdf",
         "https://ifs.org.uk/publications/budget-and-bond-markets-when-youre-hole-stop-digging",
         "https://media.quilter.com/search/2025/three-years-on-from-disastrous-mini-budget-uk-government-bonds-remain-in-focus/",
+        "https://moneyweek.com/economy/uk-economy/three-years-after-the-mini-budget-where-are-we-now",
         "https://niesr.ac.uk/blog/truss-kwarteng-mini-budget-one-year",
+        "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4747133",
+        "https://privatebank.barclays.com/insights/market-perspectives-september-09-2025/a-hot-summer-for-uk-government-bond-yiel",
         "https://robinjbrooks.substack.com/p/liz-truss-bond-market-blow-ups",
-        "https://tradingeconomics.com/united-kingdom/government-bond-yield",
+        "https://tradingeconomics.com/united-kingdom/30-year-bond-yield",
         "https://www.ajbell.co.uk/group/news/three-years-after-mini-budget-why-isnt-market-panicking-about-higher-gilt-yields",
-        "https://www.alliancebernstein.com/apac/en/institutions/insights/investment-insights/long-run-global-implications-of-the-",
         "https://www.bankofengland.co.uk/-/media/boe/files/working-paper/2024/fire-sales-of-safe-assets",
-        "https://www.bankofengland.co.uk/markets/market-notices/2022/september/market-notice-28-september-2022-gilt-market-operat",
         "https://www.bankofengland.co.uk/news/2022/september/bank-of-england-announces-gilt-market-operation",
-        "https://www.barnett-waddingham.co.uk/comment-insight/blog/does-the-uk-economy-matter-for-gilt-yields/",
-        "https://www.bbc.co.uk/news/business-66897881",
-        "https://www.bishopfleming.co.uk/insights/emergency-mini-budget-2022-glance",
-        "https://www.cnbc.com/2022/09/29/pension-fund-panic-led-to-bank-of-englands-emergency-intervention.html",
-        "https://www.dsburge.co.uk/news/mini-budget-2022/",
-        "https://www.economicsobservatory.com/bond-markets-and-the-uks-public-finances-whats-been-going-on",
+        "https://www.bankofengland.co.uk/quarterly-bulletin/2023/2023/financial-stability-buy-sell-tools-a-gilt-market-case-study",
+        "https://www.bbc.com/news/63229204",
+        "https://www.chicagofed.org/publications/chicago-fed-letter/2023/480",
+        "https://www.crfb.org/blogs/americas-truss-moment",
         "https://www.efginternational.com/ch/insights/2022/uk-mini-budget-sparks-gilt-market-mayhem.html",
         "https://www.ft.com/content/4e6b89a3-a63e-49df-8a04-0488b69e84f5?syn-25a6b1a6=1",
-        "https://www.gov.uk/government/speeches/the-growth-plan-2022-speech",
+        "https://www.ftadviser.com/content/78119413-8b90-5ecf-a477-0f2e3f060f89",
+        "https://www.imf.org/-/media/files/publications/selected-issues-papers/2023/english/sipea2023049.pdf",
+        "https://www.ofx.com/en-hk/forex-news/articles/why-traders-trust-stability-over-spectacle/",
         "https://www.rte.ie/news/business/2022/0804/1313914-bank-of-england-rates-decision/",
         "https://www.rte.ie/news/business/2022/1108/1333861-bank-of-england-on-uk-economy/",
+        "https://www.schroders.com/en-us/us/wealth-management/insights/the-uk-bond-market-are-rising-yields-creating-an-opportuni",
         "https://www.schroders.com/en-us/us/wealth-management/insights/what-does-the-mini-budget-mean-for-uk-investors/",
-        "https://www.securitiesfinancetimes.com/securitieslendingnews/industryarticle.php?article_id=226196",
+        "https://www.sciencedirect.com/science/article/abs/pii/S0014292126001042",
         "https://www.theguardian.com/business/2022/oct/20/the-mini-budget-that-broke-britain-and-liz-truss",
-        "https://www.theguardian.com/business/2022/sep/28/bank-of-england-launches-emergency-intervention-in-markets-after-kwarte"
+        "https://www.theguardian.com/business/live/2022/sep/28/sterling-slumps-imf-urges-uk-reconsider-tax-cuts-stinging-attack-b"
       ],
       "min_similarity": 0.4
     },
@@ -106,20 +110,24 @@
       "golden": [
         "ajbell.co.uk",
         "bankofengland.co.uk",
-        "barnett-waddingham.co.uk",
-        "bbc.co.uk",
-        "bishopfleming.co.uk",
+        "bbc.com",
         "cepr.org",
-        "commonslibrary.parliament.uk",
+        "chicagofed.org",
+        "crfb.org",
         "efginternational.com",
-        "ifs.org.uk",
-        "media.quilter.com",
+        "en.wikipedia.org",
+        "ft.com",
+        "imf.org",
         "niesr.ac.uk",
+        "ofx.com",
+        "papers.ssrn.com",
+        "privatebank.barclays.com",
+        "robinjbrooks.substack.com",
         "schroders.com",
-        "securitiesfinancetimes.com",
+        "sciencedirect.com",
         "theguardian.com"
       ],
-      "min_similarity": 0.3
+      "min_similarity": 0.45
     }
   }
 }

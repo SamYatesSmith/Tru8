@@ -4,6 +4,8 @@ User authorised implementation of the hands-on improvement map, with a commit af
 
 ## Sequence and status
 
+**Final regrade 9 September 2026 (late):** after the evening's fixes (extraction restore, absence-of-evidence gate, question labels, page-level source exclusion, decomposition rule) Astra's 14 inputs read **about 8/10 by Claude's grading** on the default path; Astra's own gate (human review, usability, stall trace) remains unmet. Details in the regrade record.
+
 **Regrade 9 September 2026 (evening):** [Astra's 14 inputs re-run in both arms](2026-09-09_astra_regrade.md) — default ≈ **7/10**, candidate not ready. Three inputs lost their contested conjunct at extraction; `restore_single_thesis` now restores the user's sentence verbatim when one claim comes back missing a content token. 8/10 is not claimed.
 
 **Ownership changed 9 September 2026:** the founder handed the branch to Claude after a three-reviewer audit. Founder decisions and the phase plan live in the [takeover record](2026-09-09_takeover_stabilise.md) and `OPEN_WORK.md` START HERE. Astra's original proposal: `tmp/tru8-hands-on/tru8-route-to-eight.md`.

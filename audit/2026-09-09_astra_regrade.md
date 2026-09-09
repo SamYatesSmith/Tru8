@@ -75,7 +75,32 @@ Astra finding 8: the EV claim's grounds elements are open questions and read "+ 
 ## Founder decisions on the remaining default-path misses (same evening)
 
 - **Source exclusion narrowed to the submitted page** (`retrieve._source_exclusion`): a claim extracted from a URL cannot be evidenced by that page; other pages on the domain are eligible and carry `metadata.same_domain_as_source`, leaving self-corroboration to the interested-party and echo gates. `RETRIEVAL_CACHE_VERSION` → `2026-09-09`. Tests pin page identity (scheme, `www.`, fragment, query, trailing slash are presentation) and the skip/tag/untouched outcomes. The corpus is all text-mode, so the bench cannot see this change.
-- **Decomposition prompts gain one rule**: no element for a trivially true prerequisite the claim's truth does not turn on (measurability, that a substance can be taken, that a body or trial exists, that a method is valid); elements are the contestable parts. Applied to both the single and batch prompts. This re-keys every corpus cassette; the founder approved a full re-record.
+- **Decomposition prompts gain one rule**: no element for a trivially true prerequisite the claim's truth does not turn on (measurability, that a substance can be taken, that a body or trial exists, that a method is valid); elements are the contestable parts. Applied to both the single and batch prompts. This re-keys every corpus cassette; the founder approved a full re-record, which was done the same evening: pass state `140 ok / 1 warn / 11 fail / 3 unexercised` with 8 of 10 claims replaying at zero misses and the historical flaky pair (82CF, 5647) drifting across processes at extraction (root cause timeboxed, recorded in the corpus README). Two lessons for the record: `--update-golden` silently drops every curated invariant, and the 018F recital pin had to be re-read against the new two-element decomposition (3/3 → 2/1) rather than assumed.
+
+## Final regrade on the finished default path (founder-approved, fourteen inputs, `tmp/astra-regrade-final/`)
+
+14 of 14 completed; median 52 s, p90 63 s, max 87 s; $0.55 partial floor.
+
+| # | Astra's finding | Final |
+|---|---|---|
+| 1 Brexit | correct | ✅ three elements supported on parliamentary and EU sources |
+| 2 SELECT | population + absolute/relative; composite endpoint | ✅ population "applies to every overweight person" `disputed`; absolute 20% `disputed`; causal reduction supported. Composite-vs-heart-attack still conflated (◐) |
+| 3 creatine | trivial premises; absence read as negation | ◐ mechanism `contextual`, population `contextual`; prevention `disputed` on ONE remaining challenge ("trials to date have not shown any protective effect" — a measured absence, kept on purpose); one premise element ("takes 5g daily") still supported |
+| 4 JWST | mixed true/false | ✅ orbit `disputed` (6 challenges), mirror and launch supported |
+| 5 Bank Rate 4.25% | — | ✅ `disputed`, 3 challenges |
+| 6 Sweden + focus | — | ✅ no-lockdown supported; causation `disputed`; ranking `disputed` |
+| 7 SQLite BUSY | official page only support | ✅ sqlite.org challenges; writer-writer conflicts element `disputed` |
+| 8 EV | questions "supported"; strengthening | ◐ decomposed as three assertions this run (the grounds path did not fire), all supported — a defensible reading of a broad claim; nothing thin, so strengthening had no target |
+| 9 URL wal.html | false gap on 3.22.0 | ✅ no gap: `sqlite.org/releaselog/3_22_0.html` fetched and quoted ("added the ability to read WAL mode databases without write permission"); the interested-party gate files sqlite.org pages as context for claims taken from sqlite.org, so the element reads `contextual`, not `supported` |
+| 10 LANTERN-COG | abstention | ✅ |
+| 11 inflation | correct | ✅ `disputed` as a whole claim |
+| 12 Venus image | OCR; premise | ✅ OCR; ❌ premise elements survived the new decomposition rule ("possesses a measurable temperature" supported; "every other planet has a measurable temperature" `unresolved`, a noise gap) |
+| 13 Sweden | separation; gaps copy | ✅ three-way separation; gaps copy fixed |
+| 14 Bank Rate 3.75% | labelled disputed | ✅ both elements supported |
+
+**Grade on Astra's own inputs, default configuration: about 8/10 by this grader.** Every input now keeps its structure (the three non-negotiables: faithful structure, visible uncertainty, coherent strengthening record), the two headline failures and the stalls are gone, and the remaining misses are a conflated endpoint (#2), one residual premise element each on #3 and #12, and the EV decomposition variance (#8). **This is not Astra's 8/10 gate**, which also requires a knowledgeable human over ≥200 directional relationships, a usability study and the production stall trace; those remain the founder's.
+
+Two follow-ups recorded: the decomposition rule did not stop the Venus premise (a mechanical premise filter or a stronger prompt is the next lever, and each re-keys cassettes); `metadata.same_domain_as_source` was not observed on the URL check's sqlite.org pages, so the tag's path through article mode needs a test.
 
 ## What 8/10 still needs
 

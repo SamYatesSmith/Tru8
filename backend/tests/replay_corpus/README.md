@@ -14,42 +14,50 @@
 > drift guard across the whole corpus to buy a green tick. Its golden is still the
 > 2026-07-21 `fdf3509` capture and is **not** comparable to post-Phase-2 behaviour.
 >
-> So: **`185 ok / 1 warn / 13 fail / 2 unexercised` is the current PASS state**
-> (2026-09-03 re-record on Build A's claim-lane twin `adf252d` + the fetch-phase
-> deadline `4286984`, which re-keyed every wired cassette; whole corpus re-recorded
-> live, patched, re-golded and replay-verified the same morning — ~£0.80).
-> **For the first time replay reproduces the recording with ZERO cassette misses
-> on all 10 claims** — 82CF, B4A3 and 5647, the old "timing-flaky set", all
-> replay clean. Every fail is attributed, none is an unexplained regression:
-> - **3 × 018F interested-party pin — a comparator FALSE ALARM, kept failing
->   visibly by design.** This pool DOES carry whitehouse.gov (the claimant's own
->   video, tier primary) but the mapper filed it `context`, and the gate only
->   re-labels directional refs, so it had nothing to scope. Verified by replaying
->   the cassette and reading the final claim map. The precondition reads domain
->   PRESENCE, coarser than the trigger; refining it to "directionally referenced"
->   needs a capture signal (owed). Do not lower the pins.
-> - **2 × must_have pool drift** — 018F `politifact` (prio.org still present) and
->   0005 `gianlucabenigno` (its temporal gate is UNEXERCISED ×2 again: 3 domains,
->   ONS-dominated, no off-period source; the relevance scorer kept 3 of 20).
-> - **8 × thin-pool v3 metrics** (`factual_weight_share` 018F 0.14 / A3E8 0.0 /
->   B4A3 0.11, `unique_domains` 5647 / 93DD / 0005, `top_domain_share` 93DD /
->   0005) — record-time pool drift, the class accepted since 2026-08-11. Pools
->   moved both ways this recording (82CF 5→13 sources, 0003 14→20; 0005 11→5,
->   B4A3 30→24) — the bench cannot attribute retrieval-size changes (62% churn).
-> - **018F recital debt PAID:** the gate scoped 3 refs / 3 elements, exactly the
->   2026-08-17 pin, re-affirmed at tolerance 0.
-> - **Recorder change, same day:** an `application/pdf` body over the pipeline's
->   20 MiB guard is now stored as a STUB (`body_truncated_from`) and replayed by
->   declared size — a 32.5 MB Gallagher Re PDF on 5647 had produced a 30 MB gzip
->   cassette (PDFs do not compress). Pinned by `test_cassette_body_cap.py`.
+> So: **`140 ok / 1 warn / 11 fail / 3 unexercised` + 2 cassette-drift claims is the
+> current PASS state** (2026-09-09 full corpus re-record after the decomposition
+> prompt gained its no-trivial-prerequisite rule, which re-keyed every cassette;
+> recorded live, patched with `--record-missing`, re-golded and replay-verified;
+> ~£1.20). Read it exactly:
+> - **8 of 10 claims replay with ZERO misses.** `TRU-82CF-2F81` and
+>   `TRU-5647-FA4F` — the historical "timing-flaky" pair — drift again across
+>   processes: two replays of the identical cassette build DIFFERENT claim text
+>   at extraction (5647 once merged its two claims into a period-joined concat,
+>   once kept them separate), so every later request misses. Root cause not
+>   isolated (timeboxed 2026-09-09; the extraction LLM call itself hits the
+>   cassette, so the variance is in post-extraction processing). Their goldens
+>   are the 2026-09-03 ones and are NOT comparable. Do not "fix" by making
+>   misses non-fatal.
+> - **⚠️ `--update-golden` DROPS curated assertions** (hard_invariants and the
+>   tolerance-0 pins) and writes an observation-only capture. Learned the hard
+>   way 2026-09-09: every curated section was restored from the 2026-09-03
+>   goldens by script and the pins re-read against the new observations. Never
+>   commit a golden straight from `--update-golden`.
+> - **018F re-pin:** recital 3 refs / 3 elements → **2 refs / 1 element**
+>   (tolerance 0). The new decomposition rule drops the trivially-true
+>   prerequisite element, so the claim has 2 elements; the recital trap still
+>   fires on the crux element (read from the observation, not assumed). The
+>   interested-party precondition (whitehouse.gov) is absent from this pool →
+>   UNEXERCISED ×2 by design; pins kept.
+> - **Attributed fails (11):** 018F `politifact` + `prio.org` must-have (pool
+>   drift, both absent this time) + `factual_weight_share` 0.0; A3E8
+>   `factual_weight_share` 0.0; 0001 `unique_domains` 3 / `top_domain_share`
+>   0.56; 0005 `gianlucabenigno` must-have (temporal gate UNEXERCISED again) +
+>   `unique_domains` 2 / `top_domain_share` 0.5. All the thin-pool class
+>   accepted since 2026-08-11.
+> - **Cassette sizes:** 82CF 4.5 → 11.4 MB gz because the pipeline fetched BP's
+>   15 MB SEC annual filing and a 9 MB UBS report, both under the 20 MiB PDF
+>   guard, so they are real fetches the replay must keep; the corpus as a whole
+>   shrank (≈31 → ≈27 MB).
 > History: 135/2/1 → 158/2/1 → RETIRED 2026-08-11 → 143/13/5 (2026-08-13; true
 > post-re-pin state 144/13/4) → 166/14/4 (018F joined) → 171/10/3 (Phase B; 5647
 > re-recorded — the factual floor sends thin-support elements to recovery, which
 > issues queries old recordings never made, attributed by matched-pair replay) →
 > 175/10/2 (2026-08-17) → 178/5/9/5 (2026-08-27 model-migration re-record) →
 > 121/5/11/5 (2026-08-28; the ok-count drop is the flaky set zeroing three
-> claims' assertions in the scoring pass, not lost coverage) → **185/1/13/2
-> (2026-09-03; zero drift — the ok-count recovers because no claim is zeroed).**
+> claims' assertions in the scoring pass, not lost coverage) → 185/1/13/2
+> (2026-09-03; zero drift) → **140/1/11/3 + 2 drift (2026-09-09; the ok-count
+> drop is the two drifting claims zeroing their assertions, not lost coverage).**
 > Anything worse is a real regression.
 > `audit/OPEN_WORK.md` item 7.
 
