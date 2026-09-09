@@ -102,6 +102,10 @@ Astra finding 8: the EV claim's grounds elements are open questions and read "+ 
 
 Two follow-ups recorded: the decomposition rule did not stop the Venus premise (a mechanical premise filter or a stronger prompt is the next lever, and each re-keys cassettes); `metadata.same_domain_as_source` was not observed on the URL check's sqlite.org pages, so the tag's path through article mode needs a test.
 
+## Independent label review (blind AI, no human available)
+
+137 directional labels from the final regrade were reviewed blind by a different model from the mapper (`backend/scripts/review_labels.py`; element + passage only, never Tru8's label): **86.1% justified** (118/137); a second, weaker reviewer agreed with the first 95.7% of the time. Hand-read, 4 rejections are one over-precise decomposition ("exactly 5g" against sources saying 3–5 g), 3 are date-anchoring strictness on Bank Rate, 4 are genuine mislabels, 3 are reviewer errors; adjudicated ≈ 88–90%, **below Astra's 95%**, and the misses point at decomposition wording, not source reading. Details: `audit/review_sheets/2026-09-09/README.md`.
+
 ## What 8/10 still needs
 
 1. Re-verify the extraction fix on #2, #4, #6/#13 (three checks, ~15p).

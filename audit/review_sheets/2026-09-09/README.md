@@ -34,3 +34,18 @@ These sheets carry **137 directional labels** across 14 records from the final d
 | t14_bankrate_375 | 6 |
 
 | **Total** | **137** |
+
+## Blind AI review, run 2026-09-09 (founder-approved; no human reviewer was available or affordable)
+
+`backend/scripts/review_labels.py` shows each reviewer ONLY the element and the passage the mapper read — never Tru8's label or reasoning — and asks supports / challenges / neither. Results in `review_summary.md` and `labels_reviewed.csv`.
+
+| Reviewer | Scored | Justified | Rate |
+|---|---:|---:|---:|
+| gemini-3.5-flash-lite (a different model from the mapper) | 137 | 118 | **86.1%** |
+| gemini-3.7-flash (the mapper's own model, weaker independence; 45 no-responses on a 200-token budget) | 92 | 79 | 85.9% |
+
+Reviewer-to-reviewer agreement 95.7% on the 92 both scored; both reject 9. The OpenAI key is dead (401), so no second model family was available; Claude did not grade.
+
+**Reading the 19 rejections by hand:** 4 are the creatine element that says "exactly 5g" while every source says 3–5 g — the decomposition invented the precision (the premise-element class again); 3 are Bank Rate supports where the passage states 3.75% without the date or the institution — the reviewer applied the fact-anchor standard the candidate's gate applies; 4 are Tru8 mislabels the reviewer caught (inflation: a Fed passage labelled `supports` on an element phrased as the false proposition; Chocolatey: 23 January vs 22; Reddit Venus: compares only to Mercury; EV connectsci: "higher CO2 in the first two years" labelled as support); 3 look like reviewer errors (the Nature Sweden lockdown study read as supporting the causal claim it contradicts, twice; a Sweden–Norway comparison rejected as "not every other country" though Norway lower is exactly a challenge); the rest are arguable strictness on "completely eliminates" wording. **Adjudicated, the rate is roughly 88–90%: below Astra's 95%, with the misses concentrated in decomposition wording rather than in reading sources.**
+
+Cost: ~86k tokens, about 2p. Re-run after any build with the same command; the rate holds or it names the next fix.
