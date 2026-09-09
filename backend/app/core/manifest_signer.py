@@ -44,7 +44,7 @@ def compute_pipeline_fingerprint() -> str:
         "analyzer_model": settings.ANALYZER_MODEL,
     }
     if settings.ENABLE_PASSAGE_MAPPING:
-        config["passage_mapping_contract"] = "v10"
+        config["passage_mapping_contract"] = "v11"
     if settings.ENABLE_STRUCTURED_EXTRACTION:
         config["structured_extraction_contract"] = "v1"
     return hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()[:12]

@@ -22,8 +22,23 @@ def result_cases():
     endpoint = json.loads(
         (FIXTURES / "unestablished_endpoint_failure.json").read_text()
     )
+    qualitative = json.loads(
+        (FIXTURES / "qualitative_effect_failures.json").read_text(encoding="utf-8")
+    )
     claim = "In the FIELD trial, treatment N reduced hospital admissions by 30% relative to placebo in adults."
     return [
+        # 2026-09-09 integrated failure pair: quantitative support on
+        # qualitative / different-endpoint text. Expected context.
+        *[
+            {
+                "id": "qualitative_effect_" + e["evidence_id"].split("-")[1][:6],
+                "claim": qualitative["claim"],
+                "evidence": e,
+                "initial": "supports",
+                "expected": qualitative["expected"],
+            }
+            for e in qualitative["evidence"]
+        ],
         {
             "id": "unestablished_endpoint",
             "claim": endpoint["claim"],
@@ -120,6 +135,7 @@ async def run(output, case_ids=None):
                 FIXTURES / "broader_scope_results.json",
                 FIXTURES / "result_fragment_failure.json",
                 FIXTURES / "unestablished_endpoint_failure.json",
+                FIXTURES / "qualitative_effect_failures.json",
             ]
         },
     }

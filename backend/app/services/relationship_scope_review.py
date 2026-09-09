@@ -22,6 +22,64 @@ DIMENSIONS = [
 _NAMED_STUDY = re.compile(
     r"\b(?:[Ii]n|[Ww]ithin)\s+(?:the\s+)?([A-Z][A-Z0-9-]{2,})\s+(?:trial|study)\b"
 )
+# A quantitative effect stated by the element: "by 20%", "20 percent",
+# "20 percentage points", "hazard ratio of 0.80". Amount, measure and endpoint
+# must be evidenced TOGETHER (Astra finding 10 / 2026-09-09 SELECT pair): a
+# quote that only says "reduced MACE" or carries a different figure for a
+# different endpoint (37.8% hsCRP) cannot establish "reduced MACE by 20%".
+_PERCENT = re.compile(
+    r"(\d+(?:[.,]\d+)?)\s*(?:%|per\s?cent(?:age)?(?:\s+points?)?|pp\b|-?point)",
+    re.I,
+)
+_RATIO = re.compile(
+    r"\b(?:hazard|risk|rate|odds)\s+ratio\s+(?:of\s+)?(\d(?:[.,\u00b7]\d+)?)", re.I
+)
+
+
+def _figure_forms(description):
+    """Every textual form of each stated figure that a quote may legitimately
+    use: the percentage as written, its spelled variants, and the ratio forms
+    of a relative change (20% -> 0.80 or 1.20). A ratio in the element yields
+    the ratio itself and the percentage it expresses. Absolute vs relative is
+    left to the model; this is a presence check, not an arithmetic proof."""
+    forms = set()
+
+    def pct(value):
+        text = ("%g" % value) if float(value).is_integer() else str(value)
+        forms.update(
+            {
+                f"{text}%",
+                f"{text} %",
+                f"{text} percent",
+                f"{text} per cent",
+                f"{text}-percent",
+                f"{text} percentage point",
+                f"{text}-point",
+            }
+        )
+        for ratio in (1 - value / 100, 1 + value / 100):
+            r = f"{ratio:.2f}"
+            forms.update({r, r.rstrip("0").rstrip(".")})
+
+    for m in _PERCENT.finditer(description):
+        pct(float(m[1].replace(",", ".")))
+    for m in _RATIO.finditer(description):
+        r = float(m[1].replace(",", ".").replace("\u00b7", "."))
+        forms.update({m[1], f"{r:.2f}"})
+        pct(round(abs(1 - r) * 100, 2))
+    return {f.lower() for f in forms if f}
+
+
+def _quotes_stated_figure(description, quote):
+    """True when the quoted result carries one of the element's stated
+    figures in some accepted form; True when the element states no figure."""
+    forms = _figure_forms(description)
+    if not forms:
+        return True
+    text = " ".join((quote or "").lower().replace("\u00b7", ".").split())
+    return any(f in text for f in forms)
+
+
 RESPONSE_SCHEMA = {
     "type": "OBJECT",
     "properties": {
@@ -244,6 +302,46 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
                 reasoning=f"The supplied material does not identify {study[1]}, so applicability to a result specifically from that study is unestablished.",
             )
             record["decision_basis"] = "explicit_study_identifier_missing"
+            record["model_decision"] = decision
+            decision = "unknown"
+        # A quantitative support needs the stated figure IN the quoted result.
+        # "Reduced MACE" or a different endpoint's 37.8% cannot establish
+        # "reduced MACE by 20%" (2026-09-09 SELECT pair). Absence of the figure
+        # is unestablished scope, not a mismatch; the model's decision is kept
+        # in the receipt.
+        if (
+            decision == "compatible"
+            and pair["relationship"] == "supports"
+            and pair["blocks"]
+            and not _quotes_stated_figure(pair["element_description"], row.get("quote"))
+        ):
+            chosen = next(
+                (b for b in pair["blocks"] if b["id"] == row.get("block_id")),
+                pair["blocks"][0],
+            )
+            quote = row.get("quote")
+            if not (
+                isinstance(quote, str)
+                and 12 <= len(quote) <= 600
+                and quote in chosen["text"]
+            ):
+                quote = chosen["text"][:600]
+            row = dict(
+                row,
+                decision="unknown",
+                dimension="result",
+                claim_scope=row.get("claim_scope") or pair["element_description"],
+                source_scope="The quoted result does not state the asserted effect size.",
+                block_id=chosen["id"],
+                excerpt_id="",
+                quote=quote,
+                reasoning=(
+                    "The quoted material does not report the effect size the element asserts, "
+                    "so it cannot establish the complete quantitative result; it is retained as context. "
+                    + (row.get("reasoning") or "")
+                ).strip(),
+            )
+            record["decision_basis"] = "quantitative_result_not_quoted"
             record["model_decision"] = decision
             decision = "unknown"
         block = next(

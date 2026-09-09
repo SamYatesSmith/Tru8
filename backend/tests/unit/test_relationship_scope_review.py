@@ -313,3 +313,145 @@ async def test_recovery_also_reviews_the_merged_pool(monkeypatch, enabled):
     assert review.await_count == int(enabled)
     if enabled:
         assert review.call_args.args[2] is ev
+
+
+@pytest.mark.asyncio
+async def test_frozen_select_pair_quantitative_support_becomes_context():
+    """The 2026-09-09 integrated failure: two SELECT sources labelled support
+    for 'reduced MACE by 20%' on text that says only 'reduced MACE' or gives
+    37.8% for a different endpoint. A model 'compatible' is overridden to
+    unknown/result; sources and the model's decision are kept."""
+    frozen = json.loads(
+        (
+            Path(__file__).parents[1]
+            / "evaluation/passage_quality/qualitative_effect_failures.json"
+        ).read_text(encoding="utf-8")
+    )
+    cm, _, row = fixture("supports")
+    cm["elements"][0]["description"] = frozen["claim"]
+    ev = copy.deepcopy(frozen["evidence"])
+    cm["elements"][0]["evidence_refs"] = [
+        {
+            "evidence_id": e["evidence_id"],
+            "relationship": "supports",
+            "reasoning": "prior",
+        }
+        for e in ev
+    ]
+    before = copy.deepcopy(ev)
+    quotes = {
+        "ev-e034ece5a149": "- Semaglutide reduced MACE incidence in the SELECT trial.",
+        "ev-49522d797c58": "- The SELECT trial previously reported that semaglutide reduced major adverse cardiovascular events compared with placebo over a mean follow-up of 39.8 months.",
+    }
+    pairs, _ = plan_review(cm, ev)
+    rows = [
+        dict(
+            row,
+            pair_id=p["pair_id"],
+            decision="compatible",
+            dimension="result",
+            block_id="mapping-text",
+            quote=quotes[p["evidence_id"]],
+            claim_scope="20% relative MACE reduction",
+            source_scope="MACE reduced",
+            reasoning="Reports that MACE was reduced in SELECT.",
+        )
+        for p in pairs
+    ]
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": rows})
+    await review_relationship_scope(a, cm, ev)
+    refs = {
+        r["evidence_id"]: r["relationship"] for r in cm["elements"][0]["evidence_refs"]
+    }
+    assert refs == {"ev-e034ece5a149": "context", "ev-49522d797c58": "context"}
+    for record in cm["metadata"]["scope_review"]["pairs"]:
+        assert record["decision_basis"] == "quantitative_result_not_quoted"
+        assert record["model_decision"] == "compatible"
+        assert record["status"] == "scoped" and record["dimension"] == "result"
+    assert ev == before
+    assert cm["metadata"]["scope_review"]["status"] == "complete"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "description,quote,expected",
+    [
+        # equivalent measures establish the figure
+        (
+            "N reduced admissions by 30% relative to placebo.",
+            "The FIELD trial reported a hospital admission risk ratio of 0.70 for N versus placebo.",
+            "supports",
+        ),
+        (
+            "N reduced admissions by 30% relative to placebo.",
+            "The FIELD trial reported a 30 percent relative reduction in admissions.",
+            "supports",
+        ),
+        (
+            "N cut admissions with a hazard ratio of 0.80.",
+            "Admissions fell by 20% with N in the FIELD trial.",
+            "supports",
+        ),
+        # a different figure for a different endpoint does not
+        (
+            "N reduced admissions by 30% relative to placebo.",
+            "N lowered a biomarker by 37.8% at 104 weeks in the FIELD trial.",
+            "context",
+        ),
+        # a qualitative result does not
+        (
+            "N reduced admissions by 30% relative to placebo.",
+            "N reduced admissions in the FIELD trial.",
+            "context",
+        ),
+        # an element with no figure is untouched by this guard
+        (
+            "N reduced admissions relative to placebo.",
+            "N reduced admissions in the FIELD trial.",
+            "supports",
+        ),
+    ],
+)
+async def test_quantitative_support_needs_the_stated_figure_in_the_quote(
+    description, quote, expected
+):
+    cm, ev, row = fixture("supports")
+    cm["elements"][0]["description"] = description
+    ev[0]["snippet"] = quote
+    row.update(
+        decision="compatible",
+        dimension="result",
+        quote=quote,
+        source_scope="reported result",
+        reasoning="Reports the result.",
+    )
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == expected
+
+
+@pytest.mark.asyncio
+async def test_quantitative_guard_leaves_challenges_alone():
+    """A null-result challenge needs no figure. Only a quantitative SUPPORT is
+    held to the stated figure."""
+    cm, ev, row = fixture("challenges")
+    cm["elements"][0][
+        "description"
+    ] = "N reduced admissions by 30% relative to placebo."
+    ev[0][
+        "snippet"
+    ] = "The FIELD trial found identical admission rates with N and placebo."
+    row.update(
+        decision="compatible",
+        dimension="result",
+        quote=ev[0]["snippet"],
+        source_scope="null result",
+        reasoning="Equal rates on the claimed endpoint.",
+    )
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "challenges"
+    assert cm["metadata"]["scope_review"]["pairs"][0]["status"] == "compatible"
