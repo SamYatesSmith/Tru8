@@ -120,6 +120,42 @@ def get_effective_adapter_cap(
     return base + _NF09_SLOTS_PER_SECONDARY * secondary_count
 
 
+def _same_page(a: Optional[str], b: Optional[str]) -> bool:
+    """True when two URLs name the same page: scheme, `www.`, fragment,
+    query string and a trailing slash are presentation, not identity."""
+    from urllib.parse import urlsplit
+
+    def key(u: str) -> str:
+        parts = urlsplit((u or "").strip())
+        host = (parts.netloc or "").lower()
+        if host.startswith("www."):
+            host = host[4:]
+        return host + (parts.path or "/").rstrip("/").lower()
+
+    return bool(a and b) and key(a) == key(b)
+
+
+def _source_exclusion(
+    url: Optional[str],
+    excluded_domain: Optional[str],
+    excluded_source_url: Optional[str],
+) -> Optional[str]:
+    """What to do with a search result against the submitted page.
+
+    "skip"        — it IS the submitted page: never evidence for its own claims.
+    "same_domain" — another page on that domain: eligible, tagged
+                    `metadata.same_domain_as_source` (2026-09-09; the whole
+                    domain used to be dropped, which manufactured gaps on
+                    reference documentation such as sqlite.org/changes.html).
+    None          — unrelated.
+    """
+    if not excluded_domain or extract_domain(url or "") != excluded_domain:
+        return None
+    if _same_page(url, excluded_source_url):
+        return "skip"
+    return "same_domain"
+
+
 def _resolve_search_country(claim: Dict[str, Any]) -> Optional[str]:
     """Resolve claim jurisdiction to a search provider country code.
 
@@ -600,10 +636,25 @@ class EvidenceRetriever:
         )
         try:
             # Extract excluded domain if provided
+            # Source exclusion (2026-09-09, Track Q — Astra finding 9, founder
+            # decision): a claim extracted from a submitted page cannot be
+            # evidenced by THAT PAGE. It used to exclude the page's whole
+            # domain, so claims taken from sqlite.org/wal.html could never be
+            # evidenced by sqlite.org/changes.html — a manufactured gap on
+            # reference documentation. Other pages on the same domain are now
+            # eligible and carry `metadata.same_domain_as_source` so the
+            # reader, the interested-party gate and the echo gate can see
+            # self-corroboration for what it is. `excluded_domain` keeps its
+            # name and value (it threads through the search helpers) but
+            # now means "tag, don't drop"; the drop is `_excluded_source_url`.
             excluded_domain = None
+            self._excluded_source_url = exclude_source_url
             if exclude_source_url:
                 excluded_domain = extract_domain(exclude_source_url)
-                logger.debug(f"Excluding source domain: {excluded_domain}")
+                logger.debug(
+                    f"Excluding the submitted page {exclude_source_url}; "
+                    f"tagging other {excluded_domain} pages as same-domain"
+                )
 
             # Query Planning Agent: Generate targeted queries for all claims (single LLM call)
             query_plans = None
@@ -2114,9 +2165,11 @@ class EvidenceRetriever:
                         (
                             CLAIM_LANE_TWIN_RESULTS
                             if i in twin_positions
-                            else claim_lane_depth
-                            if i in set(claim_lane_positions)
-                            else ELEMENT_RESULTS_PER_QUERY
+                            else (
+                                claim_lane_depth
+                                if i in set(claim_lane_positions)
+                                else ELEMENT_RESULTS_PER_QUERY
+                            )
                         )
                         for i in range(len(queries))
                     ]
@@ -2155,12 +2208,16 @@ class EvidenceRetriever:
                 )
 
                 for result in results:
-                    # Skip excluded domain
-                    if (
-                        excluded_domain
-                        and extract_domain(result.url) == excluded_domain
-                    ):
+                    # Skip the submitted page itself; tag its domain-mates.
+                    exclusion = _source_exclusion(
+                        result.url,
+                        excluded_domain,
+                        getattr(self, "_excluded_source_url", None),
+                    )
+                    if exclusion == "skip":
                         continue
+                    if exclusion == "same_domain":
+                        result._same_domain_as_source = True
 
                     # Deduplicate by URL, but accumulate element associations
                     if result.url in seen_urls:
@@ -2223,12 +2280,15 @@ class EvidenceRetriever:
                                     else None
                                 )
                                 for result in results:
-                                    if (
-                                        excluded_domain
-                                        and extract_domain(result.url)
-                                        == excluded_domain
-                                    ):
+                                    exclusion = _source_exclusion(
+                                        result.url,
+                                        excluded_domain,
+                                        getattr(self, "_excluded_source_url", None),
+                                    )
+                                    if exclusion == "skip":
                                         continue
+                                    if exclusion == "same_domain":
+                                        result._same_domain_as_source = True
                                     if result.url in seen_urls:
                                         if fb_element_id:
                                             seen_urls[result.url]._element_ids.add(
@@ -2375,9 +2435,7 @@ class EvidenceRetriever:
 
         deadline = float(settings.RETRIEVE_FETCH_PHASE_TIMEOUT_S)
         tasks = [
-            asyncio.create_task(
-                self._extract_with_fallback(r, claim_text, semaphore)
-            )
+            asyncio.create_task(self._extract_with_fallback(r, claim_text, semaphore))
             for r in fetch_set
         ]
         if not tasks:
@@ -2438,6 +2496,9 @@ class EvidenceRetriever:
         claim_type = getattr(search_result, "_claim_type", "general")
         freshness = getattr(search_result, "_freshness", "py")  # For staleness check
         element_ids = list(getattr(search_result, "_element_ids", set()))
+        same_domain_as_source = bool(
+            getattr(search_result, "_same_domain_as_source", False)
+        )
 
         try:
             # Attempt full content extraction
@@ -2450,6 +2511,8 @@ class EvidenceRetriever:
                 snippet.metadata = snippet.metadata or {}
                 snippet.metadata["query_index"] = query_index
                 snippet.metadata["query_used"] = query_used
+                if same_domain_as_source:
+                    snippet.metadata["same_domain_as_source"] = True
                 snippet.metadata["claim_type"] = claim_type
                 snippet.metadata["source_path"] = "query_planning"
                 snippet.metadata["extraction_status"] = "success"

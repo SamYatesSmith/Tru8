@@ -72,6 +72,11 @@ Astra finding 8: the EV claim's grounds elements are open questions and read "+ 
 
 `retrieve_evidence_for_claims(exclude_source_url=…)` excludes the **whole domain** of a submitted URL from evidence: claims extracted from `sqlite.org/wal.html` cannot be evidenced by `sqlite.org/changes.html`, the page that proves the 3.22.0 change. The rule protects independence (an outlet must not corroborate its own article). For reference documentation it manufactures a gap. Changing it is a retrieval-semantics decision for the founder (see the register); the candidate change is to exclude only the submitted URL itself and let the interested-party and echo gates handle self-corroboration, with a receipt on same-domain items.
 
+## Founder decisions on the remaining default-path misses (same evening)
+
+- **Source exclusion narrowed to the submitted page** (`retrieve._source_exclusion`): a claim extracted from a URL cannot be evidenced by that page; other pages on the domain are eligible and carry `metadata.same_domain_as_source`, leaving self-corroboration to the interested-party and echo gates. `RETRIEVAL_CACHE_VERSION` → `2026-09-09`. Tests pin page identity (scheme, `www.`, fragment, query, trailing slash are presentation) and the skip/tag/untouched outcomes. The corpus is all text-mode, so the bench cannot see this change.
+- **Decomposition prompts gain one rule**: no element for a trivially true prerequisite the claim's truth does not turn on (measurability, that a substance can be taken, that a body or trial exists, that a method is valid); elements are the contestable parts. Applied to both the single and batch prompts. This re-keys every corpus cassette; the founder approved a full re-record.
+
 ## What 8/10 still needs
 
 1. Re-verify the extraction fix on #2, #4, #6/#13 (three checks, ~15p).

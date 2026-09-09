@@ -247,6 +247,7 @@ causal link itself as one element, alongside the cause and the effect.
 - If the claim makes an explicit comparison (e.g. "compared to X", "more than", \
 "since <year>"), EVERY element that asserts the compared quantity or trend must \
 state that comparison baseline explicitly in its description.
+- Do NOT create an element for a trivially true prerequisite that the claim's truth does not turn on: that a quantity is measurable, that a substance can be taken, that a body or trial exists, that a method is valid. Elements are the CONTESTABLE parts — population, endpoint, comparator, effect size, time window, mechanism, ranking, causation.
 - Do NOT include evidence_refs, state, or uncertainty — those come later.
 """
 
@@ -509,6 +510,7 @@ causal link itself as one element, alongside the cause and the effect.
 - If a claim makes an explicit comparison (e.g. "compared to X", "more than", \
 "since <year>"), EVERY element that asserts the compared quantity or trend must \
 state that comparison baseline explicitly in its description.
+- Do NOT create an element for a trivially true prerequisite that the claim's truth does not turn on: that a quantity is measurable, that a substance can be taken, that a body or trial exists, that a method is valid. Elements are the CONTESTABLE parts — population, endpoint, comparator, effect size, time window, mechanism, ranking, causation.
 - Do NOT include evidence_refs, state, or uncertainty — those come later.
 """
 

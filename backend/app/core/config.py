@@ -452,7 +452,7 @@ class Settings(BaseSettings):
     # part of the key. **Bump it in the SAME commit as any change to what
     # retrieval gathers** (queries, lanes, windows, filters, blocklist policy).
     # Scope: audit/2026-09-02_pool_quality_gate_scope.md, Piece 3.
-    RETRIEVAL_CACHE_VERSION: str = Field("2026-09-02b", env="RETRIEVAL_CACHE_VERSION")
+    RETRIEVAL_CACHE_VERSION: str = Field("2026-09-09", env="RETRIEVAL_CACHE_VERSION")
 
     # Fetch-phase deadline (2026-09-02). The per-claim 45 s wait in
     # retrieve.py (RETRIEVE_CLAIM_TIMEOUT_S) cancels the WHOLE web task when
