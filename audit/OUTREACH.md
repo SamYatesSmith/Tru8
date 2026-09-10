@@ -8,6 +8,12 @@
 
 ---
 
+## 2026-09-10 — SECOND MOTION OPENED: volume outreach beside the bespoke five
+
+Founder: *"Everybody and anybody whom may show an interest in the product. Any way to contact them is welcome. Collect all recipient information and then arrange a mass contact styled methodology."* This plan's bespoke motion is unchanged (the five notes are wave 0). The volume motion has its own two documents — `audit/2026-09-10_outreach_volume_plan.md` (segments, infrastructure, marketing kit, ▶ decisions) and `audit/2026-09-10_mass_contact_methodology.md` (collect → validate → segment → waves → measure) — and its data lives in `audit/recipients/` (gitignored, like the contact map).
+
+**RECIPIENT SWEEP 1 DONE 2026-09-10 ~15:50 — 667 validated rows in `audit/recipients/master.csv` (gitignored), zero rejections.** Six parallel collectors, every row citing the public page where its route was seen; six random email rows spot-checked verbatim on-page 6/6. By segment: journalists_uk 153 · newsletters 128 (UK 47, US 81) · legal_uk 90 · thinktank_uk 33 · comms_uk 29 · community_news 28 · libraries 28 · journalism_schools 23 · media_literacy 22 · civic 21 · dev_newsletters 32 · dev_directories 23 · dev_communities 16 · dev_press 14 · research_integrity 14 · osint 13. By route: email 227 · org_inbox 113 · bluesky 92 · substack 87 · contact_form 45 · press_office 31 · x 29 · submission_form 18 · linkedin 17 · github 8. Countries: UK 480 · US 141 · Ireland 25. 649/667 carry a dated current_topic. **55 rows carry a review flag** (address seen on a page other than the org's own domain; 19 Cloudflare-obfuscated addresses decoded from the page source — eyeball before sending; 14 journalist rows the collector marked weak). Blocked sources recorded per collector (Law Society, IFS, King's Fund, Guardian/BBC/FT/Times fetch-refused, ESU, CILIP…) — a second sweep with the founder's browser or a media database would add these. Tooling: `backend/scripts/merge_recipients.py` (evidenced routes only, no personal mailboxes, dedup on best route); methodology `audit/2026-09-10_mass_contact_methodology.md`; segments/infra/kit `audit/2026-09-10_outreach_volume_plan.md`.
+
 ## Why this plan is shaped the way it is — four facts
 
 1. **Tru8 has never been used by a stranger — by literally zero.** 12 accounts
