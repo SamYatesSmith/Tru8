@@ -48,6 +48,15 @@ interface EvidenceHeatmapProps {
   onCellClick?: (tier: EvidenceTier, type: EvidenceType) => void;
 }
 
+// The one-line legend under the grid — a gloss, not a definition (those live in
+// TIER_DESCRIPTIONS below, in the guide). Kept short so the three items sit on
+// one line at desktop width and wrap as whole units on a phone.
+const TIER_SHORT: Record<EvidenceTier, string> = {
+  primary: 'closest to the original',
+  reporting: 'investigated coverage',
+  commentary: 'analysis & opinion',
+};
+
 const TIER_DESCRIPTIONS: Record<EvidenceTier, string> = {
   primary: 'Original data, official records, direct observation, raw statistics',
   reporting: 'News coverage, investigative journalism, factual reporting',
@@ -267,66 +276,98 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
         </table>
       </div>
 
-      {/* Always-visible tier legend — the most load-bearing part of the classification guide */}
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-zinc-500">
-        <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-zinc-400">
+      {/* Classification guide (reworked 2026-09-10 — founder: "could be arranged in
+          a more appealing and orderly manner"). What was wrong: the tier line was
+          stated twice in two wordings (terse legend + the panel's fuller one);
+          the legend's "·" separators dangled at line ends on a phone; tier rows
+          carried a colour swatch while type rows did not, so the label columns
+          never lined up; a wrapped description fell under its own label; and the
+          "(rows)/(columns)" headings are wrong on a phone, where the grid is
+          transposed. Now: ONE legend row whose items wrap as units with the tier
+          swatch as the marker (no separators), and ONE guide rendered as an
+          aligned definition grid — swatch · label · description in fixed columns,
+          so wrapped descriptions hang under themselves — with axis-free headings. */}
+      {/* Phone: a stacked list under the TIERS label (one item per line); sm+:
+          one row. A wrapping row put the first item beside the label and the
+          other two beneath — ragged. */}
+      <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-y-1.5 sm:gap-x-5 text-[11px]">
+        <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-zinc-400 leading-[1.125rem]">
           Tiers
         </span>
-        <span>
-          <span className="text-[#EA580C] font-medium">Primary</span>
-          <span className="text-zinc-400"> — closest to original info</span>
-        </span>
-        <span className="text-zinc-200">·</span>
-        <span>
-          <span className="text-zinc-700 font-medium">Reporting</span>
-          <span className="text-zinc-400"> — investigated coverage</span>
-        </span>
-        <span className="text-zinc-200">·</span>
-        <span>
-          <span className="text-zinc-500 font-medium">Commentary</span>
-          <span className="text-zinc-400"> — analysis & opinion</span>
-        </span>
+        {TIERS.map((tier) => (
+          <span key={tier} className="inline-flex items-center gap-1.5 whitespace-nowrap">
+            <span aria-hidden className={`w-3 h-[2px] ${TIER_BAR_COLORS[tier]} shrink-0`} />
+            <span className={`font-medium ${tier === 'primary' ? 'text-[var(--tier1-accent)]' : 'text-zinc-700'}`}>
+              {TIER_LABELS[tier]}
+            </span>
+            <span className="text-zinc-400">{TIER_SHORT[tier]}</span>
+          </span>
+        ))}
       </div>
 
-      {/* Expandable full guide — type descriptions live here */}
-      <div className="mt-2">
+      <div className="mt-3">
         <button
+          type="button"
           onClick={toggleLegend}
-          className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-600 transition-colors"
+          aria-expanded={legendOpen}
+          className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
         >
-          {legendOpen ? '− Hide' : '+ Show'} content type descriptions
+          <span aria-hidden className={`inline-block transition-transform ${legendOpen ? 'rotate-90' : ''}`}>▸</span>
+          {legendOpen ? 'Hide the classification guide' : 'What the tiers and types mean'}
         </button>
 
         {legendOpen && (
-          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-6 border border-zinc-200 bg-zinc-50 p-4">
-            <div>
-              <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
-                Source Tiers (rows)
-              </h4>
-              {TIERS.map((tier) => (
-                <div key={tier} className="flex items-start gap-2 mb-1.5">
-                  <div className={`w-3 h-[2px] ${TIER_BAR_COLORS[tier]} mt-1.5 shrink-0`} />
-                  <div>
-                    <span className="text-[11px] font-medium text-zinc-700">{TIER_LABELS[tier]}</span>
-                    <span className="text-[11px] text-zinc-400"> — {TIER_DESCRIPTIONS[tier]}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div>
-              <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
-                Content Types (columns)
-              </h4>
-              {TYPES.map((type) => (
-                <div key={type} className="flex items-start gap-2 mb-1.5">
-                  <span className="text-[11px] font-medium text-zinc-700">{TYPE_LABELS[type]}</span>
-                  <span className="text-[11px] text-zinc-400"> — {TYPE_DESCRIPTIONS[type]}</span>
-                </div>
-              ))}
-            </div>
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-5 border border-zinc-200 bg-zinc-50 px-4 py-4">
+            <GuideColumn
+              title="Source tiers"
+              rows={TIERS.map((tier) => ({
+                key: tier,
+                marker: <span aria-hidden className={`block w-3 h-[2px] ${TIER_BAR_COLORS[tier]}`} />,
+                label: TIER_LABELS[tier],
+                description: TIER_DESCRIPTIONS[tier],
+              }))}
+            />
+            <GuideColumn
+              title="Content types"
+              rows={TYPES.map((type) => ({
+                key: type,
+                marker: <span aria-hidden className="block w-1 h-1 bg-zinc-300 rounded-full" />,
+                label: TYPE_LABELS[type],
+                description: TYPE_DESCRIPTIONS[type],
+              }))}
+            />
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** One column of the guide: a titled definition grid with fixed marker and
+ *  label columns, so every description starts on the same x and wraps under
+ *  itself rather than under its label. */
+function GuideColumn({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: { key: string; marker: React.ReactNode; label: string; description: string }[];
+}) {
+  return (
+    <div>
+      <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-500 pb-1.5 mb-2 border-b border-zinc-200">
+        {title}
+      </h4>
+      <dl className="grid grid-cols-[0.75rem_5.5rem_1fr] gap-x-2 gap-y-1.5 text-[11px] leading-relaxed">
+        {rows.map((row) => (
+          // A fragment per row keeps the <dl> valid while the grid places the parts.
+          <div key={row.key} className="contents">
+            <span className="flex items-center h-[1.125rem]">{row.marker}</span>
+            <dt className="font-medium text-zinc-700">{row.label}</dt>
+            <dd className="text-zinc-500">{row.description}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }
