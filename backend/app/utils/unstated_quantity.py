@@ -40,6 +40,16 @@ _QUANTITY_HEAD = re.compile(
     r"|what\s+(?:is|was|are|were)\s+the\s+"
     r"(?:total|exact|precise|quantified|overall|aggregate|absolute|net)\b"
     r"|by\s+what\s+(?:proportion|percentage|share|fraction|margin|factor)\b"
+    # Two heads the build-2 measurement exposed (2026-09-10 b2 runs 1-2, EV
+    # record, 4 labels): "How does the PROPORTION of … compare across …" and
+    # "What do lifecycle analyses show regarding the TOTAL carbon footprint …".
+    # The quantity noun sits after an auxiliary or a reporting verb rather
+    # than at the head; the demand is the same.
+    r"|how\s+(?:does|do|did)\s+the\s+"
+    r"(?:proportion|percentage|share|fraction|volume|total|amount|magnitude)\b"
+    r"|what\s+(?:do|does|did)\s+[^?]{0,60}?\b(?:show|indicate|say|reveal|report|find)\s+"
+    r"(?:regarding|about|on)\s+the\s+"
+    r"(?:total|proportion|percentage|share|volume|exact|precise|aggregate|quantified)\b"
     r")",
     re.I,
 )

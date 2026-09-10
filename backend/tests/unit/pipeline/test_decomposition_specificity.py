@@ -167,6 +167,35 @@ def test_close_kin_of_the_measured_heads_are_detected(question):
     assert demands_unstated_quantity(question, "The scheme was a failure.")
 
 
+# Exposed by the build-2 measurement (2026-09-10 b2 runs 1-2): the quantity
+# noun after an auxiliary or a reporting verb, not at the head. 4 labels.
+@pytest.mark.parametrize(
+    "question",
+    [
+        "How does the proportion of renewable energy versus fossil fuels used to "
+        "charge electric cars compare across different regions?",
+        "What do lifecycle analyses show regarding the total carbon footprint of "
+        "electric cars versus petrol cars under current electricity generation mixes?",
+        "How did the share of coal in the grid change over the decade?",
+        "What does the evidence indicate about the percentage of trips under two miles?",
+    ],
+)
+def test_quantity_nouns_after_an_auxiliary_or_reporting_verb_are_detected(question):
+    assert demands_unstated_quantity(question, EV_CLAIM)
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "How does the fuel mix used to charge electric cars affect their emissions?",
+        "What do lifecycle analyses show regarding the emissions of electric cars?",
+        "How do the environmental impacts of battery production compare with petrol?",
+    ],
+)
+def test_the_same_heads_without_a_quantity_noun_are_left_alone(question):
+    assert not demands_unstated_quantity(question, EV_CLAIM)
+
+
 @pytest.mark.parametrize(
     "question",
     [

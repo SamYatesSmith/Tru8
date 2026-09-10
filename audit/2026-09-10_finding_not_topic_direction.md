@@ -75,6 +75,8 @@ Claim: *"Sweden's decision not to impose a general lockdown caused it to have **
 | before (3-run mean, specificity build) | 363 | 87.5% | 45 | — | 17 | 5 | — |
 | **b2 run 1** (`audit/review_sheets/2026-09-10-b2run1`) | 123 | **91.1%** | 11 | 6 | 4 | **0** | 0 (prompt held) |
 | **b2 run 2** (`audit/review_sheets/2026-09-10-b2run2`) | 122 | **88.5%** | 14 | 4 | 5 | **0** | 0 (prompt held) |
+| **b2 run 3** (`audit/review_sheets/2026-09-10-b2run3b`) | 115 | **88.7%** | 13 | 5 | 5 | **0** | 0 (prompt held) |
+| **build-2 three-run** | 360 | **89.4%** | 38 | — | 14 | **0** | 0 |
 
 ### b2 run 1 — the 11 rejections, by kind
 
@@ -95,4 +97,29 @@ Both causal elements carry **no evidence refs at all** this run, and the pool (1
 - **⚠️ Unstated specificity, back in a NEW grammatical head: 3** — the EV grounds question *"How does the **proportion** of renewable energy versus fossil fuels used to charge electric cars compare across different regions?"* demands proportions the claim never stated; three region-specific passages were then graded "neither". The morning's detector covers `what proportion` but not `how does the proportion … compare`, and the prompt rule did not hold on this draw. Same family as b2 run 1's *"what do lifecycle analyses show regarding the **total** carbon footprint"*. **Widen the detector to these two heads after run 3** (measure the build as built; change the instrument between series, not inside one).
 - **Sweden direction:** both causal elements kept "lower" again (repair never fired). **t06 causation now DISPUTED** with the counterfactual sources back in the pool — run 1's UNRESOLVED was pool churn, as the query-plan comparison suggested; **watch item cleared**. t13 unresolved this draw (its causal element drew no directional refs on the same cached pool — mapper variance).
 - **Thin records, network again:** t03 creatine retrieved ZERO web sources (`provider_status.web_search = timeout`, PubMed/WHO/Wikipedia/Semantic Scholar all 0 results in the same window — connectivity, recorded honestly by provider status); t01 and t02 five sources each. Costs the run ~10 labels it would otherwise have had; changes no kind.
+
+### b2 run 3 — the 13 rejections, by kind
+
+(The first attempt at run 3 died after one input — the regrade process exited 127 with no Python error while the session's MCP servers dropped at the same moment; an environment event. Its partial outputs sit untracked in `tmp/astra-regrade-2026-09-10-b2run3/` and `audit/review_sheets/2026-09-10-b2run3/` (6 labels, meaningless) and are NOT the run. The run is `b2run3b`. Cost of the aborted attempt ≈ 5p over the approved 52p.)
+
+- **The claim's own wording: 4** — t06 + t13 "lowest in the EU and Nordic countries" against "every other European country"; t02 "everyone who is overweight" (the trial's restricted cohort IS the challenge); t14 a 3.75% passage with no date.
+- **Topic without the finding: 5** — t02 the NEJM "2%" fragment; t08 carbone4 (manufacturing higher, nothing on offset); **t08 IEA — the retained window is a bibliographic chart citation, no data at all** (a passage-selection fault of the rating-only kind); t11 an inflation-rate definition; t07 a single-writer queue architecture for the SQLITE_BUSY element.
+- **Reviewer error: 2** — t07 "WAL stops readers blocking the writer" read as the inverse of "readers never block writers" (third time); t02 acc.org, the reviewer's own arithmetic mid-sentence ("but wait, let me re-calculate").
+- **Arguable: 2** — t08 earth.org on a "to what extent" question; t02 news-medical "no heterogeneity across body habitus" read as support for "everyone".
+- **Unstated specificity: 0. Sweden misreads: 0.** t06's causal element kept "lower" and read DISPUTED; t13's kept "lower" and drew no directional refs (unresolved) on its own pool.
+
+## 8. Build-2 three-run reading (2026-09-10, ~£1.61 for the three incl. the aborted attempt)
+
+| | labels | justified | rejected | Sweden-direction misreads | topic-without-finding |
+|---|---:|---:|---:|---:|---:|
+| build 1 (morning, 3 runs) | 362 | 87.6% | 45 | 5 | 17 |
+| **build 2 (afternoon, 3 runs)** | 360 | **89.4%** | 38 | **0** | 14 |
+
+**What build 2 did:** the direction fault is gone (0 misreads on the Sweden causal elements over three runs, was 5; the prompt rule alone held on all six records — the repair call never fired). The "topic without finding" kind fell 17 → 14 and its measured shapes went to zero or near it (Venus 4 → 1, rating-only 2 → 0, trial-design 2 → 0); what remains is new shapes each run — a bibliographic citation window, a definition, a wrong-architecture passage. **The rate: 87.6% → 89.4%, p = 0.43 — not distinguishable from pool noise.** The kind-level results are the evidence; the rate is consistent with them and proves nothing on its own.
+
+**Where the product stands on the label axis, honestly:** blind 89.4% (three-run mean; best single run 91.1%). Of the 38 remaining rejections: **13 are the user's own wording** ("cannot occur", "everyone", "every other European country", "as of 7 September") — the reviewer being strict on words the claim itself uses, which we must not soften; **4 are reviewer errors**; **14 are passage-level** (the mapper reading a subject-matched passage as the finding, or a retained window that is a citation / definition / rating); **3 are one grounds question in a head the quantity detector did not cover** (widened after run 3: `how does the proportion … compare`, `what do … show regarding the total …`); 4 arguable. **Adjudicated (removing reviewer errors and the claim's-own-wording class): ≈ 21 / 360 ≈ 94.2%.**
+
+**Reading against the founder's gate (internal 8/10 on both axes):** structure has held on every headline outcome across all six runs today (Bank Rate ×2, JWST orbit, SELECT population and absolute risk, SQLite, Sweden ranking and causation, the invented trial). The blind label rate is 89–91%, adjudicated ≈94%, against a 95% bar. **The gap that is ours is the passage-level class (~14/360 ≈ 4 points): a retained window that carries no finding (citation, definition, rating badge) and a mapper reading a same-subject passage as the finding.** The class that is not ours (~13/360 ≈ 3.6 points) will not move without softening the user's words, and it should not.
+
+**What the measurement names next, if the founder wants the last four points:** (1) passage selection — do not retain a window that is a bibliographic citation, a definition or a badge (mechanical: the IEA "Cite chart" window, the AFP rating, the calculatorlib definition all have lexical signatures); (2) the mapper's same-subject reading — already prompted; the residual is model reading, measurable only. Neither touches decomposition or retrieval.
 
