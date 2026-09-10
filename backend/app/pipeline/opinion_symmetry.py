@@ -40,6 +40,10 @@ from typing import Any, Dict, List, Optional
 
 from app.core.config import settings
 from app.utils.atomicity import compound_indices, is_compound
+from app.utils.unstated_quantity import (
+    demands_unstated_quantity,
+    unstated_quantity_indices,
+)
 from app.utils.scope_sensitivity import apply_scope_flags
 
 logger = logging.getLogger(__name__)
@@ -70,6 +74,14 @@ Output 3-5 OPEN QUESTIONS about the claim's NAMED SUBJECT:
   "and"/"or" ("What were the targets, and were they met?" is TWO questions).
   Where a question has two parts, ask only the part that bears most directly
   on the judgement — usually the outcome, not the setup.
+- Ask at the claim's OWN level of specificity. Where the claim states no
+  figure, proportion, total or threshold, do not ask for one — ask how the
+  subject compares, what the evidence shows, or to what extent something
+  holds. "What is the total lifecycle emission volume of electric cars?"
+  demands a figure the claim never stated, and a source saying only that
+  electric cars emit less over their life cannot answer it; ask "How do the
+  lifecycle emissions of electric cars compare with petrol cars?" instead.
+  Ask for a quantity only when the claim itself states one.
 
 Respond with JSON only:
 {"elements": [{"description": "<open question>"}, ...]}
@@ -85,15 +97,24 @@ Respond with JSON only:
 # keeping. It would also inflate the retrieval budget (element lanes are ≤2
 # queries each; 5 elements is exactly the 13-query design) and touch the
 # LOCKED 1-5 element contract. 1→1 keeps all of that identical.
-COMPOUND_REPAIR_PROMPT = """\
-You are repairing research questions that accidentally ask TWO things at once.
+QUESTION_REPAIR_PROMPT = """\
+You are repairing research questions. Each numbered item below carries a
+named defect: it asks TWO things at once, or it demands a QUANTITY the claim
+never stated, or both.
 
-Each numbered item below asks more than one question. Rewrite EACH as a SINGLE
-open question that asks exactly one thing.
+Rewrite EACH as a SINGLE open question that asks exactly one thing, at the
+claim's own level of specificity.
 
-- Keep the part that bears most directly on the judgement being investigated —
-  usually the outcome or comparison, not the setup ("What were the targets,
-  and were they met?" becomes "To what extent were the targets met?").
+- [two questions]: keep the part that bears most directly on the judgement
+  being investigated — usually the outcome or comparison, not the setup
+  ("What were the targets, and were they met?" becomes "To what extent were
+  the targets met?").
+- [unstated quantity]: the claim states no figure, proportion, total or
+  threshold, so do not ask for one. Ask how the subject compares, what the
+  evidence shows, or to what extent something holds ("What is the total
+  lifecycle emission volume of electric cars compared to petrol cars?" becomes
+  "How do the lifecycle emissions of electric cars compare with petrol
+  cars?"). Keep the question's subject matter; change only what it demands.
 - The rewrite must stand alone: resolve any "this"/"these"/"it" back to the
   thing it refers to, so the question is intelligible with no other context.
 - Keep it OPEN and empirically answerable. It must NOT presuppose its answer,
@@ -105,6 +126,10 @@ Respond with JSON only, in the SAME ORDER as the input:
 {"repaired": ["<single question>", ...]}
 The array length MUST equal the number of items given.
 """
+
+# Kept as an alias for readers of the 2026-07-29 design; one prompt serves
+# both defects since 2026-09-10 (one call, not two).
+COMPOUND_REPAIR_PROMPT = QUESTION_REPAIR_PROMPT
 
 ON_SUBJECT_PROMPT = """\
 You are auditing a research design. You are given an evaluative claim and a
@@ -253,31 +278,64 @@ async def _coverage(
     return [bool(c) for c in cov]
 
 
-async def _repair_compounds(
+_DEFECT_COMPOUND = "two questions"
+_DEFECT_QUANTITY = "unstated quantity"
+
+
+def _quantity_repair_on() -> bool:
+    return bool(getattr(settings, "ENABLE_UNSTATED_QUANTITY_REPAIR", False))
+
+
+async def _repair_questions(
     analyzer, claim: str, elements: List[str]
-) -> tuple[List[str], int, int]:
-    """Rewrite two-in-one questions as single questions.
+) -> tuple[List[str], Dict[str, Dict[str, int]]]:
+    """Rewrite defective questions — two-in-one, or demanding a quantity the
+    claim never stated — as single questions at the claim's specificity.
 
-    Returns ``(elements, detected, repaired)``. FAIL-SAFE throughout: any
-    malformation, any exception, any rewrite that is STILL compound → that
-    element keeps its ORIGINAL text. Repair can improve an element or leave it
-    alone; it can never make one worse.
+    Returns ``(elements, counts)`` where ``counts`` has an ``atomicity`` entry
+    and, when the quantity flag is on, a ``specificity`` entry, each
+    ``{detected, repaired}``. ONE model call covers every defective item.
+
+    FAIL-SAFE throughout: any malformation, any exception, any rewrite that
+    STILL carries a defect → that element keeps its ORIGINAL text. Repair can
+    improve an element or leave it alone; it can never make one worse.
     """
-    idx = compound_indices(elements)
+    compound = set(compound_indices(elements))
+    quantity = (
+        set(unstated_quantity_indices(elements, claim))
+        if _quantity_repair_on()
+        else set()
+    )
+    idx = sorted(compound | quantity)
+    counts: Dict[str, Dict[str, int]] = {
+        "atomicity": {"detected": len(compound), "repaired": 0}
+    }
+    if _quantity_repair_on():
+        counts["specificity"] = {"detected": len(quantity), "repaired": 0}
     if not idx:
-        return elements, 0, 0
+        return elements, counts
 
-    numbered = "\n".join(f"{n + 1}. {elements[i]}" for n, i in enumerate(idx))
+    def tags(i: int) -> str:
+        t = []
+        if i in compound:
+            t.append(_DEFECT_COMPOUND)
+        if i in quantity:
+            t.append(_DEFECT_QUANTITY)
+        return "; ".join(t)
+
+    numbered = "\n".join(
+        f"{n + 1}. [{tags(i)}] {elements[i]}" for n, i in enumerate(idx)
+    )
     try:
         parsed = await analyzer._call_llm(
-            prompt=f"{COMPOUND_REPAIR_PROMPT}\n\nClaim: {claim}\n\nItems:\n{numbered}",
+            prompt=f"{QUESTION_REPAIR_PROMPT}\n\nClaim: {claim}\n\nItems:\n{numbered}",
             temperature=0.0,
             max_tokens=800,
             label="decomposition",
         )
     except Exception as e:
         logger.warning(f"[ATOMICITY] repair call failed, keeping originals: {e}")
-        return elements, len(idx), 0
+        return elements, counts
 
     rows = (parsed or {}).get("repaired") if isinstance(parsed, dict) else None
     if not isinstance(rows, list) or len(rows) != len(idx):
@@ -285,25 +343,30 @@ async def _repair_compounds(
             f"[ATOMICITY] repair malformed (want {len(idx)}, got "
             f"{len(rows) if isinstance(rows, list) else 'n/a'}), keeping originals"
         )
-        return elements, len(idx), 0
+        return elements, counts
 
     out = list(elements)
-    repaired = 0
     for n, i in enumerate(idx):
         candidate = rows[n]
         if not isinstance(candidate, str):
             continue
         candidate = candidate.strip()
-        # Accept ONLY if the rewrite actually achieved atomicity. A still-
-        # compound rewrite is no better than the original and has lost the
-        # original's wording, so it is discarded rather than kept.
+        # Accept ONLY if the rewrite cleared BOTH defects. A rewrite that is
+        # still compound, or still demands an unstated quantity, is no better
+        # than the original and has lost the original's wording, so it is
+        # discarded rather than kept.
         if not candidate or is_compound(candidate):
+            continue
+        if _quantity_repair_on() and demands_unstated_quantity(candidate, claim):
             continue
         logger.info(f"[ATOMICITY] repaired: {elements[i][:70]} -> {candidate[:70]}")
         out[i] = candidate
-        repaired += 1
+        if i in compound:
+            counts["atomicity"]["repaired"] += 1
+        if i in quantity:
+            counts["specificity"]["repaired"] += 1
 
-    return out, len(idx), repaired
+    return out, counts
 
 
 # ── The stage ────────────────────────────────────────────────────────────────
@@ -338,9 +401,9 @@ async def apply_grounds_stage(
         # _is_restatement must see the FINAL text. Repairing after the lock
         # would open a laundering route through the exact door slice 2 shut.
         # Flag off, or nothing compound → no call, candidate untouched.
-        compound_detected = compound_repaired = 0
+        repair_counts: Dict[str, Dict[str, int]] = {}
         if settings.ENABLE_ELEMENT_ATOMICITY:
-            candidate, compound_detected, compound_repaired = await _repair_compounds(
+            candidate, repair_counts = await _repair_questions(
                 analyzer, claim_text, candidate
             )
 
@@ -431,12 +494,23 @@ async def apply_grounds_stage(
         # Survivors are counted on FINAL — structural re-adds are wrapped
         # baseline declaratives that never passed through repair, so counting
         # on `candidate` would under-report the elements the mapper actually
-        # sees. Survivors are backstopped mechanically at mapping.
+        # sees. Compound survivors are backstopped mechanically at mapping;
+        # quantity survivors have no backstop (disclosed here, that is all).
+        atom = repair_counts.get("atomicity", {"detected": 0, "repaired": 0})
         grounds_meta["atomicity"] = {
-            "detected": compound_detected,
-            "repaired": compound_repaired,
+            "detected": atom["detected"],
+            "repaired": atom["repaired"],
             "surviving": sum(1 for d in final if is_compound(d)),
         }
+        if "specificity" in repair_counts:
+            spec = repair_counts["specificity"]
+            grounds_meta["specificity"] = {
+                "detected": spec["detected"],
+                "repaired": spec["repaired"],
+                "surviving": sum(
+                    1 for d in final if demands_unstated_quantity(d, claim_text)
+                ),
+            }
     baseline_claim_map.setdefault("metadata", {})["grounds"] = grounds_meta
     return baseline_claim_map
 

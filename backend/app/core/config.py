@@ -478,6 +478,19 @@ class Settings(BaseSettings):
     # False restores today's behaviour byte-for-byte (rollback, no deploy).
     ENABLE_ELEMENT_ATOMICITY: bool = Field(True, env="ENABLE_ELEMENT_ATOMICITY")
 
+    # Decomposition specificity (2026-09-10): a grounds question that demands a
+    # figure the claim never stated ("What is the TOTAL lifecycle emission
+    # VOLUME…" for "electric cars are cleaner") cannot be answered by a source
+    # that answers the claim, so its labels read as unjustified — 11 of 27
+    # rejections in the 2026-09-09 blind review sat on one such record.
+    # Detected mechanically (app/utils/unstated_quantity.py) and rewritten by
+    # the same repair call as compounds. Requires ENABLE_ELEMENT_ATOMICITY.
+    # Design: audit/2026-09-10_decomposition_specificity.md.
+    # ROLLBACK: ENABLE_UNSTATED_QUANTITY_REPAIR=False (compound repair stays).
+    ENABLE_UNSTATED_QUANTITY_REPAIR: bool = Field(
+        True, env="ENABLE_UNSTATED_QUANTITY_REPAIR"
+    )
+
     # 2026-08-25: recover headlines the search provider handed us pre-cut.
     # Serper truncates at ~54 chars (43% of results); the page's own og:title
     # normally fixes it, but a blocked fetch leaves the stub on screen looking
