@@ -43,7 +43,8 @@ Pattern: the limits sit on `supported` elements; the adjudications sit on `dispu
 ## 5. Presentation
 
 - **Where:** `ElementList.tsx` roster rows (shared by `/r/`, the dashboard check page and the overview card — one component, one behaviour), beneath the description, after `EvidenceQualityNote`. Not on gap rows.
-- **How:** the grey note idiom — mono 10px `text-zinc-500`, `NOTE ·` prefix in `text-zinc-400` uppercase tracking, `line-clamp-2` with the full sentence in `title`. **No amber, no border, no fill** (no-verdict colour lock; the Seeker's amber box is pre-existing and out of scope).
+- **How:** the grey note idiom — mono 10px `text-zinc-500`, `NOTE ·` prefix in `text-zinc-400` uppercase tracking, ~~`line-clamp-2` with the full sentence in `title`~~. **No amber, no border, no fill** (no-verdict colour lock; the Seeker's amber box is pre-existing and out of scope).
+  - **Amended 2026-09-10 — the clamp is GONE.** The founder's phone screenshot showed the note ending in "…" with no way to read the rest: a `title` tooltip needs hover, which a touch screen does not have, so on the device most likely to hit the two-line limit the sentence was simply cut. That contradicts the verbatim-or-nothing rule above. The whole sentence now renders on every surface; the test pins the absence of `line-clamp` and `title`.
 - **Copy:** the model's sentence verbatim after the gate; we never rewrite it (no hidden curation — suppression is total or nothing, and the PDF still prints every note).
 
 ## 6. Reported, not built

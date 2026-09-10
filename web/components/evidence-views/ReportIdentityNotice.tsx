@@ -20,7 +20,7 @@ export function ReportIdentityNotice({ checkId, identity }: { checkId: string; i
       <summary className="cursor-pointer select-none px-3 py-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
         <span aria-hidden className="inline-block transition-transform group-open:rotate-90">▸</span>
         Record identity
-        <span className="normal-case tracking-normal text-zinc-400">
+        <span className="min-w-0 truncate normal-case tracking-normal text-zinc-400">
           · {identity.revisionId ? 'retained revision' : 'snapshot only'} · {shortHash}…
         </span>
       </summary>

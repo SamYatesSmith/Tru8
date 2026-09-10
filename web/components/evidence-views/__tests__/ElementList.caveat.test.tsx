@@ -37,7 +37,10 @@ describe('ElementList — element caveat row', () => {
     const note = getByTestId('element-caveat');
     expect(note.textContent).toContain(text);
     expect(note.textContent).toMatch(/^Note/);
-    expect(note.getAttribute('title')).toBe(text);
+    // Whole sentence on the page, never clamped — a phone has no hover
+    // tooltip to recover a cut line (2026-09-10).
+    expect(note.className).not.toMatch(/line-clamp/);
+    expect(note.getAttribute('title')).toBeNull();
     // No-verdict colour lock: grey only.
     expect(note.className).toContain('text-zinc-500');
     expect(note.className).not.toMatch(/amber|red|green|emerald|rose/);

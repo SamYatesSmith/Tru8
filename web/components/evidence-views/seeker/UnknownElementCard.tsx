@@ -66,14 +66,25 @@ export function UnknownElementCard({
   // Known elements: collapsed single line
   // Order: number → description → state badge → source count.
   // Content leads, qualifier trails (marketing review).
+  // Phone (2026-09-10): the single truncated line cut a description to four
+  // words ("The number of wildfires…") once the badge and count took their
+  // share. Below `sm` the row wraps — the description reads in full and the
+  // badge + count drop to a second line beneath it. From `sm` up: one
+  // truncated line, as before.
   if (isKnown) {
     return (
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-zinc-50/50 border border-zinc-100">
-        <ElementBadge n={index + 1} size="sm" />
-        <span className="text-sm text-zinc-700 truncate flex-grow min-w-0">{element.description}</span>
-        {element.state && <ElementStateBadge state={element.state} size="sm" basis={element.basis} description={element.description} />}
-        <span className="font-mono text-[10px] text-zinc-400 whitespace-nowrap">
-          {refCount} {refCount === 1 ? 'source' : 'sources'}
+      <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 bg-zinc-50/50 border border-zinc-100">
+        {/* Badge + description stay one unit, so the number never sits alone
+            on a line above a wrapped description. */}
+        <div className="flex items-center gap-3 flex-grow min-w-0">
+          <ElementBadge n={index + 1} size="sm" />
+          <span className="text-sm text-zinc-700 sm:truncate min-w-0">{element.description}</span>
+        </div>
+        <span className="ml-auto flex items-center gap-3 shrink-0">
+          {element.state && <ElementStateBadge state={element.state} size="sm" basis={element.basis} description={element.description} />}
+          <span className="font-mono text-[10px] text-zinc-400 whitespace-nowrap">
+            {refCount} {refCount === 1 ? 'source' : 'sources'}
+          </span>
         </span>
       </div>
     );

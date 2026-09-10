@@ -247,7 +247,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
               type="button"
               onClick={() => go('seeker')}
               aria-label="Open Gaps lens"
-              className="mt-2 font-mono text-[10px] text-zinc-500 hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1 cursor-pointer"
+              className="mt-2 font-mono text-[10px] text-zinc-500 hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1 cursor-pointer text-left"
             >
               {gapElements.length} {gapElements.length === 1 ? 'gap' : 'gaps'} — open the Gaps lens &rarr;
             </button>
@@ -365,11 +365,13 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
           )}
           {nav && evidenceCount > 0 && (
             // Visible text is the accessible name (WCAG 2.5.3 label-in-name) —
-            // no aria-label override needed.
+            // no aria-label override needed. `text-left`: a <button> centres its
+            // text by default, so on a phone the wrapped second line ("lens →")
+            // floated to the middle of the panel (2026-09-10).
             <button
               type="button"
               onClick={() => go('librarian')}
-              className="mt-2.5 font-mono text-[10px] text-zinc-500 hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1 cursor-pointer"
+              className="mt-2.5 font-mono text-[10px] text-zinc-500 hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1 cursor-pointer text-left"
             >
               All {evidenceCount}, classified and filterable, in the Evidence lens &rarr;
             </button>

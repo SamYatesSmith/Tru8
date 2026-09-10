@@ -30,7 +30,10 @@ export function EvidenceMetaStrip({
 }: EvidenceMetaStripProps) {
   return (
     <div className="border border-zinc-200 bg-[var(--surface-raised)] p-4">
-      <div className="flex flex-wrap items-center justify-between gap-6">
+      {/* Phone: a 2-column grid, so four stats read as 2×2 rather than three in
+          a row with the fourth orphaned beneath (2026-09-10). md+: the one-row
+          strip with dividers, as before. */}
+      <div className="grid grid-cols-2 gap-4 md:flex md:flex-wrap md:items-center md:justify-between md:gap-6">
         <div className="flex flex-col gap-1">
           <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">
             Reference

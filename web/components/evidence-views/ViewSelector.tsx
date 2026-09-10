@@ -25,6 +25,16 @@ const LG_GRID_COLS: Record<number, string> = {
   5: 'lg:grid-cols-5',
   6: 'lg:grid-cols-6',
 };
+// Phone column count follows the visible count too (2026-09-10): a fixed 3-col
+// grid left the public record's 4 tabs as a row of three plus MAP alone in a
+// 4th cell with two-thirds of the control empty. 4 → 2×2; 5/6 → 3 per row.
+const SM_GRID_COLS: Record<number, string> = {
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-2',
+  5: 'grid-cols-3',
+  6: 'grid-cols-3',
+};
 
 const DETAIL_ONLY_TOOLTIPS: Record<string, string> = {
   seeker: 'Available when viewing a specific claim — click a claim card above to surface unknowns.',
@@ -64,7 +74,7 @@ export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: 
     // row. Active = filled (≥2 cues: fill + bold + white). Orange is the hover/
     // wayfinding accent; inactive stays clearly visible (never greyed-to-disabled).
     <div className="mb-6">
-      <div className={`grid grid-cols-3 ${LG_GRID_COLS[visibleTabs.length] || 'lg:grid-cols-6'} border border-zinc-300`}>
+      <div className={`grid ${SM_GRID_COLS[visibleTabs.length] || 'grid-cols-3'} ${LG_GRID_COLS[visibleTabs.length] || 'lg:grid-cols-6'} border border-zinc-300`}>
       {visibleTabs.map((tab) => {
         const isDisabled = mode === 'overview' && DETAIL_ONLY_TABS.includes(tab.value);
         const isActive = activeTab === tab.value && !isDisabled;

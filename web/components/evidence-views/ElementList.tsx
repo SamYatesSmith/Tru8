@@ -56,15 +56,20 @@ export function ElementList({ elements, topUp }: ElementListProps) {
             <div className="flex items-start gap-3">
               <ElementBadge n={i + 1} size="md" className={isGap ? 'opacity-60' : ''} />
               <div className="flex-grow min-w-0">
-                <div className="flex items-start justify-between gap-3">
+                {/* Phone (2026-09-10): the count + badge group is `shrink-0`, so
+                    beside a long description it squeezed the text into a third
+                    of the row. Below `sm` the row wraps: a long description takes
+                    the line and the meta drops beneath it, right-aligned; a short
+                    one keeps the meta beside it. From `sm` up: one row, as before. */}
+                <div className="flex flex-wrap sm:flex-nowrap items-start justify-between gap-x-3 gap-y-1.5">
                   <span
-                    className={`text-sm font-medium leading-snug ${
+                    className={`min-w-0 text-sm font-medium leading-snug ${
                       isGap ? 'text-zinc-400' : 'text-zinc-900'
                     }`}
                   >
                     {element.description}
                   </span>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 ml-auto">
                     <span
                       className={`font-mono text-[10px] ${isGap ? 'text-zinc-400' : 'text-zinc-500'}`}
                     >
@@ -80,11 +85,15 @@ export function ElementList({ elements, topUp }: ElementListProps) {
                   </div>
                 </div>
                 {!isGap && <EvidenceQualityNote basis={element.basis} />}
+                {/* Whole sentence, never clamped (2026-09-10). The 2026-09-02
+                    design clamped it to two lines with the full text in `title`,
+                    but a hover tooltip does not exist on a phone, so the note
+                    ended in "…" with no way to read the rest. Verbatim or
+                    nothing was the rule; a cut sentence is neither. */}
                 {caveat && (
                   <p
-                    title={caveat}
                     data-testid="element-caveat"
-                    className="mt-1.5 font-mono text-[10px] leading-relaxed text-zinc-500 line-clamp-2"
+                    className="mt-1.5 font-mono text-[10px] leading-relaxed text-zinc-500"
                   >
                     <span className="text-zinc-400 uppercase tracking-wider">Note</span>
                     <span className="text-zinc-300"> &middot; </span>

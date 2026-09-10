@@ -16,6 +16,13 @@
  *   --click "<selector>"      Click this first (e.g. text=Reject non-essential) — dismiss a banner.
  *   --rect "<css>"            Also print the bounding rect of this element (e.g. [role=dialog]).
  *   --full                    Screenshot the full page instead of the viewport.
+ *   --slices <dir>            Also write the whole page as viewport-height PNGs
+ *                             (slice-00.png, slice-01.png, …) into <dir>, and list
+ *                             every element that pokes past the viewport edge. A
+ *                             6000px full-page shot is unreadable when downscaled;
+ *                             slices are how a phone page actually gets reviewed
+ *                             (2026-09-10 mobile pass).
+ *   --open-details            Force every <details> open before measuring/shooting.
  *   --wait <ms>               Extra settle time after load (default 1500).
  *
  * Always printed: final URL, HTTP status, viewport, scrollY after load, horizontal
@@ -54,6 +61,7 @@ const select = opt('select');
 const focusSel = opt('focus');
 const clickSel = opt('click');
 const rectSel = opt('rect');
+const slicesDir = opt('slices');
 const settle = Number(opt('wait', '1500'));
 
 if (deviceName && !devices[deviceName]) {
@@ -86,6 +94,11 @@ if (clickSel) {
     .click({ timeout: 5000 })
     .catch((e) => consoleErrors.push(`click failed: ${String(e.message).slice(0, 160)}`));
   await page.waitForTimeout(400);
+}
+
+if (flag('open-details')) {
+  await page.evaluate(() => document.querySelectorAll('details').forEach((d) => { d.open = true; }));
+  await page.waitForTimeout(300);
 }
 
 const rect = (sel) =>
@@ -140,6 +153,45 @@ if (out) {
   await mkdir(dirname(path), { recursive: true });
   await page.screenshot({ path, fullPage: flag('full') });
   report.screenshot = path;
+}
+
+if (slicesDir) {
+  const dir = resolve(slicesDir);
+  await mkdir(dir, { recursive: true });
+  const { width, height } = page.viewportSize();
+  const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+  // Anything whose box crosses the viewport's left or right edge — the usual
+  // phone faults (a fixed-width table, an unwrapped token, a shrink-0 group).
+  report.overflowingElements = await page.evaluate(() => {
+    const vw = document.documentElement.clientWidth;
+    const hits = [];
+    for (const el of document.querySelectorAll('body *')) {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && (r.right > vw + 1 || r.left < -1)) {
+        hits.push({
+          tag: el.tagName.toLowerCase(),
+          class: String(el.className || '').slice(0, 80),
+          left: Math.round(r.left),
+          right: Math.round(r.right),
+          text: (el.textContent || '').trim().slice(0, 60),
+        });
+        if (hits.length >= 25) break;
+      }
+    }
+    return hits;
+  });
+  const slices = [];
+  for (let y = 0, i = 0; y < pageHeight && i < 60; y += height, i += 1) {
+    const path = resolve(dir, `slice-${String(i).padStart(2, '0')}.png`);
+    await page.screenshot({
+      path,
+      fullPage: true,
+      clip: { x: 0, y, width, height: Math.min(height, pageHeight - y) },
+    });
+    slices.push(path);
+  }
+  report.pageHeight = pageHeight;
+  report.slices = slices;
 }
 
 console.log(JSON.stringify(report, null, 2));
