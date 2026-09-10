@@ -89,6 +89,7 @@ Method per run: `tmp/astra-regrade.py --arm default` (Astra's 14 inputs, live re
 | 2026-09-09 first | 137 | 86.1% | 19 | — | ~5 (exactly/strictly) |
 | 2026-09-09 post-fix | 147 | 81.6% | 27 | 13 | **18** |
 | **2026-09-10 run 1** (`audit/review_sheets/2026-09-10-run1`) | 138 | **87.6%** | 17 | **4** | **0** |
+| **2026-09-10 run 2** (`audit/review_sheets/2026-09-10-run2`) | 107 | **86.0%** | 15 | 11 | **0** |
 
 ### Run 1 — the 17 rejections, by kind
 
@@ -100,4 +101,15 @@ Method per run: `tmp/astra-regrade.py --arm default` (Astra's 14 inputs, live re
 - **Arguable / question-shape: 4** — t06 uvahealth per-capita deaths as `challenges` to the causal element; t08 kgm-motors, mdpi, azom on the particulate and mineral-extraction questions.
 
 Reading: the kind this build targeted is gone on run 1; what remains is reviewer error (2), the claim's own absolutes (6), and passage-level mislabels (5) — the latter is the next measurable disease if runs 2–3 agree (rating-only passages; a passage that names the topic but not the finding).
+
+### Run 2 — the 15 rejections, by kind
+
+- **Unstated specificity: 0.** A scan of all 41 elements for the measured words (exactly / strictly / consistently / completely / quantified / verified / "under all" / "no other" / "what proportion" / "total … volume") finds none. EV questions comparative again; `grounds.specificity` detected 0 (the prompt did the work, the repair call was not needed on either run).
+- **The claim's own absolutes / causal wording: 5** — t07 ×3 ("directly prevents … SQLITE_BUSY" — sources showing SQLITE_BUSY under concurrent writers are fair challenges to "cannot occur"), t02 "everyone who is overweight", t14 "as of 7 September 2026" (a passage stating 3.75% with no date).
+- **Reviewer direction error: 2** — t07 reddit ("writers only conflict with writers" read as support), t13 BBC (a spike in Swedish excess deaths read as support for "no lockdown drove the outcome").
+- **Passage-level mislabels: 6** — t12 ×3 (a Venus temperature with no planetary comparison badged `supports` on reddit, PMC and astronoo — the "topic without the finding" shape; 1 on run 1, 3 here), t08 AFP rating-only fact-check window (**both runs**), t04 a pre-launch "set to launch on 18 December" article supporting "was launched", t03 alzdiscovery's 20 g/day protocol supporting 5 g.
+- **Decomposition shape, 1 element / 2 labels** — t03 *"Healthy adults take 5g of creatine daily"*: the intervention-as-behaviour shape the prompt rule names came out anyway on this draw (run 1 had "The intervention consists of taking 5g of creatine daily"). Prompt-only, no mechanical form; recorded, not actioned.
+- **Absence vocabulary, 1** — t03 brainhealth "evidence is inconclusive" mapped `challenges`; the absence-of-evidence gate (2026-09-09) did not recognise "inconclusive". A vocabulary gap in that gate, one label.
+
+**Seen on both runs, small, not this build's disease:** the causal element drops the claim's direction on one Sweden record per run (run 1 t06 "primary driver of its mortality outcome"; run 2 t13 "primary driver of its relative mortality outcomes") while the sibling record keeps "lower". Two reviewer misreads came from exactly that ambiguity.
 
