@@ -72,7 +72,7 @@ NF-11: a prompt rule is a first line of defence, never a guarantee. The detector
 
 1. ✅ **Corpus re-recorded** (~£1.45). What the recording showed about the change: every one of the ten decompositions read faithfully to its claim — no invented figures, qualifiers or absolutes; the prerequisite-element rule from 2026-09-09 is draw-dependent (018F: 2 elements yesterday, 3 today). Two first-pass pools collapsed on network, not code (0001: 30 connection timeouts; 82CF: fetch-deadline cancellations round a 15 MB filing) — both re-recorded singly; 82CF drifts cross-process as before and its 18 MB re-record was reverted.
 2. **Three measured runs** — see §7 below for each run as it lands. (`tmp/astra-regrade.py --arm default` + `backend/scripts/review_labels.py`, ~50p each): one run is noise (86.1 → 81.6 on identical inputs). Read the **kinds** of rejection before the rate. Target: the "unstated specificity" kind gone or near it; the rate above 95% would be the first time.
-3. Then **STOP pipeline work and go get strangers** (`audit/OUTREACH.md`).
+3. ~~Then STOP pipeline work and go get strangers.~~ **Struck 2026-09-10 — founder: "I want an 8/10 output BEFORE any sends go out."** The next build is what the three runs name.
 
 ## 6. Durable lessons
 
