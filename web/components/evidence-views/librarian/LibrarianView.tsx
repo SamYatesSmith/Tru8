@@ -258,7 +258,6 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
         onClearAll={handleClearAll}
         shownCount={filteredEvidence.length}
         totalCount={includedEvidence.length}
-        diagnostic={showDiagnosticToggle ? { active: diagnosticActive, onToggle: () => setDiagnosticActive((prev) => !prev) } : undefined}
       />
 
       {/* Element-focus context (Slice 0b) — arrived from a summary state-count
@@ -279,9 +278,9 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
         </div>
       )}
 
-      {/* The disposition "Showing…" panel and the standalone Diagnostic toggle
-          moved INTO FilterPills (2026-09-10): one status line for every axis,
-          one view switch on the bar. */}
+      {/* The disposition "Showing…" panel moved INTO FilterPills as its status
+          row (2026-09-10); the diagnostic switch moved into the ledger header —
+          it is a way of READING the ledger, not a filter. */}
 
       {/* Desktop reading table — between filters and ledger */}
       {activeEvidence && (
@@ -309,6 +308,7 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
         callNumberMap={callNumberMap}
         diagnosticValues={showDiagnosticToggle ? diagnostic.values : undefined}
         diagnosticActive={showDiagnosticToggle && diagnosticActive}
+        onToggleDiagnostic={showDiagnosticToggle ? () => setDiagnosticActive((prev) => !prev) : undefined}
         activeEvidenceId={readingTableEvId}
         onCardClick={handleCardClick}
         elementDescriptionMap={elementDescriptionMap}

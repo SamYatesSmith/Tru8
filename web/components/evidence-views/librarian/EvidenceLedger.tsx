@@ -59,6 +59,9 @@ interface EvidenceLedgerProps {
   callNumberMap: Map<string, string>;
   diagnosticValues?: Map<string, number>;
   diagnosticActive?: boolean;
+  /** Present when the check has diagnostic variance: renders the
+   *  "Highlight decisive sources" switch in the header beside Sort. */
+  onToggleDiagnostic?: () => void;
   activeEvidenceId: string | null;
   onCardClick?: (evidence: Evidence) => void;
   elementDescriptionMap: Map<string, string>;
@@ -78,6 +81,7 @@ export function EvidenceLedger({
   callNumberMap,
   diagnosticValues,
   diagnosticActive,
+  onToggleDiagnostic,
   activeEvidenceId,
   onCardClick,
   elementDescriptionMap,
@@ -98,10 +102,34 @@ export function EvidenceLedger({
     <div>
       <div className="font-mono text-sm font-bold uppercase tracking-[0.15em] lg:tracking-[0.3em] text-zinc-600 mb-6 border-b border-zinc-200 pb-2 flex flex-col gap-1 lg:flex-row lg:justify-between lg:items-center">
         <span>
-          <span className="hidden lg:inline">Evidence Ledger &middot; Showing {evidence.length} of {totalCount}</span>
-          <span className="lg:hidden">Ledger &middot; {evidence.length}/{totalCount}</span>
+          {/* Count only when nothing is filtered; when a filter is on, the
+              panel's SHOWING row directly above already says "3 of 13" and why
+              (2026-09-10 — the two counts read as a stutter). */}
+          <span className="hidden lg:inline">Evidence Ledger{evidence.length === totalCount && <> &middot; {totalCount} {totalCount === 1 ? 'source' : 'sources'}</>}</span>
+          <span className="lg:hidden">Ledger{evidence.length === totalCount && <> &middot; {totalCount}</>}</span>
         </span>
-        <SortControl value={sortField} onChange={onSortChange} />
+        <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          {/* Diagnostic highlight (ACH): a way of reading the ledger, so it sits
+              with Sort, not among the filters (moved 2026-09-10). Marks sources
+              that support one element while challenging another — the ones that
+              tell the claim's possibilities apart — and fades context-only ones.
+              Orange dot = wayfinding accent, never a stance. */}
+          {onToggleDiagnostic && (
+            <button
+              type="button"
+              aria-pressed={!!diagnosticActive}
+              onClick={onToggleDiagnostic}
+              title="Mark sources that support one element while challenging another, and fade context-only sources"
+              className={`inline-flex items-center gap-1.5 font-mono text-[10px] normal-case tracking-widest uppercase font-normal transition-colors cursor-pointer ${
+                diagnosticActive ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-900'
+              }`}
+            >
+              <span aria-hidden className={`w-2 h-2 rounded-full ${diagnosticActive ? 'bg-[var(--accent)]' : 'border border-zinc-300'}`} />
+              Highlight decisive sources
+            </button>
+          )}
+          <SortControl value={sortField} onChange={onSortChange} />
+        </span>
       </div>
 
       <div className="space-y-3 mb-12">
