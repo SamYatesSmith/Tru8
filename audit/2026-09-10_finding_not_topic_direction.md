@@ -67,3 +67,22 @@ Claim: *"Sweden's decision not to impose a general lockdown caused it to have **
 
 1. Three regrade + blind-review runs, same method as the morning (`tmp/astra-regrade.py --arm default`; flush `tru8:evidence_extract:*` first; `review_labels.py --reviewers gemini,gemini_flash`), ~52p each. Read the kinds first: expect the "topic without finding" count to fall from ~6/run and the Sweden misreads to go; the claim's-own-absolutes class (~5/run) will remain and is not ours.
 2. Corpus `--record` once after measurement (~£1.20), `scripts/restore_curated_goldens.py`, re-pin from observations, README header.
+
+## 7. Measurement
+
+| run | labels | justified (primary) | rejected | both reject | topic-without-finding | Sweden misreads | direction repair fired |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| before (3-run mean, specificity build) | 363 | 87.5% | 45 | — | 17 | 5 | — |
+| **b2 run 1** (`audit/review_sheets/2026-09-10-b2run1`) | 123 | **91.1%** | 11 | 6 | 4 | **0** | 0 (prompt held) |
+
+### b2 run 1 — the 11 rejections, by kind
+
+- **The claim's own wording: 5** — t07 ×3 ("directly causes SQLITE_BUSY errors not to occur"; passages about WAL locking that the reviewer wants to see name the mechanism), t14 ×2 (a 3.75% passage without "7 September 2026").
+- **Topic without the finding: 4** (was ~6 a run) — t02 a semaglutide meta-analysis for "the SELECT trial demonstrated"; t03 older-adults/dementia population for "healthy adults"; t03 a 20 g protocol for "5g daily"; t08 EPA tailpipe page for a particulate-matter question. Venus ×0 (was 1–3 a run), rating-only ×0 (was 1 a run), trial-design ×0 (was 2).
+- **Arguable: 2** — t08 techoble ("individual statistics, not a comprehensive lifecycle analysis" — the grounds question asked for *"what lifecycle analyses show regarding the total carbon footprint"*, a quantity-shaped head the detector's list does not cover: "What do … show regarding the total …"); t13 scienceinsights (Sweden 4.4% vs Norway 5.0% read as making "lower than every other country" MORE likely).
+- **Sweden direction: both causal elements kept "lower"** ("…caused it to have lower excess mortality in 2020-22"; "…was the cause of its having lower excess mortality…") — the prompt rule alone did it; `direction_restored` absent on every record (the repair call was not needed). **Zero misreads on those elements** (were 2–3 a run).
+
+### ⚠️ Watch on runs 2–3: Sweden causation now UNRESOLVED on both records
+
+Both causal elements carry **no evidence refs at all** this run, and the pool (12 sources per record) contains neither the Nature counterfactual paper nor the UVA report that disputed causation on every morning run. Two possible causes, not separable from one run: pool churn (62% between identical runs), or the reworded causal element changed its element-lane queries and stopped retrieving those studies. If it is unresolved on all three runs, the direction fix will have cost the record its causal challenge — a structure regression the label gain does not pay for — and the remedy is on the retrieval side (the element lane query), not the decomposition.
+
