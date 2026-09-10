@@ -491,6 +491,15 @@ class Settings(BaseSettings):
         True, env="ENABLE_UNSTATED_QUANTITY_REPAIR"
     )
 
+    # Direction fidelity (2026-09-10): a causal element that names the outcome
+    # without the claim's direction ("primary driver of its mortality outcome"
+    # for "caused LOWER mortality") is readable either way — five of seven
+    # blind-reviewer misreads that day sat on that shape. Detected mechanically
+    # (app/utils/direction_fidelity.py), rewritten 1->1 by one fail-safe call at
+    # decomposition. Design: audit/2026-09-10_finding_not_topic_direction.md.
+    # ROLLBACK: ENABLE_DIRECTION_REPAIR=False.
+    ENABLE_DIRECTION_REPAIR: bool = Field(True, env="ENABLE_DIRECTION_REPAIR")
+
     # 2026-08-25: recover headlines the search provider handed us pre-cut.
     # Serper truncates at ~54 chars (43% of results); the page's own og:title
     # normally fixes it, but a blocked fetch leaves the stub on screen looking

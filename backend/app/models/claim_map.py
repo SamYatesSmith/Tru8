@@ -80,6 +80,7 @@ class ClaimMapMetadata(TypedDict):
     # claim ("exactly 5g" for "5g daily") and lost the adverb at decompose
     # time. [{element_id, removed: [str], was: str}]. Absent when nothing fired.
     precision_stripped: NotRequired[list]
+    direction_restored: NotRequired[list]
 
 
 class ClaimMap(TypedDict):

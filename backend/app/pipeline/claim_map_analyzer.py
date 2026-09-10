@@ -51,6 +51,10 @@ from app.utils.jurisdiction_scope import (
 from app.utils.study_identity import study_identifier
 from app.utils.absence_of_evidence import absence_of_evidence_match
 from app.utils.invented_precision import strip_invented_precision
+from app.utils.direction_fidelity import (
+    keeps_direction,
+    lost_direction_indices,
+)
 from app.utils.date_scope import element_day, is_off_day, format_day
 from app.utils.recital_scope import element_asserts_attribution, recital_match
 from app.utils.temporal_scope import (
@@ -88,7 +92,10 @@ def _clean_uncertainty(value) -> Optional[str]:
 # tag: it decides WHERE the mapping SPECIFICITY CHECK rule applies (causal-link
 # elements only), it never judges the evidence itself.
 _CAUSAL_LINK_RE = re.compile(
-    r"\bcaus\w*|\bdriv(?:e|es|en|ing)\b|\bled to\b|\blead(?:s|ing)? to\b"
+    # "driver(s) of" (2026-09-10): "the primary driver of its mortality" is a
+    # causal element the verb forms never matched, so it carried no [CAUSAL
+    # LINK] tag at mapping and the direction-fidelity detector could not see it.
+    r"\bcaus\w*|\bdriv(?:e|es|en|ing)\b|\bdrivers? of\b|\bled to\b|\blead(?:s|ing)? to\b"
     r"|\bresult(?:s|ed|ing)? (?:in|from)\b|\bdue to\b|\bbecause\b"
     r"|\bcontribut\w+ (?:to|factor)|\btrigger\w*|\bresponsible for\b"
     r"|\battribut\w+ to\b",
@@ -251,8 +258,32 @@ causal link itself as one element, alongside the cause and the effect.
 state that comparison baseline explicitly in its description.
 - Do NOT create an element for a trivially true prerequisite that the claim's truth does not turn on: that a quantity is measurable, that a substance can be taken, that a body or trial exists, that a method is valid. Elements are the CONTESTABLE parts — population, endpoint, comparator, effect size, time window, mechanism (only where the claim asserts one), ranking, causation.
 - MATCH THE CLAIM'S OWN SPECIFICITY. An element must never be stricter or more specific than the claim: do not add figures, thresholds, dates, ranges, absolutes ("all", "every", "no other", "under all circumstances"), qualifiers ("exactly", "consistently", "completely", "quantified"), mechanisms, populations or behaviours the claim does not state. A comparative claim with no figure ("X is cleaner than Y") decomposes into comparative elements with no figure. An intervention ("taking 5g daily") is not a behaviour of a population ("adults consume 5g daily"). Evidence is judged against the element AS WRITTEN, so every word you add that the claim lacks is a test the claim never set.
+- KEEP THE CLAIM'S DIRECTION. When the claim asserts a cause and an outcome with a direction ("caused it to have LOWER mortality", "drove prices HIGHER"), the causal element must state the outcome WITH that direction, in the claim's own words. "X was the primary driver of Y's mortality outcome" loses the direction and can be read either way; "X was the primary driver of Y's LOWER mortality" cannot.
 - Do NOT include evidence_refs, state, or uncertainty — those come later.
 """
+# Direction fidelity (2026-09-10, audit/2026-09-10_finding_not_topic_direction.md):
+# a causal element that names the outcome without the claim's direction is
+# readable either way — five of seven blind-reviewer misreads that day sat on
+# exactly that shape. Detected mechanically (app/utils/direction_fidelity.py),
+# rewritten 1->1 by this one call, fail-safe. ROLLBACK: ENABLE_DIRECTION_REPAIR=False.
+DIRECTION_REPAIR_PROMPT = """\
+You are repairing elements of a claim decomposition that LOST the claim's direction.
+
+The claim asserts a cause and an outcome WITH a direction (lower / higher / more /
+fewer / rose / fell ...). Each numbered element below asserts the causal link but
+names the outcome WITHOUT that direction, so a source about the OPPOSITE outcome
+could be read as supporting it.
+
+Rewrite EACH element as ONE sentence that keeps its causal assertion and states the
+outcome WITH the claim's direction, using the claim's own word for the direction.
+Change nothing else: no new figures, qualifiers, populations or dates; do not weaken
+or strengthen the causal verb.
+
+Respond with JSON only, in the SAME ORDER as the input:
+{"repaired": ["<element>", ...]}
+The array length MUST equal the number of items given.
+"""
+
 
 MAPPING_PROMPT = """\
 You are an evidence mapping engine. You are given:
@@ -365,6 +396,16 @@ that addresses the number itself, not merely the surrounding subject. Evidence t
 discusses the subject without mentioning the figure should be mapped as "context" — \
 but only when it genuinely helps the reader interpret the element (per CONTEXT \
 DISCIPLINE above), otherwise omit.
+- FINDING, NOT TOPIC: An element asserts a FINDING — a comparison, a result, a date, \
+a population, a rating of a specific claim. A passage that names the element's subject \
+and supplies a RELATED fact is not that finding: a planet's temperature with no \
+comparison to the other planets does not support "hotter than every other planet"; a \
+trial's design and endpoints without its result does not support "the trial found X"; a \
+fact-check RATING with no statement of what was rated supports nothing; an article saying \
+a launch is SCHEDULED does not support "was launched"; a study in one population does not \
+support an element about a different one. Map such passages "context" (per CONTEXT \
+DISCIPLINE) or omit them. "supports" and "challenges" require the passage to state the \
+finding itself, in the element's direction or against it.
 """
 
 # §20 slice 3 (P4 fix): appended to MAPPING_PROMPT ONLY when the claim_map was
@@ -515,6 +556,7 @@ causal link itself as one element, alongside the cause and the effect.
 state that comparison baseline explicitly in its description.
 - Do NOT create an element for a trivially true prerequisite that the claim's truth does not turn on: that a quantity is measurable, that a substance can be taken, that a body or trial exists, that a method is valid. Elements are the CONTESTABLE parts — population, endpoint, comparator, effect size, time window, mechanism (only where the claim asserts one), ranking, causation.
 - MATCH THE CLAIM'S OWN SPECIFICITY. An element must never be stricter or more specific than the claim: do not add figures, thresholds, dates, ranges, absolutes ("all", "every", "no other", "under all circumstances"), qualifiers ("exactly", "consistently", "completely", "quantified"), mechanisms, populations or behaviours the claim does not state. A comparative claim with no figure ("X is cleaner than Y") decomposes into comparative elements with no figure. An intervention ("taking 5g daily") is not a behaviour of a population ("adults consume 5g daily"). Evidence is judged against the element AS WRITTEN, so every word you add that the claim lacks is a test the claim never set.
+- KEEP THE CLAIM'S DIRECTION. When the claim asserts a cause and an outcome with a direction ("caused it to have LOWER mortality", "drove prices HIGHER"), the causal element must state the outcome WITH that direction, in the claim's own words. "X was the primary driver of Y's mortality outcome" loses the direction and can be read either way; "X was the primary driver of Y's LOWER mortality" cannot.
 - Do NOT include evidence_refs, state, or uncertainty — those come later.
 """
 
@@ -635,6 +677,16 @@ that addresses the number itself, not merely the surrounding subject. Evidence t
 discusses the subject without mentioning the figure should be mapped as "context" — \
 but only when it genuinely helps the reader interpret the element (per CONTEXT \
 DISCIPLINE above), otherwise omit.
+- FINDING, NOT TOPIC: An element asserts a FINDING — a comparison, a result, a date, \
+a population, a rating of a specific claim. A passage that names the element's subject \
+and supplies a RELATED fact is not that finding: a planet's temperature with no \
+comparison to the other planets does not support "hotter than every other planet"; a \
+trial's design and endpoints without its result does not support "the trial found X"; a \
+fact-check RATING with no statement of what was rated supports nothing; an article saying \
+a launch is SCHEDULED does not support "was launched"; a study in one population does not \
+support an element about a different one. Map such passages "context" (per CONTEXT \
+DISCIPLINE) or omit them. "supports" and "challenges" require the passage to state the \
+finding itself, in the element's direction or against it.
 """
 
 
@@ -1638,11 +1690,13 @@ class ClaimMapAnalyzer:
 
         if parsed is not None:
             try:
-                return self._parse_decomposition_response(
+                cm = self._parse_decomposition_response(
                     parsed, claim_id, claim_text=claim_text
                 )
             except Exception as e:
                 logger.warning(f"Decomposition parse failed for claim {claim_id}: {e}")
+            else:
+                return await self._repair_lost_direction(cm, claim_text)
 
         # Fallback: single element with raw claim text
         logger.warning(f"Using fallback decomposition for claim {claim_id}")
@@ -1809,14 +1863,18 @@ class ClaimMapAnalyzer:
                 item = batch_by_idx.get(i)
                 if item is not None:
                     try:
-                        results[c["claim_id"]] = self._parse_decomposition_response(
+                        cm = self._parse_decomposition_response(
                             item, c["claim_id"], claim_text=c.get("text")
                         )
-                        continue
                     except Exception as e:
                         logger.warning(
                             f"Batch decomposition parse failed for claim {c['claim_id']}: {e}"
                         )
+                    else:
+                        results[c["claim_id"]] = await self._repair_lost_direction(
+                            cm, c.get("text") or ""
+                        )
+                        continue
                 failed_claims.append(c)
         else:
             logger.warning(
@@ -2252,6 +2310,70 @@ class ClaimMapAnalyzer:
         return json.loads(content), usage
 
     # ── Parse helpers ───────────────────────────────────────────────────
+
+    async def _repair_lost_direction(
+        self, claim_map: ClaimMap, claim_text: str
+    ) -> ClaimMap:
+        """Rewrite causal elements that lost the claim's outcome direction.
+
+        Mechanical detection (app/utils/direction_fidelity.py), ONE model call
+        for every flagged element of the claim, fail-safe throughout: any
+        exception, malformation or a rewrite that is not causal / still lacks
+        the direction / adds invented precision keeps the ORIGINAL text.
+        Restorations are recorded in metadata.direction_restored.
+        """
+        if not getattr(settings, "ENABLE_DIRECTION_REPAIR", False):
+            return claim_map
+        elements = claim_map.get("elements") or []
+        descs = [e.get("description") or "" for e in elements]
+        idx = lost_direction_indices(descs, claim_text)
+        if not idx:
+            return claim_map
+        numbered = "\n".join(f"{n + 1}. {descs[i]}" for n, i in enumerate(idx))
+        try:
+            parsed = await self._call_llm(
+                prompt=f"{DIRECTION_REPAIR_PROMPT}\n\nClaim: {claim_text}\n\nElements:\n{numbered}",
+                temperature=0.0,
+                max_tokens=800,
+                label="decomposition",
+            )
+        except Exception as e:
+            logger.warning(f"[DIRECTION] repair call failed, keeping originals: {e}")
+            return claim_map
+        rows = (parsed or {}).get("repaired") if isinstance(parsed, dict) else None
+        if not isinstance(rows, list) or len(rows) != len(idx):
+            logger.warning(
+                f"[DIRECTION] repair malformed (want {len(idx)}, got "
+                f"{len(rows) if isinstance(rows, list) else 'n/a'}), keeping originals"
+            )
+            return claim_map
+        restored: List[Dict[str, Any]] = []
+        for n, i in enumerate(idx):
+            candidate = rows[n]
+            if not isinstance(candidate, str):
+                continue
+            candidate = candidate.strip()
+            if not candidate or not _is_causal_link(candidate):
+                continue
+            if not keeps_direction(candidate, claim_text):
+                continue
+            stripped, removed = strip_invented_precision(candidate, claim_text)
+            if removed:
+                candidate = stripped
+            was = descs[i]
+            elements[i]["description"] = candidate
+            restored.append(
+                {
+                    "element_id": elements[i].get("element_id"),
+                    "was": was,
+                    "now": candidate,
+                }
+            )
+            logger.info(f"[DIRECTION] restored: {was[:70]} -> {candidate[:70]}")
+        if restored:
+            apply_scope_flags(elements)
+            claim_map.setdefault("metadata", {})["direction_restored"] = restored
+        return claim_map
 
     def _parse_decomposition_response(
         self, raw: Dict[str, Any], claim_id: str, claim_text: Optional[str] = None

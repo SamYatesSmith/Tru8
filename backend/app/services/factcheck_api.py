@@ -223,11 +223,19 @@ class FactCheckAPI:
         Returns:
             Evidence-compatible dictionary
         """
-        snippet = (
-            extracted_text
-            if extracted_text
-            else f"Fact-check rating: {fact_check.get('rating', 'Unknown')}"
-        )
+        # Without article text, the snippet must still carry the FINDING: the
+        # claim that was rated, not only the rating. A snippet reading only
+        # "Fact-check rating: False" was badged `supports` on two of three
+        # blind-reviewed runs (2026-09-10) — a reader cannot tell WHAT was
+        # false. Both the mapper and the blind reviewer see this text.
+        rating = fact_check.get("rating", "Unknown")
+        rated = (fact_check.get("claim_text") or "").strip()
+        if extracted_text:
+            snippet = extracted_text
+        elif rated:
+            snippet = f'Fact-check of the claim "{rated}" \u2014 rating: {rating}'
+        else:
+            snippet = f"Fact-check rating: {rating}"
 
         url = fact_check.get("url", "")
         ev_hash = hashlib.sha256((url + snippet).encode()).hexdigest()[:12]
