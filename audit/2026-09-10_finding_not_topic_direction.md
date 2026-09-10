@@ -74,6 +74,7 @@ Claim: *"Sweden's decision not to impose a general lockdown caused it to have **
 |---|---:|---:|---:|---:|---:|---:|---:|
 | before (3-run mean, specificity build) | 363 | 87.5% | 45 | — | 17 | 5 | — |
 | **b2 run 1** (`audit/review_sheets/2026-09-10-b2run1`) | 123 | **91.1%** | 11 | 6 | 4 | **0** | 0 (prompt held) |
+| **b2 run 2** (`audit/review_sheets/2026-09-10-b2run2`) | 122 | **88.5%** | 14 | 4 | 5 | **0** | 0 (prompt held) |
 
 ### b2 run 1 — the 11 rejections, by kind
 
@@ -85,4 +86,13 @@ Claim: *"Sweden's decision not to impose a general lockdown caused it to have **
 ### ⚠️ Watch on runs 2–3: Sweden causation now UNRESOLVED on both records
 
 Both causal elements carry **no evidence refs at all** this run, and the pool (12 sources per record) contains neither the Nature counterfactual paper nor the UVA report that disputed causation on every morning run. Two possible causes, not separable from one run: pool churn (62% between identical runs), or the reworded causal element changed its element-lane queries and stopped retrieving those studies. If it is unresolved on all three runs, the direction fix will have cost the record its causal challenge — a structure regression the label gain does not pay for — and the remedy is on the retrieval side (the element lane query), not the decomposition.
+
+### b2 run 2 — the 14 rejections, by kind
+
+- **The claim's own wording: 4** — t13 + t06 "every other European country" vs passages saying "lowest in the EU and Nordic countries" / "lowest in all of Europe according to some data sets"; t02 "everyone who is overweight"; t14 "expected to hold at 3.75% next week" for "is 3.75% as of 7 September".
+- **Topic without the finding: 5** — t09 ×2 (HN / GitHub threads about journal modes that never state the DEFAULT), t08 an assessment "undertaken" with no findings, t12 a Venus temperature with no comparison (back once, was 0 on run 1), t13 healthdata per-country figures for the "every other country" ranking.
+- **Reviewer error: 2** — t07 "WAL stops readers from blocking the writer" read as the *inverse* of "readers never block writers" (it is the same statement).
+- **⚠️ Unstated specificity, back in a NEW grammatical head: 3** — the EV grounds question *"How does the **proportion** of renewable energy versus fossil fuels used to charge electric cars compare across different regions?"* demands proportions the claim never stated; three region-specific passages were then graded "neither". The morning's detector covers `what proportion` but not `how does the proportion … compare`, and the prompt rule did not hold on this draw. Same family as b2 run 1's *"what do lifecycle analyses show regarding the **total** carbon footprint"*. **Widen the detector to these two heads after run 3** (measure the build as built; change the instrument between series, not inside one).
+- **Sweden direction:** both causal elements kept "lower" again (repair never fired). **t06 causation now DISPUTED** with the counterfactual sources back in the pool — run 1's UNRESOLVED was pool churn, as the query-plan comparison suggested; **watch item cleared**. t13 unresolved this draw (its causal element drew no directional refs on the same cached pool — mapper variance).
+- **Thin records, network again:** t03 creatine retrieved ZERO web sources (`provider_status.web_search = timeout`, PubMed/WHO/Wikipedia/Semantic Scholar all 0 results in the same window — connectivity, recorded honestly by provider status); t01 and t02 five sources each. Costs the run ~10 labels it would otherwise have had; changes no kind.
 
