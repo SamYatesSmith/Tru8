@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-5647-FA4F",
-  "captured_at": "2026-09-10T10:35:41.929581+00:00",
-  "captured_with": "71267aa",
+  "captured_at": "2026-09-10T15:27:04.691010+00:00",
+  "captured_with": "cc6fbd9",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py.",
   "hard_invariants": {
     "freshness_inject_must_fire_on_claims": [
       0,
@@ -31,7 +31,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 21,
+      "value": 30,
       "tolerance": 8
     },
     "claims": {
@@ -39,11 +39,11 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 2,
+      "value": 3,
       "tolerance": 3
     },
     "web_search": {
-      "value": 32,
+      "value": 33,
       "tolerance": 8
     },
     "api_adapters": {
@@ -51,15 +51,15 @@
       "tolerance": 8
     },
     "tier_commentary": {
-      "value": 4,
+      "value": 1,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 7,
+      "value": 3,
       "tolerance": 4
     },
     "tier_primary": {
-      "value": 10,
+      "value": 1,
       "tolerance": 5
     }
   },
@@ -67,33 +67,31 @@
     "url_ledger_flat": {
       "golden": [
         "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
-        "https://eciu.net/analysis/briefings/climate-impacts/flood-risk-and-the-uk",
-        "https://londonlovesbusiness.com/climate-change-could-cost-london-up-to-36-billion-a-year-by-the-2050s/",
-        "https://obr.uk/box/estimating-the-direct-fiscal-costs-of-flooding/",
+        "https://core.verisk.com/Insights/Emerging-Issues/Articles/2022/August/week3/Impact-of-UK-Heatwaves-on-Infrastructure-and",
+        "https://onebillionresilient.org/hot-cities-chilled-economies-london/",
         "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
-        "https://pmc.ncbi.nlm.nih.gov/articles/PMC9918685/",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC11334115/",
+        "https://policy.friendsoftheearth.uk/insight/which-neighbourhoods-are-most-vulnerable-heatwaves",
+        "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7708",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
-        "https://transportandenergy.com/2026/08/26/climate-change-could-cost-london-36bn-a-year-by-2050/",
-        "https://weather.metoffice.gov.uk/warnings-and-advice/seasonal-advice/health-wellbeing/hot-weather-and-its-impacts",
         "https://www.bbc.com/news/articles/c8xnwz7kl2vo",
         "https://www.bbc.com/news/articles/c982l60v0z7o",
         "https://www.carbonbrief.org/guest-post-a-met-office-review-of-the-uks-record-breaking-summer-in-2022",
-        "https://www.climatecentral.org/climate-services/billion-dollar-disasters/state-summary/united-states",
-        "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
-        "https://www.floods.org/news-views/research-and-reports/estimated-damage-for-hurricane-ian-between-41-billion-and-70-bill",
-        "https://www.gov.uk/flood-and-coastal-erosion-risk-management-research-reports/evidence-on-the-costs-of-floods-in-england",
+        "https://www.cnn.com/2022/07/26/uk/london-fire-dagenham-heat-wave-climate-gbr-cmd-intl/",
         "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
         "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
-        "https://www.jec.senate.gov/public/index.cfm/democrats/2024/6/flooding-costs-the-u-s-between-179-8-and-496-0-billion-each",
         "https://www.london.gov.uk/climate-change-could-cost-london-36-billion",
+        "https://www.london.gov.uk/media-centre/mayors-press-releases/mayor-reveals-economic-impact-julys-heatwave",
+        "https://www.london.gov.uk/media/113877/download",
+        "https://www.london.gov.uk/programmes-strategies/environment-and-climate-change/climate-change/climate-adaptation/heat-ri",
+        "https://www.lse.ac.uk/granthaminstitute/news/june-heatwave-cost-uk-economy-more-than-1-billion-study-finds/",
+        "https://www.lse.ac.uk/granthaminstitute/publication/the-2022-heatwaves-englands-response-and-future-preparedness-for-hea",
         "https://www.lse.ac.uk/granthaminstitute/publication/turning-up-the-heat/",
         "https://www.metoffice.gov.uk/about-us/news-and-media/media-centre/weather-and-climate-news/2022/july-heat-review",
         "https://www.metoffice.gov.uk/blog/2025/impact-of-extreme-heat-events-on-industries",
-        "https://www.munichre.com/en/risks/natural-disasters/thunderstorms-hail-tornados.html",
-        "https://www.ncei.noaa.gov/access/monitoring/dyk/billions-calculations",
         "https://www.publicsectorexecutive.com/articles/report-warns-extreme-heat-could-cost-london-ps36bn-year-2050s",
         "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/what-is-a-heatwave",
-        "https://www.sciencedirect.com/science/article/pii/S2212096321000462",
+        "https://www.theguardian.com/business/2026/aug/12/heatwaves-uk-cost-economy-lost-output-thinktank",
         "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
       ],
       "min_similarity": 0.35
@@ -102,21 +100,18 @@
       "golden": [
         "bbc.com",
         "carbonbrief.org",
-        "cnbc.com",
+        "cnn.com",
         "community.netweather.tv",
+        "core.verisk.com",
         "gov.uk",
         "internetgeography.net",
         "london.gov.uk",
-        "londonlovesbusiness.com",
-        "lse.ac.uk",
         "metoffice.gov.uk",
         "ncei.noaa.gov",
         "open-meteo.com",
-        "publicsectorexecutive.com",
         "redcross.org.uk",
         "rmets.onlinelibrary.wiley.com",
-        "transportandenergy.com",
-        "weather.metoffice.gov.uk",
+        "theguardian.com",
         "worldweatherattribution.org"
       ],
       "min_similarity": 0.45

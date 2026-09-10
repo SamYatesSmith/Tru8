@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-93DD-F4B7",
-  "captured_at": "2026-09-10T10:36:04.785677+00:00",
-  "captured_with": "71267aa",
+  "captured_at": "2026-09-10T15:27:42.114724+00:00",
+  "captured_with": "cc6fbd9",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py.",
   "hard_invariants": {
     "freshness_inject_must_fire_on_claims": [
       0
@@ -30,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 15,
+      "value": 10,
       "tolerance": 8
     },
     "claims": {
@@ -38,11 +38,11 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 2,
+      "value": 3,
       "tolerance": 3
     },
     "web_search": {
-      "value": 23,
+      "value": 33,
       "tolerance": 8
     },
     "api_adapters": {
@@ -50,7 +50,7 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 4,
+      "value": 3,
       "tolerance": 4
     }
   },
@@ -60,42 +60,48 @@
         "https://doi.org/10.1017/9781009157896.004",
         "https://doi.org/10.3390/s21041454",
         "https://doi.org/10.5194/essd-14-325-2022",
+        "https://everythingedinburgh.com/best-time-to-visit-edinburgh/",
         "https://news.sky.com/story/uk-weather-lowest-temperature-recorded-since-2010-as-highlands-hit-20c-12214769",
-        "https://off.net.mk/links/94350",
         "https://open-meteo.com/en/docs#latitude=55.95&longitude=-3.19",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/joc.7787",
-        "https://weatherblaze.com/weather-history/united-kingdom/scotland/penicuik/february/",
-        "https://weatherspark.com/h/m/147761/2021/2/Historical-Weather-in-February-2021-at-Edinburgh-Airport-United-Kingdom",
+        "https://theconversation.com/climate-change-is-making-extreme-cold-much-less-likely-despite-the-uk-plummeting-to-23-c-155",
+        "https://weather.com/storms/winter/news/2021-02-19-record-cold-snow-winter-storms-stretch-recap",
+        "https://weather.metoffice.gov.uk/learn-about/past-uk-weather-events",
+        "https://weatherblaze.com/weather-history/united-kingdom/scotland/edinburgh/february/",
         "https://weatherspark.com/h/m/38026/2021/2/Historical-Weather-in-February-2021-in-Edinburgh-United-Kingdom",
         "https://weatherspark.com/y/38026/Average-Weather-in-Edinburgh-United-Kingdom-Year-Round",
-        "https://www.climatexchange.org.uk/publications/scotclimate-a-tool-for-understanding-future-extreme-weather-in-scotland/",
+        "https://www.bbc.co.uk/news/articles/ckg9gxlg7x4o",
+        "https://www.bbc.co.uk/news/uk-scotland-63930618",
+        "https://www.bbc.com/news/uk-scotland-highlands-islands-56022387",
+        "https://www.cnn.com/2021/03/08/weather/february-2021-cold-temperature-record",
+        "https://www.drought.gov/data-maps-tools/ncei-past-weather-tool",
         "https://www.extremeweatherwatch.com/cities/edinburgh/year-2021",
-        "https://www.heraldscotland.com/news/19076411.storm-darcy-temperatures-plunge-minus-16-coldest-night-year/",
-        "https://www.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/weather/learn-about/uk-past-events/interesting/2",
+        "https://www.met.reading.ac.uk/~brugge/diary2021.html",
         "https://www.metoffice.gov.uk/research/climate/maps-and-data/historic-station-data",
-        "https://www.rmets.org/sites/default/files/2025-04/january_2025_-_observer_notes.pdf",
-        "https://www.scottish-places.info/towns/townclimate337.html",
-        "https://www.the-sun.com/news/2353736/uk-weather-britain-arctic-blitz-temperatures-drop/",
+        "https://www.metoffice.gov.uk/research/climate/maps-and-data/summaries",
+        "https://www.metoffice.gov.uk/research/climate/maps-and-data/uk-climate-extremes",
+        "https://www.scottishdailyexpress.co.uk/news/scottish-news/scotlands-weather-round-up-2021-25692426",
         "https://www.theguardian.com/uk-news/2021/feb/11/uk-temperature-falls-lowest-level-decade-extreme-freeze",
+        "https://www.thetimes.com/uk/environment/article/coldest-night-of-the-year-recorded-at-16c-b0lw03k8p",
+        "https://www.theweathernetwork.com/en/city/gb/eastern-scotland/edinburgh/14-days",
+        "https://www.theweatheroutlook.com/twocommunity/Posts/t21894-Current-Conditions---Saturday-13th-February-2021/page2",
         "https://www.timeanddate.com/weather/uk/edinburgh/historic",
-        "https://www.trevorharley.com/2021.html"
+        "https://www.weather.gov/fsd/recordcold-feb2021",
+        "https://www.wunderground.com/history/daily/gb/edinburgh"
       ],
-      "min_similarity": 0.35
+      "min_similarity": 0.4
     },
     "domain_set": {
       "golden": [
+        "bbc.com",
         "extremeweatherwatch.com",
-        "heraldscotland.com",
-        "metoffice.gov.uk",
-        "ncei.noaa.gov",
-        "news.sky.com",
-        "open-meteo.com",
         "rmets.onlinelibrary.wiley.com",
-        "the-sun.com",
+        "theconversation.com",
         "theguardian.com",
+        "weatherblaze.com",
         "weatherspark.com"
       ],
-      "min_similarity": 0.3
+      "min_similarity": 0.2
     }
   }
 }

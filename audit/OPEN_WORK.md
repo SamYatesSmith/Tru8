@@ -24,7 +24,7 @@
 
 **Durable rules from today (also in memory):** a hover `title` is not a fallback on a phone · review a phone page from viewport slices, never a downscaled full-page PNG · when a layout is rejected twice, stop refining and adopt an idiom the founder already reads well on the page · a local `/r/` render against the prod API can serve a stale `.next` fetch cache (curl the API before calling anything an API fault).
 
-**Bench (canonical: `backend/tests/replay_corpus/README.md` header):** `170 ok / 5 warn / 8 fail / 3 unexercised` + 82CF drift (2026-09-10 re-record, `935af76`); two first-pass pools collapsed on network and were re-recorded singly — read a cassette's `_exception` entries before blaming code. Web: 202/202, typecheck clean at sign-off.
+**Bench (canonical: `backend/tests/replay_corpus/README.md` header):** `170 ok / 5 warn / 8 fail / 5 unexercised` + 82CF drift (2026-09-10 afternoon re-record after build 2; 9/10 zero misses; 018F re-recorded singly after a second network collapse); two first-pass pools collapsed on network and were re-recorded singly — read a cassette's `_exception` entries before blaming code. Web: 202/202, typecheck clean at sign-off.
 
 ---
 ## Previous START HERE — Wednesday 2026-09-10 (written 2026-09-09 evening)

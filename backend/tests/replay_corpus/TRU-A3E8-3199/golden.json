@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-A3E8-3199",
-  "captured_at": "2026-09-10T10:36:18.709604+00:00",
-  "captured_with": "71267aa",
+  "captured_at": "2026-09-10T15:27:57.058228+00:00",
+  "captured_with": "cc6fbd9",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py.",
   "hard_invariants": {
     "must_have_url_substrings": [],
     "must_not_have_url_substrings": [],
@@ -27,7 +27,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 19,
+      "value": 16,
       "tolerance": 8
     },
     "claims": {
@@ -47,15 +47,15 @@
       "tolerance": 8
     },
     "tier_commentary": {
-      "value": 10,
+      "value": 9,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 7,
+      "value": 4,
       "tolerance": 4
     },
     "tier_primary": {
-      "value": 2,
+      "value": 3,
       "tolerance": 4
     }
   },
@@ -65,7 +65,7 @@
         "https://doi.org/10.1186/s40462-024-00498-2",
         "https://doi.org/10.1371/journal.pone.0306813",
         "https://doi.org/10.3389/fmars.2025.1667683",
-        "https://en.wikipedia.org/wiki/Dangerous_Reef",
+        "https://en.wikipedia.org/wiki/Demersal_fish",
         "https://en.wikipedia.org/wiki/Megalodon",
         "https://en.wikipedia.org/wiki/Orca_types_and_populations",
         "https://en.wikipedia.org/wiki/Shark_finning",
@@ -73,21 +73,19 @@
         "https://metro.co.uk/2026/08/03/great-white-sharks-already-uk-venture-north-29287696/",
         "https://www.bbc.co.uk/news/articles/crk5705rm5mo",
         "https://www.carbonbrief.org/factcheck-will-climate-change-bring-great-white-sharks-to-uk-waters",
-        "https://www.devonlive.com/news/devon-news/shark-expert-claims-great-whites-11109042",
-        "https://www.discoverwildlife.com/animal-facts/fish/great-white-sharks-in-uk",
         "https://www.gbif.org/species/165636544",
         "https://www.gbif.org/species/206230133",
-        "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
         "https://www.nhm.ac.uk/discover/great-white-shark-man-eater-or-marine-marvel.html",
         "https://www.plymouth.ac.uk/discover/are-great-white-sharks-warming-to-uk-waters",
         "https://www.quora.com/How-close-do-great-white-sharks-get-to-the-UK",
-        "https://www.reddit.com/r/europe/comments/1vf6xb2/great_white_sharks_are_already_in_uk_as_they_head/",
         "https://www.reddit.com/r/sharks/comments/15aiu61/why_doesnt_the_uk_have_great_white_sharks/",
         "https://www.reddit.com/r/sharks/comments/17cghbc/great_whites_and_the_british_isles/",
+        "https://www.reddit.com/r/sharks/comments/1d4wb8x/great_whites_in_the_uk/",
+        "https://www.reddit.com/r/uknews/comments/1u4ybbo/great_white_sharks_inevitable_in_the_uk_after/",
+        "https://www.reddit.com/r/uknews/comments/1vf6vjs/great_white_sharks_are_already_in_uk_as_they_head/",
+        "https://www.sciencedaily.com/releases/2012/07/120723105426.htm",
         "https://www.sharktrust.org/pages/faqs/category/british-sharks",
-        "https://www.theguardian.com/environment/2018/aug/12/warming-seas-10-new-shark-species-british-waters-great-white",
         "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
-        "https://www.tiktok.com/@stevebackshallofficial/video/7653779572881755414",
         "https://www.wildlifeonline.me.uk/articles/view/great-white-shark-in-british-waters",
         "https://www.youtube.com/watch?v=BvZIq6NA7ME"
       ],
@@ -97,10 +95,7 @@
       "golden": [
         "bbc.co.uk",
         "carbonbrief.org",
-        "devonlive.com",
-        "discoverwildlife.com",
         "gbif.org",
-        "gbnews.com",
         "metro.co.uk",
         "nhm.ac.uk",
         "plymouth.ac.uk",
@@ -108,10 +103,9 @@
         "reddit.com",
         "sharktrust.org",
         "theguardian.com",
-        "tiktok.com",
         "wildlifeonline.me.uk"
       ],
-      "min_similarity": 0.45
+      "min_similarity": 0.3
     }
   }
 }

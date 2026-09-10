@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-C1A0-0003",
-  "captured_at": "2026-09-10T10:37:12.604689+00:00",
-  "captured_with": "71267aa",
+  "captured_at": "2026-09-10T15:28:50.547774+00:00",
+  "captured_with": "cc6fbd9",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py.",
   "hard_invariants": {
     "freshness_inject_must_fire_on_claims": [
       0
@@ -30,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 21,
+      "value": 20,
       "tolerance": 8
     },
     "claims": {
@@ -42,7 +42,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 36,
+      "value": 38,
       "tolerance": 8
     },
     "api_adapters": {
@@ -54,17 +54,19 @@
       "tolerance": 4
     },
     "tier_primary": {
-      "value": 20,
+      "value": 18,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 1,
+      "value": 2,
       "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
+        "https://clinicaltrials.gov/study/NCT04368728",
+        "https://clinician.nejm.org/pfizer-covid-19-mrna-vaccines-real-world-performance-nejm-jw.NA53283",
         "https://doi.org/10.1038/s41577-021-00592-1",
         "https://doi.org/10.1056/nejmoa2107659",
         "https://doi.org/10.1056/nejmoa2119451",
@@ -73,45 +75,47 @@
         "https://en.wikipedia.org/wiki/Oxford%E2%80%93AstraZeneca_COVID-19_vaccine",
         "https://en.wikipedia.org/wiki/Pfizer%E2%80%93BioNTech_COVID-19_vaccine",
         "https://en.wikipedia.org/wiki/Sputnik_V_COVID-19_vaccine",
-        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8461570/",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC7906690/",
         "https://pubmed.ncbi.nlm.nih.gov/34942066/",
         "https://pubmed.ncbi.nlm.nih.gov/35767475/",
         "https://scienceblog.cincinnatichildrens.org/cincinnati-childrens-frenck-lead-author-of-covid-19-vaccine-study-in-nejm/",
         "https://www.cdc.gov/acip/grade/covid-19-pfizer-biontech-vaccine.html",
-        "https://www.nejm.org/doi/abs/10.1056/NEJMoa2110345",
-        "https://www.nejm.org/doi/full/10.1056/NEJMc2036242",
+        "https://www.cdc.gov/mmwr/volumes/70/wr/mm7020e2.htm",
+        "https://www.cidrap.umn.edu/covid-19/peer-reviewed-data-show-high-protection-leading-covid-vaccines",
         "https://www.nejm.org/doi/full/10.1056/NEJMc2104974",
-        "https://www.nejm.org/doi/full/10.1056/NEJMc2118775",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
-        "https://www.nejm.org/doi/full/10.1056/NEJMoa2101765",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2106599",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2107058",
-        "https://www.nejm.org/doi/full/10.1056/NEJMoa2107456",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2108891",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2110345",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2114114",
-        "https://www.nejm.org/doi/full/10.1056/NEJMoa2115463",
-        "https://www.nejm.org/doi/full/10.1056/NEJMoa2115624",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2116063",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2117128",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2117995",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2119451",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2200674",
-        "https://www.nejm.org/doi/full/10.1056/NEJMoa2203965",
         "https://www.nejm.org/doi/full/10.1056/NEJMoa2510226",
         "https://www.ovid.com/journals/nejm/pdf/10.1056/nejmoa2110345~safety-and-efficacy-of-the-bnt162b2-mrna-covid-19-vaccine",
         "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-announce-publication-results-landmark",
         "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-conclude-phase-3-study-covid-19-vacci",
-        "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-confirm-high-efficacy-and-no-serious"
+        "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-confirm-high-efficacy-and-no-serious",
+        "https://www.pfizer.com/science/coronavirus/updates",
+        "https://www.upstate.edu/news/articles/2021/2021-05-27-thomas.php"
       ],
       "min_similarity": 0.4
     },
     "domain_set": {
       "golden": [
         "cdc.gov",
+        "clinician.nejm.org",
         "factcheck.org",
         "nejm.org",
         "ovid.com",
         "pfizer.com",
-        "pmc.ncbi.nlm.nih.gov"
+        "pmc.ncbi.nlm.nih.gov",
+        "upstate.edu"
       ],
-      "min_similarity": 0.2
+      "min_similarity": 0.3
     }
   }
 }

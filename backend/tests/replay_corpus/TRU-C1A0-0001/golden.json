@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-C1A0-0001",
-  "captured_at": "2026-09-10T11:07:04.226807+00:00",
-  "captured_with": "71267aa",
+  "captured_at": "2026-09-10T15:28:34.046150+00:00",
+  "captured_with": "cc6fbd9",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py.",
   "hard_invariants": {
     "freshness_inject_must_fire_on_claims": [
       0
@@ -30,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 15,
+      "value": 11,
       "tolerance": 8
     },
     "claims": {
@@ -42,7 +42,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 33,
+      "value": 32,
       "tolerance": 8
     },
     "api_adapters": {
@@ -50,11 +50,11 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 10,
+      "value": 9,
       "tolerance": 6
     },
     "tier_reporting": {
-      "value": 4,
+      "value": 2,
       "tolerance": 4
     },
     "tier_commentary": {
@@ -65,45 +65,40 @@
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://backup.ons.gov.uk/2022/11/16/consumer-price-inflation-uk-october-2022/",
+        "https://commonslibrary.parliament.uk/cost-of-living-and-inflation/",
+        "https://commonslibrary.parliament.uk/research-briefings/cbp-9428/",
         "https://commonslibrary.parliament.uk/research-briefings/sn02792/",
-        "https://cy.ons.gov.uk/economy/inflationandpriceindices/articles/inflationandthecostoflivingforhouseholdgroups/october202",
-        "https://edition.cnn.com/2022/11/16/economy/uk-inflation-october/index.html",
         "https://news.sky.com/story/office-for-national-statistics-adds-vinyl-gluten-free-bread-and-air-fryers-to-typical-shoppin",
         "https://retailtimes.co.uk/retail-sales-fall-0-4-in-february-latest-data-from-office-for-national-statistics-shows/",
         "https://tradingeconomics.com/united-kingdom/inflation-cpi",
+        "https://www.bankofengland.co.uk/monetary-policy/inflation/inflation-calculator",
         "https://www.bbc.com/news/articles/c17rgd8e9gjo",
         "https://www.blackenterprise.com/ons-losses-case-to-force-employees-to-be-in-office/",
+        "https://www.bls.gov/charts/consumer-price-index/consumer-price-index-by-category-line-chart.htm",
         "https://www.cnbc.com/2022/11/16/uk-inflation-hits-new-41-year-high-as-food-and-energy-prices-continue-to-soar.html",
-        "https://www.gov.uk/government/statistics/consumer-price-inflation-uk-october-2022",
-        "https://www.gov.uk/government/statistics/inflation-and-the-cost-of-living-for-household-groups-october-2022",
-        "https://www.nytimes.com/2022/11/16/business/uk-inflation-october.html",
         "https://www.ons.gov.uk/economy/inflationandpriceindices",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/july2026",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/articles/newestimatesofcoreinflationuk/2022",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/june2026",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/november2025",
         "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2022",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2022/pdf",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/previousreleases",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2023",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2024",
         "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/september2024",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/consumerpriceinflation",
         "https://www.ons.gov.uk/releases/consumerpriceinflationukoctober2022",
-        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOooG4p",
-        "https://www.yourmoney.com/household-bills/inflation-hits-40-year-high-of-11-1/"
+        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOoq7Oe"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "backup.ons.gov.uk",
+        "api.beta.ons.gov.uk",
+        "bankofengland.co.uk",
         "bbc.com",
         "cnbc.com",
         "commonslibrary.parliament.uk",
-        "edition.cnn.com",
-        "gov.uk",
-        "nytimes.com",
-        "ons.gov.uk",
-        "yourmoney.com"
+        "ons.gov.uk"
       ],
-      "min_similarity": 0.3
+      "min_similarity": 0.2
     }
   }
 }

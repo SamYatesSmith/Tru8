@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-C1A0-0004",
-  "captured_at": "2026-09-10T10:37:32.340128+00:00",
-  "captured_with": "71267aa",
+  "captured_at": "2026-09-10T15:29:11.663934+00:00",
+  "captured_with": "cc6fbd9",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py.",
   "hard_invariants": {
     "classifier_inject": {
       "primary": "Politics",
@@ -38,7 +38,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 19,
+      "value": 16,
       "tolerance": 8
     },
     "claims": {
@@ -50,7 +50,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 35,
+      "value": 23,
       "tolerance": 8
     },
     "api_adapters": {
@@ -58,11 +58,11 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 7,
+      "value": 6,
       "tolerance": 4
     },
     "tier_commentary": {
-      "value": 9,
+      "value": 7,
       "tolerance": 4
     },
     "tier_reporting": {
@@ -73,61 +73,50 @@
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://budget.utah.gov/inflation-reduction-whats-your-function/",
-        "https://eelp.law.harvard.edu/ira-implications-for-climate-ej-priorities/",
-        "https://en.wikipedia.org/wiki/Inflation_Reduction_Act",
+        "https://climatepower.us/bidens-climate-action/",
+        "https://grist.org/energy/trump-inflation-reduction-act-big-beautiful-bil/",
         "https://investmentpolicy.unctad.org/investment-policy-monitor/measures/4004/-369-billion-in-investment-incentives-to-add",
-        "https://iratracker.org/actions/",
-        "https://nationalhealthcouncil.org/blog/inflation-reduction-act-signed-by-president-biden/",
-        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10276136/",
-        "https://taxpolicycenter.org/briefing-book/what-did-2022-inflation-reduction-act-do",
-        "https://www.americanprogress.org/topic/inflation-reduction-act/",
-        "https://www.bluegreenalliance.org/site/a-user-guide-to-the-inflation-reduction-act/",
-        "https://www.c-span.org/clip/white-house-event/president-biden-signs-inflation-reduction-act/5027957",
-        "https://www.catf.us/2022/08/inflation-reduction-act-what-it-is-what-it-means-how-it-came-to-pass/",
-        "https://www.cbpp.org/blog/four-years-after-the-inflation-reduction-act-celebrating-clean-energy-progress-and-looking",
+        "https://journals.stecab.com/jece/article/download/1038/458",
+        "https://law.stanford.edu/wp-content/uploads/2026/01/Weil-Climate-Nationalism.pdf",
+        "https://policymattersohio.org/research/federal-investments-in-climate-clean-energy-infrastructure-in-ohio/",
+        "https://www.c-span.org/program/white-house-event/president-biden-signs-inflation-reduction-act/615969",
         "https://www.climatecentral.org/climate-matters/inflation-reduction-act",
-        "https://www.congress.gov/bill/117th-congress/house-bill/5376/text",
         "https://www.congress.gov/crs-product/R47262",
+        "https://www.congress.gov/crs-product/R48944",
         "https://www.democrats.senate.gov/inflation-reduction-act-one-page-summary",
         "https://www.ebsco.com/research-starters/political-science/inflation-reduction-act-2022",
+        "https://www.eesi.org/articles/view/how-the-inflation-reduction-act-and-bipartisan-infrastructure-law-work-together-to-ad",
         "https://www.energy.gov/edf/inflation-reduction-act-2022",
-        "https://www.epa.gov/green-power-markets/summary-inflation-reduction-act-provisions-related-renewable-energy",
-        "https://www.michiganlcv.org/the-inflation-reduction-act-of-2022/",
-        "https://www.naco.org/news/inflation-reduction-act-signed-law",
-        "https://www.novoco.com/news/biden-signs-inflation-reduction-act-law-including-renewable-energy-provisions",
+        "https://www.fp4america.org/scorecard/ted-deutch/117",
+        "https://www.governing.com/now/what-does-the-inflation-reduction-act-do-for-state-and-local-government",
+        "https://www.healthinsurance.org/glossary/inflation-reduction-act/",
+        "https://www.iea.org/policies/16156-inflation-reduction-act-of-2022",
+        "https://www.irs.gov/inflation-reduction-act-of-2022",
         "https://www.nytimes.com/2022/08/16/business/biden-climate-tax-inflation-reduction.html",
-        "https://www.pbs.org/newshour/politics/watch-live-biden-signs-inflation-reduction-act-affecting-health-climate-and-the-ec",
-        "https://www.presidency.ucsb.edu/documents/the-numbers-the-inflation-reduction-act",
+        "https://www.presidency.ucsb.edu/documents/what-they-are-saying-biden-harris-administration-celebrates-two-years-the-infl",
         "https://www.proskauertaxtalks.com/2022/08/president-biden-signs-inflation-reduction-act-into-law/",
-        "https://www.rd.usda.gov/inflation-reduction-act",
-        "https://www.tandfonline.com/doi/full/10.1080/09644016.2024.2437886",
-        "https://www.wri.org/update/brief-summary-climate-and-energy-provisions-inflation-reduction-act-2022",
-        "https://www.youtube.com/watch?v=V6PWaoW9PAk"
+        "https://www.wilmerhale.com/en/insights/client-alerts/20220901-inflation-reduction-act_environmental-provisions"
       ],
-      "min_similarity": 0.4
+      "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "budget.utah.gov",
-        "catf.us",
         "climatecentral.org",
         "congress.gov",
         "democrats.senate.gov",
         "ebsco.com",
-        "en.wikipedia.org",
+        "eesi.org",
         "energy.gov",
-        "epa.gov",
+        "governing.com",
+        "grist.org",
+        "healthinsurance.org",
+        "iea.org",
         "investmentpolicy.unctad.org",
-        "michiganlcv.org",
-        "naco.org",
-        "nationalhealthcouncil.org",
+        "irs.gov",
+        "law.stanford.edu",
         "nytimes.com",
-        "pbs.org",
-        "proskauertaxtalks.com",
-        "tandfonline.com",
-        "taxpolicycenter.org",
-        "wri.org"
+        "presidency.ucsb.edu",
+        "proskauertaxtalks.com"
       ],
       "min_similarity": 0.45
     }

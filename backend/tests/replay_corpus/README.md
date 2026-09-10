@@ -25,7 +25,34 @@
 > record once after it. **End-of-day pass state: `117 ok / 4 warn / 10 fail` + 3
 > drift (82CF and 5647 at random; 018F re-keyed, owed).**
 >
-> ## ✅ CURRENT PASS STATE (2026-09-10): **`170 ok / 5 warn / 8 fail / 3 unexercised` + 1 cassette-drift claim (82CF)**
+> ## ✅ CURRENT PASS STATE (2026-09-10, afternoon): **`170 ok / 5 warn / 8 fail / 5 unexercised` + 1 cassette-drift claim (82CF)**
+>
+> Second full re-record of the day, after build 2 (`FINDING, NOT TOPIC` on both mapping
+> prompts + `KEEP THE CLAIM'S DIRECTION` — `audit/2026-09-10_finding_not_topic_direction.md`)
+> re-keyed every mapping cassette. ~£1.35 (`--record --all` £1.20 + a single 018F
+> re-record). **9 of 10 claims replay at ZERO misses** (93DD proved deterministic on two
+> fresh replays after its patch pass converged). Read it exactly:
+> - **018F collapsed on the network in the `--all` pass again** (34 `ConnectTimeout`s, a
+>   12-source pool, recital trap absent) — re-recorded singly: 43 web / 19 sources, trap
+>   fires. **Re-pinned from the observation: recital 3 refs / 2 events** (was 2/2). This
+>   recording decomposed the claim to ONE element (2 → 3 → 1 across today's three
+>   recordings — draw-dependent).
+> - **82CF drifts as before**; its recording (13.4 MB, a decent 21-source draw) replayed 64/65
+>   in-process then 23 misses in a fresh one — reverted to the committed 2026-09-09
+>   cassette, golden untouched (not comparable).
+> - **Attributed fails (8):** 018F `factual_weight_share` 0.06 + recital refs re-pinned
+>   (now passes); 93DD `unique_domains` 4; A3E8 `factual_weight_share` 0.0; **0004
+>   `freshness_inject` did not fire — the planner chose no window itself on this draw, so
+>   there was nothing to override (a precondition case, same class as UNEXERCISED; not a
+>   regression)**; 0005 `gianlucabenigno` must-have + `unique_domains` 2 + `top_domain_share`
+>   0.5 (thin, temporal gate UNEXERCISED ×2). 018F interested-party UNEXERCISED ×3.
+> - Goldens re-captured and curated sections restored by `backend/scripts/restore_curated_goldens.py`
+>   (⚠️ the capture omits the gate counters — "pins hold" is not proof; read
+>   `*_scope_summary` in the observation, which is how the 018F re-pin was found).
+> - Sizes: 5647 2.1 → 3.8 MB, B4A3 7.0 → 3.1 MB, 93DD 6.2 → 2.0 MB, 0001 4.2 → 0.8 MB; the
+>   corpus as a whole shrank.
+
+> ## ✅ PREVIOUS PASS STATE (2026-09-10, midday): **`170 ok / 5 warn / 8 fail / 3 unexercised` + 1 cassette-drift claim (82CF)**
 >
 > Full corpus re-record after the decomposition-specificity rule
 > (`audit/2026-09-10_decomposition_specificity.md`) re-keyed every cassette
@@ -112,7 +139,8 @@
 > claims' assertions in the scoring pass, not lost coverage) → 185/1/13/2
 > (2026-09-03; zero drift) → 140/1/11/3 + 2 drift (2026-09-09; the ok-count
 > drop is the two drifting claims zeroing their assertions, not lost coverage) →
-> **170/5/8/3 + 1 drift (2026-09-10; decomposition-specificity re-record, 9/10 zero misses).**
+> 170/5/8/3 + 1 drift (2026-09-10 midday; decomposition-specificity re-record) →
+> **170/5/8/5 + 1 drift (2026-09-10 afternoon; build-2 mapping-prompt re-record, 9/10 zero misses).**
 > Anything worse is a real regression.
 > `audit/OPEN_WORK.md` item 7.
 

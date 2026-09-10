@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-C1A0-0005",
-  "captured_at": "2026-09-10T10:37:46.983010+00:00",
-  "captured_with": "71267aa",
+  "captured_at": "2026-09-10T15:29:27.207049+00:00",
+  "captured_with": "cc6fbd9",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py.",
   "hard_invariants": {
     "freshness_inject_must_fire_on_claims": [
       0
@@ -41,7 +41,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 10,
+      "value": 6,
       "tolerance": 8
     },
     "claims": {
@@ -53,7 +53,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 28,
+      "value": 30,
       "tolerance": 8
     },
     "api_adapters": {
@@ -61,7 +61,7 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 9,
+      "value": 5,
       "tolerance": 5
     },
     "temporal_scoped_refs": {
@@ -71,40 +71,43 @@
     "tier_commentary": {
       "value": 1,
       "tolerance": 4
+    },
+    "tier_reporting": {
+      "value": 1,
+      "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
         "https://adviser.royallondon.com/technical-central/rates-and-factors/consumer-prices-index/",
-        "https://commonslibrary.parliament.uk/research-briefings/sn02792/",
         "https://tradingeconomics.com/united-kingdom/inflation-cpi",
         "https://www.bankofengland.co.uk/monetary-policy/inflation",
         "https://www.bankofengland.co.uk/monetary-policy/inflation/inflation-calculator",
         "https://www.bbc.co.uk/news/articles/c17rgd8e9gjo",
         "https://www.bbc.co.uk/news/live/cvgv1071417t",
-        "https://www.crosslandsolicitors.com/site/hr-hub/september-2024-inflation-cpi-cpih-rpi",
+        "https://www.bbc.co.uk/news/live/cx2lej4x7j9t",
+        "https://www.cnbc.com/2024/10/16/uk-inflation-september-2024.html",
+        "https://www.ft.com/content/cffea5bc-0255-4029-8e76-0c3671bf4d92?syn-25a6b1a6=1",
         "https://www.gov.uk/government/statistics/consumer-price-inflation-uk-september-2024",
-        "https://www.oecd.org/en/data/indicators/inflation-cpi.html",
         "https://www.ons.gov.uk/economy/inflationandpriceindices",
         "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/july2026",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/previousreleases",
         "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/september2024",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/consumerpriceinflation",
         "https://www.ons.gov.uk/releases/consumerpriceinflationukseptember2024",
-        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOor-j_",
-        "https://www.statista.com/statistics/306720/cpi-rate-forecast-uk/?srsltid=AfmBOoph02DpvJjJ5nRLdVnMSieVYLrXcPh8UgYd5KGCf1j",
-        "https://www.statista.com/statistics/374754/consumer-price-index-cpi-forecast/?srsltid=AfmBOoqfEKYwgLpVDm2U7FBnEZmEGLjc8N"
+        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOorkox",
+        "https://www.theguardian.com/business/2025/oct/24/consumer-price-index-report-inflation-september",
+        "https://www.theguardian.com/business/2026/jan/21/uk-inflation-rose-december-interest-rate-hold-likely",
+        "https://x.com/ONS/status/1980877020801429660"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "api.beta.ons.gov.uk",
-        "commonslibrary.parliament.uk",
-        "crosslandsolicitors.com",
-        "data.worldbank.org",
+        "cnbc.com",
         "gov.uk",
-        "ons.gov.uk",
-        "statista.com"
+        "ons.gov.uk"
       ],
       "min_similarity": 0.2
     }
