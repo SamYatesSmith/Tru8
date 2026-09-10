@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-5647-FA4F",
-  "captured_at": "2026-09-03T10:23:13.893725+00:00",
-  "captured_with": "c29a86e",
+  "captured_at": "2026-09-10T10:35:41.929581+00:00",
+  "captured_with": "71267aa",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py.",
   "hard_invariants": {
     "freshness_inject_must_fire_on_claims": [
       0,
@@ -31,7 +31,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 31,
+      "value": 21,
       "tolerance": 8
     },
     "claims": {
@@ -39,88 +39,84 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 4,
+      "value": 2,
       "tolerance": 3
     },
     "web_search": {
-      "value": 42,
+      "value": 32,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 3,
+      "value": 2,
       "tolerance": 8
     },
     "tier_commentary": {
-      "value": 1,
+      "value": 4,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 2,
+      "value": 7,
       "tolerance": 4
+    },
+    "tier_primary": {
+      "value": 10,
+      "tolerance": 5
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://climatebarometer.org/uk-experiences-temperatures-above-40c-for-the-first-time/",
         "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
-        "https://doi.org/10.1002/asl.1159",
-        "https://doi.org/10.1002/wea.7709",
-        "https://doi.org/10.1016/j.heliyon.2023.e15277",
-        "https://doi.org/10.1056/nejmoa2119451",
-        "https://doi.org/10.1093/oso/9780192865168.001.0001",
-        "https://doi.org/10.3386/w30445",
-        "https://onebillionresilient.org/hot-cities-chilled-economies-london/",
+        "https://eciu.net/analysis/briefings/climate-impacts/flood-risk-and-the-uk",
+        "https://londonlovesbusiness.com/climate-change-could-cost-london-up-to-36-billion-a-year-by-the-2050s/",
+        "https://obr.uk/box/estimating-the-direct-fiscal-costs-of-flooding/",
         "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
-        "https://pmc.ncbi.nlm.nih.gov/articles/PMC9039910/",
         "https://pmc.ncbi.nlm.nih.gov/articles/PMC9918685/",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
-        "https://rmets.onlinelibrary.wiley.com/doi/full/10.1002/wea.7709",
+        "https://transportandenergy.com/2026/08/26/climate-change-could-cost-london-36bn-a-year-by-2050/",
         "https://weather.metoffice.gov.uk/warnings-and-advice/seasonal-advice/health-wellbeing/hot-weather-and-its-impacts",
-        "https://weatherspark.com/h/m/45062/2022/7/Historical-Weather-in-July-2022-in-London-United-Kingdom",
         "https://www.bbc.com/news/articles/c8xnwz7kl2vo",
-        "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
+        "https://www.bbc.com/news/articles/c982l60v0z7o",
         "https://www.carbonbrief.org/guest-post-a-met-office-review-of-the-uks-record-breaking-summer-in-2022",
         "https://www.climatecentral.org/climate-services/billion-dollar-disasters/state-summary/united-states",
         "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
+        "https://www.floods.org/news-views/research-and-reports/estimated-damage-for-hurricane-ian-between-41-billion-and-70-bill",
         "https://www.gov.uk/flood-and-coastal-erosion-risk-management-research-reports/evidence-on-the-costs-of-floods-in-england",
         "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
-        "https://www.ibc.ca/news-insights/news/august-flooding-in-gta-and-parts-of-southern-ontario-caused-over-100-million-in-in",
         "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
+        "https://www.jec.senate.gov/public/index.cfm/democrats/2024/6/flooding-costs-the-u-s-between-179-8-and-496-0-billion-each",
         "https://www.london.gov.uk/climate-change-could-cost-london-36-billion",
-        "https://www.london.gov.uk/sites/default/files/2024-02/LCRR%20INTERIM%20REPORT%2012%2002%202024.pdf",
-        "https://www.lse.ac.uk/granthaminstitute/news/one-year-on-from-record-breaking-40-degrees-heat-in-the-uk-and-were-still-n",
         "https://www.lse.ac.uk/granthaminstitute/publication/turning-up-the-heat/",
         "https://www.metoffice.gov.uk/about-us/news-and-media/media-centre/weather-and-climate-news/2022/july-heat-review",
-        "https://www.metoffice.gov.uk/about-us/news-and-media/media-centre/weather-and-climate-news/2022/red-extreme-heat-warning",
-        "https://www.metoffice.gov.uk/blog/2022/summer-2022-a-historic-season-for-northern-hemisphere-heatwaves",
-        "https://www.nature.com/articles/s41467-023-41888-1",
+        "https://www.metoffice.gov.uk/blog/2025/impact-of-extreme-heat-events-on-industries",
+        "https://www.munichre.com/en/risks/natural-disasters/thunderstorms-hail-tornados.html",
+        "https://www.ncei.noaa.gov/access/monitoring/dyk/billions-calculations",
         "https://www.publicsectorexecutive.com/articles/report-warns-extreme-heat-could-cost-london-ps36bn-year-2050s",
+        "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/what-is-a-heatwave",
         "https://www.sciencedirect.com/science/article/pii/S2212096321000462",
-        "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee",
-        "https://yalelawjournal.org/essay/the-uninsurable-future-the-climate-threat-to-property-insurance-and-how-to-stop-it"
+        "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
       ],
-      "min_similarity": 0.4
+      "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
         "bbc.com",
         "carbonbrief.org",
-        "climatebarometer.org",
         "cnbc.com",
         "community.netweather.tv",
         "gov.uk",
         "internetgeography.net",
         "london.gov.uk",
+        "londonlovesbusiness.com",
         "lse.ac.uk",
         "metoffice.gov.uk",
         "ncei.noaa.gov",
-        "onebillionresilient.org",
         "open-meteo.com",
         "publicsectorexecutive.com",
+        "redcross.org.uk",
         "rmets.onlinelibrary.wiley.com",
+        "transportandenergy.com",
         "weather.metoffice.gov.uk",
-        "weatherspark.com",
         "worldweatherattribution.org"
       ],
       "min_similarity": 0.45

@@ -1,6 +1,6 @@
 # Decomposition specificity — elements and grounds questions at the claim's own level
 
-**Status:** BUILT 2026-09-10, suite green, **NOT yet measured** (three paid regrade + blind-review runs owed, each asked for separately) and **corpus re-record owed** (the prompt change re-keys every cassette).
+**Status:** BUILT 2026-09-10, suite green, **corpus RE-RECORDED** (`170/5/8/3 + 82CF drift`, 9/10 zero misses — `backend/tests/replay_corpus/README.md` header), **NOT yet measured** (three paid regrade + blind-review runs owed, each asked for separately).
 **Date:** 2026-09-10
 **SOT chain:** `audit/OPEN_WORK.md` → `audit/2026-09-09_astra_regrade.md` (the measurement that named this build) → this doc.
 **Flags:** `ENABLE_UNSTATED_QUANTITY_REPAIR` (default True, requires `ENABLE_ELEMENT_ATOMICITY`). The prompt rules have no flag — they are the prompt.
@@ -70,7 +70,7 @@ NF-11: a prompt rule is a first line of defence, never a guarantee. The detector
 
 ## 5. What is owed (paid, ask before each)
 
-1. **Corpus `--record`** (~£1.20): the prompt change re-keys every cassette (request signatures are cassette keys); 018F was already owed from the "specifically" strip. Record once, `--record-missing`, then `--update-golden` **and restore the curated invariants from git** — `--update-golden` drops every hard_invariant and tolerance-0 pin. Re-read the 018F recital pin against the new observation.
+1. ✅ **Corpus re-recorded** (~£1.45). What the recording showed about the change: every one of the ten decompositions read faithfully to its claim — no invented figures, qualifiers or absolutes; the prerequisite-element rule from 2026-09-09 is draw-dependent (018F: 2 elements yesterday, 3 today). Two first-pass pools collapsed on network, not code (0001: 30 connection timeouts; 82CF: fetch-deadline cancellations round a 15 MB filing) — both re-recorded singly; 82CF drifts cross-process as before and its 18 MB re-record was reverted.
 2. **Three measured runs** (`tmp/astra-regrade.py --arm default` + `backend/scripts/review_labels.py`, ~50p each): one run is noise (86.1 → 81.6 on identical inputs). Read the **kinds** of rejection before the rate. Target: the "unstated specificity" kind gone or near it; the rate above 95% would be the first time.
 3. Then **STOP pipeline work and go get strangers** (`audit/OUTREACH.md`).
 

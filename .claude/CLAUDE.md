@@ -47,7 +47,7 @@ alembic upgrade head                             # Run migrations
 
 # Replay bench — run before EVERY pipeline-quality commit (replay itself is free; ~10 min)
 docker-compose up -d                             # REQUIRED: the bench writes a Check row
-python scripts/replay_bench.py --all             # expect exactly: 140 ok / 1 warn / 11 fail / 3 unexercised + 2 cassette-drift claims (82CF, 5647 — the historical flaky pair, nondeterministic across processes at extraction; 2026-09-09 full re-record). ⚠️ `--update-golden` DROPS curated hard_invariants + tolerance-0 pins — never commit its output raw (README header is canonical)
+python scripts/replay_bench.py --all             # expect exactly: 170 ok / 5 warn / 8 fail / 3 unexercised + 1 cassette-drift claim (82CF — nondeterministic across processes after extraction; its committed cassette is the re-keyed 2026-09-09 one). 2026-09-10 full re-record after the decomposition-specificity rule; 9/10 claims replay at ZERO misses, 0001 clean (19/0/0) for the first time. Read a collapsed pool's cassette `_exception` entries before blaming code — two first-pass pools died on ConnectTimeouts / fetch-deadline cancellations and were re-recorded singly. ⚠️ `--update-golden` DROPS curated hard_invariants + tolerance-0 pins — never commit its output raw (README header is canonical)
 # ⚠️ THE BENCH CANNOT VERIFY SMALL RETRIEVAL CHANGES (measured 2026-08-20). Two
 # recordings of TRU-018F-44AA taken an hour apart with IDENTICAL settings differed
 # by 25 of 40 URLs — 62% churn — and their tier mixes disagreed wildly

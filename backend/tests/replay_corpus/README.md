@@ -25,6 +25,49 @@
 > record once after it. **End-of-day pass state: `117 ok / 4 warn / 10 fail` + 3
 > drift (82CF and 5647 at random; 018F re-keyed, owed).**
 >
+> ## ✅ CURRENT PASS STATE (2026-09-10): **`170 ok / 5 warn / 8 fail / 3 unexercised` + 1 cassette-drift claim (82CF)**
+>
+> Full corpus re-record after the decomposition-specificity rule
+> (`audit/2026-09-10_decomposition_specificity.md`) re-keyed every cassette
+> (~£1.45: `--record --all` £1.20, then single-claim re-records of 0001 and 82CF).
+> **9 of 10 claims replay with ZERO misses** — including `TRU-C1A0-0001` at
+> `19 ok / 0 fail`, its first clean line ever, and `TRU-5647-FA4F` (the other
+> historical flaky one) at zero misses. Read it exactly:
+> - **The first `--record --all` pass produced two collapsed pools that were NOT the
+>   code's doing:** 0001 hit 30 `ConnectTimeout`s in its window (13 to ons.gov.uk) plus a
+>   Gemini `ReadTimeout`; 82CF had 5 fetches `CancelledError`'d at the 30 s fetch
+>   deadline around BP's 15 MB SEC filing. **Read the cassette's `_exception` entries
+>   before believing a collapsed pool** — both were re-recorded singly (founder-approved).
+> - **`TRU-82CF-2F81` still drifts across processes** and its cassette is the COMMITTED
+>   2026-09-09 one (re-keyed by the prompt change, so it misses from decomposition on:
+>   34 misses / 5 hits). The 2026-09-10 re-record replayed 56/57 in-process, then 1 → 7
+>   misses in fresh processes (the known post-extraction nondeterminism), AND it had grown
+>   to 18 MB (SEC filing + UBS/Janus Henderson annual-report PDFs) for a recording that
+>   cannot replay — reverted rather than committed. Its 2026-09-03 golden is NOT
+>   comparable. Its thin second draw is attributed: planner returned 2 plans for 3 lanes
+>   (5 queries), PDF-heavy results, deadline dropped 8, 5/27 with content, scorer excluded
+>   14/16 recovery items — retrieval, not decomposition (elements read faithfully).
+> - **Attributed fails (8), all thin-pool / must-have class:** 018F `politifact` must-have
+>   (pool drift) + `factual_weight_share` 0.0; 93DD `unique_domains` 3; A3E8
+>   `factual_weight_share` 0.0; 0003 `top_domain_share` 0.55 (nejm.org ×17 — the
+>   primary-tier count rose 7 → 20 on this recording); 0005 `gianlucabenigno` must-have
+>   (temporal gate still fires, 1 ref) + `unique_domains` 3. 018F interested-party
+>   UNEXERCISED ×3 (whitehouse.gov absent from this pool).
+> - **018F RE-PIN, read from the observation:** recital `2 refs / 1 element` →
+>   `2 refs / 2 elements` (tolerance 0). This recording decomposed to THREE elements
+>   again (the prerequisite element "Six distinct conflicts existed" came back — the
+>   2026-09-09 no-prerequisite rule holds on some draws and not others), and the trap
+>   fires once on each directional element.
+> - **Goldens were re-captured with `--update-golden` and the curated sections restored
+>   mechanically** by `backend/scripts/restore_curated_goldens.py` (hard_invariants, notes and every
+>   hand-set tolerance from the committed golden; tolerance-0 pins kept and flagged when
+>   the fresh value differs). ⚠️ The `--update-golden` capture does NOT emit the gate
+>   counters (`recital_*`, `interested_party_*`, `temporal_*`), so the script's "pins hold"
+>   only means the capture carried no contradicting value — read the pin against the
+>   observation's `*_scope_summary` regardless.
+> - Cassette sizes: 018F 1.2 → 3.1 MB, 93DD 1.6 → 6.2 MB, 0001 0.95 → 4.2 MB; the rest
+>   within ±1.5 MB. 82CF unchanged (reverted).
+
 > So: **`140 ok / 1 warn / 11 fail / 3 unexercised` + 2 cassette-drift claims is the
 > current PASS state** (2026-09-09 full corpus re-record after the decomposition
 > prompt gained its no-trivial-prerequisite rule, which re-keyed every cassette;
@@ -67,8 +110,9 @@
 > 175/10/2 (2026-08-17) → 178/5/9/5 (2026-08-27 model-migration re-record) →
 > 121/5/11/5 (2026-08-28; the ok-count drop is the flaky set zeroing three
 > claims' assertions in the scoring pass, not lost coverage) → 185/1/13/2
-> (2026-09-03; zero drift) → **140/1/11/3 + 2 drift (2026-09-09; the ok-count
-> drop is the two drifting claims zeroing their assertions, not lost coverage).**
+> (2026-09-03; zero drift) → 140/1/11/3 + 2 drift (2026-09-09; the ok-count
+> drop is the two drifting claims zeroing their assertions, not lost coverage) →
+> **170/5/8/3 + 1 drift (2026-09-10; decomposition-specificity re-record, 9/10 zero misses).**
 > Anything worse is a real regression.
 > `audit/OPEN_WORK.md` item 7.
 

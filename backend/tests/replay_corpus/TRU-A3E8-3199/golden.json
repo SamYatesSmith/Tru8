@@ -1,9 +1,9 @@
 {
   "claim_id": "TRU-A3E8-3199",
-  "captured_at": "2026-09-09T13:05:58.586099+00:00",
-  "captured_with": "f82a5ee",
+  "captured_at": "2026-09-10T10:36:18.709604+00:00",
+  "captured_with": "71267aa",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py.",
   "hard_invariants": {
     "must_have_url_substrings": [],
     "must_not_have_url_substrings": [],
@@ -27,7 +27,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 17,
+      "value": 19,
       "tolerance": 8
     },
     "claims": {
@@ -39,7 +39,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 28,
+      "value": 29,
       "tolerance": 8
     },
     "api_adapters": {
@@ -47,15 +47,15 @@
       "tolerance": 8
     },
     "tier_commentary": {
-      "value": 6,
+      "value": 10,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 8,
+      "value": 7,
       "tolerance": 4
     },
     "tier_primary": {
-      "value": 3,
+      "value": 2,
       "tolerance": 4
     }
   },
@@ -65,28 +65,29 @@
         "https://doi.org/10.1186/s40462-024-00498-2",
         "https://doi.org/10.1371/journal.pone.0306813",
         "https://doi.org/10.3389/fmars.2025.1667683",
-        "https://en.wikipedia.org/wiki/Demersal_fish",
+        "https://en.wikipedia.org/wiki/Dangerous_Reef",
         "https://en.wikipedia.org/wiki/Megalodon",
         "https://en.wikipedia.org/wiki/Orca_types_and_populations",
         "https://en.wikipedia.org/wiki/Shark_finning",
         "https://en.wikipedia.org/wiki/Whale_shark",
         "https://metro.co.uk/2026/08/03/great-white-sharks-already-uk-venture-north-29287696/",
-        "https://sharkdivingxperts.com/news/in-the-news/searching-for-great-white-sharks-in-british-waters/",
-        "https://timesofindia.indiatimes.com/science/as-uk-oceans-warm-up-experts-warn-great-white-sharks-are-already-lurking-off",
-        "https://whatsthejam.com/pets-and-animals/great-white-sharks-are-already-lurking-in-british-waters/",
+        "https://www.bbc.co.uk/news/articles/crk5705rm5mo",
         "https://www.carbonbrief.org/factcheck-will-climate-change-bring-great-white-sharks-to-uk-waters",
-        "https://www.cornwalllive.com/news/cornwall-news/expert-claims-great-white-sharks-11109114",
         "https://www.devonlive.com/news/devon-news/shark-expert-claims-great-whites-11109042",
+        "https://www.discoverwildlife.com/animal-facts/fish/great-white-sharks-in-uk",
         "https://www.gbif.org/species/165636544",
         "https://www.gbif.org/species/206230133",
-        "https://www.mirror.co.uk/news/uk-news/great-white-sharks-are-uk-37547976",
-        "https://www.newquayvoice.co.uk/2026/08/expert-says-great-whites-are-in-uk-waters-citing-cornwall-sightings/",
+        "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
+        "https://www.nhm.ac.uk/discover/great-white-shark-man-eater-or-marine-marvel.html",
         "https://www.plymouth.ac.uk/discover/are-great-white-sharks-warming-to-uk-waters",
+        "https://www.quora.com/How-close-do-great-white-sharks-get-to-the-UK",
+        "https://www.reddit.com/r/europe/comments/1vf6xb2/great_white_sharks_are_already_in_uk_as_they_head/",
         "https://www.reddit.com/r/sharks/comments/15aiu61/why_doesnt_the_uk_have_great_white_sharks/",
-        "https://www.reddit.com/r/uknews/comments/1vf6vjs/great_white_sharks_are_already_in_uk_as_they_head/",
+        "https://www.reddit.com/r/sharks/comments/17cghbc/great_whites_and_the_british_isles/",
         "https://www.sharktrust.org/pages/faqs/category/british-sharks",
+        "https://www.theguardian.com/environment/2018/aug/12/warming-seas-10-new-shark-species-british-waters-great-white",
         "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
-        "https://www.tiktok.com/@wildlifewithcookie/video/7608591653737221398",
+        "https://www.tiktok.com/@stevebackshallofficial/video/7653779572881755414",
         "https://www.wildlifeonline.me.uk/articles/view/great-white-shark-in-british-waters",
         "https://www.youtube.com/watch?v=BvZIq6NA7ME"
       ],
@@ -94,20 +95,20 @@
     },
     "domain_set": {
       "golden": [
+        "bbc.co.uk",
         "carbonbrief.org",
-        "cornwalllive.com",
         "devonlive.com",
+        "discoverwildlife.com",
         "gbif.org",
+        "gbnews.com",
         "metro.co.uk",
-        "mirror.co.uk",
-        "newquayvoice.co.uk",
+        "nhm.ac.uk",
         "plymouth.ac.uk",
+        "quora.com",
         "reddit.com",
-        "sharkdivingxperts.com",
         "sharktrust.org",
         "theguardian.com",
-        "timesofindia.indiatimes.com",
-        "whatsthejam.com",
+        "tiktok.com",
         "wildlifeonline.me.uk"
       ],
       "min_similarity": 0.45
