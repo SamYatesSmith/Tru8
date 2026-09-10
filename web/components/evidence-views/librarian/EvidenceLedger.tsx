@@ -3,7 +3,8 @@
 import { Evidence, EvidenceTier, EvidenceRelationship } from '@shared/types';
 import { LedgerCard } from './LedgerCard';
 import { ReadingTable } from './ReadingTable';
-import { SortControl, SortField } from './SortControl';
+import { SortField } from './SortControl';
+import { SegmentedRow } from './SegmentedRow';
 
 const TIER_ORDER: Record<string, number> = { primary: 0, reporting: 1, commentary: 2 };
 const TIER_GROUPS: EvidenceTier[] = ['primary', 'reporting', 'commentary'];
@@ -100,36 +101,57 @@ export function EvidenceLedger({
 
   return (
     <div>
-      <div className="font-mono text-sm font-bold uppercase tracking-[0.15em] lg:tracking-[0.3em] text-zinc-600 mb-6 border-b border-zinc-200 pb-2 flex flex-col gap-1 lg:flex-row lg:justify-between lg:items-center">
-        <span>
-          {/* Count only when nothing is filtered; when a filter is on, the
-              panel's SHOWING row directly above already says "3 of 13" and why
-              (2026-09-10 — the two counts read as a stutter). */}
+      {/* Ledger header (fresh approach 2026-09-10): the heading, then the
+          ledger's two controls as SegmentedRows — the SAME shape as the
+          filter rows above — side by side from `md`, stacked on a phone. The
+          highlight row is the ACH diagnostic view: "Decisive" marks a source
+          that supports one element while challenging another (orange left
+          rule on its card) and fades context-only / same-direction sources.
+          Rendered only when the check has any challenges to tell apart. */}
+      <div className="mb-6">
+        <div className="font-mono text-sm font-bold uppercase tracking-[0.15em] lg:tracking-[0.3em] text-zinc-600 border-b border-zinc-200 pb-2 mb-3">
           <span className="hidden lg:inline">Evidence Ledger{evidence.length === totalCount && <> &middot; {totalCount} {totalCount === 1 ? 'source' : 'sources'}</>}</span>
           <span className="lg:hidden">Ledger{evidence.length === totalCount && <> &middot; {totalCount}</>}</span>
-        </span>
-        <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          {/* Diagnostic highlight (ACH): a way of reading the ledger, so it sits
-              with Sort, not among the filters (moved 2026-09-10). Marks sources
-              that support one element while challenging another — the ones that
-              tell the claim's possibilities apart — and fades context-only ones.
-              Orange dot = wayfinding accent, never a stance. */}
+        </div>
+        <div className={`border border-zinc-300 grid grid-cols-1 ${onToggleDiagnostic ? 'md:grid-cols-2' : ''}`}>
+          <div className="[&>*]:border-t-0">
+            <SegmentedRow<SortField>
+              label="Sort"
+              ariaLabel="Sort the ledger"
+              options={[
+                { value: 'date', label: 'Date' },
+                { value: 'source', label: 'Source' },
+                { value: 'element', label: 'Element' },
+              ]}
+              active={new Set([sortField])}
+              onSelect={onSortChange}
+            />
+          </div>
           {onToggleDiagnostic && (
-            <button
-              type="button"
-              aria-pressed={!!diagnosticActive}
-              onClick={onToggleDiagnostic}
-              title="Mark sources that support one element while challenging another, and fade context-only sources"
-              className={`inline-flex items-center gap-1.5 font-mono text-[10px] normal-case tracking-widest uppercase font-normal transition-colors cursor-pointer ${
-                diagnosticActive ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-900'
-              }`}
-            >
-              <span aria-hidden className={`w-2 h-2 rounded-full ${diagnosticActive ? 'bg-[var(--accent)]' : 'border border-zinc-300'}`} />
-              Highlight decisive sources
-            </button>
+            <div className="border-t border-zinc-300 md:border-t-0 md:border-l [&>*]:border-t-0">
+              <SegmentedRow<'off' | 'on'>
+                label="View"
+                ariaLabel="Highlight decisive sources"
+                options={[
+                  { value: 'off', label: 'All sources' },
+                  {
+                    value: 'on',
+                    label: 'Highlight decisive',
+                    mark: <span aria-hidden className={`w-2 h-2 rounded-full shrink-0 ${diagnosticActive ? 'bg-[var(--accent)]' : 'border border-zinc-300'}`} />,
+                  },
+                ]}
+                active={new Set<'off' | 'on'>([diagnosticActive ? 'on' : 'off'])}
+                onSelect={(v) => { if ((v === 'on') !== !!diagnosticActive) onToggleDiagnostic(); }}
+              />
+            </div>
           )}
-          <SortControl value={sortField} onChange={onSortChange} />
-        </span>
+        </div>
+        {onToggleDiagnostic && (
+          <p className="mt-2 text-xs text-zinc-500">
+            Decisive: a source that supports one element while challenging another — it tells the claim&rsquo;s
+            possibilities apart. Highlighted with an orange rule; context-only sources fade.
+          </p>
+        )}
       </div>
 
       <div className="space-y-3 mb-12">
