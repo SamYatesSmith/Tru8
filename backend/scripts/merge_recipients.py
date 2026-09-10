@@ -104,6 +104,12 @@ def validate(row: dict) -> str | None:
     if row["route_type"] in ("email", "org_inbox", "press_office"):
         m = EMAIL_RE.match(row["route"])
         if not m:
+            # An org inbox may be a community channel (Discord, Slack, a
+            # forum) rather than an address — a URL is a legitimate route.
+            if row["route_type"] != "email" and row["route"].startswith(
+                ("http://", "https://")
+            ):
+                return None
             return "route_type email but route is not an address"
         domain = m.group(1).lower()
         if domain in PERSONAL_DOMAINS:
@@ -114,7 +120,10 @@ def validate(row: dict) -> str | None:
 def flag(row: dict) -> str:
     """Non-fatal review flags."""
     flags = []
-    if row["route_type"] in ("email", "org_inbox", "press_office"):
+    if (
+        row["route_type"] in ("email", "org_inbox", "press_office")
+        and "@" in row["route"]
+    ):
         domain = row["route"].split("@")[-1].lower()
         seen = urlparse(row["route_seen_at_url"]).netloc.lower()
         base = ".".join(domain.split(".")[-2:])
