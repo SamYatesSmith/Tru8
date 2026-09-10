@@ -71,7 +71,7 @@ NF-11: a prompt rule is a first line of defence, never a guarantee. The detector
 ## 5. What is owed (paid, ask before each)
 
 1. ✅ **Corpus re-recorded** (~£1.45). What the recording showed about the change: every one of the ten decompositions read faithfully to its claim — no invented figures, qualifiers or absolutes; the prerequisite-element rule from 2026-09-09 is draw-dependent (018F: 2 elements yesterday, 3 today). Two first-pass pools collapsed on network, not code (0001: 30 connection timeouts; 82CF: fetch-deadline cancellations round a 15 MB filing) — both re-recorded singly; 82CF drifts cross-process as before and its 18 MB re-record was reverted.
-2. **Three measured runs** (`tmp/astra-regrade.py --arm default` + `backend/scripts/review_labels.py`, ~50p each): one run is noise (86.1 → 81.6 on identical inputs). Read the **kinds** of rejection before the rate. Target: the "unstated specificity" kind gone or near it; the rate above 95% would be the first time.
+2. **Three measured runs** — see §7 below for each run as it lands. (`tmp/astra-regrade.py --arm default` + `backend/scripts/review_labels.py`, ~50p each): one run is noise (86.1 → 81.6 on identical inputs). Read the **kinds** of rejection before the rate. Target: the "unstated specificity" kind gone or near it; the rate above 95% would be the first time.
 3. Then **STOP pipeline work and go get strangers** (`audit/OUTREACH.md`).
 
 ## 6. Durable lessons
@@ -79,3 +79,25 @@ NF-11: a prompt rule is a first line of defence, never a guarantee. The detector
 - **A question can invent precision as readily as an assertion.** The adverb strip watched one grammatical form; the same disease moved to the other. When a mechanical guard is built for one shape of a defect, ask which other shapes the model has available.
 - **Route a new defect through the existing repair call, not a new one.** One tagged call per claim keeps cost, latency and the fail-safe contract identical.
 - **Leave the legitimate cases out of the detector and say so.** "How much did it cost?" is a real ground; a detector that fires on it would trade one kind of wrong label for another.
+
+## 7. Measurement (paid, one run at a time, founder-approved each)
+
+Method per run: `tmp/astra-regrade.py --arm default` (Astra's 14 inputs, live retrieval, local DB; the Redis evidence-pool cache is cleared first so element lanes are searched from the NEW elements) then `backend/scripts/review_labels.py --reviewers gemini,gemini_flash` (blind: element + passage only). `gemini_flash` errors on ~40% of labels both days, so the **primary reviewer (`gemini`, gemini-3.5-flash-lite) is the rate**; the second is a check on the overlap.
+
+| run | labels | justified (primary) | rejected | both reviewers reject | "unstated specificity" kind |
+|---|---:|---:|---:|---:|---:|
+| 2026-09-09 first | 137 | 86.1% | 19 | — | ~5 (exactly/strictly) |
+| 2026-09-09 post-fix | 147 | 81.6% | 27 | 13 | **18** |
+| **2026-09-10 run 1** (`audit/review_sheets/2026-09-10-run1`) | 138 | **87.6%** | 17 | **4** | **0** |
+
+### Run 1 — the 17 rejections, by kind
+
+- **Unstated specificity: 0.** The EV record's grounds questions came out comparative ("How do the lifecycle greenhouse gas emissions of electric cars compare with those of petrol cars?", "To what extent do the environmental impacts … differ"); no "exactly", "consistently", "quantified", "completely", "under all circumstances" anywhere in the 14 decompositions. `metadata.grounds.specificity` on t08: the prompt produced clean questions, so the repair call was not needed (detected 0).
+- **Reviewer direction error: 2** (t06 Nature paper + UVA report read as *supporting* "no lockdown was the primary driver" when both say no-lockdown caused MORE deaths — Tru8's `challenges` is right; the same two sources were misread yesterday).
+  - ⚠️ A real, smaller decomposition fault sits underneath: the t06 element reads *"the primary driver of its mortality outcome"* — the claim's direction ("LOWER excess mortality") was dropped, so the element is readable either way. t13 (same claim, no focus text) kept it: "the primary cause of it having lower excess mortality". Lost specificity, the mirror of the disease this build fixed. Watch on runs 2–3.
+- **Strictness on wording the CLAIM itself carries: 6** — t07 ×3 ("directly prevents SQLITE_BUSY" — sources showing SQLITE_BUSY still fires in WAL are a fair challenge to "cannot occur"); t02 "everyone who is overweight" (the trial's restricted cohort IS the challenge); t06 "lowest in the EU" vs "every other European country"; t03 "3–5 g" vs "5g".
+- **Genuine mislabels: 5** — t11 "fell below 10%" supporting "falls from 10% to 3%"; t12 a Venus temperature passage with no planetary comparison badged `supports`; t09 a passage with no release date supporting a dated element; t08 a rating-only AFP fact-check passage badged `supports` (yesterday's USA Today twin — a **passage-selection** fault: the retained window is the verdict badge, not the finding); t08 carbone4 manufacturing-only passage as `challenges`.
+- **Arguable / question-shape: 4** — t06 uvahealth per-capita deaths as `challenges` to the causal element; t08 kgm-motors, mdpi, azom on the particulate and mineral-extraction questions.
+
+Reading: the kind this build targeted is gone on run 1; what remains is reviewer error (2), the claim's own absolutes (6), and passage-level mislabels (5) — the latter is the next measurable disease if runs 2–3 agree (rating-only passages; a passage that names the topic but not the finding).
+
