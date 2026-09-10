@@ -90,6 +90,8 @@ Method per run: `tmp/astra-regrade.py --arm default` (Astra's 14 inputs, live re
 | 2026-09-09 post-fix | 147 | 81.6% | 27 | 13 | **18** |
 | **2026-09-10 run 1** (`audit/review_sheets/2026-09-10-run1`) | 138 | **87.6%** | 17 | **4** | **0** |
 | **2026-09-10 run 2** (`audit/review_sheets/2026-09-10-run2`) | 107 | **86.0%** | 15 | 11 | **0** |
+| **2026-09-10 run 3** (`audit/review_sheets/2026-09-10-run3`) | 118 | **89.0%** | 13 | 4 | **0** |
+| **three-run mean** | 363 | **87.5%** | 45 | — | **0** |
 
 ### Run 1 — the 17 rejections, by kind
 
@@ -112,4 +114,36 @@ Reading: the kind this build targeted is gone on run 1; what remains is reviewer
 - **Absence vocabulary, 1** — t03 brainhealth "evidence is inconclusive" mapped `challenges`; the absence-of-evidence gate (2026-09-09) did not recognise "inconclusive". A vocabulary gap in that gate, one label.
 
 **Seen on both runs, small, not this build's disease:** the causal element drops the claim's direction on one Sweden record per run (run 1 t06 "primary driver of its mortality outcome"; run 2 t13 "primary driver of its relative mortality outcomes") while the sibling record keeps "lower". Two reviewer misreads came from exactly that ambiguity.
+
+### Run 3 — the 13 rejections, by kind
+
+- **Unstated specificity: 0** (38 elements scanned, no hits). Three runs, zero each.
+- **Reviewer direction error: 4** — t06 + t13 Nature ("thousands of deaths avoidable with a lockdown" read as support for "no lockdown drove the outcome"), t02 acc.org (6.5% vs 8.0% IS the 20% relative / 1.5-pt absolute distinction the challenge makes), t02 docwire (arguable).
+- **The claim's own wording: 3** — t07 ×3 ("directly prevents SQLITE_BUSY").
+- **Passage-level mislabels ("topic without the finding"): 5** — t02 news-medical + prnewswire (trial DESIGN passages badged `supports` for "demonstrates that semaglutide prevents heart attacks"), t02 NEJM "2%" fragment, t03 ubiehealth (Alzheimer's patients vs healthy adults), t11 crr.bc.edu (arguable).
+- **Decomposition shape: 1 label / 2 elements** — t03 "Healthy adults take 5g of creatine daily" (behaviour-for-intervention, runs 2 AND 3) and a new counterfactual premise "Healthy adults experience the onset of dementia in the absence of taking 5g of creatine daily".
+- **Direction drop, BOTH Sweden records this run:** "primary driver of its mortality outcomes" / "primary cause of its excess mortality outcome" — the claim's "lower" gone from the causal element on t06 and t13. Three of the four reviewer misreads across the day sit on exactly these elements: an element that names the outcome without its direction invites the misread.
+
+## 8. Three-run reading (2026-09-10, ~£1.56 for the three)
+
+**The disease this build targeted is gone: 0 / 45 rejections over three runs were decomposition demanding specificity the claim never stated (18 / 27 the day before).** No element on any run carried a measured precision word; every EV grounds question came out comparative; the repair call never needed to fire (`grounds.specificity.detected` 0 on all three), so the prompt rule alone held on 41 evaluative-claim draws — the mechanical backstop remains for the day it does not.
+
+**The blind label rate: 87.6 / 86.0 / 89.0, mean 87.5%** — up from 81.6% and 86.1%, **short of the 95% bar by ~7.5 points, ~9 labels per run.** The 45 remaining rejections, by kind, across all three runs:
+
+| kind | count | whose fault | mechanical form? |
+|---|---:|---|---|
+| Passage-level "topic without the finding" (a Venus temperature with no comparison; a trial design with no result; a rating badge with no claim; a pre-launch article; a 20 g protocol; Alzheimer's patients for healthy adults) | **17** | mapper (+ one adapter) | partly: the fact-check adapter's rating-only snippet (`factcheck_api.py:229`, 2 of the 17) is a one-line fix; the rest is the MAPPING prompt's "supports = warrants the element AS STATED" rule failing on same-subject passages |
+| The claim's own absolutes / causal wording ("cannot occur", "everyone", "as of 7 September") | **14** | nobody — the reviewer is strict on the user's words | no; adjudicate, do not soften |
+| Reviewer direction misread | **7** | reviewer — but 5 of 7 sit on a causal element that DROPPED the claim's direction ("lower") | yes: keep the claim's outcome direction in the causal element (prompt rule + a mechanical check that a comparative in the claim's effect clause survives into the causal element) |
+| Decomposition shape (intervention → population behaviour; counterfactual premise) | **4** | decomposer | prompt-only today; a bounded 1→1 rewrite call is the mechanical form if it persists |
+| Arguable | **3** | — | — |
+
+**Adjudicated** (removing reviewer misreads and the claim's-own-wording class the way the 2026-09-09 sheet did): ≈ 24 real faults / 363 ≈ **93%**. Still short of 95% either way.
+
+**What the measurement names next, in order of labels recovered per unit of work:**
+1. **Mapping: "finding, not topic."** 17 labels. A passage that names the element's subject and supplies a related fact is `context` unless it states the finding the element asserts (the comparison, the result, the date, the population). Prompt rule on `MAPPING_PROMPT` / `BATCH_MAPPING_PROMPT` beside the existing SPECIFICITY CHECK (which today covers causal links only) — plus the one-line adapter fix so a fact-check item's snippet carries the claim it rated, not just the rating.
+2. **Decomposition: keep the direction.** 5–7 labels. The causal element must carry the claim's outcome direction ("lower", "higher", "more", "fewer"); a mechanical check flags a causal element that lost a comparative the claim's effect clause had.
+3. Behaviour-for-intervention: watch; 3 labels; prompt-only unless it grows.
+
+Neither touches the retrieval pool, so the bench can see (1) and (2) only insofar as mapping cassettes re-key — a mapping-prompt change re-keys every mapping cassette (corpus re-record owed again after it). The measurement instrument stays as is (reviewer sees passage only, no title); changing it mid-series would break comparability.
 
