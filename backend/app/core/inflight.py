@@ -54,6 +54,7 @@ async def fail_and_refund_inflight() -> int:
 
     from app.core.database import async_session
     from app.models.check import Check
+    from app.services.agent_refunds import refund_stranded_agent_transaction
     from app.services.usage_ledger import refund_usage
 
     failed = 0
@@ -70,6 +71,12 @@ async def fail_and_refund_inflight() -> int:
                     if not check or check.status not in ("processing", "pending"):
                         continue
                     await refund_usage(session, check_id)
+                    # Agent rail too (2026-09-11): refund_usage is a no-op for
+                    # agent checks (credits_used=0); their money lives on
+                    # credit_balance_pence behind an AgentTransaction.
+                    await refund_stranded_agent_transaction(
+                        session, check_id, user_id=getattr(check, "user_id", None)
+                    )
                     check.status = "failed"
                     check.error_message = SHUTDOWN_ERROR_MSG
                     session.add(check)
@@ -123,6 +130,7 @@ async def sweep_stale_checks(session=None) -> int:
     from app.core.config import settings
     from app.core.database import async_session
     from app.models.check import Check
+    from app.services.agent_refunds import refund_stranded_agent_transaction
     from app.services.usage_ledger import refund_usage
 
     cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(
@@ -144,6 +152,9 @@ async def sweep_stale_checks(session=None) -> int:
                 continue
             try:
                 await refund_usage(sess, check.id)
+                await refund_stranded_agent_transaction(
+                    sess, check.id, user_id=getattr(check, "user_id", None)
+                )
                 check.status = "failed"
                 check.error_message = STALE_ERROR_MSG
                 sess.add(check)

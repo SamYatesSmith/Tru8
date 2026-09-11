@@ -29,6 +29,7 @@ from app.core.agent_auth import (
 from app.core.agent_pricing import get_tier_price
 from app.core.tier_limitations import limitations_for_tier
 from app.core.client_origin import resolve_client
+from app.core.inflight import inflight_register, inflight_unregister
 from app.core.config import settings
 from app.core.database import get_session
 from app.core.rate_limit import limiter
@@ -918,6 +919,7 @@ async def _run_agent_pipeline(
 
     # --- Synchronous mode: run pipeline inline, return full result ---
     progress_reporter = ProgressReporter(check.id)
+    inflight_register(check.id)  # deploy-shutdown guard — agent rail (2026-09-11)
 
     try:
         result = await asyncio.wait_for(
@@ -1053,6 +1055,9 @@ async def _run_agent_pipeline(
         await handle_pipeline_failure(check.id, payment.user_id, e)
         _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
         raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
+
+    finally:
+        inflight_unregister(check.id)
 
 
 async def _replay_for_key(
@@ -1235,6 +1240,7 @@ async def _run_pipeline_background(
     )
 
     progress_reporter = ProgressReporter(check_id)
+    inflight_register(check_id)  # deploy-shutdown guard — agent rail (2026-09-11)
 
     try:
         result = await asyncio.wait_for(
@@ -1342,6 +1348,9 @@ async def _run_pipeline_background(
 
         await handle_pipeline_failure(check_id, user_id, e)
         _fire_agent_webhook_failed(user_id, check_id, error_msg)
+
+    finally:
+        inflight_unregister(check_id)
 
 
 def _fire_agent_webhook_completed(user_id: str, check_id: str, tier: str) -> None:

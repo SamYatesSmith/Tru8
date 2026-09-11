@@ -198,6 +198,9 @@ async def _run_x402_pipeline(
     await session.refresh(check)
 
     progress_reporter = ProgressReporter(check.id)
+    from app.core.inflight import inflight_register, inflight_unregister
+
+    inflight_register(check.id)  # deploy-shutdown guard — agent rail (2026-09-11)
 
     try:
         result = await asyncio.wait_for(
@@ -306,6 +309,9 @@ async def _run_x402_pipeline(
         await session.commit()
         await handle_pipeline_failure(check.id, payment.user_id, e)
         raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
+
+    finally:
+        inflight_unregister(check.id)
 
 
 # ---------------------------------------------------------------------------

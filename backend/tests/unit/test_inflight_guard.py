@@ -130,3 +130,22 @@ class TestFailAndRefund:
         inflight_register("c-gone")
         assert await fail_and_refund_inflight() == 0
         refund.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_agent_rail_is_refunded_too(self, monkeypatch):
+        """2026-09-11: refund_usage is a no-op for agent checks; the guard
+        must also return the AgentTransaction's money (check 5525b573)."""
+        check = SimpleNamespace(
+            id="c-agent", status="processing", error_message=None, user_id="u-1"
+        )
+        session, refund = _fake_db({"c-agent": check}, monkeypatch)
+        agent_refund = AsyncMock(return_value=1)
+        import app.services.agent_refunds as ar_mod
+
+        monkeypatch.setattr(ar_mod, "refund_stranded_agent_transaction", agent_refund)
+        inflight_register("c-agent")
+
+        assert await fail_and_refund_inflight() == 1
+        refund.assert_awaited_once()
+        agent_refund.assert_awaited_once_with(session, "c-agent", user_id="u-1")
+        assert check.status == "failed"

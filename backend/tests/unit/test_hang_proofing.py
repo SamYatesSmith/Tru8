@@ -255,6 +255,23 @@ class TestStaleSweep:
         assert pending.status == "failed"
 
     @pytest.mark.asyncio
+    async def test_stale_agent_check_refunds_the_agent_rail(self, monkeypatch):
+        """2026-09-11: a tru8_check stranded by a deploy (5525b573) kept its
+        15p because the sweep only knew the dashboard ledger."""
+        stale = _check("processing", started_min_ago=30)
+        stale.user_id = "u-1"
+        session, refund = _fake_sweep_session([stale], monkeypatch)
+        agent_refund = AsyncMock(return_value=1)
+        import app.services.agent_refunds as ar_mod
+
+        monkeypatch.setattr(ar_mod, "refund_stranded_agent_transaction", agent_refund)
+
+        assert await sweep_stale_checks(session=session) == 1
+        refund.assert_awaited_once()
+        agent_refund.assert_awaited_once_with(session, stale.id, user_id="u-1")
+        assert stale.status == "failed"
+
+    @pytest.mark.asyncio
     async def test_one_bad_row_never_aborts_the_sweep(self, monkeypatch):
         stale_a = _check("processing", started_min_ago=30)
         stale_b = _check("processing", started_min_ago=40)

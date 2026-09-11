@@ -55,7 +55,17 @@ async def sweep_stale_pending_transactions(session: AsyncSession) -> int:
 
 
 async def _stale_pending_loop() -> None:
-    """Infinite loop that sweeps stale pending transactions every 5 minutes."""
+    """Infinite loop, every 5 minutes: sweep stale pending transactions, then
+    stale checks.
+
+    The check sweep used to run at boot only (hang-proofing W2). A check
+    stranded by a deploy seconds after it started was too young for the boot
+    sweep of the NEW instance (cutoff = watchdog + grace) and then had no
+    second chance — check 5525b573 sat `processing` with its 15p unrefunded
+    (2026-09-11). Running the same sweep on this loop closes that gap; it is
+    deploy-overlap safe by construction (only rows older than the ceiling are
+    ever touched), so a periodic run is as safe as the boot run.
+    """
     while True:
         await asyncio.sleep(SWEEP_INTERVAL_SECONDS)
         try:
@@ -63,6 +73,12 @@ async def _stale_pending_loop() -> None:
                 await sweep_stale_pending_transactions(session)
         except Exception:
             logger.exception("Stale-pending sweep failed")
+        try:
+            from app.core.inflight import sweep_stale_checks
+
+            await sweep_stale_checks()
+        except Exception:
+            logger.exception("Periodic stale-check sweep failed")
 
 
 def start_stale_pending_cleanup() -> asyncio.Task:
