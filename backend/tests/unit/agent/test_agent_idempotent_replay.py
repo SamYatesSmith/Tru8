@@ -168,6 +168,58 @@ class TestRunPathShortCircuits:
         run_pipeline.assert_not_awaited()
 
 
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestCheckIsInsertedBeforeTheTransactionLinksToIt:
+    """2026-09-11, live 500: linking tx.check_id in the same commit as the
+    check INSERT is right (a resend must never see a visible tx with no
+    check), but without a flush in between SQLAlchemy issued the tx UPDATE
+    first and Postgres refused the foreign key on every agent run
+    (agent_transaction_check_id_fkey, request 465c4d2b). Pin: add → flush →
+    link → commit, and the tx is unlinked at flush time."""
+
+    async def test_add_flush_link_commit_order(self):
+        fresh_tx = SimpleNamespace(id="tx-new", check_id=None, status="pending")
+        payment = SimpleNamespace(
+            provider="credit",
+            token_exp=None,
+            user_id="user-1",
+            payer_id="user-1",
+            charge=AsyncMock(return_value=fresh_tx),
+        )
+        session = AsyncMock()
+        session.add = MagicMock()
+        link_state_at_flush = {}
+
+        async def _flush():
+            link_state_at_flush["check_id"] = fresh_tx.check_id
+
+        session.flush = AsyncMock(side_effect=_flush)
+        body = SimpleNamespace(claim="some claim", input_type=None, compact=False)
+
+        with patch.object(
+            agent_mod, "_run_pipeline_background", MagicMock()
+        ), patch.object(agent_mod.asyncio, "create_task", MagicMock()):
+            out = await agent_mod._run_agent_pipeline(
+                body=body,
+                tier="full",
+                amount_pence=15,
+                claim_hash="h",
+                request_hash="r",
+                limitations=[],
+                payment=payment,
+                session=session,
+                idempotency_key="mcp-abc",
+                async_mode=True,
+            )
+
+        assert out.status_code == 202
+        names = [c[0] for c in session.method_calls]
+        assert names[:3] == ["add", "flush", "commit"], names
+        assert link_state_at_flush["check_id"] is None  # linked AFTER the INSERT
+        assert fresh_tx.check_id == session.add.call_args.args[0].id
+
+
 def _tx(*, check_id="chk-first", tier="full", payer_id="user-1", status="completed"):
     from datetime import datetime
 
