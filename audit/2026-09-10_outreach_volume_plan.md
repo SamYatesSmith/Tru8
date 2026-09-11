@@ -1,6 +1,6 @@
 # Outreach at volume — hundreds of sends, and the marketing kit behind them
 
-**Status:** DRAFT for the founder, 2026-09-10 (written the hour the line was drawn on pipeline work). Nothing here has been sent or built. Decisions marked ▶ are the founder's.
+**Status:** DECIDED 2026-09-11 — see §9. The sequencer-led 300-send motion (§3 target, §4, §6 thresholds, §7 steps 2–8) is **DEFERRED until the wave-1 verdict** (Mon 21 Sep). What runs now is tailored-at-volume, hand-sent, every record read: `audit/2026-09-11_outreach_operating_procedure.md`. The segment analysis (§2), list rules (§3), kit list (§5) and the "will not do" list (§8) still stand.
 **Sits beside, not instead of:** `audit/OUTREACH.md` (the 50-name bespoke plan — still the highest-signal motion, and its five notes are still the first sends). This document is the second motion: volume, templated, segment-led.
 **Founder's words:** *"I need, literally hundreds of people to send emails out to, and associated marketing information. The outreach push is here!!"*
 
@@ -110,9 +110,9 @@ Everything below is drafted by the agent from **verified product facts only** (s
 - Put a number on the collateral that is not measured (no "95 % accurate", no "trusted by").
 - Send anything. The founder sends, or the tool sends on his account with his approval of each batch.
 
-## 9. ▶ Decisions needed to start
-1. Segments (recommend 1 + 2).
-2. List route (recommend Apollo for 1 and 3; media database or hand-built for 2).
-3. Sending tool + subdomain name.
-4. Whether segment 5 (developer launch) runs in parallel.
-5. Budget ceiling for the push (tools ~£100–£250/month for one to two months).
+## 9. ✅ Decisions — taken by the founder 2026-09-11
+1. **Segments:** journalists (UK) + newsletter writers first (segment 2); OSINT rows ride along. Legal (segment 1), comms/think-tank (3) and the rest wait for the wave-1 verdict.
+2. **List route:** the 667 rows already collected. No Apollo, no media database. A second sweep with the founder's browser for the blocked sources if wanted.
+3. **Sending tool + subdomain:** none for wave 1 — hand-sent from the founder's mailbox and accounts. A separate sending subdomain + mailbox (name: founder's choice, e.g. `hello@mail.trueight.com`) is set up now and warms while wave 1 runs; a sequencer only if the verdict says a segment works and volume exceeds hand capacity (~300+).
+4. **Developer launch (segment 5):** separate motion, later; not in this push.
+5. **Budget:** ceiling £750–£1,000 available; waves 0–1 spend **under £20** plus check money. Held back for after the verdict: a paid usability study (~£200), one niche-newsletter slot (~£100–300), tooling for a proven segment (£50–100/month). No ads, ever, for this product.

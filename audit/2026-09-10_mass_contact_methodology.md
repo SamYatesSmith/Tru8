@@ -1,7 +1,8 @@
 # Mass-contact methodology — collect everyone first, then contact by segment and route
 
 **Status:** DRAFT 2026-09-10, written the hour the founder said *"Everybody and anybody whom may show an interest in the product. Any way to contact them, is welcome. Collect all recipient information and then arrange a mass contact styled methodology."*
-**Companion:** `audit/2026-09-10_outreach_volume_plan.md` (segments, infrastructure, kit). This document is the operating procedure.
+**Companion:** `audit/2026-09-10_outreach_volume_plan.md` (segments, infrastructure, kit).
+**⚠️ 2026-09-11: the operating procedure is now `audit/2026-09-11_outreach_operating_procedure.md`.** Phases 1–2 below (collect, consolidate) are done and still describe the list. Phases 3–5 (subdomain warm-up, sequencer waves of 100–300, 3 %/2 % thresholds) are DEFERRED until the wave-1 verdict; sends now go by hand, ≤25/day, every record read, from the queue file `audit/recipients/queue.csv`.
 **Data lives in** `audit/recipients/` — gitignored; never committed; the master is `master.csv`, rejections `master.rejected.csv`.
 
 ---

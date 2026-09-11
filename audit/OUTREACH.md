@@ -14,6 +14,10 @@ Founder: *"Everybody and anybody whom may show an interest in the product. Any w
 
 **RECIPIENT SWEEP 1 DONE 2026-09-10 ~15:50 — 667 validated rows in `audit/recipients/master.csv` (gitignored), zero rejections.** Six parallel collectors, every row citing the public page where its route was seen; six random email rows spot-checked verbatim on-page 6/6. By segment: journalists_uk 153 · newsletters 128 (UK 47, US 81) · legal_uk 90 · thinktank_uk 33 · comms_uk 29 · community_news 28 · libraries 28 · journalism_schools 23 · media_literacy 22 · civic 21 · dev_newsletters 32 · dev_directories 23 · dev_communities 16 · dev_press 14 · research_integrity 14 · osint 13. By route: email 227 · org_inbox 113 · bluesky 92 · substack 87 · contact_form 45 · press_office 31 · x 29 · submission_form 18 · linkedin 17 · github 8. Countries: UK 480 · US 141 · Ireland 25. 649/667 carry a dated current_topic. **55 rows carry a review flag** (address seen on a page other than the org's own domain; 19 Cloudflare-obfuscated addresses decoded from the page source — eyeball before sending; 14 journalist rows the collector marked weak). Blocked sources recorded per collector (Law Society, IFS, King's Fund, Guardian/BBC/FT/Times fetch-refused, ESU, CILIP…) — a second sweep with the founder's browser or a media database would add these. Tooling: `backend/scripts/merge_recipients.py` (evidenced routes only, no personal mailboxes, dedup on best route); methodology `audit/2026-09-10_mass_contact_methodology.md`; segments/infra/kit `audit/2026-09-10_outreach_volume_plan.md`.
 
+## 2026-09-11 — RECONCILED: tailored at volume, every record read. Operating procedure is `audit/2026-09-11_outreach_operating_procedure.md`
+
+Founder, 2026-09-11: little money for marketing, but knowledge and tools to automate — *"play to our strengths… tailor these outreaches, make them pertinent"*; budget ceiling £750–£1,000 if needed. Resolution of the bespoke-vs-volume split: **neither. Automate the tailoring (record + draft), never the message; the founder reads every record before it goes.** The old "no automation, no templates, no volume" bullet below is rewritten accordingly. Wave 0 = the five bespoke notes (today, re-run on the live build). Wave 1 = 50 tailored sends from the 667-row list, journalists + newsletter writers, Mon 14 – Tue 15 Sep, hand-sent at the queue's day/time; wave 2 continues at ≤25/day through Fri 18; **verdict at 50 sends + one week (Mon 21 Sep) against the table below.** Spend for waves 0–1: under £20 plus check money; a sending subdomain + mailbox is the only purchase now; usability study and a niche-newsletter slot only after the verdict; no sequencer, database or ads before it. Working file: `audit/recipients/queue.csv` (gitignored) built by `backend/scripts/outreach_queue.py` — priority, wave, approach day/time, channel, and every per-recipient state column. Records run by the API route under the founder's key (`tru8_check`, full, `max_age_hours=0`).
+
 ## Why this plan is shaped the way it is — four facts
 
 1. **Tru8 has never been used by a stranger — by literally zero.** 12 accounts
@@ -496,10 +500,13 @@ was sending by hand as the 2026-09-04 session closed.
 
 ## The cadence
 
-- **5 sends/week for 10 weeks. Every message bespoke.** Each ≈ 20 min: find
-  the live claim (10), run + read the check (5; **measured median 1.18p/check,
-  full tier ~1.3p** — prod telemetry via `scripts/cost_report.py` 2026-08-12;
-  the old ~2–7p estimate was 2–5x high), write the note (5).
+- **Up to 25 tailored sends per working day, every record read by the founder
+  (rewritten 2026-09-11; was 5 bespoke/week for 10 weeks).** The agent verifies
+  the recipient's current claim, runs the record (**measured median 1.18p/check,
+  full tier ~1.3p** — prod telemetry via `scripts/cost_report.py` 2026-08-12),
+  pressure-passes it, drafts the note for the route and has it fact-checked by a
+  second pass; the founder reads (~3 min each) and sends by hand at the queue's
+  day and time. Procedure: `audit/2026-09-11_outreach_operating_procedure.md`.
 - **Never send an unread record**, and send it whatever it shows — choosing
   only agreeable landscapes would breach invariant #7 at the distribution
   layer.
@@ -527,9 +534,14 @@ Every outcome is worth more than ten lukewarm signups.
 - **No community broadcast** unless the founder already has standing somewhere
   claims are argued (open question — answering it changes nothing above, it
   only adds a supplementary lane).
-- **No automation, no templates, no volume.** Mass/automated content is
-  penalised 50–90% and manipulated AI-visibility is classified as spam. Low
-  volume is a requirement of the method, not a limitation.
+- **No templated sends, no unread records, no sequencer before the wave-1
+  verdict (rewritten 2026-09-11; was "no automation, no templates, no volume").**
+  Mass/automated *content* is penalised 50–90% and manipulated AI-visibility is
+  classified as spam — so automation is allowed only upstream of the message:
+  topic verification, the record, the draft, the fact-check pass. Every message
+  is about the recipient's own current claim and every record is read by the
+  founder before it goes. Volume is whatever that reading capacity allows
+  (≈25/day), not a target.
 - **The agent/MCP channel stays passive.** It is built, listed and paid for;
   one worked example when time allows. It validates integration demand, not
   whether a human values the report — which is the question this plan exists
