@@ -879,6 +879,7 @@ async def _run_agent_pipeline(
     # window in which the transaction was visible with check_id NULL, and a
     # resend landing there took the double-run path.
     session.add(check)
+    await session.flush()  # INSERT the check before the tx UPDATE references it
     tx.check_id = check.id
     await session.commit()
     await session.refresh(check)

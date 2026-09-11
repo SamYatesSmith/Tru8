@@ -192,6 +192,7 @@ async def _run_x402_pipeline(
         executed_tier=tier,  # M-03: record pipeline tier at creation
     )
     session.add(check)
+    await session.flush()  # INSERT the check before the tx UPDATE references it
     tx.check_id = check.id  # linked in the same commit that exposes the tx
     await session.commit()
     await session.refresh(check)
