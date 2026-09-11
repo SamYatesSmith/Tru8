@@ -1,6 +1,6 @@
 # Determinism design — idempotent charging and stable records (2026-09-11)
 
-**Status:** PROPOSAL for the founder, written from three same-day investigations, all free:
+**Status (updated 15:30 BST):** §1 idempotency **BUILT AND LIVE-VERIFIED** the same day (`19fe47e` + hotfix `81f2b29` + test `7d342f7`; resend 6 min later → same check, 0p); the stranded-check finding from the probe led to a fourth build, **agent-rail refund parity** (`c687230`, `app/services/agent_refunds.py`, deployed, unexercised live). §3–§4 variance design and the ~£1 measurement: **NOT started** — founder's go owed; the Friday wildfire pool cache has expired, so the measurement needs a fresh 24 h replay pair. Written from three same-day investigations, all free:
 `2026-09-11_idempotency_root_cause.md` (code trace), `2026-09-11_variance_sources.md` (every
 nondeterminism source after retrieval, with lines), `2026-09-11_variance_pairs.md` (two matched
 pairs measured from public payloads). Nothing here is built.

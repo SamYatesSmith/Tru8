@@ -218,3 +218,40 @@ Verdict at 50 sends per the `OUTREACH.md` table. Per-recipient truth is the queu
 - No pipeline work. A record that fails §4C is held; the reason is logged in `OPEN_WORK.md`
   as a product observation, not built this week.
 - No sends from the agent, ever.
+
+## 11. Session-start script — what the agent asks and does, every outreach morning
+
+The agent runs the day; the founder answers, reads and sends. Open with these, in order, and
+log every answer before doing anything else.
+
+1. **"What went since we last spoke?"** recipient · route · time, for every send → `sent_on`,
+   `sent_by_route` in `queue.csv` (wave 0: the log table in `wave0/SEND_SHEET_*.md`) and the
+   FIRST TOUCH / wave lines in `OUTREACH.md`.
+2. **"Any replies?"** every channel (mailbox, Substack, Bluesky, X, Carbon Brief form, blog
+   comments) → §4H: reply shape logged, Mom-Test reply drafted, comp on a bite, opt-out →
+   `suppressed` the same hour.
+3. **"Anything you marked up?"** `review_flagged.csv` decisions → merged into `queue.csv`.
+4. **"Go for today's records?"** state the count and the nominal cost (N × 15p agent price,
+   ~1.2p real each). Never run a paid check without the word.
+5. **Setup checks, until they are done:** Substack subscriptions for the day's Substack rows ·
+   Bluesky DM setting · Railway watch paths (`backend/**`) so docs pushes stop redeploying.
+
+Then the day (§5), with two calibrations learned on 2026-09-11:
+- **Expect about half of fresh records to be held** after the pressure pass. A held row is
+  the procedure working; log the reason, move on, do not re-run to fish for a better draw.
+- **Records run today send tomorrow.** Verify topics for day N+1 in the afternoon (free), run
+  records the next morning after the go, founder reads by early afternoon, sends at the
+  slots the following morning. Rebuild the queue's remaining days with
+  `outreach_queue.py --start <day after tomorrow>` when the schedule slips.
+
+Run paid checks **one at a time** (hosted MCP tool sequentially, or REST `POST /agent/check`
+with the API key in a header file). Five in parallel through the MCP transport produced a
+502, a dropped stream, a timeout and a duplicate charge.
+
+**A fresh re-run is not automatically the better artefact.** On 2026-09-11 two of three fresh
+records graded C against their 2 September predecessors. Pressure-pass the new one, compare
+with the old on the page, choose, and say which in the send sheet.
+
+**The second fact-check agent is not optional.** It caught a misquoted headline and a claim
+wrongly attributed to the recipient in 2 of 5 notes that the drafting agent had already
+"verified".
