@@ -13,7 +13,6 @@ from typing import Optional
 
 import hashlib
 import json
-import time
 
 import httpx
 
@@ -44,22 +43,38 @@ TIER_TIMEOUTS = {
 # Tier order for fallback
 TIER_ORDER = ["lookup", "consensus", "quick", "full"]
 
-# Idempotency (2026-09-02). Over the hosted transport the streamable-HTTP
-# stream dies at ~140 s; the client's next POST is rejected, it re-initialises
-# and RE-SENDS the pending tool call, and the server runs it again. One
-# tru8_check produced two charged checks (dd2ca726 + c8dd4886, 15p each).
-# The API already honours an Idempotency-Key (agent_auth.py: same key + same
-# request hash → the first transaction is returned, no second charge); the
-# client just never sent one. The key is derived from the endpoint, the
-# payload and a ten-minute window, so a transport retry maps onto the first
-# call and a deliberate identical call ten minutes later is a new one.
-IDEMPOTENCY_WINDOW_S = 600.0
+# Idempotency (2026-09-02, rebuilt 2026-09-11). Over the hosted transport the
+# streamable-HTTP stream dies at ~140 s; the client's next POST is rejected,
+# it re-initialises and RE-SENDS the pending tool call, and the server runs it
+# again. One tru8_check produced two charged checks (dd2ca726 + c8dd4886).
+# The API honours an Idempotency-Key (agent_auth.py: same key + same request
+# hash + same payer → the first transaction is returned, no second charge).
+#
+# ⚠️ The 2026-09-02 key mixed in floor(epoch / 600) — a FIXED clock bucket
+# aligned to :00/:10/:20 of every hour, not a window from the first call. A
+# retry after gap g straddled a boundary with probability g/600 (57% for the
+# 340 s gap seen 2026-09-11: 09:58:40 → 10:04:20, checks a093c7d2 + bebfa026,
+# both charged). The key now carries NO time term; the ten-minute window is
+# enforced server-side from the first transaction's created_at
+# (settings.AGENT_IDEMPOTENCY_TTL_S). It is salted with the caller's API key so
+# two hosted users sending the same claim can never share a key — before this,
+# the second would have been handed the first's check, uncharged.
+IDEMPOTENCY_WINDOW_S = 600.0  # documentary: the server's TTL, not used here
 
 
-def idempotency_key_for(endpoint: str, payload: dict, now: Optional[float] = None) -> str:
-    """One key per (endpoint, payload, ten-minute window) — see IDEMPOTENCY_WINDOW_S."""
-    bucket = int((time.time() if now is None else now) // IDEMPOTENCY_WINDOW_S)
-    raw = json.dumps({"e": endpoint, "p": payload, "b": bucket}, sort_keys=True, default=str)
+def idempotency_key_for(
+    endpoint: str, payload: dict, api_key: Optional[str] = None
+) -> str:
+    """One key per (endpoint, payload, caller). No time term — see above."""
+    raw = json.dumps(
+        {
+            "e": endpoint,
+            "p": payload,
+            "k": hashlib.sha256((api_key or "").encode("utf-8")).hexdigest()[:16],
+        },
+        sort_keys=True,
+        default=str,
+    )
     return "mcp-" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:40]
 
 
@@ -137,7 +152,9 @@ class Tru8APIClient:
             resp = await client.post(
                 f"{self.base_url}/api/v1/agent/{tier}",
                 json=payload,
-                headers=self._headers(idempotency_key_for(f"agent/{tier}", payload)),
+                headers=self._headers(
+                    idempotency_key_for(f"agent/{tier}", payload, self.api_key)
+                ),
             )
             if resp.status_code == 402:
                 raise InsufficientBalanceError(f"Insufficient balance for {tier} tier")
@@ -182,7 +199,9 @@ class Tru8APIClient:
             resp = await client.post(
                 f"{self.base_url}/api/v1/agent/check",
                 json=payload,
-                headers=self._headers(idempotency_key_for("agent/check", payload)),
+                headers=self._headers(
+                    idempotency_key_for("agent/check", payload, self.api_key)
+                ),
             )
             if resp.status_code == 402:
                 raise InsufficientBalanceError(

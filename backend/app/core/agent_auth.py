@@ -12,6 +12,7 @@ This split prevents accidental balance mutations on retrieval routes.
 import hashlib
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Callable, Optional
 
 from fastapi import Depends, HTTPException, Request
@@ -55,8 +56,18 @@ class AgentPaymentContext(AgentIdentity):
     ) -> AgentTransaction:
         """Create an AgentTransaction and charge the agent.
 
-        Handles idempotency: duplicate key with same request_hash returns cached
-        response; duplicate with different request_hash raises 409 Conflict.
+        Idempotency (rebuilt 2026-09-11): a transaction carrying the same
+        Idempotency-Key is returned instead of charging again when it belongs
+        to THIS payer, was made with the same request_hash, and is either still
+        pending or younger than ``settings.AGENT_IDEMPOTENCY_TTL_S`` (a sliding
+        window from its own created_at — the client used to derive a fixed
+        clock bucket, so a retry straddling a ten-minute boundary was a second
+        charge). Another payer's key is a 409, never a replay: before this
+        check two hosted-MCP users sending the same claim in one bucket would
+        have shared one check, the second uncharged. A terminal transaction
+        older than the window has its key retired (``key#txid``) so the same
+        key can charge afresh; the unique index on idempotency_key is the race
+        guard, and a lost race re-reads the winner.
 
         For credit provider: checks and debits balance before creating transaction.
         """
@@ -67,19 +78,28 @@ class AgentPaymentContext(AgentIdentity):
                     status_code=400,
                     detail="request_hash required when Idempotency-Key is provided",
                 )
-            existing = await self.session.execute(
-                select(AgentTransaction).where(
-                    AgentTransaction.idempotency_key == idempotency_key
-                )
+            existing_tx = await find_idempotent_transaction(
+                self.session, idempotency_key
             )
-            existing_tx = existing.scalar_one_or_none()
             if existing_tx:
-                if existing_tx.request_hash != request_hash:
+                disposition = idempotency_disposition(
+                    existing_tx,
+                    payer_id=self.payer_id,
+                    request_hash=request_hash,
+                )
+                if disposition == "replay":
+                    return existing_tx
+                if disposition == "expired":
+                    # Retire the old key so the unique index admits a fresh
+                    # charge under the same key; the retired row keeps its
+                    # history under ``key#txid``.
+                    existing_tx.idempotency_key = f"{idempotency_key}#{existing_tx.id}"
+                    await self.session.flush()
+                else:
                     raise HTTPException(
                         status_code=409,
-                        detail="Idempotency-Key already used with different parameters",
+                        detail=IDEMPOTENCY_CONFLICT_DETAIL[disposition],
                     )
-                return existing_tx
 
         # Credit provider: check and debit balance
         if self.provider == "credit":
@@ -105,8 +125,82 @@ class AgentPaymentContext(AgentIdentity):
             tx_metadata={"claim_text_hash": description} if description else None,
         )
         self.session.add(tx)
-        await self.session.flush()
+        try:
+            await self.session.flush()
+        except IntegrityError:
+            # Lost the race on the unique idempotency_key index: a concurrent
+            # resend inserted first. Roll back (this also undoes our debit)
+            # and hand back the winner if it is ours.
+            await self.session.rollback()
+            winner = await find_idempotent_transaction(self.session, idempotency_key)
+            if winner is not None and (
+                idempotency_disposition(
+                    winner, payer_id=self.payer_id, request_hash=request_hash
+                )
+                == "replay"
+            ):
+                return winner
+            raise HTTPException(
+                status_code=409,
+                detail="Idempotency-Key is in use by a concurrent request",
+            )
         return tx
+
+
+IDEMPOTENCY_CONFLICT_DETAIL = {
+    "other_payer": "Idempotency-Key belongs to another caller",
+    "different_request": "Idempotency-Key already used with different parameters",
+}
+
+_TERMINAL_TX_STATUSES = ("completed", "failed", "refunded", "unsettled")
+
+
+async def find_idempotent_transaction(
+    session: AsyncSession, idempotency_key: str
+) -> Optional[AgentTransaction]:
+    """The live transaction (if any) registered under this Idempotency-Key."""
+    result = await session.execute(
+        select(AgentTransaction).where(
+            AgentTransaction.idempotency_key == idempotency_key
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+def idempotency_disposition(
+    existing_tx: AgentTransaction,
+    *,
+    payer_id: str,
+    request_hash: Optional[str],
+    now: Optional[datetime] = None,
+    ttl_s: Optional[int] = None,
+) -> str:
+    """How a resend that presents an existing key should be treated.
+
+    ``replay``            same payer, same request, still pending or inside the
+                          sliding window → return the existing transaction.
+    ``expired``           same payer, same request, terminal and older than the
+                          window → retire the key and charge afresh.
+    ``other_payer``       the key was registered by a different payer → 409.
+    ``different_request`` same payer, different request_hash → 409.
+    """
+    if existing_tx.payer_id != payer_id:
+        return "other_payer"
+    if request_hash is not None and existing_tx.request_hash != request_hash:
+        return "different_request"
+    if existing_tx.status not in _TERMINAL_TX_STATUSES:
+        return "replay"
+    ttl = settings.AGENT_IDEMPOTENCY_TTL_S if ttl_s is None else ttl_s
+    created = existing_tx.created_at
+    if not isinstance(created, datetime):
+        return "replay"
+    if created.tzinfo is not None:
+        created = created.astimezone(timezone.utc).replace(tzinfo=None)
+    current = now or datetime.now(timezone.utc).replace(tzinfo=None)
+    if current.tzinfo is not None:
+        current = current.astimezone(timezone.utc).replace(tzinfo=None)
+    age_s = (current - created).total_seconds()
+    return "replay" if age_s <= ttl else "expired"
 
 
 def compute_request_hash(tier: str, claim_hash: str, compact: bool) -> str:

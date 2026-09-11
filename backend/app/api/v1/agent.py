@@ -192,6 +192,22 @@ async def agent_smart_check(
     valid_tiers = ("lookup", "consensus", "quick", "full")
     max_tier = body.max_tier if body.max_tier in valid_tiers else "full"
 
+    # Step 0 (2026-09-11): a resend is decided by its Idempotency-Key BEFORE
+    # tier resolution. Without this, a retry arriving after the original
+    # completed fell into the lookup branch below, presented a lookup-tier
+    # request hash against the stored full-tier one, and got a 409 instead of
+    # its own check back.
+    if idempotency_key:
+        replay = await _replay_for_key(
+            session=session,
+            payment=payment,
+            idempotency_key=idempotency_key,
+            claim_hash=claim_hash,
+            compact=body.compact,
+        )
+        if replay is not None:
+            return replay
+
     # Step 1: Try lookup (same query as /agent/lookup)
     result = await session.execute(
         select(Claim, Check)
@@ -858,13 +874,14 @@ async def _run_agent_pipeline(
         client=client,  # first-party client attribution (e.g. "mcp")
         executed_tier=tier,  # M-03: record pipeline tier at creation
     )
+    # Link the transaction to its check in the SAME commit that makes the
+    # transaction visible (2026-09-11). Committing the check first left a
+    # window in which the transaction was visible with check_id NULL, and a
+    # resend landing there took the double-run path.
     session.add(check)
-    await session.commit()
-    await session.refresh(check)
-
-    # Link transaction to check
     tx.check_id = check.id
     await session.commit()
+    await session.refresh(check)
 
     # --- Async mode: launch pipeline in background, return 202 immediately ---
     if async_mode:
@@ -1035,6 +1052,52 @@ async def _run_agent_pipeline(
         await handle_pipeline_failure(check.id, payment.user_id, e)
         _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
         raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
+
+
+async def _replay_for_key(
+    *,
+    session: AsyncSession,
+    payment: AgentPaymentContext,
+    idempotency_key: str,
+    claim_hash: str,
+    compact: bool,
+) -> Optional[JSONResponse]:
+    """Replay the check an Idempotency-Key already owns, or return None.
+
+    Runs before the smart endpoint resolves a tier, so the decision is made
+    on the key alone: same payer + same claim/compact under the stored tier +
+    still pending or inside the sliding window → the original check. Another
+    payer's key or a different request → 409. An expired key → None, and
+    charge() retires it and charges afresh.
+    """
+    from app.core.agent_auth import (
+        IDEMPOTENCY_CONFLICT_DETAIL,
+        find_idempotent_transaction,
+        idempotency_disposition,
+    )
+    from app.pipeline.runner import DEFAULT_CONFIG, QUICK_CONFIG
+
+    tx = await find_idempotent_transaction(session, idempotency_key)
+    if tx is None or not tx.check_id:
+        return None
+    expected_hash = compute_request_hash(tx.tier, claim_hash, compact or False)
+    disposition = idempotency_disposition(
+        tx, payer_id=payment.payer_id, request_hash=expected_hash
+    )
+    if disposition == "replay":
+        config = QUICK_CONFIG if tx.tier == "quick" else DEFAULT_CONFIG
+        return await _idempotent_replay(
+            tx=tx,
+            tier=tx.tier,
+            limitations=limitations_for_tier(tx.tier),
+            compact=compact or False,
+            max_wait_s=config.max_wall_time_seconds,
+        )
+    if disposition == "expired":
+        return None
+    raise HTTPException(
+        status_code=409, detail=IDEMPOTENCY_CONFLICT_DETAIL[disposition]
+    )
 
 
 async def _idempotent_replay(

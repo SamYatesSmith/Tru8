@@ -161,6 +161,19 @@ async def _run_x402_pipeline(
     # Set tx ID on request state for audit middleware correlation
     request.state.agent_tx_id = tx.id
 
+    # Idempotent replay (parity with agent.py, 2026-09-11): a transaction that
+    # already owns a check is a resend — return that check, never run again.
+    if tx.check_id:
+        from app.api.v1.agent import _idempotent_replay
+
+        return await _idempotent_replay(
+            tx=tx,
+            tier=tier,
+            limitations=limitations,
+            compact=body.compact or False,
+            max_wait_s=config.max_wall_time_seconds,
+        )
+
     # Honour input_type (parity with /agent): auto-detect URL vs text so a URL
     # submitted via x402 is fetched/extracted rather than treated as literal text.
     resolved_type, input_data = _resolve_input(body.claim, body.input_type)
@@ -179,11 +192,9 @@ async def _run_x402_pipeline(
         executed_tier=tier,  # M-03: record pipeline tier at creation
     )
     session.add(check)
+    tx.check_id = check.id  # linked in the same commit that exposes the tx
     await session.commit()
     await session.refresh(check)
-
-    tx.check_id = check.id
-    await session.commit()
 
     progress_reporter = ProgressReporter(check.id)
 

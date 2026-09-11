@@ -1,6 +1,7 @@
 # Two defects from the Build A control arm — fetch-phase deadline, MCP idempotency (2026-09-02)
 
 **Status:** BUILT the same evening (founder: "Proceed with recommendation").
+**⚠️ SUPERSEDED IN PART 2026-09-11.** The idempotency key designed here mixed in `floor(epoch/600)` — a fixed clock bucket, not a window from the first call — so a retry after gap *g* carried a NEW key with probability *g*/600 and was charged again (57% for the 340 s gap observed 2026-09-11). It also carried no caller identity. Root cause and the rebuilt design (no time term, API-key salt, server-side sliding TTL, payer check, key retirement, smart-endpoint pre-lookup replay): `audit/2026-09-11_idempotency_root_cause.md`, built the same day. The "rare and harmless" residual claimed below was wrong on both counts.
 **Found by:** `audit/OPEN_WORK.md` 2026-09-02, control arm item 1 — the TTE run `dd2ca726` and its retry `c8dd4886`.
 
 ## Defect 1 — the 45 s per-claim deadline discarded the whole web lane

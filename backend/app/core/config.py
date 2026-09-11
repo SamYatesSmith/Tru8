@@ -655,6 +655,13 @@ class Settings(BaseSettings):
     MAX_CONCURRENT_AGENT_ANALYSES: int = Field(
         5, env="MAX_CONCURRENT_AGENT_ANALYSES"
     )  # Separate pool for agent-initiated pipelines (O-03)
+    AGENT_IDEMPOTENCY_TTL_S: int = Field(
+        600, env="AGENT_IDEMPOTENCY_TTL_S"
+    )  # Sliding window, from the FIRST transaction's created_at, inside which
+    # a resend carrying the same Idempotency-Key (same payer, same request
+    # hash) is replayed rather than charged again (2026-09-11). The window
+    # used to live in the MCP client as floor(epoch/600) — a fixed clock
+    # bucket, so a retry straddling :00/:10/:20 was a second charge.
     MAPPING_GOOGLE_MODEL: str = Field(
         "gemini-3.7-flash", env="MAPPING_GOOGLE_MODEL"
     )  # Google model for evidence mapping (highest-stakes call).
