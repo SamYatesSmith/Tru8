@@ -1275,3 +1275,20 @@ class TestCleanUncertainty:
 
         sentence = "Newer research challenges the protective effect."
         assert _clean_uncertainty(sentence) == sentence
+
+    def test_sentinel_written_as_a_sentence_becomes_none(self):
+        """Live record b8cf098b (2026-09-21) stored "None." and the public page
+        printed "Note · None." on two elements. Trailing punctuation must not
+        defeat the sentinel test."""
+        from app.pipeline.claim_map_analyzer import _clean_uncertainty
+
+        assert _clean_uncertainty("None.") is None
+        assert _clean_uncertainty("none. ") is None
+        assert _clean_uncertainty("N/A.") is None
+        assert _clean_uncertainty("null!") is None
+
+    def test_sentence_opening_with_none_of_still_passes(self):
+        from app.pipeline.claim_map_analyzer import _clean_uncertainty
+
+        sentence = "None of the sources gives a date for the figure."
+        assert _clean_uncertainty(sentence) == sentence

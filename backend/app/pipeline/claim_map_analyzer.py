@@ -81,10 +81,18 @@ _UNCERTAINTY_SENTINELS = {"null", "none", "n/a", "na", ""}
 
 
 def _clean_uncertainty(value) -> Optional[str]:
-    """Normalise LLM sentinel strings ("null", "none", …) to real None."""
+    """Normalise LLM sentinel strings ("null", "none", "None.", …) to real None.
+
+    The sentinel sometimes arrives as a sentence — "None." — which reached the
+    stored record, the PDF and the public page as a literal "Note · None."
+    (live record b8cf098b, 2026-09-21). Trailing punctuation is stripped before
+    the sentinel test; a real sentence that merely opens with "None of…" is
+    untouched.
+    """
     if not value or not isinstance(value, str):
         return None
-    return None if value.strip().lower() in _UNCERTAINTY_SENTINELS else value
+    normalised = value.strip().lower().rstrip(".!:; ")
+    return None if normalised in _UNCERTAINTY_SENTINELS else value
 
 
 # Causal-link detector (§4d fix 2). Deliberately broad — verbs + connectives —

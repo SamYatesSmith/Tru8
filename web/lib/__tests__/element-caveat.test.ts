@@ -48,6 +48,15 @@ describe('elementCaveatNote — the roster shows limits, never adjudications', (
     for (const v of ['null', 'None', 'N/A', 'n/a', '', '   ', 'undefined']) {
       expect(elementCaveatNote(v)).toBeNull();
     }
+    // The mapper sometimes writes the sentinel as a sentence — live record
+    // b8cf098b (2026-09-21) rendered "Note · None." on two elements.
+    for (const v of ['None.', 'none.', 'N/A.', 'null. ']) {
+      expect(elementCaveatNote(v)).toBeNull();
+    }
+    // A real sentence that merely starts with a sentinel word still shows.
+    expect(elementCaveatNote('None of the sources gives a date for the figure.')).toBe(
+      'None of the sources gives a date for the figure.',
+    );
     expect(elementCaveatNote(null)).toBeNull();
     expect(elementCaveatNote(undefined)).toBeNull();
   });

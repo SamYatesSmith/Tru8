@@ -53,7 +53,10 @@ export function elementCaveatNote(uncertainty: string | null | undefined): strin
   if (typeof uncertainty !== 'string') return null;
   const text = uncertainty.trim();
   if (!text) return null;
-  if (SENTINELS.has(text.toLowerCase())) return null;
+  // "None." — the mapper sometimes writes the sentinel as a sentence
+  // (seen live 2026-09-21, record b8cf098b: "Note · None." printed on two
+  // elements). Strip trailing punctuation before the sentinel test.
+  if (SENTINELS.has(text.toLowerCase().replace(/[.\s]+$/, ''))) return null;
   if (VERDICT_WORD_RE.test(text)) return null;
   if (INTENSIFIED_EVIDENCE_RE.test(text)) return null;
   return text;
