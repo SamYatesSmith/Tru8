@@ -233,7 +233,8 @@ log every answer before doing anything else.
 3. **"Anything you marked up?"** `review_flagged.csv` decisions → merged into `queue.csv`.
 4. **"Go for today's records?"** state the count and the nominal cost (N × 15p agent price,
    ~1.2p real each). Never run a paid check without the word.
-5. **Setup checks, until they are done:** Substack subscriptions for the day's Substack rows ·
+5. **Substack rows — the paid-only reply gate (learned 2026-09-16, TTE):** a reply to a Substack newsletter email from a FREE subscriber is silently refused when the writer's "Who can reply" setting is paid-only (Substack's default) — the notice arrives after the send. Before building an email reply for any Substack row, either confirm the gate is open (a prior reply landed) or route by DM / X / a paid subscription. Never log a Substack email reply as sent until no bounce notice has arrived.
+6. **Setup checks, until they are done:** Substack subscriptions for the day's Substack rows ·
    Bluesky DM setting · Railway watch paths (`backend/**`) so docs pushes stop redeploying.
 
 Then the day (§5), with two calibrations learned on 2026-09-11:
