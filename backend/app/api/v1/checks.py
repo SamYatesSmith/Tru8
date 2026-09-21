@@ -36,6 +36,7 @@ from app.api.v1.users import get_or_create_user
 from app.services.storage import storage_service
 from app.services.usage_ledger import (
     enforce_usage_limit,
+    is_admin_email,
     record_usage,
     reserve_usage,
 )
@@ -109,7 +110,9 @@ def safe_json_dumps(data: dict) -> str:
     return json.dumps(data, ensure_ascii=True, separators=(",", ":"))
 
 
-def _require_console_submission(request: Request) -> str:
+def _require_console_submission(
+    request: Request, current_user: Optional[dict] = None
+) -> str:
     """Reject programmatic (API-key) submission on the Console /checks endpoints.
 
     Console check submission is for signed-in users (Clerk JWT) and the SSE
@@ -122,10 +125,22 @@ def _require_console_submission(request: Request) -> str:
     Keys off the resolved auth method (set on request.state by the dual-auth
     dependency), with the X-API-Key header as a belt-and-braces fallback.
 
-    Returns the initiated_via tag ("dashboard") for the created Check.
+    One exemption (2026-09-21): an ADMIN_EMAILS account submitting with its own
+    API key is let through and billed to its subscription exactly like a
+    sign-in — the founder's agent runs outreach records on the founder's plan
+    instead of a prepaid balance he tops up to pay himself. The exemption needs
+    the RESOLVED method to be api_key (a verified caller, never a bare header)
+    and the caller's email on the allowlist; everyone else stays walled.
+
+    Returns the initiated_via tag for the created Check: "dashboard" for a
+    sign-in, "api_key" for the admin exemption.
     """
     auth_method = getattr(request.state, "auth_method", None)
     if auth_method == "api_key" or request.headers.get("X-API-Key"):
+        if auth_method == "api_key" and is_admin_email(
+            (current_user or {}).get("email")
+        ):
+            return "api_key"
         raise HTTPException(
             status_code=403,
             detail=(
@@ -661,7 +676,7 @@ async def create_check_streaming(
         PipelineError,
     )
 
-    via = _require_console_submission(request)
+    via = _require_console_submission(request, current_user)
     user, check = await _validate_and_create_check(
         body, current_user, session, initiated_via=via, client=resolve_client(request)
     )
@@ -932,7 +947,7 @@ async def create_check_sync(
         PipelineError,
     )
 
-    via = _require_console_submission(request)
+    via = _require_console_submission(request, current_user)
     user, check = await _validate_and_create_check(
         body, current_user, session, initiated_via=via, client=resolve_client(request)
     )
@@ -1603,7 +1618,7 @@ async def _reserve_re_search_credit(
 async def _start_research_operation(
     check_id, claim_id, request, current_user, session, mode, element_id=None
 ):
-    _require_console_submission(request)
+    _require_console_submission(request, current_user)
     from app.services.research_operations import admit_research, launch_operation
 
     user = await get_or_create_user(session, current_user)

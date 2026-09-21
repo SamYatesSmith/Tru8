@@ -45,10 +45,13 @@ from app.models.usage_event import (
 logger = logging.getLogger(__name__)
 
 
+def is_admin_email(email: Optional[str]) -> bool:
+    """True when the address is on ADMIN_EMAILS (case-insensitive)."""
+    return bool(email) and email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]
+
+
 def _is_admin(user: User) -> bool:
-    return bool(user.email) and user.email.lower() in [
-        e.lower() for e in settings.ADMIN_EMAILS
-    ]
+    return is_admin_email(user.email)
 
 
 async def _active_subscription(

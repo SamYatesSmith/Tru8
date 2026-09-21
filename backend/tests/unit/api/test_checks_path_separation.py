@@ -96,6 +96,65 @@ class TestRequireConsoleSubmission:
         assert _require_console_submission(request) == "dashboard"
 
 
+ADMIN = {"id": "u-admin", "email": "Founder@Example.com", "name": "F"}
+STRANGER = {"id": "u-2", "email": "someone@example.com", "name": "S"}
+
+
+class TestAdminApiKeyExemption:
+    """2026-09-21: an ADMIN_EMAILS account may submit with its own API key and
+    is billed to its subscription (initiated_via="api_key"). The wall is
+    unchanged for everyone else, and the exemption needs a RESOLVED api_key
+    caller — a bare header never qualifies.
+    """
+
+    def test_admin_resolved_api_key_is_allowed_and_tagged_api_key(self):
+        request = _make_request({"X-API-Key": "tk_live_x"}, auth_method="api_key")
+        with patch("app.services.usage_ledger.settings") as s:
+            s.ADMIN_EMAILS = ["founder@example.com"]  # case-insensitive match
+            assert _require_console_submission(request, ADMIN) == "api_key"
+
+    def test_non_admin_resolved_api_key_still_403(self):
+        request = _make_request({"X-API-Key": "tk_live_x"}, auth_method="api_key")
+        with patch("app.services.usage_ledger.settings") as s:
+            s.ADMIN_EMAILS = ["founder@example.com"]
+            with pytest.raises(HTTPException) as exc:
+                _require_console_submission(request, STRANGER)
+        assert exc.value.status_code == 403
+
+    def test_admin_header_without_resolved_method_still_403(self):
+        """A bare X-API-Key header (no resolved caller) never qualifies, even
+        for an admin dict — the exemption trusts the auth dependency, not the
+        header."""
+        request = _make_request({"X-API-Key": "tk_live_x"})
+        with patch("app.services.usage_ledger.settings") as s:
+            s.ADMIN_EMAILS = ["founder@example.com"]
+            with pytest.raises(HTTPException) as exc:
+                _require_console_submission(request, ADMIN)
+        assert exc.value.status_code == 403
+
+    def test_empty_allowlist_walls_everyone(self):
+        request = _make_request({}, auth_method="api_key")
+        with patch("app.services.usage_ledger.settings") as s:
+            s.ADMIN_EMAILS = []
+            with pytest.raises(HTTPException) as exc:
+                _require_console_submission(request, ADMIN)
+        assert exc.value.status_code == 403
+
+    def test_no_current_user_walls_api_key(self):
+        """Call sites that pass no user (defensive default) keep the old wall."""
+        request = _make_request({}, auth_method="api_key")
+        with patch("app.services.usage_ledger.settings") as s:
+            s.ADMIN_EMAILS = ["founder@example.com"]
+            with pytest.raises(HTTPException):
+                _require_console_submission(request)
+
+    def test_admin_jwt_is_still_dashboard(self):
+        request = _make_request({}, auth_method="jwt")
+        with patch("app.services.usage_ledger.settings") as s:
+            s.ADMIN_EMAILS = ["founder@example.com"]
+            assert _require_console_submission(request, ADMIN) == "dashboard"
+
+
 class TestLiveEndpointWiring:
     """End-to-end (ASGI) smoke: drive the REAL dual-auth dependency over HTTP and
     confirm auth_method flows dependency → request.state → guard.
