@@ -7,6 +7,7 @@ import { ElementBadge } from '../ElementBadge';
 import { GapHighlight } from './GapHighlight';
 import { BountyField } from './BountyField';
 import { cleanTitle } from '../shared-utils';
+import { elementCaveatNote } from '@/lib/element-caveat';
 
 interface UnknownElementCardProps {
   element: ClaimElement;
@@ -47,6 +48,7 @@ export function UnknownElementCard({
   const isKnown = element.state === 'supported' || element.state === 'disputed' || element.state === 'contextual';
   const isGap = !element.evidenceRefs || element.evidenceRefs.length === 0;
   const refCount = element.evidenceRefs?.length || 0;
+  const caveat = elementCaveatNote(element.uncertainty);
 
   // Build evidence lookup by ID for title display.
   // 2026-09-04: refs carry the stable `ev-…` evidenceId (invariant #4 — the
@@ -149,11 +151,14 @@ export function UnknownElementCard({
         </div>
       )}
 
-      {/* Uncertainty note */}
-      {/* Filter "null"/"none"/"n/a" string leakage from the mapper at the UI boundary */}
-      {element.uncertainty && element.uncertainty.trim() && !['null', 'none', 'n/a'].includes(element.uncertainty.trim().toLowerCase()) && (
+      {/* Uncertainty note — the SAME fail-closed gate as the ELEMENTS roster
+          (Fix 1, lib/element-caveat.ts). This card had its own sentinel filter
+          and no verdict-language check, so on 2026-09-21 the GAPS lens printed
+          "The evidence directly confirms…" under an UNRESOLVED badge (record
+          70ad9e13). One gate, every surface. */}
+      {caveat && (
         <div className="border-l-2 border-amber-400 bg-amber-50/50 px-3 py-2 mb-3">
-          <p className="text-[11px] text-amber-700 leading-relaxed">{element.uncertainty}</p>
+          <p className="text-[11px] text-amber-700 leading-relaxed">{caveat}</p>
         </div>
       )}
 
