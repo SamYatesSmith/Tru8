@@ -85,9 +85,24 @@ _VETO = re.compile(
 
 #: An element that itself asserts a SAYING is legitimately supported by a
 #: report of the saying — the gate must not arm for it.
+#:
+#: 2026-09-22: extended to the FORMAL-PUBLICATION speech acts. An inquiry,
+#: regulator or study does not "say" its findings, it recommends, specifies,
+#: publishes or concludes them — and an element built on one ("The Inquiry
+#: specified a statutory barring system") is attribution-shaped in exactly the
+#: same way. Production record `8d66d41a` filed the Thirlwall Inquiry's OWN
+#: report as context against its own printed sentence because these verbs were
+#: absent here.
+#:
+#: Deliberately NOT included: "found", "shows", "reports". Those read as the
+#: finding itself at least as often as the act of stating it, and widening the
+#: disarm on an ambiguous verb costs more than the recitals it would spare.
 _ATTRIBUTION_SHAPED_ELEMENT = re.compile(
     r"\b(said|says|stated|claim(?:s|ed)|announced|asserted|denied|"
-    r"according\s+to)\b",
+    r"according\s+to|"
+    r"recommend(?:s|ed|ation|ations)|specif(?:ies|ied)|"
+    r"publish(?:es|ed)|conclud(?:es|ed)|propos(?:es|ed|al|als)|"
+    r"urg(?:es|ed)|advis(?:es|ed)|called\s+for|set\s+out)\b",
     re.IGNORECASE,
 )
 

@@ -2760,7 +2760,35 @@ class ClaimMapAnalyzer:
             claim_map.get("normalised_claim") or claim_map.get("claim_text") or ""
         )
 
-        if subjects and getattr(settings, "ENABLE_INTERESTED_PARTY_GATE", True):
+        _element_is_attribution = element_asserts_attribution(elem.get("description"))
+
+        # The interested-party disarm is a property of the CLAIM, never of an
+        # element's wording (2026-09-22).
+        #
+        # The gate asks whether a source is controlled by a party with an
+        # interest in the claim being true. Where the claim IS that the party
+        # said something — "The Thirlwall Inquiry recommended a statutory
+        # barring system" — its own document is not an interested account of the
+        # fact, it is the fact. Record `8d66d41a` scoped the inquiry's own report
+        # to context against its own printed sentence, and the element read
+        # supported only because the recital gate mis-fired the other way and
+        # cancelled it.
+        #
+        # ⚠️ Element shape must NOT release this gate, and a test pins it
+        # (`test_an_attribution_shaped_element_disarms_the_recital_gate`).
+        # Decomposing "Donald Trump stopped 6 wars" can yield "Trump stated that
+        # six wars had ended" — an artefact of decomposition, not a claim about
+        # speech. Releasing on that would let whitehouse.gov badge the element
+        # `supported` off the claimant's own say-so, which is the whole of
+        # TRU-018F-44AA. The claim text there names no attribution verb, so the
+        # gate stays armed for every one of its elements.
+        _claim_is_attribution = element_asserts_attribution(claim_text_for_recital)
+
+        if (
+            subjects
+            and getattr(settings, "ENABLE_INTERESTED_PARTY_GATE", True)
+            and not _claim_is_attribution
+        ):
             gates.append(
                 _ScopeGate(
                     key="interested_party",
@@ -2778,9 +2806,10 @@ class ClaimMapAnalyzer:
                 )
             )
 
-        if getattr(
-            settings, "ENABLE_RECITAL_SCOPE_GATE", True
-        ) and not element_asserts_attribution(elem.get("description")):
+        if (
+            getattr(settings, "ENABLE_RECITAL_SCOPE_GATE", True)
+            and not _element_is_attribution
+        ):
             tokens = distinctive_tokens(subjects) if subjects else []
             # Arms on EITHER signal. Tokens drive the subject-anchored path;
             # the claim text drives the restatement path. Requiring both was

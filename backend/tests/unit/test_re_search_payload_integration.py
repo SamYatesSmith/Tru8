@@ -81,7 +81,11 @@ async def test_research_retains_existing_primary_metadata_and_persists_mapped_id
     # Only external stages are replaced; actual payload helpers and ORM rows run.
     import sys
 
-    async def distil(text, items):
+    async def distil(text, items, elements=None):
+        # Re-search distils on the same contract as the main run (2026-09-22):
+        # the elements always travel, so the extractor knows what the evidence
+        # has to answer.
+        assert elements, "re-search must pass the claim map's elements"
         items[0].update(text="Selected facts", snippet="Stale snippet", _distilled=True)
         return items
 

@@ -21,15 +21,22 @@ from app.services.google_ai import call_google_ai_with_usage
 logger = logging.getLogger(__name__)
 
 DISTIL_PROMPT = """\
-You are a fact extraction engine. Given a claim and source articles, extract ONLY \
-the atomic facts from each article that are relevant to evaluating the claim.
+You are a fact extraction engine. Given a claim, the research elements it breaks into, \
+and source articles, extract the atomic facts from each article that bear on the claim \
+or on ANY element.
 
 Rules:
 - Each fact must be a single, self-contained sentence.
 - Include specific figures, dates, names, and quantities wherever present.
 - Extract facts from ANYWHERE in the article — beginning, middle, or end.
+- A fact that bears DIRECTLY on the claim or an element, confirming or contradicting it, \
+outranks a fact about the article's general subject. Both directions count equally: a \
+prior instance, an exception, a differing figure and a corroborating figure are all \
+first-rank facts.
+- Cover every element you can. Include a fact bearing on a single element even when the \
+article does not address the claim as a whole.
 - Maximum {max_facts} facts per article. Fewer is fine.
-- If an article contains NO relevant facts, return an empty list for it.
+- Return an empty list for an article ONLY if it discusses a different subject entirely.
 - Do NOT infer or add information not present in the article text.
 - Do NOT include opinions or editorial framing — only factual statements.
 - Preserve original attribution (e.g. "according to the ONS").
@@ -51,6 +58,10 @@ Include one entry per article. If an article has no relevant facts, return \
 """
 
 MAX_ARTICLE_CHARS = 8000
+
+# How many retained windows the supply floor hands the mapper when distillation
+# returns nothing. Bounded by EVIDENCE_SNIPPET_LENGTH regardless.
+_FALLBACK_PASSAGES = 3
 
 
 class EvidenceDistiller:
@@ -103,7 +114,13 @@ class EvidenceDistiller:
         for item in evidence_items:
             capture_text_provenance(item, claim_text, elements)
 
-        if settings.ENABLE_PASSAGE_MAPPING and elements:
+        # The elements are the point (2026-09-22). A fact bearing on element 3
+        # alone is what decides element 3, and a claim-level extractor drops it
+        # as a subordinate detail: a 6,663-char BBC article became six facts,
+        # none of them the counter-example the record then failed to file.
+        # This was gated behind ENABLE_PASSAGE_MAPPING — off in production —
+        # and by BOTH callers besides. Default path now, no flag.
+        if elements:
             claim_text += "\nResearch elements:\n" + "\n".join(
                 f"{e['element_id']}: {e['description']}" for e in elements
             )
@@ -141,36 +158,89 @@ class EvidenceDistiller:
         )
 
         for batch_indices, facts_list in zip(batches, facts_lists):
-            if facts_list is None or isinstance(facts_list, BaseException):
-                # LLM call failed — keep all snippets in this batch
-                continue
+            batch_failed = facts_list is None or isinstance(facts_list, BaseException)
 
-            # Apply facts to evidence items
             for offset, idx in enumerate(batch_indices):
-                if offset >= len(facts_list):
-                    continue
-                facts = facts_list[offset]
-                if facts is None or not facts:
-                    # Empty or missing facts — keep original snippet
-                    continue
+                facts = None
+                if batch_failed:
+                    reason = "batch_failed"
+                elif offset >= len(facts_list):
+                    reason = "missing_from_response"
+                else:
+                    facts = facts_list[offset]
+                    reason = "no_facts_returned" if not facts else ""
 
-                # Cap facts
-                capped = facts[: self.max_facts]
-                # Filter non-string items
-                capped = [f for f in capped if isinstance(f, str) and f.strip()]
-                if not capped:
-                    continue
+                if not reason:
+                    capped = [
+                        f
+                        for f in facts[: self.max_facts]
+                        if isinstance(f, str) and f.strip()
+                    ]
+                    if capped:
+                        evidence_items[idx]["text"] = "- " + "\n- ".join(capped)
+                        evidence_items[idx]["_distilled"] = True
+                        evidence_items[idx]["content_basis"] = "distilled"
+                        provenance = evidence_items[idx].get("text_provenance")
+                        if provenance:
+                            provenance["derived_text"] = evidence_items[idx]["text"]
+                            provenance["derivation"] = "model_generated_facts"
+                        continue
+                    reason = "no_usable_facts"
 
-                evidence_items[idx]["text"] = "- " + "\n- ".join(capped)
-                evidence_items[idx]["_distilled"] = True
-                evidence_items[idx]["content_basis"] = "distilled"
-                provenance = evidence_items[idx].get("text_provenance")
-                if provenance:
-                    provenance["derived_text"] = evidence_items[idx]["text"]
-                    provenance["derivation"] = "model_generated_facts"
+                self._fall_back_to_passages(evidence_items[idx], reason, elements)
 
         self._cleanup_full_text(evidence_items)
         return evidence_items
+
+    def _fall_back_to_passages(self, item: dict, reason: str, elements) -> None:
+        """Supply floor: a fetched document must not reach the mapper as its snippet.
+
+        The snippet is `_find_relevant_snippet`'s ~200-word, CLAIM-selected extract
+        (`services/evidence.py`). It is page-derived and relevant, but selected against
+        the claim as a whole — which is why an element-specific sentence loses. On the
+        2026-09-21 Tidman record the inquiry's own 23,788-char report reached the mapper
+        as 605 characters, and the sentence that settled the element ("A statutory
+        barring system for managers should be introduced", offset 11,676) was printed to
+        the reader beneath a conclusion that had never seen it.
+
+        Writes ``text`` only — never ``snippet``. The classifier reads ``snippet``
+        concurrently and the two stages write disjoint fields (``runner.py``);
+        ``finalize_distilled_payload`` performs the copy after both have finished.
+        """
+        from app.services.passage_mapping import rank_passages, valid_passages
+        from app.services.text_provenance import _terms
+
+        logger.warning(
+            f"[DISTIL] {item.get('evidence_id', 'unknown')} not distilled "
+            f"({reason}); url={item.get('url', '?')}"
+        )
+
+        passages = valid_passages(item)
+        if not passages:
+            return  # No receipt (e.g. coverage-recovery items): snippet stands.
+
+        terms = set()
+        for e in elements or []:
+            terms |= _terms(e.get("description", ""))
+        ranked = rank_passages(passages, terms) if terms else []
+        # rank_passages drops non-overlapping passages; offset order is the
+        # honest fallback, never a relevance claim.
+        chosen = (ranked or passages)[:_FALLBACK_PASSAGES]
+
+        text = "\n\n".join(p["text"] for p in chosen)[
+            : settings.EVIDENCE_SNIPPET_LENGTH
+        ]
+        if len(text) <= len(item.get("text") or ""):
+            return  # Never downgrade what the mapper already had.
+
+        item["text"] = text
+        item["_distilled"] = True
+        item["content_basis"] = "retained_passages"
+        provenance = item.get("text_provenance")
+        if provenance:
+            provenance["derived_text"] = text
+            provenance["derivation"] = "retained_passages"
+            provenance["derivation_reason"] = reason
 
     async def _distil_batch(
         self,
@@ -181,8 +251,18 @@ class EvidenceDistiller:
         # Build articles section
         article_parts = []
         for i, item in enumerate(batch_items):
-            full_text = (item.get("_full_text") or "")[:MAX_ARTICLE_CHARS]
-            if settings.ENABLE_PASSAGE_MAPPING:
+            raw = item.get("_full_text") or ""
+            full_text = raw[:MAX_ARTICLE_CHARS]
+            # A leading slice of a long document silently hides its conclusions.
+            # The Thirlwall summary report is 23,788 chars and the sentence that
+            # settled the element sits at 11,676 — measured absent from the first
+            # 8,000 (2026-09-22). The retained windows span the WHOLE text and
+            # already fit the same ceiling (8 x 900 = 7,200), so for a document
+            # that overflows they are strictly better input. Below the ceiling
+            # the slice IS the document, so nothing changes there.
+            if settings.ENABLE_PASSAGE_MAPPING or (
+                settings.ENABLE_DISTIL_PASSAGE_INPUT and len(raw) > MAX_ARTICLE_CHARS
+            ):
                 from app.services.passage_mapping import valid_passages
 
                 passages = valid_passages(item)

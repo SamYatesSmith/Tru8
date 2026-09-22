@@ -25,7 +25,41 @@
 > record once after it. **End-of-day pass state: `117 ok / 4 warn / 10 fail` + 3
 > drift (82CF and 5647 at random; 018F re-keyed, owed).**
 >
-> ## ✅ CURRENT PASS STATE (2026-09-10, afternoon): **`170 ok / 5 warn / 8 fail / 5 unexercised` + 1 cassette-drift claim (82CF)**
+> ## ✅ CURRENT PASS STATE (2026-09-22): **`173 ok / 11 warn / 16 fail / 5 unexercised`, ZERO cassette drift on all 10**
+>
+> Full re-record after the evidence-supply fix + the attribution-gate fix
+> (`audit/2026-09-22_mapper_reads_framing_defect.md`). ~£1.20 (`--record --all`) plus a
+> `--record-missing` patch pass. **All ten claims replay — 82CF included, a first.**
+>
+> **Read the 16 fails exactly; none is attributable to the change:**
+> - **11 are `v3:` QUALITY FLOORS** (`unique_domains` < 5, `top_domain_share` > 0.45,
+>   `factual_weight_share` < 0.15). These are FIXED constants, not golden-derived —
+>   `golden_io.py`: *"Poor floor must catch regression, not snapshot today's run"*. They say
+>   the pools are thin on this draw. **Re-golding cannot move them and was deliberately not
+>   done.**
+> - **5 are 82CF**, which previously DRIFTED and so was never compared. It now replays, so
+>   its fails are newly VISIBLE, not newly caused; its golden is still the 2026-07-21
+>   capture the header above calls *not comparable*.
+> - Every pool metric (`unique_domains`, `top_domain_share`, `domain_set`/`url_ledger`
+>   jaccard, `web_search`) is **structurally upstream** of what changed: distillation runs
+>   AFTER retrieval, so it cannot alter which pages were fetched. ⚠️ This is a structural
+>   argument, NOT a control arm — none was run.
+> - `A3E8 factual_weight_share` improved 0.0 → 0.08.
+> - **018F is the safety case and it holds:** `interested_party` 0 events (unchanged — the
+>   known comparator false alarm, NOT the new disarm; the claim text names no attribution
+>   verb so the gate stays armed). `recital_scoped_refs` 4 vs 3 @ tolerance 0 is draw
+>   variance — 2 elements this run, and the movement is UPWARD, the opposite direction to
+>   the widened attribution verb list, which can only disarm that gate.
+>
+> ⚠️ **The bench CANNOT see this change.** The observation captures no `content_basis`, so
+> the supply fix's primary effect is invisible to it. It evidences "nothing else broke",
+> never "the fix works" — that rests on the measurement (1 → 12 facts on the production
+> model) and the unit pins.
+>
+> ⚠️ **Corpus grew ~32 MB → ~46 MB** (82CF 11.4 → 15.7 MB). Draw variance in pages fetched,
+> not the change. Check `git diff --stat` before any future re-record.
+
+> ## PREVIOUS PASS STATE (2026-09-10, afternoon): **`170 ok / 5 warn / 8 fail / 5 unexercised` + 1 cassette-drift claim (82CF)**
 >
 > Second full re-record of the day, after build 2 (`FINDING, NOT TOPIC` on both mapping
 > prompts + `KEEP THE CLAIM'S DIRECTION` — `audit/2026-09-10_finding_not_topic_direction.md`)

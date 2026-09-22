@@ -12,6 +12,81 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## 2026-09-22 — EVIDENCE SUPPLY FIXED: the mapper was starved, not wrong
+
+**Why this exists:** the four wave-1 records prepared for Tuesday's send (Tidman, Kennedy,
+Legum, Katz) each carried a CORRECTNESS error. The founder asked whether those were pipeline
+errors or inefficiencies. They were errors, with one cause.
+
+**The defect, measured from the stored public payloads:** the mapper saw **4,282 characters
+of evidence text where the page showed the reader 63,953** (Katz `b1954873`, 14.9×; Tidman
+`8d66d41a` 8.6×). The deciding sentence in each failure was captured, windowed, persisted and
+printed to the reader, and never reached the stage whose job was to read it. The mapper
+reasoned correctly from a 483-character summary; on Tidman the inquiry's own 23,788-character
+report reached it as a 605-character snippet.
+
+**Root cause, reproduced locally:** the distiller returns EMPTY fact lists for substantive,
+on-topic documents (4 of 5 in the Tidman pool), then the pipeline silently substitutes the
+short snippet — "no facts" and "call failed" are handled identically and neither is logged.
+Ruled out first: batch failure and front-matter.
+
+**Shipped (all default-on except D3's rollback flag):**
+- Elements now reach the distiller — they were gated behind `ENABLE_PASSAGE_MAPPING` (off) at
+  **three** sites: `evidence_distiller.py:106`, `runner.py:2158`, `re_search.py:117`.
+  ⚠️ The first draft of the design named only the first and would have been a NO-OP.
+- `DISTIL_PROMPT` is element-aware and **symmetric** — "confirming or contradicting it"
+  outranks general-subject facts. A first draft preferring contradicting facts was a
+  supply-side direction bias (invariant 7) and was rejected.
+- Supply floor: a fetched document can no longer reach the mapper as its snippet. Ranked
+  retained passages, `content_basis: "retained_passages"`, receipt + WARNING naming the
+  reason. Writes `text` only, never `snippet` (the classifier reads it concurrently).
+- Documents over 8,000 chars are read by retained window, not a leading slice
+  (`ENABLE_DISTIL_PASSAGE_INPUT`, default on, deliberately NOT `ENABLE_PASSAGE_MAPPING`,
+  which also switches on 13 other things the 2026-09-09 regrade found not ready).
+- **Attribution-gate fix:** where the CLAIM is that a party said something, the party's own
+  document is the record of the saying, not an interested account. Formal-publication speech
+  acts added to the attribution detector (`recommended`, `specified`, `published`, `concluded`,
+  `proposed`, `urged`, `advised`, `called for`, `set out`; `found`/`shows` deliberately NOT).
+  Generic institution words added to the interested-party stop-list (`inquiry`, `panel`,
+  `tribunal`, `political`, `regulator`) — `inquirytracker.uk` was matching on "inquiry".
+
+**⚠️ The line that must not be lost: the disarm is CLAIM-level, never ELEMENT-level.**
+An existing test blocked the element-level version with sound reasoning ("control of the
+outlet is a property of the source, not of the element's shape"). Decomposing "Trump stopped
+6 wars" can yield "Trump stated six wars had ended"; releasing on that would let
+whitehouse.gov badge it `supported` off the claimant's own say-so — the whole of
+TRU-018F-44AA. Both sides plus symmetry are pinned in `test_assertion_evidence_wiring.py`.
+
+**Measured on the production model** (gemini-3.5-flash-lite — a stronger model would pass
+trivially and prove nothing, since the defect IS Flash-Lite's over-strict relevance bar):
+facts 1 → 12, documents returning nothing 4/5 → 1/5, input tokens 8,026 → 7,331. The
+inquiry's own report now yields the sentence the record got wrong.
+
+**Verification state:** 3,893 unit tests pass. Bench re-recorded: `173 ok / 11 warn / 16 fail
+/ 5 unexercised`, **zero drift on all ten claims** (a first). None of the 16 is attributable
+to the change — 11 are fixed `v3:` quality floors that re-golding cannot move, 5 are 82CF
+newly visible because it now replays. ⚠️ **The bench cannot see this change at all** (no
+`content_basis` in the observation) and **no control arm was run**. Goldens deliberately NOT
+updated. Full record: `audit/2026-09-22_mapper_reads_framing_defect.md`; bench README header
+is canonical.
+
+**Owed before the four notes go:**
+1. Re-run the four records and score against the known-truth answers in the design doc §8
+   (~£0.60, ASK FIRST). Katz el 03 should read challenged; Legum el 02 context-only;
+   Kennedy el 02's 83% unsupportable on 85/88; Tidman el 02 supported WITH the inquiry's own
+   report as `supports`.
+2. **A correctness gate in the send procedure.** §4C–§4E ask whether a record is presentable
+   and whether a note is accurate ABOUT it. Neither asks whether the record is RIGHT, and a
+   fresh fact-check agent cannot catch an error the note and the record share. All four
+   notes then named their record's error as "the seam" — the B+ grades graded disclosure,
+   not correctness.
+3. Founder call: does "name the seam" survive? Defensible for a coverage gap (the product
+   working); not for a correctness error. Suggested: keep for gaps, hold the record otherwise.
+4. F2 — a numeric-mismatch gate (Kennedy's 88%-for-83%, Legum's summed part-periods). Not a
+   supply problem; the mapping prompt already forbids it in three rules. Design owed.
+
+---
+
 ## START HERE — Monday 2026-09-14 (written Friday 2026-09-11 ~15:30 BST, sign-off)
 
 > **2026-09-14 in-day log (agent, live):** wave 0 NOT sent Friday (founder confirmed Monday). Send Board built — private claude.ai artifact, wave 0 loaded, ticks read back from its `sends` db (memory `reference_send_board_artifact`). Copy direction changed by the founder: notes must (1) show the benefit and (2) give a self-interested reason to reply; the Mom-Test closing question is dropped for a first note; the "name the seam" line is kept but as a stated RULE, never as deference ("you will see the failure before I do" rejected). TTE + Viglione rewrites on the board (draft, unverified; fact-check before send). Substack started; mailing-list import skipped. Intro post drafted on the **James Webb** record run on prod today (`540481b1`, 15p — false orbit part challenged on NASA, true parts supported; blind review of the local twin 10/10) with **Sweden** (`6ad65eb5`, 15p — supported / contextual / disputed, edges listed) as post two. Draft 1 on the wildfire record with a self-critique section was rejected by the founder (wrong record, wrong register). Spend today: 30p. `audit/2026-09-14_substack_intro_post.md`.

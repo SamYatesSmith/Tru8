@@ -297,6 +297,12 @@ class Settings(BaseSettings):
     ENABLE_EVIDENCE_DISTILLATION: bool = Field(True, env="ENABLE_EVIDENCE_DISTILLATION")
     # Changes model input: enable only after fixed-source model evaluation.
     ENABLE_PASSAGE_MAPPING: bool = Field(False, env="ENABLE_PASSAGE_MAPPING")
+    # Read a document longer than MAX_ARTICLE_CHARS by its retained element
+    # windows instead of a leading slice (2026-09-22). Deliberately NOT part of
+    # ENABLE_PASSAGE_MAPPING, which also switches on the passage/applicability
+    # contract that the 2026-09-09 regrade found not ready. Rollback flag only —
+    # below the ceiling the slice is the whole document, so this is a no-op there.
+    ENABLE_DISTIL_PASSAGE_INPUT: bool = Field(True, env="ENABLE_DISTIL_PASSAGE_INPUT")
     ENABLE_STRUCTURED_EXTRACTION: bool = Field(
         False, env="ENABLE_STRUCTURED_EXTRACTION"
     )

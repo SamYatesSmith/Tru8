@@ -450,3 +450,126 @@ async def test_coverage_recovery_cannot_bypass_the_gates(monkeypatch):
     # With its only directional ref scoped, the element cannot read supported.
     state = getattr(elem["state"], "value", elem["state"])
     assert state != "supported"
+
+
+# ---------------------------------------------------------------------------
+# Attribution CLAIMS vs attribution-shaped elements (2026-09-22)
+#
+# Production record 8d66d41a: "The Thirlwall Inquiry recommended that a
+# statutory barring system for NHS managers be introduced by September 2027."
+# The inquiry's OWN report was scoped to context by this gate — matched on the
+# hostname alone — against its own printed sentence, "A statutory barring system
+# for managers should be introduced". The element read `supported` only because
+# the recital gate mis-fired in the opposite direction and cancelled it.
+#
+# The line: where the CLAIM is that a party said something, the party's own
+# document is the record of the saying, not an interested account of it. Where
+# the claim is about CONDUCT, the party's own account stays interested however
+# an element happens to be worded — see the test above this block.
+#
+# Record: audit/2026-09-22_mapper_reads_framing_defect.md
+# ---------------------------------------------------------------------------
+
+
+def _attribution_claim_map():
+    """A claim whose whole content is what an institution recommended."""
+    return {
+        "claim_id": "0",
+        "normalised_claim": (
+            "The Thirlwall Inquiry recommended that a statutory barring system "
+            "for NHS managers be introduced by September 2027."
+        ),
+        "elements": [
+            {
+                "element_id": "e1",
+                "description": (
+                    "The Inquiry specified the introduction of a statutory "
+                    "barring system for NHS managers."
+                ),
+                "evidence_refs": [],
+                "state": None,
+            }
+        ],
+        "metadata": {"jurisdiction": "UK", "subjects": ["thirlwall inquiry"]},
+    }
+
+
+_INQUIRY_EVIDENCE = [
+    {
+        "evidence_id": "ev-inquiry-report",
+        "url": "https://thirlwall.public-inquiry.uk/summary-chapter/summary-report/part-two/",
+        "title": "Thirlwall Inquiry summary report, Part Two",
+        "snippet": (
+            "A statutory barring system for managers should be introduced but, "
+            "having been introduced and operated, it should be reviewed."
+        ),
+        "tier": "primary",
+        "evidence_type": "official",
+    }
+]
+
+
+def _inquiry_response():
+    return {
+        "elements": [
+            {
+                "element_id": "e1",
+                "evidence_refs": [
+                    {
+                        "evidence_id": "ev-inquiry-report",
+                        "relationship": "supports",
+                        "reasoning": (
+                            "States that a statutory barring system for managers "
+                            "should be introduced."
+                        ),
+                    }
+                ],
+            }
+        ]
+    }
+
+
+def test_the_subjects_own_record_supports_an_attribution_CLAIM():
+    """The inquiry's own report is the record of what the inquiry recommended."""
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _attribution_claim_map()
+    analyzer._parse_mapping_response(
+        _inquiry_response(), claim_map, _INQUIRY_EVIDENCE
+    )
+    elem = claim_map["elements"][0]
+    assert _rel(elem, "ev-inquiry-report") == "supports"
+    assert "interested_party" not in elem["basis"]
+
+
+def test_a_conduct_claim_keeps_the_gate_even_with_an_attribution_element():
+    """The 018F hole stays shut.
+
+    Decomposition can turn a conduct claim into a speech-shaped element. That
+    must NOT release the gate, or the claimant's own organ badges the element
+    `supported` off their own say-so — the original failure this file exists for.
+    """
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _claim_map()  # claim text: "Donald Trump stopped six wars."
+    claim_map["elements"][0][
+        "description"
+    ] = "Donald Trump stated that six wars had ended."
+    analyzer._parse_mapping_response(_mapping_response(), claim_map, EVIDENCE)
+    elem = claim_map["elements"][0]
+    assert _rel(elem, "ev-wh-solved") == "context"
+    assert elem["basis"]["interested_party"]["scoped"]
+
+
+def test_attribution_claim_disarm_is_symmetric():
+    """Invariant 7: releasing the gate cannot depend on the direction.
+
+    A challenging reference from the subject's own record is released exactly as
+    a supporting one is — the claim is what the body said, either way.
+    """
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _attribution_claim_map()
+    response = _inquiry_response()
+    response["elements"][0]["evidence_refs"][0]["relationship"] = "challenges"
+    analyzer._parse_mapping_response(response, claim_map, _INQUIRY_EVIDENCE)
+    elem = claim_map["elements"][0]
+    assert _rel(elem, "ev-inquiry-report") == "challenges"
+    assert "interested_party" not in elem["basis"]

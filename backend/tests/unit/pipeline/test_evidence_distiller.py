@@ -113,17 +113,23 @@ class TestDistilCoreFunction:
         ):
             await distiller.distil_evidence_for_claim("Test claim", items)
 
-        assert items[0]["text"] == original_text
-        assert "_distilled" not in items[0]
-        assert "derived_text" not in items[0]["text_provenance"]
+        # The retained windows are the receipt and survive a failed call intact.
         assert items[0]["text_provenance"]["passages"][0]["text"] == LONG_TEXT
+        # The mapper is handed document text, not the short snippet (2026-09-22).
+        assert items[0]["text"] != original_text
+        assert items[0]["text_provenance"]["derivation"] == "retained_passages"
 
     @pytest.mark.asyncio
     @pytest.mark.unit
-    async def test_distil_fallback_on_empty_facts(self):
-        """When LLM returns empty facts for an item, keep the original snippet."""
+    async def test_distil_fallback_never_downgrades_existing_text(self):
+        """The supply floor raises the mapper's text; it must never lower it.
+
+        An item whose snippet already exceeds what the retained windows offer
+        keeps the snippet — the floor exists to add context, not to trade one
+        short extract for another.
+        """
         distiller = EvidenceDistiller()
-        original_text = "Original snippet"
+        original_text = "B" * 900  # longer than the single 600-char window
         items = [_make_evidence(text=original_text, full_text=LONG_TEXT)]
 
         mock_response = {"results": [{"index": 0, "facts": []}]}
@@ -136,7 +142,7 @@ class TestDistilCoreFunction:
             await distiller.distil_evidence_for_claim("Test claim", items)
 
         assert items[0]["text"] == original_text
-        assert "_distilled" not in items[0]
+        assert items[0]["content_basis"] != "retained_passages"
 
     @pytest.mark.asyncio
     @pytest.mark.unit
@@ -317,12 +323,13 @@ class TestDistilCoreFunction:
         ):
             await distiller.distil_evidence_for_claim("Test claim", items)
 
-        # Batch 1 (items 0-1) failed -> snippets kept, not distilled
-        assert not items[0].get("_distilled")
-        assert not items[1].get("_distilled")
-        # Batch 2 (items 2-3) succeeded -> distilled
-        assert items[2].get("_distilled") is True
-        assert items[3].get("_distilled") is True
+        # Batch 1 (items 0-1) failed -> no model facts; supply floor applies
+        assert items[0]["content_basis"] == "retained_passages"
+        assert items[1]["content_basis"] == "retained_passages"
+        # Batch 2 (items 2-3) succeeded -> model facts
+        assert items[2]["content_basis"] == "distilled"
+        assert items[3]["content_basis"] == "distilled"
+        assert items[2]["text"] == "- Fact A."
         # _full_text cleaned up everywhere regardless
         assert all("_full_text" not in it for it in items)
 
@@ -401,3 +408,239 @@ class TestDistilIntegrationFlags:
         # Default config has it enabled
         default = PipelineConfig()
         assert default.enable_evidence_distillation is True
+
+
+# ============================================================
+# Supply invariant (2026-09-22)
+#
+# Four production records reached a journalist-outreach send with correctness
+# errors traced to ONE cause: the mapper is serialised `snippet or text`, and
+# when distillation returns nothing that text is the item's original ~200-word
+# claim-selected snippet — even though the whole article was fetched, windowed
+# and is printed to the reader. Measured: the mapper saw 4,282 chars where the
+# page showed 63,953 (record b1954873).
+#
+# Record: audit/2026-09-22_mapper_reads_framing_defect.md
+# ============================================================
+
+
+class TestDistilSupplyInvariant:
+    """An item whose full text was fetched must never reach the mapper as a
+    bare original snippet."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_empty_facts_fall_back_to_retained_passage_not_snippet(self):
+        """Empty fact list: the item keeps document text, not its short snippet.
+
+        Was the defect: `facts: []` was indistinguishable from success for the
+        mapper, and the 605-char snippet of a 23,788-char inquiry report is what
+        decided the element.
+        """
+        distiller = EvidenceDistiller()
+        original_text = "Original snippet"
+        items = [_make_evidence(text=original_text, full_text=LONG_TEXT)]
+
+        mock_response = {"results": [{"index": 0, "facts": []}]}
+
+        with patch(
+            "app.pipeline.evidence_distiller.call_google_ai_with_usage",
+            new_callable=AsyncMock,
+            return_value=(mock_response, {"input_tokens": 100, "output_tokens": 10}),
+        ):
+            await distiller.distil_evidence_for_claim("Test claim", items)
+
+        assert items[0]["text"] != original_text
+        assert len(items[0]["text"]) > len(original_text)
+        # Receipt must explain what the mapper was given.
+        assert items[0]["text_provenance"]["derivation"] == "retained_passages"
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_llm_failure_falls_back_to_retained_passage(self):
+        """A failed call must not silently downgrade the item to its snippet."""
+        distiller = EvidenceDistiller()
+        original_text = "Original snippet"
+        items = [_make_evidence(text=original_text, full_text=LONG_TEXT)]
+
+        with patch(
+            "app.pipeline.evidence_distiller.call_google_ai_with_usage",
+            new_callable=AsyncMock,
+            return_value=(None, None),
+        ):
+            await distiller.distil_evidence_for_claim("Test claim", items)
+
+        assert items[0]["text"] != original_text
+        assert items[0]["text_provenance"]["derivation"] == "retained_passages"
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_fallback_never_writes_snippet_field(self):
+        """The classifier reads `snippet` concurrently — distil writes `text` only.
+
+        runner.py documents these stages as writing disjoint fields.
+        """
+        distiller = EvidenceDistiller()
+        items = [_make_evidence(full_text=LONG_TEXT)]
+        items[0]["snippet"] = "classifier reads this"
+
+        with patch(
+            "app.pipeline.evidence_distiller.call_google_ai_with_usage",
+            new_callable=AsyncMock,
+            return_value=(None, None),
+        ):
+            await distiller.distil_evidence_for_claim("Test claim", items)
+
+        assert items[0]["snippet"] == "classifier reads this"
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_elements_reach_the_prompt_with_passage_mapping_off(self):
+        """The elements are the point: a fact bearing on element 3 alone is what
+        decides element 3. They were gated behind ENABLE_PASSAGE_MAPPING, which
+        is off in production."""
+        from app.core.config import settings
+
+        distiller = EvidenceDistiller()
+        items = [_make_evidence(full_text=LONG_TEXT)]
+        elements = [
+            {"element_id": "e1", "description": "Bank Rate was cut in September."},
+            {"element_id": "e2", "description": "The cut was 25 basis points."},
+        ]
+
+        captured = {}
+
+        async def _capture(prompt, **kwargs):
+            captured["prompt"] = prompt
+            return ({"results": [{"index": 0, "facts": ["Fact."]}]}, {})
+
+        assert settings.ENABLE_PASSAGE_MAPPING is False, "guards the default path"
+
+        with patch(
+            "app.pipeline.evidence_distiller.call_google_ai_with_usage",
+            new=_capture,
+        ):
+            await distiller.distil_evidence_for_claim(
+                "Test claim", items, elements=elements
+            )
+
+        assert "The cut was 25 basis points." in captured["prompt"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_prompt_rule_is_symmetric(self):
+        """Invariant 7: the extraction rule must not favour one direction.
+
+        A rule preferring contradicting facts is a supply-side bias, exactly as
+        a rule preferring confirming ones would be.
+        """
+        from app.pipeline.evidence_distiller import DISTIL_PROMPT
+
+        lowered = DISTIL_PROMPT.lower()
+        assert "confirming or contradicting" in lowered
+        for biased in (
+            "prefer them over",
+            "most valuable — never omit",
+        ):
+            assert biased not in lowered
+
+
+class TestDistilLongDocumentInput:
+    """A document longer than MAX_ARTICLE_CHARS is read by its retained windows,
+    not by a leading slice (2026-09-22).
+
+    Measured cause: the Thirlwall summary report is 23,788 chars and the sentence
+    that settled the element sits at offset 11,676 — outside the first 8,000, so
+    no prompt rule could reach it.
+    """
+
+    @staticmethod
+    def _long_item_with_late_marker():
+        from app.services.text_provenance import capture_text_provenance
+        from app.pipeline.evidence_distiller import MAX_ARTICLE_CHARS
+
+        marker = "UNIQUEMARKERSENTENCE"
+        filler = "The inquiry considered evidence about hospital governance. "
+        head = (filler * 400)[:MAX_ARTICLE_CHARS + 500]
+        text = head + " " + marker + " governance findings follow. " + filler * 20
+        assert text.index(marker) > MAX_ARTICLE_CHARS, "marker must be past the slice"
+
+        item = _make_evidence(full_text=text)
+        capture_text_provenance(
+            item,
+            "Claim about hospital governance",
+            [{"element_id": "e1", "description": "UNIQUEMARKERSENTENCE governance findings"}],
+        )
+        return item, marker
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_late_sentence_reaches_the_prompt_when_enabled(self, monkeypatch):
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "ENABLE_DISTIL_PASSAGE_INPUT", True)
+        item, marker = self._long_item_with_late_marker()
+        assert marker in "\n\n".join(
+            p["text"] for p in item["text_provenance"]["passages"]
+        ), "precondition: the window selector retained the marker"
+
+        captured = {}
+
+        async def _capture(prompt, **kwargs):
+            captured["prompt"] = prompt
+            return ({"results": [{"index": 0, "facts": ["Fact."]}]}, {})
+
+        with patch(
+            "app.pipeline.evidence_distiller.call_google_ai_with_usage", new=_capture
+        ):
+            await EvidenceDistiller().distil_evidence_for_claim("Claim", [item])
+
+        assert marker in captured["prompt"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_late_sentence_absent_when_flag_off(self, monkeypatch):
+        """Rollback path: the old leading-slice behaviour, unchanged."""
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "ENABLE_DISTIL_PASSAGE_INPUT", False)
+        monkeypatch.setattr(settings, "ENABLE_PASSAGE_MAPPING", False)
+        item, marker = self._long_item_with_late_marker()
+
+        captured = {}
+
+        async def _capture(prompt, **kwargs):
+            captured["prompt"] = prompt
+            return ({"results": [{"index": 0, "facts": ["Fact."]}]}, {})
+
+        with patch(
+            "app.pipeline.evidence_distiller.call_google_ai_with_usage", new=_capture
+        ):
+            await EvidenceDistiller().distil_evidence_for_claim("Claim", [item])
+
+        assert marker not in captured["prompt"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_short_document_is_unaffected(self, monkeypatch):
+        """Below the ceiling the slice IS the document — the flag changes nothing."""
+        from app.core.config import settings
+
+        item = _make_evidence(full_text="Short body. " * 60)  # ~720 chars
+        prompts = {}
+
+        async def _capture(prompt, **kwargs):
+            prompts[settings.ENABLE_DISTIL_PASSAGE_INPUT] = prompt
+            return ({"results": [{"index": 0, "facts": ["Fact."]}]}, {})
+
+        for flag in (True, False):
+            monkeypatch.setattr(settings, "ENABLE_DISTIL_PASSAGE_INPUT", flag)
+            fresh = dict(item)
+            fresh.pop("text_provenance", None)
+            with patch(
+                "app.pipeline.evidence_distiller.call_google_ai_with_usage",
+                new=_capture,
+            ):
+                await EvidenceDistiller().distil_evidence_for_claim("Claim", [fresh])
+
+        assert prompts[True] == prompts[False]

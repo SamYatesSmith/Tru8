@@ -168,3 +168,109 @@ def test_distinctive_tokens_drop_short_and_generic():
     assert "house" not in tokens  # stop-listed
     assert "the" not in tokens  # too short
     assert "un" not in tokens  # too short
+
+
+# ============================================================
+# Attribution claims (2026-09-22)
+#
+# The gate exists because a claim about a SUBJECT'S CONDUCT is not evidenced by
+# that subject's own press office (TRU-018F-44AA, "Trump stopped 6 wars").
+# A claim about what the subject SAID is the opposite case: their own document
+# is the primary record of the saying.
+#
+# Production record 8d66d41a filed the Thirlwall Inquiry's own report as context
+# against its own printed sentence ("A statutory barring system for managers
+# should be introduced"); the element still read supported only because the
+# recital gate mis-fired in the opposite direction and cancelled it.
+#
+# Record: audit/2026-09-22_mapper_reads_framing_defect.md
+# ============================================================
+
+
+class TestGenericInstitutionTokens:
+    """A subject's institution-TYPE word must not claim unrelated domains."""
+
+    def test_inquiry_token_does_not_match_a_third_party_tracker(self):
+        from app.utils.interested_party import claim_subjects, interested_party_match
+
+        subjects = claim_subjects(["Thirlwall Inquiry"])
+        assert (
+            interested_party_match(subjects, "https://www.inquirytracker.uk/inquiries/40/")
+            is None
+        )
+
+    def test_political_token_does_not_match_a_news_domain(self):
+        from app.utils.interested_party import claim_subjects, interested_party_match
+
+        subjects = claim_subjects(["Political Action Committee"])
+        assert interested_party_match(subjects, "https://politicalwire.com/x") is None
+
+    def test_the_bodys_own_domain_still_matches(self):
+        """The stop-list removes the TYPE word, never the distinctive name."""
+        from app.utils.interested_party import claim_subjects, interested_party_match
+
+        subjects = claim_subjects(["Thirlwall Inquiry"])
+        match = interested_party_match(
+            subjects, "https://thirlwall.public-inquiry.uk/summary-chapter/"
+        )
+        assert match is not None
+        assert match["subject_matched"] == "thirlwall inquiry"
+
+    def test_018f_control_is_untouched(self):
+        """The claim the gate was built for must keep firing."""
+        from app.utils.interested_party import claim_subjects, interested_party_match
+
+        subjects = claim_subjects(["Donald Trump"])
+        assert interested_party_match(subjects, "https://www.whitehouse.gov/a") is not None
+        assert (
+            interested_party_match(subjects, "https://trumpwhitehouse.archives.gov/b")
+            is not None
+        )
+        assert interested_party_match(subjects, "https://mcdonalds.com/c") is None
+
+
+class TestAttributionShapedElements:
+    """Which elements release the gate, and which must never."""
+
+    @staticmethod
+    def _f(text):
+        from app.utils.recital_scope import element_asserts_attribution
+
+        return element_asserts_attribution(text)
+
+    def test_formal_publication_verbs_release_the_gate(self):
+        for text in (
+            "The Inquiry specified the introduction of a statutory barring system.",
+            "The Thirlwall Inquiry recommended a barring system by September 2027.",
+            "The Central Bank published its Q3 2026 bulletin.",
+            "The report set out 17 recommendations.",
+            "The committee proposed a statutory register.",
+            "The regulator called for an independent review.",
+        ):
+            assert self._f(text) is True, text
+
+    def test_conduct_elements_keep_the_gate(self):
+        """018F's protective shape, and ordinary factual elements."""
+        for text in (
+            "Donald Trump stopped six wars.",
+            "Six armed conflicts ended between January and July 2026.",
+            "UK CPI inflation was below 2% in September 2024.",
+            "The ceasefire between Israel and Iran holds.",
+        ):
+            assert self._f(text) is False, text
+
+    def test_ambiguous_finding_verbs_are_deliberately_excluded(self):
+        """"found"/"shows"/"reports" read as the finding at least as often as
+        the act of stating it. Widening the disarm on them costs more than the
+        recitals it would spare — see recital_scope._ATTRIBUTION_SHAPED_ELEMENT.
+        """
+        for text in (
+            "Researchers found that creatine improves strength.",
+            "ONS data shows unemployment rose.",
+        ):
+            assert self._f(text) is False, text
+
+    def test_symmetry_a_denial_releases_it_as_readily_as_a_boast(self):
+        """Invariant 7: the disarm cannot be direction-sensitive."""
+        assert self._f("The company denied polluting the river.") is True
+        assert self._f("The company announced record safety results.") is True
