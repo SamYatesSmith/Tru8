@@ -2893,6 +2893,28 @@ class ClaimMapAnalyzer:
             and not _element_is_attribution
         ):
             tokens = distinctive_tokens(subjects) if subjects else []
+            # Match against BOTH wordings: decomposition's normalised claim and
+            # the claim as extracted/submitted. A source restating the user's
+            # exact words stopped matching once normalisation reworded them
+            # (Kennedy 977b36b7, 2026-09-23 — the author's own newsletter).
+            recital_texts = [claim_text_for_recital]
+            original_text = (claim_map.get("metadata") or {}).get("claim_text") or ""
+            if original_text and original_text != claim_text_for_recital:
+                recital_texts.append(original_text)
+
+            def _recital_either(item, ref, _t, _texts=tuple(recital_texts)):
+                for text in _texts:
+                    match = recital_match(
+                        ref.get("reasoning"),
+                        item.text,
+                        _t,
+                        text,
+                        allow_reported_results=settings.ENABLE_PASSAGE_MAPPING,
+                    )
+                    if match is not None:
+                        return match
+                return None
+
             # Arms on EITHER signal. Tokens drive the subject-anchored path;
             # the claim text drives the restatement path. Requiring both was
             # the defect — a claim with no named subject silently opted out.
@@ -2906,25 +2928,11 @@ class ClaimMapAnalyzer:
                             "claim_subjects": subjects,
                             "subject_free": not tokens,
                         },
-                        fires=lambda item, ref, _t=tokens, _c=claim_text_for_recital: (
-                            recital_match(
-                                ref.get("reasoning"),
-                                item.text,
-                                _t,
-                                _c,
-                                allow_reported_results=settings.ENABLE_PASSAGE_MAPPING,
-                            )
-                            is not None
+                        fires=lambda item, ref, _t=tokens: (
+                            _recital_either(item, ref, _t) is not None
                         ),
-                        entry=lambda item, ref, _t=tokens, _c=claim_text_for_recital: (
-                            recital_match(
-                                ref.get("reasoning"),
-                                item.text,
-                                _t,
-                                _c,
-                                allow_reported_results=settings.ENABLE_PASSAGE_MAPPING,
-                            )
-                            or {}
+                        entry=lambda item, ref, _t=tokens: (
+                            _recital_either(item, ref, _t) or {}
                         ),
                     )
                 )

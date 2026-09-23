@@ -128,6 +128,25 @@ is canonical.
    strict tolerance). 32 tests, both rules mutation-checked; unit 3,925. Bench 125/7/11 with
    5647 + 82CF + 93DD drift — 5647 run alone is identical gate on vs off with no drift, and it
    drifted on a full run before this change: the recurring order-dependent variation.
+   **LIVE `4487d0e`. Kennedy re-run `977b36b7` (fresh pool):** figure gate correct — it
+   scoped cruxinvestor (17/18/20/51%, `not_stated`); the remaining el 02 supports both STATE
+   83%. **New finding, not a figure problem:** one of them is energyflux.news — Kennedy's OWN
+   piece, restating the submitted claim word for word — and it supports all three elements.
+   el 02 weight = briefs.co reporting 2 + energyflux commentary 1 = exactly the floor of 3, so
+   **the claimant's own sentence is what makes el 02 read supported.** The recital gate did not
+   fire (text submission, `sourceUrl` null — nothing tells the pipeline the page is the
+   claim's origin). Kennedy stays HELD. Also: the known-truth row is now doubtful — sources
+   genuinely disagree on the norm (82 / 83 / 85 / 88%); an honest state may be "sources differ".
+   **Root cause + fix (same day):** the restatement check compared sources against
+   `normalised_claim`, which decomposition reworded ("representing the lowest level" for
+   "pretty much the lowest"), so the verbatim sentence fell under the match threshold. The
+   runner now carries the claim's own wording (`attach_claim_text` → `metadata.claim_text`)
+   and the recital gate matches either wording. On 66 stored records it newly catches 3
+   sources, each the article the claim was lifted from (energyflux; a newsletter reporting
+   the AI-summaries study; The Conversation on Reform's £72m). Unit 3,929; bench 146/10/11,
+   82CF + 93DD drift as before, other claims unchanged. ⚠️ Separate hole, not fixed: when
+   the claim HAS named subjects, a mapper reasoning containing "confirms" vetoes the whole
+   recital check, restatement path included.
    Was: **BUILT 2026-09-23, UNCOMMITTED** (`app/utils/figure_scope.py`, gate in
    `claim_map_analyzer.py`, flag `ENABLE_FIGURE_SCOPE_GATE`, 25 tests, mutation-checked).
    Thresholds ("below 5%") never arm it — the coverage-recovery fixture caught that on the

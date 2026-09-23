@@ -219,6 +219,23 @@ def attach_claim_subjects(
     return subjects
 
 
+def attach_claim_text(claim: Dict[str, Any], claim_map: Dict[str, Any]) -> str:
+    """Carry the claim's own wording onto its claim_map for the recital gate.
+
+    The restatement check compared sources against `normalised_claim`, which
+    decomposition rewrites. Kennedy 977b36b7 (2026-09-23): the author's own
+    newsletter restated the submitted claim word for word ("pretty much the
+    lowest on record"), the normalised claim read "representing the lowest level
+    on record", the match fell below its threshold, and the claimant's own
+    sentence supported all three elements — on the 83% norm it was the weight
+    that crossed the support floor. Same pattern and reasons as the two
+    attachers above; metadata is not in the signed payload.
+    """
+    text = claim.get("text") or ""
+    claim_map.setdefault("metadata", {})["claim_text"] = text
+    return text
+
+
 def extract_pipeline_metrics(
     final_result: Dict[str, Any], config: PipelineConfig
 ) -> PipelineMetrics:
@@ -2394,6 +2411,7 @@ async def run_pipeline_phase2(
             )
             attach_claim_jurisdiction(claim, scaffold)
             attach_claim_subjects(claim, scaffold)
+            attach_claim_text(claim, scaffold)
 
     # Budget: ~55s Google thinking model batch mapping + ~25s parallel
     # completion passes (Step 2 NF-19 fix, 2026-05-12) + ~30s OpenAI
