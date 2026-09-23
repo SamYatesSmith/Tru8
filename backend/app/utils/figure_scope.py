@@ -171,6 +171,40 @@ def stated_figures(text: Optional[str]) -> List[Figure]:
     return [figure for figure, _ in _scan(text or "")]
 
 
+# A number that names nothing after it ("… is almost 28,700.") and the phrase that
+# says what it counts ("the number of securities trades"). Element-side only: an
+# element is one sentence about one quantity; a source page is not.
+_BARE_NUMBER = re.compile(
+    _NUM + r"(?:\s?(thousand|million|billion|trillion))?(?!\s*(?:%|per ?cent|percent))"
+    r"(?=\s*(?:[.,;:)]|$))",
+    re.I,
+)
+_NUMBER_OF = re.compile(
+    r"\b(?:number|total|count)\s+of\s+([a-z]{3,})(?:\s+([a-z]{3,}))?", re.I
+)
+
+
+def _counted_elsewhere(text: str) -> List[Tuple[Figure, int]]:
+    """Counts whose noun sits in a "number of X" phrase, not after the number.
+
+    Legum 06ef2b65 (2026-09-23): "The number of securities trades made by Donald
+    Trump since 2025 is almost 28,700." armed nothing, so warren.senate.gov
+    ("over 17,000 stock trades") and ABC ("more than 21,000 … in 2025") stayed
+    supports for the 28,700 total — the part-period error the gate exists for.
+    """
+    phrase = _NUMBER_OF.search(text)
+    if not phrase:
+        return []
+    nouns = [n for n in (_noun(w) for w in (phrase[1], phrase[2])) if n]
+    out: List[Tuple[Figure, int]] = []
+    for m in _BARE_NUMBER.finditer(text):
+        if _is_year(m[1], m[2], m[3]):
+            continue
+        value, precision = _value(m[1], m[2], m[3]), _precision(m[1], m[2], m[3])
+        out.extend((Figure("n:" + noun, value, precision), m.start()) for noun in nouns)
+    return out
+
+
 def element_figures(description: Optional[str]) -> Optional[ElementFigures]:
     """The point figures an element states, or None when it states none.
 
@@ -179,7 +213,7 @@ def element_figures(description: Optional[str]) -> Optional[ElementFigures]:
     text = description or ""
     figures = [
         figure
-        for figure, start in _scan(text)
+        for figure, start in _scan(text) + _counted_elsewhere(text)
         if not _BOUND_BEFORE.search(text[max(0, start - 30) : start])
     ]
     if not figures:

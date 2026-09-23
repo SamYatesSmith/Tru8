@@ -147,6 +147,21 @@ is canonical.
    82CF + 93DD drift as before, other claims unchanged. ⚠️ Separate hole, not fixed: when
    the claim HAS named subjects, a mapper reasoning containing "confirms" vetoes the whole
    recital check, restatement path included.
+   **LIVE `3c6aff4`. Kennedy re-run `75ef5e70` (same cached pool as 977b36b7, so the fix is
+   isolated):** energyflux scoped `recital_scope` on all three elements; **el 02 (83% norm)
+   now reads UNRESOLVED** — one reporting source (briefs.co) states 83%, weight 2 under the
+   floor of 3 — the known-truth answer. el 01 (67%) supported by briefs.co + cruxinvestor;
+   el 03 (record low) by FT + Algebris. **Kennedy is now a candidate for the correctness gate
+   and a fresh note** (not yet done). Credits today: 9.
+   **Notes 2026-09-23 (late):** Kennedy `75ef5e70` gate PASS (B), note drafted, fresh
+   fact-check PASS after one fix ("one other source"). Legum `06ef2b65` gate PASS on badges
+   (B−) but el 02 kept warren.senate.gov (17,000) and ABC (21,000 in 2025) as supports for the
+   28,700 total — "…is almost 28,700." armed nothing (no noun after the number). **Fixed:**
+   `_counted_elsewhere` takes the noun from a "number/total/count of X" phrase for a bare
+   element number. New fires on stored records: 6, all part-period counts offered for the
+   total. 38 figure tests (mutation-checked); unit 3,935; bench as before — and 5647 run
+   alone this time DRIFTED with the gate OFF and not ON: its drift is independent of the gate,
+   settled. Legum re-run below.
    Was: **BUILT 2026-09-23, UNCOMMITTED** (`app/utils/figure_scope.py`, gate in
    `claim_map_analyzer.py`, flag `ENABLE_FIGURE_SCOPE_GATE`, 25 tests, mutation-checked).
    Thresholds ("below 5%") never arm it — the coverage-recovery fixture caught that on the

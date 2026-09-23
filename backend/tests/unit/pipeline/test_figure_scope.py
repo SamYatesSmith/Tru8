@@ -420,3 +420,34 @@ def test_gate_scopes_the_other_period_support_with_its_reason():
     entry = elem["basis"]["figure_scope"]["scoped"][0]
     assert entry["rule"] == "other_period"
     assert entry["element_period"] == "2026-09"
+
+
+# ── count named by a "number of" phrase (2026-09-23, Legum 06ef2b65) ──────
+
+
+LEGUM_COUNT = "The number of securities trades made by Donald Trump since 2025 is almost 28,700."
+
+
+def test_a_number_of_phrase_names_what_a_bare_count_counts():
+    el = element_figures(LEGUM_COUNT)
+    assert el is not None and el.approximate
+    assert {f.kind for f in el.figures} == {"n:securitie", "n:trade"}
+    assert {f.value for f in el.figures} == {28700.0}
+
+
+@pytest.mark.parametrize(
+    "source,unstated",
+    [
+        ("Financial disclosures reveal over 17,000 stock trades.", True),
+        ("advisers made more than 21,000 securities trades in 2025", True),
+        ("nearly 29000 securities trades in 17 months", False),
+        ("roughly 28,700 trades over 17 months", False),
+    ],
+)
+def test_part_period_counts_do_not_state_the_total(source, unstated):
+    assert is_unstated_figure(element_figures(LEGUM_COUNT), source) is unstated
+
+
+def test_without_a_number_of_phrase_a_bare_number_arms_nothing():
+    assert element_figures("Version 3.22.0 was released on January 22, 2018.") is None
+    assert element_figures("The mission launched in 1984.") is None
