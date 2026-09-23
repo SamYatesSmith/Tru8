@@ -56,6 +56,13 @@ from app.utils.direction_fidelity import (
     lost_direction_indices,
 )
 from app.utils.date_scope import element_day, is_off_day, format_day
+from app.utils.figure_scope import (
+    element_figures,
+    format_figure,
+    is_unstated_figure,
+    rests_on_a_figure,
+    same_kind_figures,
+)
 from app.utils.recital_scope import element_asserts_attribution, recital_match
 from app.utils.temporal_scope import (
     Period,
@@ -1524,6 +1531,7 @@ _SCOPE_RECEIPT_KEYS = (
     "jurisdiction_scope",
     "measure_scope",
     "date_scope",
+    "figure_scope",
     "interested_party",
     "recital_scope",
     "absence_of_evidence",
@@ -1557,6 +1565,18 @@ def _merge_scope_receipts(
         elif new:
             merged[key] = new
     return merged
+
+
+def _figure_text(item: _IndexedEvidence) -> str:
+    """What the mapper saw plus the retained passages — the figure gate's reading.
+
+    The union keeps a figure the source states outside the mapper's window from
+    reading as "not stated".
+    """
+    passages = ((item.ev.get("text_provenance") or {}).get("passages")) or []
+    return " ".join(
+        [item.text] + [p.get("text") or "" for p in passages if isinstance(p, dict)]
+    )
 
 
 def _index_evidence(evidence_list: List[Dict[str, Any]]) -> Dict[str, _IndexedEvidence]:
@@ -2751,6 +2771,54 @@ class ClaimMapAnalyzer:
                                 ).stated_days(item.text)
                                 if (x.year, x.month) == (_d.year, _d.month)
                             ),
+                        },
+                    )
+                )
+
+        # Figure scope (F2, 2026-09-23): a SUPPORT must state the element's figure.
+        # Legum ($898m–$2.87bn from summed part-period ranges) and Kennedy (an 83%
+        # norm from "68%, 16 points below") were badged supported on figures no
+        # source states — the mapper did the arithmetic. Fires only when the source
+        # states figures of the element's kind (%, currency, count of a named
+        # thing) and none matches; silence never fires. SUPPORTS ONLY, measured:
+        # the mirror fired 4x on 61 records and stripped a real rebuttal each time.
+        # Reads retained passages too, so a figure outside the mapper's window is
+        # not a false fire. After date_scope, before interested-party, by the
+        # additive argument. Design: audit/2026-09-23_figure_scope_gate_design.md.
+        # ROLLBACK: ENABLE_FIGURE_SCOPE_GATE=False.
+        if getattr(settings, "ENABLE_FIGURE_SCOPE_GATE", True):
+            figures = element_figures(elem.get("description"))
+            if figures is not None:
+                shown = sorted({format_figure(f) for f in figures.figures})
+
+                def _figure_fires(
+                    item: "_IndexedEvidence", ref: Dict[str, Any], _f=figures
+                ) -> bool:
+                    # Only a support that RESTS on a number: a source backing the
+                    # cause half of "X caused Y to reach 5.1%" is not scoped
+                    # (TRU-B4A3-C42D, 2026-09-23).
+                    return (
+                        ref.get("relationship") == "supports"
+                        and rests_on_a_figure(_f, ref.get("reasoning"))
+                        and is_unstated_figure(_f, _figure_text(item))
+                    )
+
+                gates.append(
+                    _ScopeGate(
+                        key="figure_scope",
+                        label="FIGURE SCOPE",
+                        pins=f"element states {', '.join(shown)}",
+                        summary={"element_figures": shown},
+                        fires=_figure_fires,
+                        entry=lambda item, _ref, _f=figures, _s=shown: {
+                            "element_figures": _s,
+                            "source_figures": sorted(
+                                {
+                                    format_figure(x)
+                                    for x in same_kind_figures(_f, _figure_text(item))
+                                }
+                            ),
+                            "rule": "not_stated",
                         },
                     )
                 )

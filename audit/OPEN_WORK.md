@@ -71,10 +71,21 @@ updated. Full record: `audit/2026-09-22_mapper_reads_framing_defect.md`; bench R
 is canonical.
 
 **Owed before the four notes go:**
-1. Re-run the four records and score against the known-truth answers in the design doc §8
-   (~£0.60, ASK FIRST). Katz el 03 should read challenged; Legum el 02 context-only;
-   Kennedy el 02's 83% unsupportable on 85/88; Tidman el 02 supported WITH the inquiry's own
-   report as `supports`.
+1. ✅ **DONE 2026-09-23 — 2 of 4 pass; both failures are F2 (arithmetic), not supply.** Run on
+   the subscription (4 credits) via `output/rerun/rerun.py`; dumps `output/rerun/score_dump.txt`.
+   - Katz `bff4f803` el 03 **PASS** — `disputed`, cde.news challenges on Thuringia 2024.
+   - Tidman `1ccc0eb9` el 02 **PASS** — `supported`, thirlwall.public-inquiry.uk as `supports`.
+     (el 01 "made a statement or recommendation" is a trivially-true premise element — residual.)
+   - Legum `bb73d076` el 02 **FAIL** — `supported` on part-period figures (2025 + Q1 2026) the
+     mapper summed; CNBC's "$858m in *assets*" filed `supports` (wrong measure). No source states
+     $898m–$2.87bn. 11 of 18 items reached the mapper as snippets (paywalled — no fetch, so the
+     supply floor cannot help).
+   - Kennedy `3a9d13de` el 02 **FAIL** — `supported` on 83% that NO source states: eutoday
+     "68%, ~16 points below the five-year average" (=84, mapper did the sum) and GEF "about 82%"
+     for 20 August, a page that itself flags a seasonal-norm discrepancy. Also el 01 `unresolved`:
+     ground.news states "record-low 67% full" and was filed `context`, leaving one reporting
+     support under the floor.
+   ⇒ The supply fix did what it was for. What remains is exactly item 4 below.
 2. **A correctness gate in the send procedure.** §4C–§4E ask whether a record is presentable
    and whether a note is accurate ABOUT it. Neither asks whether the record is RIGHT, and a
    fresh fact-check agent cannot catch an error the note and the record share. All four
@@ -83,7 +94,27 @@ is canonical.
 3. Founder call: does "name the seam" survive? Defensible for a coverage gap (the product
    working); not for a correctness error. Suggested: keep for gaps, hold the record otherwise.
 4. F2 — a numeric-mismatch gate (Kennedy's 88%-for-83%, Legum's summed part-periods). Not a
-   supply problem; the mapping prompt already forbids it in three rules. Design owed.
+   supply problem; the mapping prompt already forbids it in three rules. **DESIGNED
+   2026-09-23, awaiting approval: `audit/2026-09-23_figure_scope_gate_design.md`.**
+   Prototype over 61 stored records: 24 support refs fire, all on the known-wrong
+   Legum/Kennedy family + one summed figure (Reform £72m, founder call); zero on anything
+   else. Supports-only — the mirror fired 4× and was wrong 4× (it would strip the TTE rebuttal).
+   **BUILT 2026-09-23, UNCOMMITTED** (`app/utils/figure_scope.py`, gate in
+   `claim_map_analyzer.py`, flag `ENABLE_FIGURE_SCOPE_GATE`, 25 tests, mutation-checked).
+   Thresholds ("below 5%") never arm it — the coverage-recovery fixture caught that on the
+   first full run. Unit: 3,918 pass. **Bench — traced, not a cache (founder asked; the bench
+   already busts Redis per claim and resets `domain_status.json` per claim):** the first build
+   fired on B4A3 "the mini-budget caused yields to spike to 5.1%" on a source the mapper cited
+   for the CAUSE, not the number → element unresolved → coverage recovery → unrecorded
+   requests. Fixed: the gate now needs the mapper's reasoning to cite a figure of the
+   element's kind (`rests_on_a_figure`) — all 24 prototype fires still hold. Final
+   instrumented `--all`: 160 ok / 11 warn / 12 fail, only 82CF drift — IDENTICAL to the
+   gate-off control; figure gate fires on no corpus claim. ⚠️ Two earlier gate-on runs
+   showed 93DD / 5647 drift on runs where the figure gate did not fire on them → run-to-run
+   nondeterminism of the 82CF kind; the gate-off control was run once, so "gate-off never
+   flakes" is NOT established.
+   Katz + Tidman notes re-drafted on the re-runs, correctness gate + fresh fact-check PASS
+   (Katz 2 wording fixes applied); both await the registered-address line and founder read.
 
 ---
 

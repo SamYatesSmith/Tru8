@@ -784,6 +784,13 @@ class Settings(BaseSettings):
     # receipt naming both days. ROLLBACK: ENABLE_DATE_SCOPE_GATE=False.
     ENABLE_DATE_SCOPE_GATE: bool = Field(True, env="ENABLE_DATE_SCOPE_GATE")
 
+    # Figure scope gate (F2, 2026-09-23). A `supports` reference for an element
+    # stating a figure (%, currency, count) must come from a source stating a
+    # matching figure; a source stating only different figures of that kind
+    # becomes context with a receipt naming both. Supports only; silence never
+    # fires. ROLLBACK: ENABLE_FIGURE_SCOPE_GATE=False.
+    ENABLE_FIGURE_SCOPE_GATE: bool = Field(True, env="ENABLE_FIGURE_SCOPE_GATE")
+
     # Item 7 stage 1 (2026-08-28): the factcheck signal. When ON, the evidence
     # classifier (1) asks the LLM for a conservative `factcheck` boolean (a
     # genre judgement — content property, never an outlet roster), (2) marks
