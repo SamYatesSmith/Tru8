@@ -224,6 +224,29 @@ def test_summed_part_periods_become_context_and_the_stated_figure_stays():
     assert entry["source_figures"] == ["$1,860,000,000", "$600,000,000"]
 
 
+def test_a_norm_derived_from_a_points_gap_becomes_context():
+    """Kennedy 54b8699b: euractiv states 62% and '15 percentage points below the
+    10-year average'; the mapper filed it as supporting an 83% norm. The reasoning
+    names a gap, not a percentage — it still rests on a number."""
+    evidence = [
+        {
+            "evidence_id": "ev-euractiv",
+            "url": "https://www.euractiv.com/news/historic-low-storage-levels/",
+            "title": "Historic low storage levels are not a gas supply crisis",
+            "snippet": "Across Europe, gas storage levels stand at around 62% – 15 "
+            "percentage points below the 10-year average.",
+            "tier": "reporting",
+        }
+    ]
+    ref = (
+        "ev-euractiv",
+        "supports",
+        "Reports levels are 15 percentage points below the 10-year average.",
+    )
+    elem = _parse([ref], description=KENNEDY_ELEMENT, evidence=evidence)
+    assert _rel(elem, "ev-euractiv") == "context"
+
+
 def test_a_support_resting_on_the_cause_not_the_number_is_untouched():
     """TRU-B4A3-C42D: "the mini-budget caused 30-year gilt yields to spike to 5.1%".
     A source confirming the CAUSE, whose reasoning names no figure, is not claiming

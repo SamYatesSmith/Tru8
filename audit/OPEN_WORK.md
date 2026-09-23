@@ -99,7 +99,19 @@ is canonical.
    Prototype over 61 stored records: 24 support refs fire, all on the known-wrong
    Legum/Kennedy family + one summed figure (Reform £72m, founder call); zero on anything
    else. Supports-only — the mirror fired 4× and was wrong 4× (it would strip the TTE rebuttal).
-   **BUILT 2026-09-23, UNCOMMITTED** (`app/utils/figure_scope.py`, gate in
+   **LIVE `e3857a5` 2026-09-23. Live re-run (2 credits, same-day pools):** Legum `06ef2b65`
+   el 03 value range → **CONTEXTUAL, PASS** (gate scoped a $1.56bn source). Kennedy
+   `54b8699b` → **PARTIAL**: gate scoped the 85%/88% supports (2 on el 02, 6 on el 01), but
+   el 02 still reads supported on an x.com post that STATES 83% plus euractiv "15 percentage
+   points below the 10-year average" — a derivation the reasoning rule lets through because
+   "percentage points" is not a `pct` figure. Gaps: (a) that; (b) "the number of trades …
+   is almost 28,700" arms nothing (no noun after the number) — harmless here.
+   **Gap (a) CLOSED same day:** reasoning citing a points gap ("15 percentage points below")
+   now counts as resting on a figure for a `pct` element (euractiv states 62%; 62+15 is not
+   even 83). 26 tests, mutation-checked; unit 3,919; bench 146/10/11 with 82CF + 93DD drift —
+   93DD has no %/currency/count element for this rule to touch and drifted on earlier runs
+   where the gate did not fire on it. Kennedy re-run below.
+   Was: **BUILT 2026-09-23, UNCOMMITTED** (`app/utils/figure_scope.py`, gate in
    `claim_map_analyzer.py`, flag `ENABLE_FIGURE_SCOPE_GATE`, 25 tests, mutation-checked).
    Thresholds ("below 5%") never arm it — the coverage-recovery fixture caught that on the
    first full run. Unit: 3,918 pass. **Bench — traced, not a cache (founder asked; the bench

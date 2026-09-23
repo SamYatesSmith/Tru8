@@ -83,6 +83,7 @@ _BOUND_BEFORE = re.compile(
     re.I,
 )
 _EXACT = re.compile(r"\bexactly\b", re.I)
+_POINTS = re.compile(_NUM + r"\s?(?:percentage|basis)?\s?(?:points?|pp|bps?)\b", re.I)
 
 # Words that follow a number without naming what is counted. Months keep a day of
 # the month ("11 September") from reading as a count of Septembers.
@@ -213,7 +214,13 @@ def rests_on_a_figure(element: ElementFigures, reasoning: Optional[str]) -> bool
     on the failures the gate exists for.
     """
     kinds = {f.kind for f in element.figures}
-    return any(f.kind in kinds for f in stated_figures(reasoning))
+    if any(f.kind in kinds for f in stated_figures(reasoning)):
+        return True
+    # A percentage reached by arithmetic on a GAP ("15 percentage points below the
+    # average") rests on a number too, though a gap is not itself a `pct` figure.
+    # Kennedy 54b8699b (2026-09-23): euractiv states 62% and "15 percentage points
+    # below the 10-year average"; the mapper filed it as supporting an 83% norm.
+    return "pct" in kinds and bool(_POINTS.search(reasoning or ""))
 
 
 def is_unstated_figure(element: ElementFigures, text: Optional[str]) -> bool:
