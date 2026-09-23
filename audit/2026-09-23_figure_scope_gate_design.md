@@ -86,6 +86,11 @@ claim look supported, and it cannot remove a challenge.
 
 **Zero fires on Katz, Tidman, or any record without a figure-sum failure.**
 
+**Update (built 2026-09-23, same day): dated coincidences closed.** A matching figure
+counts only if at least one sentence stating it names no period, or the element's own —
+`unstated_reason` → `other_period`. Fires once on 66 stored records: exactly the GEF case.
+Tolerance also made strict (82% no longer states 83%). Undated coincidences remain.
+
 **Known limitation — coincident numbers mask.** Kennedy's re-run still leaves one support
 standing: Global Energy Flow states "83%" — about storage on **1 November 2025**, a
 different quantity. Same kind + same value = match. The gate errs toward leaving the

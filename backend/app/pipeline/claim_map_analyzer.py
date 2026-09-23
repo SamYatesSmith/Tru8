@@ -62,6 +62,7 @@ from app.utils.figure_scope import (
     is_unstated_figure,
     rests_on_a_figure,
     same_kind_figures,
+    unstated_reason,
 )
 from app.utils.recital_scope import element_asserts_attribution, recital_match
 from app.utils.temporal_scope import (
@@ -2791,8 +2792,16 @@ class ClaimMapAnalyzer:
             if figures is not None:
                 shown = sorted({format_figure(f) for f in figures.figures})
 
+                # The element's one month-level period, if it pins one: a matching
+                # figure stated only in sentences about another period is not the
+                # element's figure (Kennedy 16133434, "83% on November 1, 2025").
+                figure_period = element_period(elem.get("description"))
+
                 def _figure_fires(
-                    item: "_IndexedEvidence", ref: Dict[str, Any], _f=figures
+                    item: "_IndexedEvidence",
+                    ref: Dict[str, Any],
+                    _f=figures,
+                    _p=figure_period,
                 ) -> bool:
                     # Only a support that RESTS on a number: a source backing the
                     # cause half of "X caused Y to reach 5.1%" is not scoped
@@ -2800,7 +2809,7 @@ class ClaimMapAnalyzer:
                     return (
                         ref.get("relationship") == "supports"
                         and rests_on_a_figure(_f, ref.get("reasoning"))
-                        and is_unstated_figure(_f, _figure_text(item))
+                        and unstated_reason(_f, _figure_text(item), _p) is not None
                     )
 
                 gates.append(
@@ -2810,7 +2819,7 @@ class ClaimMapAnalyzer:
                         pins=f"element states {', '.join(shown)}",
                         summary={"element_figures": shown},
                         fires=_figure_fires,
-                        entry=lambda item, _ref, _f=figures, _s=shown: {
+                        entry=lambda item, _ref, _f=figures, _s=shown, _p=figure_period: {
                             "element_figures": _s,
                             "source_figures": sorted(
                                 {
@@ -2818,7 +2827,12 @@ class ClaimMapAnalyzer:
                                     for x in same_kind_figures(_f, _figure_text(item))
                                 }
                             ),
-                            "rule": "not_stated",
+                            "rule": unstated_reason(_f, _figure_text(item), _p),
+                            **(
+                                {"element_period": _format_period(_p)}
+                                if _p is not None
+                                else {}
+                            ),
                         },
                     )
                 )

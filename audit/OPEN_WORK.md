@@ -110,7 +110,24 @@ is canonical.
    now counts as resting on a figure for a `pct` element (euractiv states 62%; 62+15 is not
    even 83). 26 tests, mutation-checked; unit 3,919; bench 146/10/11 with 82CF + 93DD drift —
    93DD has no %/currency/count element for this rule to touch and drifted on earlier runs
-   where the gate did not fire on it. Kennedy re-run below.
+   where the gate did not fire on it. **Kennedy re-run `16133434` (af7ce0b, 9 s — this
+   morning's cached pool):** the gate now scopes eutoday's points-gap derivation on el 02.
+   el 02 STILL reads supported, on one source: global-energy-flow.com, whose page says the
+   norm "for this date is about 82%" (20 August) and also prints "83%" — about storage on
+   1 November 2025. That is the design doc's known limitation (a coincident number masks),
+   now the only thing left. **Kennedy stays HELD.** Quote-review design graded B / ~70%
+   (`2026-09-23_figure_quote_review_design.md`) and set aside for a **sentence-level date
+   check**: a matching figure counts only if a sentence stating it does not name a different
+   date/period from the element's. **Prototyped free on 66 stored records:** 13 eligible
+   supports, **1 fire — exactly Kennedy's GEF "83% on November 1, 2025"**; the 12 kept all
+   state the figure undated or in September 2026. The prototype also exposed a **live F2
+   bug**: tolerance was inclusive, so "about 82%" counted as stating 83%. Made strict
+   (uncommitted): F2 fires 24 → 27, the new ones discoveryalert 84% vs 83% and an X post's
+   66% vs 67% — both right by the rule.
+   **BUILT same day** (`unstated_reason` → receipt `rule: other_period` + `element_period`;
+   strict tolerance). 32 tests, both rules mutation-checked; unit 3,925. Bench 125/7/11 with
+   5647 + 82CF + 93DD drift — 5647 run alone is identical gate on vs off with no drift, and it
+   drifted on a full run before this change: the recurring order-dependent variation.
    Was: **BUILT 2026-09-23, UNCOMMITTED** (`app/utils/figure_scope.py`, gate in
    `claim_map_analyzer.py`, flag `ENABLE_FIGURE_SCOPE_GATE`, 25 tests, mutation-checked).
    Thresholds ("below 5%") never arm it — the coverage-recovery fixture caught that on the

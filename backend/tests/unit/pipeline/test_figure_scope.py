@@ -348,3 +348,75 @@ def test_an_element_without_figures_does_not_arm_the_gate():
         cm["elements"][0], cm, _index_evidence(EVIDENCE)
     )
     assert "figure_scope" not in [g.key for g in gates]
+
+
+# ── sentence-level period (2026-09-23, Kennedy 16133434) ─────────────────
+
+
+# The live page also names September 2026 (its update line), which is why the
+# whole-item temporal gate stayed silent and this sentence-level rule is needed.
+GEF_TEXT = (
+    "Updated 13 September 2026. The EU gas storage level sits at about 68.04% of working capacity as of "
+    "August 20, 2026. How to read this chart The blue line is where storage "
+    "actually went: it started the season near 83% on November 1, 2025, fell "
+    "steadily through the heating months. - According to global-energy-flow.com, "
+    "the norm for this date is about 82%, per EnergyRiskIQ."
+)
+KENNEDY_NORM = (
+    "As of 11 September 2026, the seasonal norm for EU-wide gas storage stocks is 83% full."
+)
+
+
+def test_82_does_not_state_83():
+    """The rounding ranges touch at 82.5; touching is not matching."""
+    el = element_figures("The norm is 83% full.")
+    assert is_unstated_figure(el, "the norm for this date is about 82%")
+
+
+def test_a_matching_figure_only_in_another_periods_sentence_is_not_stated():
+    from app.utils.figure_scope import unstated_reason
+    from app.utils.temporal_scope import element_period
+
+    el = element_figures(KENNEDY_NORM)
+    period = element_period(KENNEDY_NORM)
+    assert unstated_reason(el, GEF_TEXT, period) == "other_period"
+    # Without a pinned period the rule cannot arm: the figure is on the page.
+    assert unstated_reason(el, GEF_TEXT, None) is None
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Storage is well below the historical average of 83% in early September.",
+        "The five-year norm for September 2026 is 83%.",
+        "In 2026 the seasonal norm stands at 83%.",
+    ],
+)
+def test_an_undated_or_same_period_sentence_keeps_the_figure(sentence):
+    from app.utils.figure_scope import unstated_reason
+    from app.utils.temporal_scope import element_period
+
+    el = element_figures(KENNEDY_NORM)
+    assert unstated_reason(el, sentence, element_period(KENNEDY_NORM)) is None
+
+
+def test_gate_scopes_the_other_period_support_with_its_reason():
+    evidence = [
+        {
+            "evidence_id": "ev-gef",
+            "url": "https://global-energy-flow.com/storage/trajectory/",
+            "title": "EU Gas Storage Level 2026",
+            "snippet": GEF_TEXT,
+            "tier": "primary",
+        }
+    ]
+    ref = (
+        "ev-gef",
+        "supports",
+        "Notes the 5-year seasonal norm around mid-September is approximately 82% to 83%.",
+    )
+    elem = _parse([ref], description=KENNEDY_NORM, evidence=evidence)
+    assert _rel(elem, "ev-gef") == "context"
+    entry = elem["basis"]["figure_scope"]["scoped"][0]
+    assert entry["rule"] == "other_period"
+    assert entry["element_period"] == "2026-09"

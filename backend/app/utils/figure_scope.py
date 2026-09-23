@@ -17,12 +17,16 @@ an element stating several ("£22m rather than the £53m forecast").
 (a challenge whose only figures MATCH) fired 4 times across 61 stored records and was
 wrong every time. A challenge that repeats the number is disputing its meaning.
 
-Known limitation: a source stating the same value about a different quantity matches.
-The gate then leaves the mapper's call standing — no worse than without it.
+Coincident numbers: a matching figure that appears only in sentences naming a
+different period from the element's is not the element's figure (`unstated_reason`,
+"other_period"). An UNDATED coincidence ("83% of respondents") still matches — the
+gate then leaves the mapper's call standing, no worse than without it.
 """
 
 import re
-from typing import List, NamedTuple, Optional, Tuple
+from typing import Any, List, NamedTuple, Optional, Tuple
+
+from app.utils.temporal_scope import extract_periods
 
 
 class Figure(NamedTuple):
@@ -195,7 +199,9 @@ def _matches(element: ElementFigures, want: Figure, have: Figure) -> bool:
         tolerance = max(tolerance, 0.05 * abs(want.value))
     if not element.exact:
         tolerance += have.precision
-    return abs(want.value - have.value) <= tolerance
+    # Strict: "82%" (81.5–82.5) and "83%" (82.5–83.5) only touch at the boundary
+    # and are different figures — the live Kennedy norm read 82% as stating 83%.
+    return abs(want.value - have.value) < tolerance
 
 
 def same_kind_figures(element: ElementFigures, text: Optional[str]) -> List[Figure]:
@@ -234,6 +240,59 @@ def is_unstated_figure(element: ElementFigures, text: Optional[str]) -> bool:
     return not any(
         _matches(element, want, have) for want in element.figures for have in stated
     )
+
+
+# Sentence boundaries, list bullets and line breaks. Coarse on purpose: a missed
+# boundary joins two sentences, which can only ADD periods to a hit and so can
+# only make a fire less likely (a joined sentence naming the right period too
+# is left alone).
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+(?=[A-Z\"“(])|\n+|\s+[-•]\s+")
+
+
+def _period_conflicts(period: Any, sentence: str) -> bool:
+    """The sentence names at least one period, and none of them is `period`.
+
+    A year-only mention agrees with any month of that year. Silence is not a
+    conflict.
+    """
+    stated = extract_periods(sentence)
+    if not stated:
+        return False
+    return not any(
+        p.year == period.year and (p.month is None or p.month == period.month)
+        for p in stated
+    )
+
+
+def unstated_reason(
+    element: ElementFigures, text: Optional[str], period: Any = None
+) -> Optional[str]:
+    """Why the text does not state the element's figure, or None when it does.
+
+    - "not_stated": figures of the element's kind, none matching (as above).
+    - "other_period": the figure appears, but every sentence stating it names a
+      different period from the element's. Kennedy 16133434 (2026-09-23): the
+      global-energy-flow page's only "83%" is storage "on November 1, 2025",
+      offered as support for an 83% seasonal norm "as of 11 September 2026".
+      Needs the element to pin one month (`period`); an undated sentence keeps
+      the support, as silence always does.
+    """
+    if is_unstated_figure(element, text):
+        return "not_stated"
+    if period is None:
+        return None
+    hits = [
+        s
+        for s in _SENTENCE_SPLIT.split(text or "")
+        if any(
+            _matches(element, want, have)
+            for want in element.figures
+            for have in stated_figures(s)
+        )
+    ]
+    if hits and all(_period_conflicts(period, s) for s in hits):
+        return "other_period"
+    return None
 
 
 def format_figure(f: Figure) -> str:
