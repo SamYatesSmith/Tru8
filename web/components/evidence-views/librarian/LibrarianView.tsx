@@ -9,6 +9,7 @@ import { FilterPills } from './FilterPills';
 import { EvidenceLedger } from './EvidenceLedger';
 import { PassageReviewNotice } from '../PassageReviewNotice';
 import { ReadingTable } from './ReadingTable';
+import { UnmappedEvidenceGroup } from './UnmappedEvidenceGroup';
 import { RetrievalFunnel } from './RetrievalFunnel';
 import { SortField } from './SortControl';
 
@@ -58,7 +59,7 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
   const showDiagnosticToggle = diagnostic.hasDiagnosticVariance;
 
   // Pool all evidence across claims (deduped by evidenceId for check-wide)
-  const { allEvidence, includedEvidence, excludedEvidence, elementMap, claimLabelMap, elementDescriptionMap, relationshipRefs } = useMemo(() => {
+  const { allEvidence, includedEvidence, unmappedEvidence, excludedEvidence, elementMap, claimLabelMap, elementDescriptionMap, relationshipRefs } = useMemo(() => {
     const seen = new Set<string>();
     const all: Evidence[] = [];
     const elementMap = new Map<string, string[]>();
@@ -115,10 +116,20 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
     // "no hidden curation" invariant.
     const isVisibleInLandscape = (ev: Evidence) =>
       ev.receiptStatus !== 'excluded';
-    const included = all.filter(isVisibleInLandscape);
+    const visible = all.filter(isVisibleInLandscape);
     const excluded = all.filter((ev) => !isVisibleInLandscape(ev));
+    // A− H4 (2026-09-24): items the mapper connected to no element no longer
+    // sit in the tier bands. A World Bank "Trade (% of GDP)" page or a 2009
+    // cordis release in PRIMARY read as the record's primary evidence on 6 of
+    // 19 graded records, while moving no state at all. They stay visible and
+    // counted in their own group below the ledger (invariant #5: nothing
+    // hidden) — labelled "not mapped", never "not related": some are on-topic
+    // and simply unconnected (record e6e0c00d).
+    const isMapped = (ev: Evidence) => (relationshipRefs.get(ev.evidenceId || ev.id)?.length ?? 0) > 0;
+    const included = visible.filter(isMapped);
+    const unmapped = visible.filter((ev) => !isMapped(ev));
 
-    return { allEvidence: all, includedEvidence: included, excludedEvidence: excluded, elementMap, claimLabelMap, elementDescriptionMap, relationshipRefs };
+    return { allEvidence: all, includedEvidence: included, unmappedEvidence: unmapped, excludedEvidence: excluded, elementMap, claimLabelMap, elementDescriptionMap, relationshipRefs };
   }, [claims, scope]);
 
   // Distinct disposition(s) per evidenceId — for the ledger card marker. When an
@@ -316,9 +327,11 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
         readOnly={readOnly}
       />
 
+      <UnmappedEvidenceGroup evidence={unmappedEvidence} />
+
       <RetrievalFunnel
         reviewedCount={claims.reduce((sum, c) => sum + (c.sourcesReviewedCount || 0), 0)}
-        includedCount={includedEvidence.length}
+        includedCount={includedEvidence.length + unmappedEvidence.length}
         excludedEvidence={excludedEvidence}
       />
     </div>

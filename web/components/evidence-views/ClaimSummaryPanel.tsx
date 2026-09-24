@@ -122,8 +122,12 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   // Thin elements the signed-in user can top up (dashboard-only capability).
   const thinCount = topUp ? thinElementCount(elements) : 0;
 
-  // Source mix by tier (nullable tier → commentary in the helper).
-  const tiers = tierCounts(evidence);
+  // Source mix by tier over MAPPED sources only (nullable tier → commentary in
+  // the helper); unmapped sources are counted separately, matching the
+  // Evidence lens, where they sit in their own "not mapped" group (A− H4).
+  const mappedForTiers = evidence.filter((ev) => (relMap.get(ev.evidenceId || ev.id)?.length ?? 0) > 0);
+  const tiers = tierCounts(mappedForTiers);
+  const unmappedCount = evidenceCount - mappedForTiers.length;
 
   // "Bear directly on the claim" = SHOWN sources filed as supporting or
   // challenging at least one element — the same join as the bar below, so the
@@ -408,6 +412,12 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
                 <span style={{ color: getTierColor('reporting') }}>{tiers.reporting} reporting</span>
                 <span className="text-zinc-200">&middot;</span>
                 <span style={{ color: getTierColor('commentary') }}>{tiers.commentary} commentary</span>
+                {unmappedCount > 0 && (
+                  <>
+                    <span className="text-zinc-200">&middot;</span>
+                    <span>{unmappedCount} not mapped</span>
+                  </>
+                )}
               </>
             )}
           </FooterLink>

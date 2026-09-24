@@ -128,4 +128,26 @@ Per-record grading files: `audit/a_minus/<n>_<shortid>.md`. Tally below once all
 
 Verification: frontend 208 tests pass + typecheck clean; backend unit 3,945 pass / 44 skipped; orientation and video changes mutation-checked; rendered locally against the prod API on Legum, Kennedy and JWST.
 
+
+## Tier 2 — Build A (primary means primary), built 2026-09-24
+Design: `audit/2026-09-24_a_minus_tier2_design.md`. Review: `audit/2026-09-24_a_minus_tier2_review.md` (APPROVE WITH CHANGES). Founder-approved, including the #12 state change.
+
+**What was built:**
+- `_SOCIAL_MEDIA` gains `threads.com`, `linkedin.com` and `bsky.app`.
+- A host-anchored last-pass cap, primary → reporting, for `_WIRE_SERVICES` news outlets (plus `abcnews.com`) and for aggregators (statista, tradingeconomics). Methods `news_outlet_cap` / `aggregator_cap`. Lower-only.
+- **Frontend:** items mapped to no element leave the tier bands. They are listed in a visible, counted "Gathered — not mapped to any part of the claim" group, and the digest footer counts tiers over mapped sources plus "N not mapped".
+
+**Replay on the 19 stored payloads:**
+- 7 items change tier (#6 ×2, #8, #3 ×2, #12, #4).
+- One state change: #12 e2 supported → unresolved, as approved.
+
+**Bench:**
+- Build A vs a control arm (the same bench without the classifier change):
+  - Build A re-keys TRU-C1A0-0001 and 0005, as predicted. Both were patched with `--record-missing` and replay cleanly: 0001 19/0/0; 0005 18/0/3, the same three fails as the control.
+  - 0005's `temporal_scoped_refs` pin is UNEXERCISED in BOTH arms, because the off-period gianlucabenigno source is absent from the pool. This pre-exists Build A.
+- 82CF and 93DD drift in both arms, the known order-dependent drift.
+- **Found, not Build A:** 018F `recital_scoped_refs` is off by 1 in both arms whenever 018F replays. Most likely `3c6aff4` (the recital claim-wording path, 23 Sep). Owed: re-pin after inspection.
+
+**Tests:** classifier tests pass and are mutation-checked; frontend 211 pass plus typecheck.
+
 **Grader note.** Harsher than the outreach passes: Katz B → C, Kennedy B → B−, Legum B → C. They are consistent across graders on the same faults. Treat the absolute grades as strict and the relative buckets as the finding.

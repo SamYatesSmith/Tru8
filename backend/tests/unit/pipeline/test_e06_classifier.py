@@ -1040,3 +1040,67 @@ class TestQualityFloor:
             floor = _apply_quality_floor(evidence)
             assert floor is None, f"{domain} should not match low-authority floor"
             assert evidence["tier"] == "reporting"
+
+
+# ============================================================
+# A− H4 (2026-09-24): primary means primary
+# ============================================================
+
+
+class TestPrimaryMeansPrimary:
+    """Stored records graded 2026-09-24 held a Threads post (bff4f803), a
+    Guardian analysis and abcnews.com (26699bc7) and Statista (b8cf098b) in
+    the PRIMARY tier."""
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://www.threads.com/@brilliantmaps/post/DO1",
+            "https://www.linkedin.com/posts/someone_activity-1",
+            "https://bsky.app/profile/someone/post/3k",
+        ],
+    )
+    def test_threads_linkedin_bluesky_are_social(self, url):
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {"url": url, "tier": "primary", "evidence_type": "data"}
+        assert _apply_quality_floor(evidence) == "social_media_floor"
+        assert evidence["tier"] == "commentary"
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "url,method",
+        [
+            ("https://www.theguardian.com/us-news/2026/sep/22/trump-trades", "news_outlet_cap"),
+            ("https://abcnews.com/Politics/trump-discloses-21000-securities-trades", "news_outlet_cap"),
+            ("https://www.bbc.co.uk/news/articles/c3v4zvyde15o", "news_outlet_cap"),
+            ("https://www.statista.com/statistics/1091926/atmospheric-concentration", "aggregator_cap"),
+            ("https://tradingeconomics.com/ireland/gdp", "aggregator_cap"),
+        ],
+    )
+    def test_primary_capped_at_reporting(self, url, method):
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {"url": url, "tier": "primary", "evidence_type": "data"}
+        assert _apply_quality_floor(evidence) == method
+        assert evidence["tier"] == "reporting"
+        # The cap corrects the tier only; the type is left as classified.
+        assert evidence["evidence_type"] == "data"
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "url,tier",
+        [
+            ("https://www.theguardian.com/commentisfree/x", "commentary"),  # never raised
+            ("https://www.ons.gov.uk/economy/inflation", "primary"),  # real primary untouched
+            ("https://cheap.org/report", "primary"),  # "ap.org" is host-anchored
+            ("https://sitemap.org/x", "primary"),
+        ],
+    )
+    def test_cap_is_lower_only_and_host_anchored(self, url, tier):
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {"url": url, "tier": tier, "evidence_type": "data"}
+        assert _apply_quality_floor(evidence) is None
+        assert evidence["tier"] == tier

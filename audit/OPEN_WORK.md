@@ -46,6 +46,16 @@
 
 Notables re-ranking was dropped after measurement: no rule beat the current one. See the measurement doc's tier-1 table.
 
+**Tier 2 Build A shipped the same day:**
+- Social posts, news outlets and aggregators no longer sit in PRIMARY.
+- Unmapped sources are shown in a separate "not mapped" group.
+- Records 0001 and 0005 re-keyed; their cassettes were patched with `--record-missing`.
+- **Owed:**
+  - 018F recital pin off by 1. It pre-exists Build A.
+  - 0005's temporal pin is unexercised in both arms.
+
+Next: Build C1 (canonical URL key) and C2 (the echo redesign from the trace), per the review.
+
 **Founder rule, 2026-09-24:** anything rated difficulty 3+ gets a plan and a design review before it is built. That covers tier 2 and everything above it.
 
 **Also 2026-09-24:** Jev (TypeSafe) appraisal in `audit/2026-09-24_jev_appraisal.md`. It recommends no production use; an offline test is optional.

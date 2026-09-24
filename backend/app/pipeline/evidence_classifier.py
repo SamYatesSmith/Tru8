@@ -15,6 +15,7 @@ Canonical doc: audit/pipeline-issues/fireside_discussion.md
 import json
 import logging
 import re
+from urllib.parse import urlparse
 from collections import Counter
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -306,7 +307,7 @@ _WIRE_SERVICES = re.compile(
     r"|independent\.co\.uk|telegraph\.co\.uk|mirror\.co\.uk"
     r"|dailymail\.co\.uk|news\.sky\.com|channel4\.com|itv\.com"
     # US news
-    r"|cnn\.com|foxnews\.com|nbcnews\.com|cbsnews\.com|abcnews\.go\.com"
+    r"|cnn\.com|foxnews\.com|nbcnews\.com|cbsnews\.com|abcnews\.go\.com|abcnews\.com"
     r"|npr\.org|usatoday\.com|latimes\.com|forbes\.com"
     # Tech news
     r"|techcrunch\.com|wired\.com|theverge\.com|arstechnica\.com"
@@ -349,7 +350,10 @@ _BLOG_PLATFORMS = re.compile(
 # Note: x.com needs boundary anchor to avoid matching vox.com, fox.com, etc.
 _SOCIAL_MEDIA = re.compile(
     r"reddit\.com|(?:^|[/\.])x\.com|twitter\.com|facebook\.com"
-    r"|tiktok\.com|instagram\.com|threads\.net",
+    r"|tiktok\.com|instagram\.com|threads\.net|threads\.com"
+    # A− H4 (2026-09-24): Threads moved to threads.com, and a Threads post sat
+    # in PRIMARY/data on record bff4f803; LinkedIn and Bluesky were absent too.
+    r"|linkedin\.com|bsky\.app",
     re.IGNORECASE,
 )
 
@@ -618,6 +622,41 @@ def _arxiv_smell_test(evidence: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+# A− H4 (2026-09-24): PRIMARY caps. The LLM's "primary" verdict stood on news
+# outlets ("according to a Guardian analysis", abcnews.com on record 26699bc7)
+# and on aggregators republishing someone else's series (Statista on record
+# b8cf098b, republishing NOAA). A news organisation's own analysis is
+# reporting; an aggregator is at most reporting. Lower-only: never raises a
+# tier. Host-anchored, so "ap.org" cannot match "sitemap.org".
+_NEWS_OUTLET_HOST = re.compile(r"(?:^|\.)(?:" + _WIRE_SERVICES.pattern + r")$", re.IGNORECASE)
+_AGGREGATOR_HOST = re.compile(r"(?:^|\.)(?:statista\.com|tradingeconomics\.com)$", re.IGNORECASE)
+
+
+def _url_host(url: str) -> str:
+    try:
+        return (urlparse(url).hostname or "").lower()
+    except ValueError:
+        return ""
+
+
+def _apply_primary_cap(evidence: Dict[str, Any]) -> Optional[str]:
+    """Cap a PRIMARY verdict at reporting for news outlets and aggregators."""
+    if evidence.get("tier") != "primary":
+        return None
+    host = _url_host(evidence.get("url", "") or "")
+    if not host:
+        return None
+    if _NEWS_OUTLET_HOST.search(host):
+        evidence["tier"] = "reporting"
+        evidence["classification_method"] = "news_outlet_cap"
+        return "news_outlet_cap"
+    if _AGGREGATOR_HOST.search(host):
+        evidence["tier"] = "reporting"
+        evidence["classification_method"] = "aggregator_cap"
+        return "aggregator_cap"
+    return None
+
+
 def _apply_quality_floor(evidence: Dict[str, Any]) -> Optional[str]:
     """B5b: force tabloid / social-media / blog items to commentary/opinion
     regardless of the LLM or URL-identity override verdict.
@@ -699,7 +738,7 @@ def _apply_quality_floor(evidence: Dict[str, Any]) -> Optional[str]:
             evidence["classification_method"] = "preprint_floor"
             return "preprint_floor"
 
-    return None
+    return _apply_primary_cap(evidence)
 
 
 # ── Evidence Classifier ───────────────────────────────────────────────────
