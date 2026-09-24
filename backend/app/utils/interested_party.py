@@ -314,9 +314,9 @@ def interested_party_match(
 #   * prong 1 only — an executive-comms domain is never released;
 #   * narrowed by the element — the element must itself name the subject or
 #     the act, so decomposition cannot carry a release onto "six wars ended";
-#   * ORG-only for the measurement/publication act (a person's own site is not
-#     the record of a poll). The saying release keeps any subject type, as the
-#     2026-09-22 version did.
+#   * ORG-only for both branches, with the verb in the subject's own clause
+#     (tightened the same day after review: a person release reopened
+#     TRU-018F-44AA on "Trump stopped six wars, as he said he would").
 # Symmetric: a released subject's page may support or challenge.
 
 #: Closed list. "found", "shows", "reports" deliberately absent (as 2026-09-22).
@@ -340,10 +340,29 @@ _ACT_WINDOW = 80
 _NOUN_WINDOW = 30
 
 
+#: The verb must be in the subject's OWN clause. A clause break between them
+#: ("Donald Trump stopped six wars, as he said he would") means the verb is not
+#: the subject's act — review 2026-09-24 showed the first version released
+#: Trump's own domains on exactly that sentence.
+_CLAUSE_BREAK = re.compile(
+    r"[;:()\u2014\u2013]|\s-\s|,|\b(?:as|but|which|who|while|after|before|because|when|if)\b",
+    re.IGNORECASE,
+)
+#: A coordinated list of capitalised names after the subject ("Cook Political
+#: Report, GS Strategy Group and New River Strategies surveyed") is still the
+#: subject's clause; its commas and "and" are not a break.
+_NAME_LIST = re.compile(r"(?:\s*(?:,|\band\b)\s*(?:[A-Z][\w.&'-]*\s*)+)+")
+
+
 def _subject_acts(text: str, token: str, act: "re.Pattern[str]", window: int) -> bool:
     for m in re.finditer(r"\b" + re.escape(token) + r"\b", text, re.IGNORECASE):
-        if act.search(text[m.end() : m.end() + window]):
-            return True
+        tail = text[m.end() : m.end() + window]
+        hit = act.search(tail)
+        if not hit:
+            continue
+        if _CLAUSE_BREAK.search(_NAME_LIST.sub(" ", tail[: hit.start()])):
+            continue
+        return True
     return False
 
 
@@ -359,8 +378,12 @@ def released_subjects(
     element = element_text or ""
     released = set()
     for token, subject in distinctive_tokens(subjects):
-        is_org = kinds.get(subject) == "org"
-        measured = is_org and any(
+        # ORG-only for BOTH branches (review 2026-09-24): a person's saying is
+        # the self-interested account this gate exists for, and a person
+        # release reopened TRU-018F-44AA ("…, as he said he would").
+        if kinds.get(subject) != "org":
+            continue
+        measured = any(
             _subject_acts(t, token, _MEASUREMENT_ACT, _ACT_WINDOW)
             or _subject_acts(t, token, _PUBLICATION_NOUN, _NOUN_WINDOW)
             for t in texts

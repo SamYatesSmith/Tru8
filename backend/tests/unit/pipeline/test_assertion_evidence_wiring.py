@@ -490,7 +490,13 @@ def _attribution_claim_map():
                 "state": None,
             }
         ],
-        "metadata": {"jurisdiction": "UK", "subjects": ["thirlwall inquiry"]},
+        # subject_kinds is written by runner.attach_claim_subjects since
+        # 2026-09-24; the release is ORG-only.
+        "metadata": {
+            "jurisdiction": "UK",
+            "subjects": ["thirlwall inquiry"],
+            "subject_kinds": {"thirlwall inquiry": "org"},
+        },
     }
 
 
@@ -699,3 +705,30 @@ def test_the_runner_writes_subject_kinds():
         "donald trump": "person",
         "g. elliott morris": "claimant",
     }
+
+
+@pytest.mark.parametrize("kind", ["person", "org"])
+def test_a_saying_in_a_subordinate_clause_releases_nothing(kind):
+    """Review 2026-09-24: "Donald Trump stopped six wars, as he said he would"
+    released Trump's own domains in the first version. The verb must sit in the
+    subject's own clause, and only an ORG is ever released."""
+    from app.utils.interested_party import released_subjects
+
+    assert not released_subjects(
+        ["Donald Trump stopped six wars, as he said he would."],
+        "Donald Trump took actions that ended six wars.",
+        ["donald trump"],
+        {"donald trump": kind},
+    )
+
+
+def test_a_person_is_never_released_even_on_a_plain_saying():
+    from app.utils.interested_party import released_subjects
+
+    assert not released_subjects(
+        ["Donald Trump said he stopped six wars."],
+        "Donald Trump said six wars had ended.",
+        ["donald trump"],
+        {"donald trump": "person"},
+    )
+
