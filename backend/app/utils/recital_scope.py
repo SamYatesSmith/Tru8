@@ -173,6 +173,179 @@ def _assess(
     return _SILENT, None
 
 
+# ── Evidence-text narrowing (A− recital review, 2026-09-24) ───────────────────
+# Record 1ca0070f / cb939365 / 1c90a8bb: 9 of the 12 recital fires on the 19
+# graded records were wrong, all through the EVIDENCE-TEXT path, each on a
+# sentence the support did not rest on. These rules narrow that path only; the
+# reasoning path and the subject-free restatement path are untouched, and every
+# rule releases supports and challenges alike (invariant #7).
+#   R0  a match cannot cross a sentence or bullet boundary
+#   R1  "according to the article / <a domain>" is the source naming itself
+#   R2  declined or negated speech ("declines to say") asserts nothing
+#   R5  passive voice ("X's donation was announced") never anchors
+#   R3  the claim reports an ORG's own publication (main verb) — handled by the
+#       caller passing that subject's tokens as released
+#   R4  an actor announcing their OWN transactional act, where the claim's verb
+#       is performative or the same text states the claim's figure in its own
+#       voice (review: "Trump announced he ended the war" stays gated — "ended"
+#       is not a transactional act)
+_SENTENCE_BREAK = re.compile(r"[.!?][\"')\]\u2019\u201d]?\s|\n|\s[-\u2022]\s")
+_SELF_REFERENCE = re.compile(
+    r"^according\s+to\s+(?:the\s+(?:article|report|piece|story|source|post|page)\b|"
+    r"this\s+(?:article|report|piece|story)\b|[\w-]+(?:\.[\w-]+)*\.(?:com|org|net|news|io|gov|uk|ie|eu)\b)",
+    re.IGNORECASE,
+)
+_NEGATED_SPEECH = re.compile(
+    r"\b(?:declin\w*|refus\w*|would\s+not|did\s+not|does\s+not|won't|wouldn't|didn't|doesn't)\b",
+    re.IGNORECASE,
+)
+_PASSIVE_SPEECH = re.compile(
+    r"\b(?:was|were|been|being|is|are|be)\s+(?:\w+ly\s+)?(?:announc\w*|said|claimed|declared|asserted|touted)\s*$",
+    re.IGNORECASE,
+)
+_SELF_ASSESSMENT = re.compile(r"\b(?:claim\w*|tout\w*|boast\w*|insist\w*)\b", re.IGNORECASE)
+_TRANSACTION_ACT = re.compile(
+    r"\b(donat\w*|gift\w*|pledg\w*|match\w*|resign\w*|appoint\w*|acqui\w*|purchas\w*)",
+    re.IGNORECASE,
+)
+_TRANSFER_STEMS = frozenset({"donat", "gift", "pledg", "match"})
+_MONEY_FROM = re.compile(r"\d[\d.,]*\s*(?:m|bn|million|billion)?\b[^.]{0,40}\bfrom\b", re.IGNORECASE)
+_PERFORMATIVE_CLAIM = re.compile(
+    r"\b(?:pledg\w*|announc\w*|appoint\w*|resign\w*|nominat\w*)\b", re.IGNORECASE
+)
+#: Elements that assess the act ("the biggest ever") are not released by R4.
+_SELF_ASSESSING_ELEMENT = re.compile(
+    r"\b(?:biggest|largest|record|most|first|ever|unprecedented|highest|lowest|best|worst)\b",
+    re.IGNORECASE,
+)
+_SPEECH_OR_SOURCE = re.compile(
+    rf"\b(?:{_ATTRIBUTION_VERBS}|stated|according\s+to)\b", re.IGNORECASE
+)
+_FIGURE = re.compile(r"\d[\d.,]*\d|\d")
+
+
+def _act_stems(text: str) -> set:
+    stems = {m.group(1).lower()[:5] for m in _TRANSACTION_ACT.finditer(text or "")}
+    if stems & _TRANSFER_STEMS or _MONEY_FROM.search(text or ""):
+        stems |= _TRANSFER_STEMS
+    return stems
+
+
+def _sentence_around(text: str, start: int, end: int) -> str:
+    breaks = [m.end() for m in _SENTENCE_BREAK.finditer(text[:start])]
+    lo = breaks[-1] if breaks else 0
+    nxt = _SENTENCE_BREAK.search(text, end)
+    hi = nxt.start() + 1 if nxt else len(text)
+    return text[lo:hi]
+
+
+def _own_voice_figure(text: str, claim_texts: Iterable[str]) -> bool:
+    """The text states one of the claim's figures in a sentence that attributes
+    nothing — the source reports the number itself, not someone's account of it."""
+    figures = {
+        f.replace(",", "")
+        for c in claim_texts
+        for f in _FIGURE.findall(c or "")
+        if len(f.replace(",", "").replace(".", "")) >= 2 and not re.fullmatch(r"(?:19|20)\d\d", f)
+    }
+    if not figures:
+        return False
+    for sentence in _SENTENCE_BREAK.split(text or ""):
+        if _SPEECH_OR_SOURCE.search(sentence):
+            continue
+        if figures & {f.replace(",", "") for f in _FIGURE.findall(sentence)}:
+            return True
+    return False
+
+
+class EvidenceNarrowing:
+    """What the evidence-text path needs to apply R0–R5."""
+
+    def __init__(
+        self,
+        claim_texts: Iterable[str] = (),
+        element_text: str = "",
+        released_tokens: Iterable[str] = (),
+    ):
+        self.claim_texts = [c for c in claim_texts if c]
+        self.element_text = element_text or ""
+        self.released_tokens = {t.lower() for t in released_tokens}
+
+    def skip(self, text: str, match: "re.Match[str]", token: str, kind: str) -> bool:
+        span = match.group(0)
+        if _SENTENCE_BREAK.search(span):  # R0
+            return True
+        if token.lower() in self.released_tokens:  # R3
+            return True
+        if kind == "according":
+            return bool(_SELF_REFERENCE.match(span))  # R1
+        if kind != "verb":
+            return False
+        if _NEGATED_SPEECH.search(span):  # R2
+            return True
+        if _PASSIVE_SPEECH.search(span):  # R5
+            return True
+        return self._transactional(text, match)  # R4
+
+    def _transactional(self, text: str, match: "re.Match[str]") -> bool:
+        sentence = _sentence_around(text, match.start(), match.end())
+        if _SELF_ASSESSMENT.search(sentence):
+            return False
+        if _SELF_ASSESSING_ELEMENT.search(self.element_text):
+            return False
+        claim_stems = set().union(*(_act_stems(c) for c in self.claim_texts)) if self.claim_texts else set()
+        if not (_act_stems(sentence) & claim_stems):
+            return False
+        performative = any(_PERFORMATIVE_CLAIM.search(c) for c in self.claim_texts)
+        return performative or _own_voice_figure(text, self.claim_texts)
+
+
+def _tagged_patterns(tokens: Iterable[Tuple[str, str]]) -> List[Tuple[re.Pattern, str, str]]:
+    """`_subject_patterns`, each tagged with its token and kind."""
+    tagged: List[Tuple[re.Pattern, str, str]] = []
+    compiled = _subject_patterns(tokens)
+    kinds = ("verb", "quote", "according")
+    for i, (token, _s) in enumerate(tokens):
+        for j, kind in enumerate(kinds):
+            tagged.append((compiled[i * 3 + j], token, kind))
+    return tagged
+
+
+def _assess_evidence(
+    text: Optional[str],
+    tagged: List[Tuple[re.Pattern, str, str]],
+    narrowing: "EvidenceNarrowing",
+) -> Tuple[str, Optional[Dict[str, str]]]:
+    """`_assess` for the EVIDENCE text, with R0–R5 applied per match."""
+    if not text:
+        return _SILENT, None
+    if _VETO.search(text):
+        return _VETOED, None
+    match = _DISTANCING.search(text)
+    if match:
+        return _FIRE, {
+            "marker": match.group(1).lower(),
+            "excerpt": _excerpt(text, match.start(), match.end()),
+        }
+    for pattern, token, kind in tagged:
+        # Overlapping search: a skipped match that started at an EARLIER token
+        # occurrence ("Delo gave ... / Delo announced", skipped by R0) must not
+        # hide the real one starting at the next occurrence.
+        pos = 0
+        while True:
+            match = pattern.search(text, pos)
+            if match is None:
+                break
+            pos = match.start() + 1
+            if narrowing.skip(text, match, token, kind):
+                continue
+            return _FIRE, {
+                "marker": match.group(0)[:60].lower(),
+                "excerpt": _excerpt(text, match.start(), match.end()),
+            }
+    return _SILENT, None
+
+
 #: Minimum normalised length before a claim is ELIGIBLE to match on at all.
 #: Short claims share wording with ordinary prose and would over-fire.
 _MIN_CLAIM_CHARS = 40
@@ -321,6 +494,7 @@ def recital_match(
     claim_text: Optional[str] = None,
     *,
     allow_reported_results: bool = False,
+    narrowing: Optional["EvidenceNarrowing"] = None,
 ) -> Optional[Dict[str, str]]:
     """The receipt entry if this reference rests on recital, else None.
 
@@ -340,7 +514,12 @@ def recital_match(
             entry["found_in"] = "reasoning"
             return entry
 
-        verdict, entry = _assess(evidence_text, patterns)
+        if narrowing is not None:
+            verdict, entry = _assess_evidence(
+                evidence_text, _tagged_patterns(tokens), narrowing
+            )
+        else:
+            verdict, entry = _assess(evidence_text, patterns)
         if verdict == _FIRE and entry is not None:
             entry["found_in"] = "evidence"
             return entry

@@ -89,3 +89,26 @@ Misfires 4–12 all come through step 2, on a sentence in the evidence text that
 - **R5:** passive voice ("X's donation was announced") never anchors.
 
 **Rejected:** "the sentence must carry the element's content". It clears only 4/9 and would release paraphrased recitals.
+
+---
+
+## Build log: 2026-09-24 (uncommitted at time of writing)
+
+**Built:** R0, R1, R2, R3, R4 and R5 in `recital_scope.EvidenceNarrowing` / `_assess_evidence`, applied to the EVIDENCE-text path only. Rollback: `ENABLE_RECITAL_EVIDENCE_NARROWING`.
+
+**Changes from the review, all applied:**
+- **Overlapping search:** each match restarts one character after the previous match start. A match skipped by R0 from an earlier token occurrence must not hide the real one. Found by a failing test.
+- **R3:** `released_subjects(include_saying=False)`, ORG only.
+- **R4:** stems cut to donat / gift / pledg / match / resign / appoint / acqui / purchas; a self-assessing element blocks it; it releases only when the claim is performative OR the text states a claim figure in its own voice.
+
+**Replay** of the 12 stored fires through the real code: **12/12 right** (9 released, 3 energyflux restatements still fire). All 4 018F probes still fire, including "Trump has said he donated his salary and ended six wars".
+
+**Tests:**
+- 21 in `test_recital_narrowing.py`, including 2 wiring tests through the real parser (the weekend source keeps its support; flag-off restores the old behaviour).
+- **All 9 mutants caught** (R0, R1, R2, R3, R4, R5 and R4's three guards). R5 and the claim-verb guard first SURVIVED; isolating tests were added.
+
+**Unit suite:** 4,004 pass / 44 skipped.
+
+**Bench:** identical to the previous run, check for check (147/9/11/5, known 82CF + 93DD drift).
+
+**018F:** narrowing on vs off gives identical recital blocks (e1: 1 + 3 scoped). The bench records per-element counts, not per-ref ids, so this is the finest comparison available. Support-side safety rests on the unit tests, as the review said.

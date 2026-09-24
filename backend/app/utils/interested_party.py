@@ -371,8 +371,15 @@ def released_subjects(
     element_text: str,
     subjects: List[str],
     subject_kinds: Optional[Dict[str, str]] = None,
+    *,
+    include_saying: bool = True,
 ) -> FrozenSet[str]:
-    """Subjects whose own domain is the record of what the claim reports."""
+    """Subjects whose own domain is the record of what the claim reports.
+
+    ``include_saying=False`` keeps the measurement/publication branch only — the
+    recital gate's R3 (review 2026-09-24: a saying branch there would release a
+    subject for "…, as he said he would").
+    """
     kinds = subject_kinds or {}
     texts = [t for t in claim_texts if t]
     element = element_text or ""
@@ -388,7 +395,9 @@ def released_subjects(
             or _subject_acts(t, token, _PUBLICATION_NOUN, _NOUN_WINDOW)
             for t in texts
         )
-        said = any(_subject_acts(t, token, _SAYING_ACT, _ACT_WINDOW) for t in texts)
+        said = include_saying and any(
+            _subject_acts(t, token, _SAYING_ACT, _ACT_WINDOW) for t in texts
+        )
         if not (measured or said):
             continue
         # The element can only withhold a release the claim earned, never grant one.

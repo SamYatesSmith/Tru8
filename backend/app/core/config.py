@@ -768,6 +768,15 @@ class Settings(BaseSettings):
     # ROLLBACK: ENABLE_READABLE_TEXT_GATE=False.
     ENABLE_READABLE_TEXT_GATE: bool = Field(True, env="ENABLE_READABLE_TEXT_GATE")
 
+    # Recital evidence-text narrowing (A− recital review, 2026-09-24): R0–R5
+    # stop the recital gate firing on a sentence the support does not rest on
+    # (self-reference, declined speech, passive voice, an ORG's own
+    # publication, an actor announcing their own transaction). Reasoning and
+    # restatement paths untouched. ROLLBACK: ENABLE_RECITAL_EVIDENCE_NARROWING=False.
+    ENABLE_RECITAL_EVIDENCE_NARROWING: bool = Field(
+        True, env="ENABLE_RECITAL_EVIDENCE_NARROWING"
+    )
+
     # Same-study scope gate (2026-09-09, Track Q — Astra finding 10). Hosts of
     # ONE study (shared DOI / PubMed id / PMC id) count once per side of an
     # element: the highest-tier, earliest host keeps its direction, the others

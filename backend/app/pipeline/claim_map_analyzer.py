@@ -70,7 +70,11 @@ from app.utils.figure_scope import (
     same_kind_figures,
     unstated_reason,
 )
-from app.utils.recital_scope import element_asserts_attribution, recital_match
+from app.utils.recital_scope import (
+    EvidenceNarrowing,
+    element_asserts_attribution,
+    recital_match,
+)
 from app.utils.temporal_scope import (
     contains_period,
     element_is_event,
@@ -2965,7 +2969,27 @@ class ClaimMapAnalyzer:
             if original_text and original_text != claim_text_for_recital:
                 recital_texts.append(original_text)
 
-            def _recital_either(item, ref, _t, _texts=tuple(recital_texts)):
+            # A− recital review (2026-09-24): R0–R5 narrow the EVIDENCE-text
+            # path only. R3's released subjects are ORG publication frames
+            # (no saying branch). ROLLBACK: ENABLE_RECITAL_EVIDENCE_NARROWING.
+            _narrowing = None
+            if getattr(settings, "ENABLE_RECITAL_EVIDENCE_NARROWING", True):
+                _pub = released_subjects(
+                    recital_texts,
+                    elem.get("description") or "",
+                    subjects,
+                    (claim_map.get("metadata") or {}).get("subject_kinds"),
+                    include_saying=False,
+                )
+                _narrowing = EvidenceNarrowing(
+                    claim_texts=recital_texts,
+                    element_text=elem.get("description") or "",
+                    released_tokens=[
+                        tok for tok, subj in distinctive_tokens(subjects) if subj in _pub
+                    ],
+                )
+
+            def _recital_either(item, ref, _t, _texts=tuple(recital_texts), _n=_narrowing):
                 for text in _texts:
                     match = recital_match(
                         ref.get("reasoning"),
@@ -2973,6 +2997,7 @@ class ClaimMapAnalyzer:
                         _t,
                         text,
                         allow_reported_results=settings.ENABLE_PASSAGE_MAPPING,
+                        narrowing=_n,
                     )
                     if match is not None:
                         return match
