@@ -151,3 +151,26 @@ Design: `audit/2026-09-24_a_minus_tier2_design.md`. Review: `audit/2026-09-24_a_
 **Tests:** classifier tests pass and are mutation-checked; frontend 211 pass plus typecheck.
 
 **Grader note.** Harsher than the outreach passes: Katz B → C, Kennedy B → B−, Legum B → C. They are consistent across graders on the same faults. Treat the absolute grades as strict and the relative buckets as the finding.
+
+## Direction check — 2026-09-24 (after tier 1 + Build A)
+Re-simulated on the 19 graded tallies, counting only what is actually built (tier 1 + Build A). Notables was dropped; B and D are unbuilt.
+
+**Findings:**
+- **No single further fix produces an A− record.** Build C alone: 0 A− (+1 B+). Mapping alone: 0 A− (+3 B+).
+- A− needs about four categories fixed together. **Mapping is in every combination that produces any A−.**
+
+| Combination | Records at A− |
+|---|---|
+| mapping + Notables + dedup + filler | 7 |
+| mapping + Notables + scope gates + off-topic rows | 6 |
+| mapping + scope gates + authoritative source | 4 |
+
+- Build C adds nothing to the best combinations that exclude dedup.
+- The earlier "12/19 with mapping" assumed every lower tier perfect. It overstated what mapping alone does.
+
+**Reading:**
+- Mapping (tier 4) is the binding build and should be designed next.
+- Build C is a cheap companion, not the priority.
+- Notables returns as a real need, but only after mapping (its misses come from mis-filed supports).
+
+Caveats: the tallies come from stored records on older builds, graded strictly; fixes are assumed perfect.

@@ -56,6 +56,16 @@ Notables re-ranking was dropped after measurement: no rule beat the current one.
 
 Next: Build C1 (canonical URL key) and C2 (the echo redesign from the trace), per the review.
 
+**Tier 4 mapping design:**
+- Design and review: `audit/2026-09-24_a_minus_mapping_{design,review}.md`.
+- Steps 1–2 BUILT (uncommitted at time of writing):
+  - a per-subject interested-party release, which closes the whole-gate disarm hole;
+  - event-only quarter/year containment;
+  - the unreadable-text floor.
+- **Owed before M1:**
+  - a recital-misfire design and review (#1);
+  - M1 upgrades, then the offline eval (<5p, ask).
+
 **Founder rule, 2026-09-24:** anything rated difficulty 3+ gets a plan and a design review before it is built. That covers tier 2 and everything above it.
 
 **Also 2026-09-24:** Jev (TypeSafe) appraisal in `audit/2026-09-24_jev_appraisal.md`. It recommends no production use; an offline test is optional.
