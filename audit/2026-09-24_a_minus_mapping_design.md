@@ -200,3 +200,28 @@ Mutation-checked twice: restoring the whole-gate disarm is caught; removing the 
 **Eval tooling:** `backend/scripts/eval_relationship_review.py` replays the review on stored payloads and scores both unknown-policies from one run's decisions. The labelled set is `audit/a_minus/review_eval/labels.csv` (in progress).
 
 **Cost correction:** 3 repeats × 156 pairs ≈ 99 calls on gemini-3.5-flash-lite ($0.30/M in, $2.50/M out; thinking counts as output) ≈ **$1.10 (≈85p)**, not the "<5p" first estimated. One repeat ≈ 30p.
+
+---
+
+## Eval result: 2026-09-24. **FAIL. Do not enable.** (3 repeats × 156 pairs, ≈85p, `audit/a_minus/review_eval/results.json`)
+
+Labels: 114 must_survive / 27 should_demote / 15 either (`labels.csv`, blind adjudicator).
+
+| Policy | Positives demoted (bar ≥70%) | Must-survive demoted (bar ≤5%) |
+|---|---|---|
+| demote on mismatch + unknown | 52/79 = **66%** (P 90%, E 100%, S 67%, C 53%, M 0%) | 61/332 = **18.4%** (supports 18.2%, challenges 18.8%) |
+| demote on mismatch only | 26/79 = **33%** | 26/332 = **7.8%** (supports 3.8%, **challenges 17.7%**) |
+
+**Other measures:**
+- **Invalid (quote not verbatim, etc.): 113/456 = 25%**, mostly on supports.
+- Latency p50 3.6 s, p90 9.8 s per claim.
+- Calls: 2/99 failed.
+
+**Disqualifying finding — it demotes genuine CHALLENGES:**
+- NASA "Orbit" vs "JWST orbits the Earth every 90 minutes": 3/3 demoted.
+- Three wildfire sources stating 2026 is running at twice the historical pace: 3/3.
+- Two Sweden sources stating "37th of 42": 3/3.
+
+The model files a real contradiction as a scope `mismatch` on `measure` or `time` ("the source says Webb orbits the Sun"). The contrary-result exemption, now gated on `scope_affirmed` + `result`, no longer catches it. Removing the challenges that expose a false claim is the sycophancy failure invariant #7 forbids. Under either policy this cannot ship.
+
+What worked: wrong-PERIOD positives were caught at 90% (demote-unknown policy). The model sees dates once it is given them.

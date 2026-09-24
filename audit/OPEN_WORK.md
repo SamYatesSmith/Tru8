@@ -65,7 +65,9 @@ Next: Build C1 (canonical URL key) and C2 (the echo redesign from the trace), pe
 - Recital misfires: design + review + build done (`audit/2026-09-24_a_minus_recital_{design,review}.md`).
   - 12/12 stored fires classified right; all 018F probes still gated.
   - Interested-party release tightened to ORG-only + own clause (`b091719`, pushed).
-- **Owed before M1:** the M1 upgrades, then the offline eval (<5p, ask).
+- M1 upgrades built (`982c97b`, flag OFF).
+- **Offline eval FAILED** (≈85p): the review demotes genuine CHALLENGES (NASA vs JWST, Sweden "37th of 42") because it files a contradiction as a scope mismatch — a sycophancy hazard.
+- It stays OFF. Next is a founder decision; see the eval section of the mapping design doc.
 
 **Founder rule, 2026-09-24:** anything rated difficulty 3+ gets a plan and a design review before it is built. That covers tier 2 and everything above it.
 
