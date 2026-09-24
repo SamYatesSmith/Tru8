@@ -777,6 +777,17 @@ class Settings(BaseSettings):
         True, env="ENABLE_RECITAL_EVIDENCE_NARROWING"
     )
 
+    # Relationship review on the DEFAULT path (A− M1, 2026-09-24). Decoupled
+    # from ENABLE_PASSAGE_MAPPING, whose other parts the 09-09 regrade judged
+    # not ready. A demote-only model review of every directional ref (period,
+    # place, measure before result). OFF until the offline eval passes.
+    ENABLE_RELATIONSHIP_REVIEW: bool = Field(False, env="ENABLE_RELATIONSHIP_REVIEW")
+    RELATIONSHIP_REVIEW_MAX_PAIRS: int = Field(60, env="RELATIONSHIP_REVIEW_MAX_PAIRS")
+    # Whether an `unknown` (scope unestablished) demotes, or is only recorded.
+    RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN: bool = Field(
+        True, env="RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN"
+    )
+
     # Same-study scope gate (2026-09-09, Track Q — Astra finding 10). Hosts of
     # ONE study (shared DOI / PubMed id / PMC id) count once per side of an
     # element: the highest-tier, earliest host keeps its direction, the others

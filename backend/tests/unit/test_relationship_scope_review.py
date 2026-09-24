@@ -370,7 +370,11 @@ async def test_frozen_select_pair_quantitative_support_becomes_context():
         assert record["model_decision"] == "compatible"
         assert record["status"] == "scoped" and record["dimension"] == "result"
     assert ev == before
-    assert cm["metadata"]["scope_review"]["status"] == "complete"
+    # A− M1 (2026-09-24): both demotions rest on `unknown` (the figure is not
+    # quoted), so the review NEEDS review. The old branch tested a status that
+    # scoped records never carry, so it read "complete" (the mapping review's
+    # dead-branch finding).
+    assert cm["metadata"]["scope_review"]["status"] == "needs_review"
 
 
 @pytest.mark.asyncio
@@ -487,6 +491,9 @@ async def test_contrary_result_mismatch_keeps_the_challenge(description, quote):
         claim_scope="reduced admissions",
         source_scope="identical rates",
         reasoning="The source reports identical rates, conflicting with the claimed reduction.",
+        # A− M1 (2026-09-24): the exemption now needs time/population/measure
+        # affirmed first.
+        scope_affirmed=True,
     )
     a = ClaimMapAnalyzer()
     a._call_llm = AsyncMock(return_value={"pairs": [row]})
@@ -613,3 +620,106 @@ async def test_all_calls_failing_keeps_the_old_failure_status():
     await review_relationship_scope(a, cm, ev)
     assert cm["metadata"]["scope_review"]["status"] == "failed"
     assert cm["elements"] == before
+
+
+# ── A− M1 (2026-09-24): default-path upgrades ───────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_contrary_result_without_affirmed_scope_is_scoped():
+    """A different number is also how a WRONG-PERIOD challenge looks (GAO's
+    "37 models as of March 2018" against a 2010–2020 total, record e6e0c00d).
+    Without scope affirmed, the exemption does not apply."""
+    cm, ev, row = fixture("challenges")
+    row.update(decision="mismatch", dimension="result", scope_affirmed=False)
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "context"
+
+
+@pytest.mark.asyncio
+async def test_pairs_carry_the_source_date():
+    from app.services.relationship_scope_review import plan_review
+
+    cm, ev, _ = fixture("supports")
+    ev[0]["published_date"] = "2018-03-01"
+    ev[0]["date_basis"] = "page_metadata"
+    pairs, _ = plan_review(cm, ev)
+    assert pairs[0]["published_date"] == "2018-03-01"
+    assert pairs[0]["date_basis"] == "page_metadata"
+
+
+def test_the_default_path_cap_covers_every_ref(monkeypatch):
+    from app.services import relationship_scope_review as rsr
+
+    monkeypatch.setattr(rsr.settings, "ENABLE_RELATIONSHIP_REVIEW", True)
+    monkeypatch.setattr(rsr.settings, "RELATIONSHIP_REVIEW_MAX_PAIRS", 60)
+    assert rsr._max_pairs() == 60
+    monkeypatch.setattr(rsr.settings, "ENABLE_RELATIONSHIP_REVIEW", False)
+    assert rsr._max_pairs() == rsr.MAX_PAIRS
+
+
+def test_counts_and_currency_must_be_quoted_for_a_quantitative_support():
+    from app.services.relationship_scope_review import _quotes_stated_figure
+
+    element = "Donald Trump has made almost 28,700 trades of securities since 2025."
+    assert _quotes_stated_figure(element, "Trump made nearly 28,700 trades in 17 months.")
+    assert not _quotes_stated_figure(element, "Disclosures reveal over 17,000 stock trades.")
+    assert _quotes_stated_figure("The poll found 49% support.", "Support stood at 49 percent.")
+
+
+@pytest.mark.asyncio
+async def test_unknown_can_be_recorded_without_demoting(monkeypatch):
+    from app.services import relationship_scope_review as rsr
+
+    monkeypatch.setattr(rsr.settings, "RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN", False)
+    cm, ev, row = fixture("supports")
+    row.update(decision="unknown", dimension="result")
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "supports"
+    receipt = cm["metadata"]["scope_review"]
+    assert receipt["pairs"][0]["status"] == "unknown_kept"
+    assert receipt["status"] == "needs_review"
+
+
+@pytest.mark.asyncio
+async def test_a_second_run_merges_and_does_not_re_review(monkeypatch):
+    """Coverage recovery re-runs the review. It used to overwrite the receipt
+    and re-send pairs the first run judged, so a second draw could undo it."""
+    cm, ev, row = fixture("supports")
+    row.update(decision="compatible", dimension="result", scope_affirmed=True)
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["metadata"]["scope_review"]["pairs"][0]["status"] == "compatible"
+    a._call_llm = AsyncMock(return_value={"pairs": []})
+    await review_relationship_scope(a, cm, ev)
+    a._call_llm.assert_not_called()
+    receipt = cm["metadata"]["scope_review"]
+    assert receipt["prior_runs"][0]["pairs"][0]["status"] == "compatible"
+
+
+
+def test_plan_review_uses_the_default_path_cap(monkeypatch):
+    from app.services import relationship_scope_review as rsr
+
+    evidence = [
+        {"evidence_id": f"ev-{i}", "title": f"Source {i}", "snippet": f"Source {i} states the figure for this element."}
+        for i in range(13)
+    ]
+    cm = {
+        "elements": [
+            {
+                "element_id": "e1",
+                "description": "An element.",
+                "evidence_refs": [{"evidence_id": f"ev-{i}", "relationship": "supports"} for i in range(13)],
+            }
+        ]
+    }
+    monkeypatch.setattr(rsr.settings, "ENABLE_RELATIONSHIP_REVIEW", False)
+    assert len(rsr.plan_review(cm, evidence)[0]) == 12  # the old cap, flag off
+    monkeypatch.setattr(rsr.settings, "ENABLE_RELATIONSHIP_REVIEW", True)
+    assert len(rsr.plan_review(cm, evidence)[0]) == 13  # every ref, flag on

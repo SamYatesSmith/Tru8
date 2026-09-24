@@ -172,3 +172,31 @@ Mutation-checked twice: restoring the whole-gate disarm is caught; removing the 
 - Bench identical to the Build A run: 147/9/11/5, known drift 82CF + 93DD only; 018F interested-party pin holds.
 
 **Not done — the recital misfire (#1).** "Harborne on Saturday announced he was matching the donation" and "Trump announced he ended six wars" look the same to the gate. This is difficulty 3 on a TRU-018F-guarding gate, so it needs its own short design and review before any build. M1 (the relationship review) must not ship until it is fixed (#1 net-effect trap).
+
+---
+
+## Build log: M1 upgrades, 2026-09-24 (flag OFF; the eval decides)
+
+**`ENABLE_RELATIONSHIP_REVIEW`** (default False) decouples the review from `ENABLE_PASSAGE_MAPPING`:
+- It covers both call sites (completion and coverage recovery).
+- `_COMPLETION_TIMEOUT` rises to 50 s under either flag.
+- The manifest fingerprint gains `relationship_review_contract: v1` when the flag is on.
+
+**The eight required changes:**
+1. Every directional ref is reviewed (`RELATIONSHIP_REVIEW_MAX_PAIRS`, default 60; the old cap of 12 still applies when the flag is off).
+2. Pairs carry `published_date` and `date_basis`.
+3. The prompt checks TIME, then POPULATION/PLACE, then MEASURE before any result, with domain-neutral definitions (snapshot vs total, stale "current", sub-region vs region, count vs value, part vs whole).
+4. A `scope_affirmed` field is added to the schema, and the contrary-result exemption now needs it true.
+5. The figure check covers counts and currency (`figure_scope`), not just percentages and ratios.
+6. A re-run (coverage recovery) skips pairs already decided and MERGES the receipt (`prior_runs`) instead of overwriting it.
+7. The dead `unknown` status branch is fixed. One test pinned the buggy "complete"; it now reads "needs_review". The UI does not read that value.
+8. `RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN` switch: `unknown` can be recorded without demoting.
+
+**Tests and verification:**
+- 51 module tests, all 6 upgrade mutants caught (the cap first survived; a test was added).
+- Unit 4,010 pass.
+- Bench identical except 5647 drift. It replayed identically when run alone: the known flake.
+
+**Eval tooling:** `backend/scripts/eval_relationship_review.py` replays the review on stored payloads and scores both unknown-policies from one run's decisions. The labelled set is `audit/a_minus/review_eval/labels.csv` (in progress).
+
+**Cost correction:** 3 repeats × 156 pairs ≈ 99 calls on gemini-3.5-flash-lite ($0.30/M in, $2.50/M out; thinking counts as output) ≈ **$1.10 (≈85p)**, not the "<5p" first estimated. One repeat ≈ 30p.

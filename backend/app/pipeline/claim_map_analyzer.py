@@ -2082,7 +2082,13 @@ class ClaimMapAnalyzer:
         if successful_items:
             import asyncio as _asyncio
 
-            _COMPLETION_TIMEOUT = 50 if settings.ENABLE_PASSAGE_MAPPING else 25
+            # The review shares this timeout; at 25 s it would often be cancelled
+            # (safe — it stages a copy — but silently ineffective).
+            _COMPLETION_TIMEOUT = (
+                50
+                if (settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW)
+                else 25
+            )
 
             async def _run_completion(item):
                 try:
@@ -3372,6 +3378,8 @@ class ClaimMapAnalyzer:
                     for pair in receipt.get("pairs", []):
                         if pair.get("status") == "linked":
                             pair["status"] = "not_applied"
+        # A− M1 (2026-09-24): the relationship review has its own flag.
+        if settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW:
             from app.services.relationship_scope_review import review_relationship_scope
 
             await review_relationship_scope(self, claim_map, evidence_list)
@@ -3841,7 +3849,9 @@ class ClaimMapAnalyzer:
                 f"[RECOVERY MAP] Claim {claim_map.get('claim_id', '?')}: LLM returned None"
             )
 
-        if settings.ENABLE_PASSAGE_MAPPING and parsed is not None:
+        if (
+            settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW
+        ) and parsed is not None:
             from app.services.relationship_scope_review import review_relationship_scope
 
             await review_relationship_scope(self, claim_map, pool)
