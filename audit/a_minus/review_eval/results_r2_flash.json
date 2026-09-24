@@ -1,0 +1,1448 @@
+{
+ "summary": {
+  "records": 20,
+  "pairs": 107,
+  "repeats": 1,
+  "dry_run": false,
+  "latency_s": {
+   "p50": 15.093999999997322,
+   "p90": 25.031999999999243
+  },
+  "statuses": {
+   "complete": 2,
+   "call:ok": 21,
+   "needs_review": 12,
+   "failed": 5,
+   "call:failed": 11,
+   "call:invalid_response": 1
+  },
+  "model": "gemini-3.7-flash",
+  "invalid_reasons": {
+   "not_returned": 12,
+   "quote_length": 1
+  },
+  "score": {
+   "demote_unknown": {
+    "groups": {
+     "class:C": {
+      "n": 9,
+      "demoted": 9
+     },
+     "class:E": {
+      "n": 1,
+      "demoted": 1
+     },
+     "class:M": {
+      "n": 2,
+      "demoted": 2
+     },
+     "class:P": {
+      "n": 8,
+      "demoted": 6
+     },
+     "class:S": {
+      "n": 2,
+      "demoted": 2
+     },
+     "either|challenges": {
+      "n": 5,
+      "demoted": 4,
+      "invalid": 0
+     },
+     "either|supports": {
+      "n": 4,
+      "demoted": 3,
+      "invalid": 0
+     },
+     "must_survive|challenges": {
+      "n": 11,
+      "demoted": 0,
+      "invalid": 1
+     },
+     "must_survive|supports": {
+      "n": 65,
+      "demoted": 6,
+      "invalid": 11
+     },
+     "should_demote|challenges": {
+      "n": 11,
+      "demoted": 9,
+      "invalid": 1
+     },
+     "should_demote|supports": {
+      "n": 11,
+      "demoted": 11,
+      "invalid": 0
+     }
+    },
+    "must_survive_demoted": [
+     [
+      "1ca0070f|e1|ev-3cd46a7c9d28",
+      1
+     ],
+     [
+      "1ca0070f|e1|ev-rec-e3_0_c4d9c7d7",
+      1
+     ],
+     [
+      "1ca0070f|e1|ev-rec-e3_6_7f8df2cc",
+      1
+     ],
+     [
+      "a57b5494|e1|ev-c624738224fa",
+      1
+     ],
+     [
+      "b8cf098b|e2|ev-5506b3158344",
+      1
+     ],
+     [
+      "e6e0c00d|e1|ev-7a4d97330213",
+      1
+     ]
+    ]
+   },
+   "mismatch_only": {
+    "groups": {
+     "class:C": {
+      "n": 9,
+      "demoted": 0
+     },
+     "class:E": {
+      "n": 1,
+      "demoted": 0
+     },
+     "class:M": {
+      "n": 2,
+      "demoted": 1
+     },
+     "class:P": {
+      "n": 8,
+      "demoted": 4
+     },
+     "class:S": {
+      "n": 2,
+      "demoted": 1
+     },
+     "either|challenges": {
+      "n": 5,
+      "demoted": 0,
+      "invalid": 0
+     },
+     "either|supports": {
+      "n": 4,
+      "demoted": 0,
+      "invalid": 0
+     },
+     "must_survive|challenges": {
+      "n": 11,
+      "demoted": 0,
+      "invalid": 1
+     },
+     "must_survive|supports": {
+      "n": 65,
+      "demoted": 0,
+      "invalid": 11
+     },
+     "should_demote|challenges": {
+      "n": 11,
+      "demoted": 6,
+      "invalid": 1
+     },
+     "should_demote|supports": {
+      "n": 11,
+      "demoted": 0,
+      "invalid": 0
+     }
+    },
+    "must_survive_demoted": []
+   }
+  }
+ },
+ "records": [
+  {
+   "key": "1c90a8bb|e2|ev-fd9b46fe5ebd",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly confirms that large multinational enterprises have driven economic growth, exports, and national income in Ireland, directly supporting the complete assertion.",
+   "invalid_reason": null,
+   "quote": "Under a favorable tax regime, large multinational enterprises (MNEs) have driven exports, economic growth, and national income."
+  },
+  {
+   "key": "1ca0070f|e1|ev-5d75abdeb82b",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source confirms that Reform UK was pledged two donations totaling \u00a372m within 48 hours (this week).",
+   "invalid_reason": null,
+   "quote": "Transparency International UK director of policy and programmes Duncan Hames described the situation as a watershed moment with two billionaires pledging \u00a372m to one political party in less than 48 hours."
+  },
+  {
+   "key": "1ca0070f|e2|ev-f8a029fe7603",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly reports that Ben Delo and Christopher Harborne each gave \u00a336m donations, totaling \u00a372m.",
+   "invalid_reason": null,
+   "quote": "Reform UK leader Nigel Farage has defended two \u00a336m donations his party received over the weekend, insisting they are \"100% compliant with the law today\". The two record-breaking donations, totalling \u00a372m, were given by Ben Delo and Christopher Harborne"
+  },
+  {
+   "key": "1ca0070f|e3|ev-rec-e3_4_a485cfc3",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text states that the \u00a336m gift is the biggest single donation ever given to a UK political party, but does not state that the total pledged is more money than any party has ever had in the history of British democracy.",
+   "invalid_reason": null,
+   "quote": "Reform receives record \u00a336m donation from crypto billionaire Reform UK has received a \u00a336m donation from a British cryptocurrency billionaire - a record for a UK political party. Ben Delo wrote in the Daily Telegraph that he was making the gift because he wanted a \"fair fight and a level playing field\". The sum is the biggest single donation ever given to a political party in the UK"
+  },
+  {
+   "key": "1ca0070f|e1|ev-e3b15cecbc81",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source confirms that Reform UK received pledges totaling \u00a372m within 24 hours.",
+   "invalid_reason": null,
+   "quote": "The cryptocurrency tycoon Christopher Harborne has given \u00a336m to Reform UK, matching a donation from fellow billionaire Ben Delo. The pledges mean Reform has received a cash injection of \u00a372m in just 24 hours."
+  },
+  {
+   "key": "1ca0070f|e2|ev-1db80219fe3f",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source verifies that Christopher Harborne and Ben Delo gave two \u00a336m donations to Reform UK.",
+   "invalid_reason": null,
+   "quote": "Reform spokesman Robert Jenrick insisted that the two \u00a336m-a-piece donations from British crypto-billionaires are \u201cperfectly legal\u2019 and \u201centirely in line with the law as it is and with the law in the future\u201d. It comes amid speculation on the exact timing and circumstances of when investors Christopher Harborne and Ben Delo gave the money"
+  },
+  {
+   "key": "1ca0070f|e1|ev-3cd46a7c9d28",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": "quantitative_result_not_quoted",
+   "model_decision": "compatible",
+   "reasoning": "The quoted material does not report the effect size the element asserts, so it cannot establish the complete quantitative result; it is retained as context. The source establishes that Christopher Harborne gave \u00a336m to match Ben Delo's \u00a336m donation from the day before, confirming the total of \u00a372m pledged to Reform UK.",
+   "invalid_reason": null,
+   "quote": "Writing in the Daily Telegraph British newspaper on Saturday, donor Christopher Harborne said the $48.7m (\u00a336m) donation was a \u201cphilanthropic gift\u201d to the country, adding that he felt \u201cinspired\u201d to match the contribution made by fellow billionaire Ben Delo 24 hours earlier."
+  },
+  {
+   "key": "1ca0070f|e2|ev-0f9cd520e5b5",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly confirms that both Ben Delo and Christopher Harborne each gave \u00a336m to Reform UK, supporting the element.",
+   "invalid_reason": null,
+   "quote": "Jenrick said Delo and Harborne - who each gave \u00a336m to the party in two days and now share the record for the largest ever donation given to a UK political party - were \"not buying anything, they simply support our agenda\"."
+  },
+  {
+   "key": "1ca0070f|e1|ev-rec-e3_0_c4d9c7d7",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The snippet mentions a '\u00a372m donation' in passing in a headline/fragment, but lacks sufficient context and details to establish that Reform UK was pledged \u00a372m this week.",
+   "invalid_reason": null,
+   "quote": "\u201d The billionaire himself meanwhile wrote in the Telegraph in April: \u201cI will move back to Britain early so I can contribute more to Reform\u2019s budget. \u201d As for Harborne, a recent report by Channel 4 News found that several residents of the tiny village in which he is now registered said they had never seen him. Reform\u2019s \u00a372m donation causes huge backlash | Politics Weekly What is Reform saying. This weekend Reform sources said they were very confident the donations would be permissible. \u201cWe are 10"
+  },
+  {
+   "key": "1ca0070f|e2|ev-0e59286426b3",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source reports the \u00a336m donation by Ben Delo, but does not report Christopher Harborne pledging or donating \u00a336m (only mentioning a previous \u00a315m contribution). It does not establish the complete assertion.",
+   "invalid_reason": null,
+   "quote": "- Reform UK was given a record \u00a336m donation by Ben Delo."
+  },
+  {
+   "key": "1ca0070f|e1|ev-rec-e3_6_7f8df2cc",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The short snippet mentions \u00a372m and two \u00a336m donations, but lacks the specific context, entity confirmation in the body, and timeframe to fully establish the assertion.",
+   "invalid_reason": null,
+   "quote": "Will a record breaking \u00a372 million change the face of British politics? After receiving two of the biggest political donations in history - \u00a336 million each ..."
+  },
+  {
+   "key": "1ca0070f|e2|ev-76886d34b83b",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source details Ben Delo's \u00a336m donation, but only mentions previous donations by Christopher Harborne (\u00a39m last year and a \u00a35m private gift), without confirming a \u00a336m pledge by Harborne.",
+   "invalid_reason": null,
+   "quote": "- Reform UK received a \u00a336m donation from British cryptocurrency billionaire Ben Delo."
+  },
+  {
+   "key": "1ca0070f|e2|ev-rec-e3_7_27dc7855",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The snippet mentions Reform UK receiving two record \u00a336m donations, but does not identify Ben Delo or Christopher Harborne as the donors.",
+   "invalid_reason": null,
+   "quote": "Reform UK receives two record \u00a336mn donations Save over 40% on Standard Digitalwas undefined now undefined for your first year. Save now on essential digital access to trusted FT journalism on any device. Savings based on annualised monthly price"
+  },
+  {
+   "key": "1ccc0eb9|e1|ev-fea4c6b10c3c",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The provided text discusses the inquiry's recommendations for NHS management, hospitals, and safety measures, but does not state or detail any recommendation or statement specifically directed to or regarding the government.",
+   "invalid_reason": null,
+   "quote": "- Thirlwall\u2019s report made 17 recommendations for improving care and assuring the safety of babies and children in all NHS hospitals."
+  },
+  {
+   "key": "1ccc0eb9|e2|ev-1d6962cf81e7",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The inquiry text explicitly states that a statutory barring system for managers should be introduced, directly supporting the element assertion.",
+   "invalid_reason": null,
+   "quote": "A statutory barring system for managers should be introduced but, having been introduced and operated, it should be reviewed with a view to moving to a full statutory regulation system."
+  },
+  {
+   "key": "1ccc0eb9|e3|ev-6c5ed17673b1",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text directly confirms that the barring system for managers must be put in place by September 2027.",
+   "invalid_reason": null,
+   "quote": "NHS England must develop and put in place a barring system for all clinical and non-clinical managers by September 2027,"
+  },
+  {
+   "key": "1ccc0eb9|e1|ev-641b56558483",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text confirms that the inquiry calls on the Department of Health and Social Care (a central government department) to establish the barring system, fulfilling the element requirement.",
+   "invalid_reason": null,
+   "quote": "- It calls for the Department of Health and Social Care and NHS England to establish a barring system for all clinical and non-clinical managers by September 2027."
+  },
+  {
+   "key": "1ccc0eb9|e2|ev-ae2c055c714d",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text explicitly states that the inquiry said the government must introduce a statutory barring system for managers.",
+   "invalid_reason": null,
+   "quote": "The government must introduce a statutory barring system for managers by September next year, an inquiry has said"
+  },
+  {
+   "key": "1ccc0eb9|e3|ev-641b56558483",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text confirms the inquiry calls for establishing the barring system for managers by September 2027.",
+   "invalid_reason": null,
+   "quote": "- It calls for the Department of Health and Social Care and NHS England to establish a barring system for all clinical and non-clinical managers by September 2027."
+  },
+  {
+   "key": "1ccc0eb9|e3|ev-568b34a51bbc",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text confirms that the inquiry (the Thirlwall Inquiry examining events surrounding Lucy Letby) specified a deadline of September 2027 for implementation / audit work on statutory inquiry recommendations.",
+   "invalid_reason": null,
+   "quote": "Implementation: The National Audit Office should audit implementation of statutory inquiry recommendations, with work beginning by \n\nSeptember 2027."
+  },
+  {
+   "key": "26699bc7|e1|ev-52dd9b12e476",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source directly supports the complete element assertion, reporting that Donald Trump and his team made nearly 28,700 trades between his inauguration in January 2025 and June.",
+   "invalid_reason": null,
+   "quote": "Between his inauguration in January 2025 and the end of June, Trump and his team made nearly 28,700 trades, his financial disclosures show."
+  },
+  {
+   "key": "26699bc7|e1|ev-2964a84979af",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source directly confirms that Trump executed roughly 28,700 securities trades over 17 months since returning to the White House in 2025.",
+   "invalid_reason": null,
+   "quote": "President Donald Trump has executed more securities transactions since returning to the White House than every sitting member of Congress combined, a volume that former chief White House ethics lawyer Richard Painter describes as unprecedented in presidential history and a fundamental conflict-of-interest problem. A Bloomberg analysis published this week tallied roughly 28,700 trades over 17 months, averaging about 80 per market day."
+  },
+  {
+   "key": "26699bc7|e1|ev-7b1711d697ab",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text confirms that Donald Trump made nearly 29,000 (roughly 28,700) securities trades in the 17 months following January 20, 2025.",
+   "invalid_reason": null,
+   "quote": "Donald Trump made nearly 29000 securities trades in 17 months \u2014 more than every member of Congress combined. occurred between Jan. 20, 2025, ..."
+  },
+  {
+   "key": "26699bc7|e1|ev-f7282b1207a1",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source directly affirms that Trump executed roughly 28,700 trades between January 2025 and June.",
+   "invalid_reason": null,
+   "quote": "Trump, or his money managers, executed roughly 28,700 trades between his January 2025 inauguration and June, Bloomberg reported Tuesday."
+  },
+  {
+   "key": "26699bc7|e1|ev-8dab2a9071a2",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The supplied text reports over 17,000 trades (14,000 in the first year and 3,555 in early 2026), which does not establish or verify the claimed figure of nearly 28,700 trades.",
+   "invalid_reason": null,
+   "quote": "- Trump financial disclosures reveal over 17,000 stock trades, worth up to $1.56 billion."
+  },
+  {
+   "key": "26699bc7|e1|ev-c325fdf903c0",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The supplied excerpt discusses 2025 trade values and daily averages, but does not provide the cumulative figure of almost 28,700 trades since 2025.",
+   "invalid_reason": null,
+   "quote": "President The total dollar value of the trades was somewhere between $600 million and $1.86 billion, according to his financial disclosure for 2025, which lists values in broad ranges. Many of the transactions involve large companies that have business with the federal government. Trump averaged 85 trades per market day, an analysis of the report shows. Just 10 days accounted for about a quarter of all trades executed in 2025. Many of those came during ..."
+  },
+  {
+   "key": "48fb0f58|e1|ev-3d471b06d658",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "48fb0f58|e1|ev-5b8c41b251bb",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "48fb0f58|e1|ev-be798163ab51",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "48fb0f58|e1|ev-6ebc457863b8",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "48fb0f58|e1|ev-d6f0448181b2",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "48fb0f58|e1|ev-1e570ad8369f",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "48fb0f58|e1|ev-1a02668a736b",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "quote_length",
+   "quote": null
+  },
+  {
+   "key": "48fb0f58|e1|ev-3a0caf5f2d63",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The snippet is incomplete and does not specify the institutions (University of Galway, French colleagues), the exact quantity (23 reefs), or the specific deployment locations (Porcupine Bank, Bay of Biscay).",
+   "invalid_reason": null,
+   "quote": "Researchers seeking to restore deep-sea coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs said they have been colonised by ..."
+  },
+  {
+   "key": "48fb0f58|e1|ev-227c0e61a451",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The snippet only describes the design and material of the artificial reefs and lacks any details regarding the placement of 23 structures, the participating institutions, or the geographic locations.",
+   "invalid_reason": null,
+   "quote": "The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material. Each 3D-printed structure is ..."
+  },
+  {
+   "key": "540481b1|e1|ev-41ff11e48baa",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The evidence directly contradicts the assertion that Webb orbits the Earth by stating that it orbits the Sun 1.5 million km away, which is compatible with the challenges relationship.",
+   "invalid_reason": null,
+   "quote": "Webb orbits the Sun 1.5 million kilometers from the Earth."
+  },
+  {
+   "key": "540481b1|e2|ev-be8a234081c1",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly states that Webb's primary mirror is 6.5 meters across, directly supporting the assertion.",
+   "invalid_reason": null,
+   "quote": "Webb's primary mirror is 6.5 meters (21 feet 4 inches) across."
+  },
+  {
+   "key": "540481b1|e3|ev-a4e54aac5cc6",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly confirms that the observatory launched on December 25, 2021, directly supporting the assertion.",
+   "invalid_reason": null,
+   "quote": "The observatory launched into space on an Ariane 5 rocket from the Guiana Space Centre in Kourou, French Guiana on December 25, 2021."
+  },
+  {
+   "key": "540481b1|e1|ev-13160ec05246",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text directly refutes the assertion that Webb orbits Earth by stating that it does not orbit Earth but orbits the Sun at L2, confirming the challenge relationship.",
+   "invalid_reason": null,
+   "quote": "The James Webb Space Telescope is not in orbit around the Earth, like the Hubble Space Telescope is - it actually orbits the Sun, 1.5 million kilometers (1 million miles) away from the Earth at what is called the second Lagrange point or L2."
+  },
+  {
+   "key": "540481b1|e2|ev-985384df10e7",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text explicitly confirms that the total diameter of Webb's primary mirror spans 6.5 metres, directly supporting the assertion.",
+   "invalid_reason": null,
+   "quote": "The total diameter of Webb\u2019s primary mirror spans 6.5 metres, which is so large that it has to be carefully folded into the rocket\u2019s fairing for launch."
+  },
+  {
+   "key": "540481b1|e3|ev-3b1c2ec15952",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly states that Webb launched on December 25, 2021, directly supporting the assertion.",
+   "invalid_reason": null,
+   "quote": "At 7:20 a.m. EST (1220 GMT) on December 25, 2021, Webb launched from CSG."
+  },
+  {
+   "key": "540481b1|e1|ev-557952c346e2",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The evidence directly contradicts the element assertion by reporting that JWST will not orbit around the Earth and will instead orbit the Sun, establishing a valid challenge.",
+   "invalid_reason": null,
+   "quote": "- Unlike the Hubble Space Telescope, JWST will not orbit around the Earth.\n- It will orbit the Sun at approximately one million miles away."
+  },
+  {
+   "key": "540481b1|e2|ev-265c30d77216",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly states that the James Webb Space Telescope features a 6.5-meter mirror, supporting the complete assertion.",
+   "invalid_reason": null,
+   "quote": "- JWST operates from the second Lagrange point (L2) and features a large, 6.5-meter mirror."
+  },
+  {
+   "key": "540481b1|e3|ev-4a795b1ef4d5",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source directly establishes that the telescope launched on December 25, 2021, supporting the element assertion.",
+   "invalid_reason": null,
+   "quote": "Webb was launched on on December 25, 2021 on board an Ariane 5 rocket from Ariane Space Spaceport in French Guiana."
+  },
+  {
+   "key": "540481b1|e3|ev-c956581d6b59",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The article was published before the launch on December 23, 2021, and only reports a planned/scheduled launch date rather than an observed, completed launch result.",
+   "invalid_reason": null,
+   "quote": "- JWST's launch date is scheduled for Dec. 25 at 5:20 am Mountain Time from Europe's Spaceport in Kourou, French Guiana."
+  },
+  {
+   "key": "580fd5b4|e1|ev-196032858b24",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The element asserts that 2026 experiences the lowest wildfire activity in Europe compared to other years. The evidence challenges this directly by reporting that burnt area in 2026 exceeded the 20-year long-term average (328,010 ha vs 651,485 ha).",
+   "invalid_reason": null,
+   "quote": "As of 2 September 2026, the area affected by fires has reached 651 485hectares. This is below the area recorded by the same date in 2025 (the worst year on record) but exceeds the long-term average of the last 20 years (2006\u20132025) of 328 010 ha."
+  },
+  {
+   "key": "580fd5b4|e2|ev-064e0547487e",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The element asserts that the difference in wildfire activity between 2026 and other years is substantial. The source shows 2026 was well above average (almost twice the 20-year average) and ranked 4th, which represents a substantial difference from average years rather than challenging the existence of a substantial difference.",
+   "invalid_reason": null,
+   "quote": "- As of 26 August 2026, the area affected by fires was almost twice the 2006\u20132025 long-term average for the same period."
+  },
+  {
+   "key": "580fd5b4|e1|ev-2d54bbe5591f",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The evidence directly challenges the assertion that 2026 had the lowest wildfire activity in Europe by documenting that burned area in 2026 was well above the 20-year historical average.",
+   "invalid_reason": null,
+   "quote": "The total area affected by fire between June 18 and Sept. 2 was well above the average for the previous 20 years, according to data from the European Forest Fire Information System, or EFFIS."
+  },
+  {
+   "key": "580fd5b4|e2|ev-5d6afa066b19",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The evidence indicates that 2026 wildfire activity is more than twice the historical pace and EU's second-worst on record at that point. This confirms a substantial difference rather than challenging that there is a substantial difference.",
+   "invalid_reason": null,
+   "quote": "- Europe's 2026 wildfire season is running at more than twice the historical pace."
+  },
+  {
+   "key": "580fd5b4|e1|ev-064e0547487e",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source directly challenges the assertion that 2026 had the lowest level of wildfire activity by establishing that 2026 ranked 4th highest for cumulative area burned at that point in the year and was nearly twice the long-term average.",
+   "invalid_reason": null,
+   "quote": "- At the beginning of August 2026, the EU's wildfire season ranked fourth for cumulative area burned at that point in the year, behind 2012, 2022, and 2017."
+  },
+  {
+   "key": "580fd5b4|e1|ev-1381564e1bd9",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source reports that the burned area in 2026 far exceeded the 20-year average of around 280,000 hectares, directly challenging the claim that 2026 experienced the lowest wildfire activity compared to other years.",
+   "invalid_reason": null,
+   "quote": "More than 600,000 hectares of land have burned within European Union countries in the first eight months of 2026, according to the European Forest Fire Information System. That\u2019s below the area recorded by the same date in 2025 (the worst year on record), but it far exceeds the 20-year average of around 280,000 hectares"
+  },
+  {
+   "key": "580fd5b4|e1|ev-7f1f7c8aa741",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source covers European wildfire activity in summer 2026 and directly contradicts the claim that 2026 had the lowest level of wildfire activity, reporting that burned area was well above the 20-year average and burned over 540,000 hectares.",
+   "invalid_reason": null,
+   "quote": "The total area affected by fire between June 18 and Sept. 2 is well above the average for the previous 20 years, according to data from the European Forest Fire"
+  },
+  {
+   "key": "580fd5b4|e1|ev-5d6afa066b19",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source reports European wildfire activity in 2026, directly challenging the claim that 2026 was the lowest level on record by showing it ran at twice the historical pace and was the EU's second-worst on record.",
+   "invalid_reason": null,
+   "quote": "twice the historical pace. Around 1,250 fires had been recorded by late July, compared with a long-term average of 569, burning roughly 435,000-457,000 hectares. The season is already the EU's second-worst on record at this point"
+  },
+  {
+   "key": "580fd5b4|e1|ev-7902fda6749e",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text directly provides comparative European wildfire data for 2026, establishing that 2026 burned area was above the 2006-2025 multi-year average, which directly contradicts the claim that 2026 experienced the lowest level of wildfire activity.",
+   "invalid_reason": null,
+   "quote": "According to the European Forest Fire Information System, the burned area in 2025 was lower than in the past, but the 2026 figure was above the average of about 328,000 hectares from 2006 to 2025."
+  },
+  {
+   "key": "580fd5b4|e1|ev-d15b09db599f",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "mismatch",
+   "dimension": "population",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The element asserts a claim across Europe as a whole, whereas the supplied evidence explicitly focuses on the UK and Wales sub-region.",
+   "invalid_reason": null,
+   "quote": "UK-level data up to 1 September indicates 28,299 hectares of land has been burned, already making this year the second-highest on record."
+  },
+  {
+   "key": "580fd5b4|e1|ev-4fc033622c68",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source contains only a title and a placeholder message, lacking any quantitative or comparative results about 2026 wildfire activity.",
+   "invalid_reason": null,
+   "quote": "Mediterranean Wildfires in September 2026: What's Still Burning in Greece, Portugal, and France | PurpleAir You need to enable JavaScript to run this app"
+  },
+  {
+   "key": "580fd5b4|e1|ev-fbac850b3f0c",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text only mentions Romania deploying firefighters in 2026, providing no comparative metric or level of wildfire activity to evaluate or challenge the claim.",
+   "invalid_reason": null,
+   "quote": "Romania has played, in particular, an active role in this year's wildfire response, with firefighting teams deployed to France, Greece and Serbia"
+  },
+  {
+   "key": "580fd5b4|e1|ev-e304f1210af8",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source reports that August 2026 saw dry conditions leading to widespread wildfire activity across regions of Europe, but it does not report comparative annual wildfire statistics across years to establish whether 2026 as a whole had the lowest level of wildfire activity. Addressing only wildfire activity for one month without comparative multi-year data leaves the result unknown.",
+   "invalid_reason": null,
+   "quote": "- According to Copernicus, dry conditions in August 2026 led to widespread drought and wildfire activity across several regions of the European continent."
+  },
+  {
+   "key": "6ad65eb5|e1|ev-aed744939436",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "6ad65eb5|e3|ev-f1163f69d08c",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "6ad65eb5|e1|ev-842a98804320",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "6ad65eb5|e3|ev-271cb07adc3a",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "6ad65eb5|e1|ev-c34671aaaa72",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "6ad65eb5|e3|ev-9ffa8d538702",
+   "repeat": 0,
+   "status": "invalid",
+   "decision": null,
+   "dimension": null,
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": null,
+   "invalid_reason": "not_returned",
+   "quote": null
+  },
+  {
+   "key": "6ad65eb5|e1|ev-0ef47dcd1457",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly confirms that Sweden never enacted a lockdown involving severe movement restrictions or legally binding stay-at-home orders during the COVID-19 pandemic, supporting the claim.",
+   "invalid_reason": null,
+   "quote": "- Sweden, Taiwan, Uruguay, Iceland, and a few others never enacted a lockdown involving severe movement restrictions or legally binding stay-at-home orders across large swathes of the population."
+  },
+  {
+   "key": "6ad65eb5|e3|ev-db780f394c50",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The study evaluated the 2020-2022 pandemic period across Nordic European countries and found Iceland had the lowest excess mortality, which directly contradicts and challenges the assertion that Sweden had lower excess mortality than every other European country.",
+   "invalid_reason": null,
+   "quote": "- Excess mortality over the whole study period was lowest in Iceland while Norway had very few ICU admissions."
+  },
+  {
+   "key": "6ad65eb5|e1|ev-5dfbdbccefcf",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source confirms that Sweden's containment strategy did not rely on a complete lockdown, supporting the element.",
+   "invalid_reason": null,
+   "quote": "The Swedish containment strategy was not centered around a complete lockdown but rather included more selective measures such as minimizing people's visits"
+  },
+  {
+   "key": "6ad65eb5|e3|ev-b4521dec0692",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "mismatch",
+   "dimension": "measure",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The element measures all-cause excess mortality relative to other European countries in 2020-22, whereas the source reports a specific count of confirmed Covid-19 deaths per million through June 2023 without providing excess mortality comparisons.",
+   "invalid_reason": null,
+   "quote": "Sweden was an outlier in terms of policy but not in terms of mortality. By June 14, 2023, Sweden had suffered 2,322 Covid-19 deaths per million ..."
+  },
+  {
+   "key": "6ad65eb5|e3|ev-3e98dccf76da",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "mismatch",
+   "dimension": "time",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source was published in March 2021 and only analyzes 2020/early 2021 data, which represents an earlier snapshot that cannot establish or evaluate excess mortality across the full 2020-22 period.",
+   "invalid_reason": null,
+   "quote": "During the autumn and early winter months central and eastern European countries had the highest levels of excess mortality in Europe; western European countries still experienced some excess mortality but at lower levels than those experienced in the spring"
+  },
+  {
+   "key": "8a615dfc|e1|ev-c2ac37747d19",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly states that Irish public spending has risen by more than 50 per cent since 2020, fully supporting the complete element assertion.",
+   "invalid_reason": null,
+   "quote": "Public spending has risen by more than 50 per cent since 2020, a trend that isn\u2019t mirrored anywhere else in Europe."
+  },
+  {
+   "key": "a57b5494|e1|ev-e29c0ab022cd",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source directly affirms that an initial pilot of the AI triage tool integrated into the NHS App was trialled at Wealden Ridge Medical Partnership in Sussex.",
+   "invalid_reason": null,
+   "quote": "The NHS Transformation Directorate has shared details of the initial pilot of an AI triage tool integrated in the NHS App. The tool, trialled at Wealden Ridge Medical Partnership in Sussex, is said to have reduced phone queue volumes by 29 percent, according to the directorate."
+  },
+  {
+   "key": "a57b5494|e2|ev-e31fd9688d02",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly states that the Sussex GP practice trial led to a 29% reduction in people queuing on the phone.",
+   "invalid_reason": null,
+   "quote": "An initial trial at a GP practice in Sussex resulted in a 29% reduction in the number of people queuing on the phone - helping to end the 8am rush while maintaining patient satisfaction levels."
+  },
+  {
+   "key": "a57b5494|e3|ev-48f5e9ce5d8b",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source criticizes the evidence base and notes that the published preprint omitted queue analysis, but it does not report an empirical finding or measured null/contrary result regarding the phone queue reduction.",
+   "invalid_reason": null,
+   "quote": "- According to an article on trusttheevidence.substack.com, a preprint describing the Sussex pilot reported concordance statistics, clinician interviews, and patient satisfaction, but did not report any analysis of telephone queues, call volumes, or the 29 per cent reduction."
+  },
+  {
+   "key": "a57b5494|e1|ev-f1c4f28d7428",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text directly confirms that Wealden Ridge Medical Partnership in Sussex ran the initial trial of the AI triage tool in the NHS App.",
+   "invalid_reason": null,
+   "quote": "Dr Ragu Rajan from Wealden Ridge Medical Partnership in Sussex, which ran the initial trial of the AI triage tool in the NHS App, said: \u2018As a rural practice serving 23,000 patients across four sites, we know how hard it can be for people to reach us."
+  },
+  {
+   "key": "a57b5494|e1|ev-c624738224fa",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "While the article mentions the tool is coming to the NHS App and notes a pilot involving a Sussex GP, it does not explicitly confirm that the Sussex pilot itself was implemented through the NHS App.",
+   "invalid_reason": null,
+   "quote": "- One GP involved in the pilot, Dr Ragu Rajan from Wealden Ridge Medical Partnership in Sussex, said: 'It hasn't replaced our judgement \u2013 it's given us back the time to use it.'"
+  },
+  {
+   "key": "b8cf098b|e1|ev-e26916cbdcfe",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly states that atmospheric carbon dioxide concentrations have increased to more than 420 ppm, directly supporting the assertion.",
+   "invalid_reason": null,
+   "quote": "atmospheric carbon dioxide concentrations have increased from approximately 285 ppm to more than 420 ppm"
+  },
+  {
+   "key": "b8cf098b|e2|ev-5506b3158344",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": "quantitative_result_not_quoted",
+   "model_decision": "compatible",
+   "reasoning": "The quoted material does not report the effect size the element asserts, so it cannot establish the complete quantitative result; it is retained as context. The source confirms that atmospheric CO2 concentrations in the late 1960s (1968 and 1969) were approximately 322.89 to 324.11 ppm, which is around 320 ppm, supporting the element.",
+   "invalid_reason": null,
+   "quote": "- In 1968, the atmospheric CO2 concentration was 322.89 parts per million.\n- In 1969, the atmospheric CO2 concentration was 324.11 parts per million."
+  },
+  {
+   "key": "b8cf098b|e3|ev-f096e6e33375",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The provided text indicates that licences to explore, drill, and extract were awarded in 1965 (mid-1960s) and Ekofisk was discovered in late 1969 with production starting in 1971, but does not explicitly document when a singular 'decision to extract' from the North Sea was made.",
+   "invalid_reason": null,
+   "quote": "When the first production licences were awarded in the mid-1960s, hardly anyone realised what a huge impact the industry would have on the Norwegian economy."
+  },
+  {
+   "key": "b8cf098b|e1|ev-7a6b942e8b24",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source reports that the current concentration is 416 ppm (less than 420 ppm), which provides a contrary finding on the exact same measure and timeframe, thus compatibly challenging the claim.",
+   "invalid_reason": null,
+   "quote": "the concentration of CO2 in the atmosphere has risen from 172 to 300 ppm before industrialization to the current 416 ppm."
+  },
+  {
+   "key": "b8cf098b|e1|ev-57ddc627313b",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source states that atmospheric CO2 in 2025 was about 426 parts per million, which is greater than 420 ppm, supporting the assertion.",
+   "invalid_reason": null,
+   "quote": "Parts per million means that, out of every million molecules in dry air, about 426 were carbon dioxide in 2025."
+  },
+  {
+   "key": "bff4f803|e1|ev-9b4514323f7b",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source directly affirms that in the September 2026 Saxony-Anhalt election, the AfD won 39 seats, which is more than any other party (CDU 15, SPD 8, Left Party 8, Greens 8, BSW 5), supporting the complete element assertion.",
+   "invalid_reason": null,
+   "quote": "The AfD will have 39 seats in the state parliament. Following its sharp decline, the CDU will hold only 15 seats, while the SPD, Left Party and Greens will each have eight seats. The BSW will be represented by five lawmakers."
+  },
+  {
+   "key": "bff4f803|e2|ev-571863e4831e",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text directly confirms that following the September 6, 2026 Saxony-Anhalt state election, the AfD is 'only three seats short of an absolute majority in the state\u2019s legislature', supporting the claim.",
+   "invalid_reason": null,
+   "quote": "The AfD, which has been classified as right-wing extremist by Germany\u2019s domestic-intelligence agency, is now only three seats short of an absolute majority in the state\u2019s legislature."
+  },
+  {
+   "key": "bff4f803|e3|ev-11eac9637b84",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The evidence describes the win as the biggest electoral success since World War II and mentions a previous breakthrough in Thuringia in 2024, but it does not specify whether this was the first time since 1933 that a far-right party won the most seats in a German election (or whether Thuringia in 2024 or another election already achieved that). Thus it does not establish a clear contradiction/challenge to the complete historical assertion.",
+   "invalid_reason": null,
+   "quote": "Germany\u2019s far right claimed its biggest electoral success since World War II in Sunday\u2019s regional vote in Saxony-Anhalt, with the Alternative for Germany (AfD) party advancing to the cusp of genuine power for the first time."
+  },
+  {
+   "key": "bff4f803|e1|ev-2a423dc60a43",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source confirms that the AfD won 39 seats in the Saxony-Anhalt state election, which is the highest number of seats among all parties in the parliament.",
+   "invalid_reason": null,
+   "quote": "AfD captured 43.8% of the ballots, earning 39 out of 83 seats in the Landtag. Meanwhile, the CDU, which held 37.1% in 2021, dropped to 17.2%, resulting in only 15 MPs. The SPD, Greens, and Die Linke each gained eight seats, while BSW obtained five."
+  },
+  {
+   "key": "bff4f803|e2|ev-6834120a83ca",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The evidence explicitly states that in Saxony-Anhalt on 6 September, the AfD fell 'three seats short of an absolute majority in the state parliament', fully supporting the claim.",
+   "invalid_reason": null,
+   "quote": "The AfD won 43.8 percent of the vote in Saxony-Anhalt on 6 September, falling three seats short of an absolute majority in the state parliament."
+  },
+  {
+   "key": "bff4f803|e1|ev-ed855e041d35",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text directly states that the AfD became the 'strongest force' in Saxony-Anhalt in the election on 6 September with 43.8% of the vote, supporting the assertion that it won the most seats.",
+   "invalid_reason": null,
+   "quote": "The result is the third time the far-right party has become the strongest force in a state, following Saxony-Anhalt on 6 September, where the AfD won 43.8%."
+  },
+  {
+   "key": "bff4f803|e2|ev-3beb18bf5179",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly confirms that in the Sept. 6 Saxony-Anhalt state election, the AfD won 44% of the vote and is three seats short of a majority in the state parliament, directly supporting the assertion.",
+   "invalid_reason": null,
+   "quote": "The victory was on Sept. 6, the election in Saxony-Anhalt, a small state in eastern Germany. The party won 44% of the vote, but still is three seats short of a majority in the state parliament."
+  },
+  {
+   "key": "bff4f803|e1|ev-05a57cd4352b",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text confirms that following its victory in Saxony-Anhalt in September 2026, the AfD is the largest party in the state parliament, supporting the claim that it won the most seats.",
+   "invalid_reason": null,
+   "quote": "Two weeks after the far-right Alternative for Germany (AfD) trounced the political mainstream in Saxony-Anhalt, the party emerged with another huge victory in Mecklenburg\u2013Western Pomerania. The AfD will now be the largest party in both states."
+  },
+  {
+   "key": "bff4f803|e1|ev-7d25080f51c0",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The snippet is cut off mid-sentence and does not specify the date, state (Saxony-Anhalt), or specific seat outcome.",
+   "invalid_reason": null,
+   "quote": "TikTok video from Reuters (@reuters): \u201cHours after the far-right AfD party took first place in state elections in northeastern"
+  },
+  {
+   "key": "cb939365|e1|ev-49fc95baa3b2",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly states that Reform UK received \u00a372 million in donations over the space of one weekend, consisting of \u00a336 million each from Ben Delo and Christopher Harborne.",
+   "invalid_reason": null,
+   "quote": "British politics looks set to be dominated in the coming weeks and months by the \u00a372 million donated to Reform UK. This is because, and there\u2019s really no other way to cut the cake here, this is an astonishing amount of money. The donations to Reform came in the space of just one weekend \u2013 \u00a336 million each from crypto billionaires Ben Delo and Christopher Harborne."
+  },
+  {
+   "key": "cb939365|e2|ev-0e59286426b3",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly confirms that Ben Delo made a record donation of \u00a336 million to Reform UK.",
+   "invalid_reason": null,
+   "quote": "Reform UK has been given a record \u00a336m donation by Ben Delo, a British cryptocurrency billionaire convicted in the US for failing to implement adequate anti-money laundering controls."
+  },
+  {
+   "key": "cb939365|e3|ev-daae2922e638",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source directly establishes that Christopher Harborne donated \u00a336 million to Reform UK, matching Ben Delo's \u00a336 million contribution.",
+   "invalid_reason": null,
+   "quote": "Reform UK has received a second \u00a336m donation in as many days, as cryptocurrency investor Christopher Harborne matched a record-breaking donation announced late on Friday."
+  },
+  {
+   "key": "cb939365|e1|ev-5a6c83cd2df3",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text mentions two donations totaling \u00a372 million to Reform UK from two crypto billionaires, but fails to provide the complete assertion by omitting the timeframe ('in the space of one weekend').",
+   "invalid_reason": null,
+   "quote": "Today, we look at two record breaking donations to Reform UK of \u00a372 million. The money has been given to the party by two crypto billionaires, ..."
+  },
+  {
+   "key": "cb939365|e2|ev-220604b62078",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text directly affirms that Ben Delo made a \u00a336 million donation to Reform UK.",
+   "invalid_reason": null,
+   "quote": "Reform UK has received a \u00a336m donation from British cryptocurrency billionaire Ben Delo - the biggest ever donation to a UK political party."
+  },
+  {
+   "key": "cb939365|e3|ev-e3b15cecbc81",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source explicitly reports that Christopher Harborne donated \u00a336 million to Reform UK, matching the donation from Ben Delo.",
+   "invalid_reason": null,
+   "quote": "The cryptocurrency tycoon Christopher Harborne has given \u00a336m to Reform UK, matching a donation from fellow billionaire Ben Delo."
+  },
+  {
+   "key": "cb939365|e1|ev-2f35ddb7ac4b",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source confirms that two donors each gave \u00a336m (totaling \u00a372m), but it does not specify the timeframe (in the space of one weekend) asserted in the element.",
+   "invalid_reason": null,
+   "quote": "Reform UK's two biggest donors have each handed the party a record-breaking \u00a336m. British cryptocurrency billionaire Ben Delo said he was making his \u00a336m ..."
+  },
+  {
+   "key": "cb939365|e2|ev-b28b497407cc",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The text directly states that Reform UK received a \u00a336m donation from Ben Delo, confirming the complete assertion.",
+   "invalid_reason": null,
+   "quote": "Reform UK has received a \u00a336m donation from a British cryptocurrency billionaire - a record for a UK political party. Ben Delo wrote in the Daily Telegraph that he was making the gift"
+  },
+  {
+   "key": "cb939365|e3|ev-072867a09745",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source reports that Delo made a \u00a336m donation and Christopher Harborne matched the sum, confirming Harborne contributed \u00a336 million.",
+   "invalid_reason": null,
+   "quote": "with his record\u2011setting \u00a336m donation to Reform UK, he is positioning himself to have a significant impact on the next general election, which could be held as far off as summer 2029. His unprecedented gift has already inspired longtime Reform backer Christopher Harborne to match the sum"
+  },
+  {
+   "key": "cb939365|e2|ev-991a9b5149d0",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source directly confirms that Reform UK received a \u00a336 million donation from Ben Delo.",
+   "invalid_reason": null,
+   "quote": "Reform UK has received a record \u00a336 million donation from cryptocurrency billionaire Ben Delo, handing Nigel Farage's party a huge financial boost ahead of ..."
+  },
+  {
+   "key": "cb939365|e3|ev-af15c09aeeb4",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source confirms that Christopher Harborne gave \u00a336m to Reform UK, supporting the element.",
+   "invalid_reason": null,
+   "quote": "Jenrick said Delo and Harborne each gave \u00a336m to the party in two days and now share the record for the largest ever donation given to a UK political party."
+  },
+  {
+   "key": "cb939365|e2|ev-80071fd641af",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source directly reports that Reform UK received a \u00a336m donation from Ben Delo.",
+   "invalid_reason": null,
+   "quote": "Reform UK has received a record single donation of \u00a336m from cryptocurrency billionaire Ben Delo in what will be seen as the Americanisation of British political funding."
+  },
+  {
+   "key": "e6e0c00d|e1|ev-7a4d97330213",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "unknown",
+   "dimension": "result",
+   "decision_basis": "quantitative_result_not_quoted",
+   "model_decision": "compatible",
+   "reasoning": "The quoted material does not report the effect size the element asserts, so it cannot establish the complete quantitative result; it is retained as context. The source directly affirms that CMMI has launched 54 different innovation models, supporting the element assertion.",
+   "invalid_reason": null,
+   "quote": "To this end, the Center for Medicare and Medicaid Innovation (CMMI) has launched 54 different innovation models encompassing nearly 26 million patients and 1 million providers."
+  },
+  {
+   "key": "e6e0c00d|e2|ev-7a4d97330213",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source affirms that CMMI's 54 models encompassed 1 million providers, supporting the claim that models launched encompassed almost one million clinicians.",
+   "invalid_reason": null,
+   "quote": "To this end, the Center for Medicare and Medicaid Innovation (CMMI) has launched 54 different innovation models encompassing nearly 26 million patients and 1 million providers."
+  },
+  {
+   "key": "e6e0c00d|e3|ev-7a4d97330213",
+   "repeat": 0,
+   "status": "compatible",
+   "decision": null,
+   "dimension": "result",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source affirms that CMMI launched 54 models encompassing nearly 26 million patients, directly supporting the element assertion.",
+   "invalid_reason": null,
+   "quote": "To this end, the Center for Medicare and Medicaid Innovation (CMMI) has launched 54 different innovation models encompassing nearly 26 million patients and 1 million providers."
+  },
+  {
+   "key": "e6e0c00d|e1|ev-683e9e5d2763",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "mismatch",
+   "dimension": "time",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The GAO report was published in March 2018 and counts models implemented through February 2018 (37 models), which is a snapshot in early 2018 rather than the complete 2010-2020 decade. A snapshot 'as of' an earlier date is a time scope mismatch.",
+   "invalid_reason": null,
+   "quote": "Since 2010, the center has tested or is in the process of testing 37 models. In evaluating these models, the Innovation Center has recommended the expansion of 2 Medicare models that reduced costs and maintained or improved care quality. Evaluations have also helped the center improve new model design and operation. Cumulative Number of Models Implemented by the Center for Medicare and Medicaid Innovation, January 2011-February 2018 Figure showing 2 models in 2011 and growing to 37"
+  },
+  {
+   "key": "e6e0c00d|e2|ev-59b221c82d45",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "mismatch",
+   "dimension": "time",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source is from February 2018 and reflects a mid-period snapshot (200,000 providers across >40 models as of early 2018), not the cumulative 2010-2020 timeframe of the element. This represents a time mismatch.",
+   "invalid_reason": null,
+   "quote": "CMMI has launched over 40 new payment models, involving more than 18 million patients and 200,000 health care providers.1"
+  },
+  {
+   "key": "e6e0c00d|e3|ev-59b221c82d45",
+   "repeat": 0,
+   "status": "scoped",
+   "decision": "mismatch",
+   "dimension": "time",
+   "decision_basis": null,
+   "model_decision": null,
+   "reasoning": "The source reflects the status as of early 2018 (published February 2018), representing an interim snapshot of over 40 models and 18 million patients rather than the full 2010-2020 period.",
+   "invalid_reason": null,
+   "quote": "CMMI has launched over 40 new payment models, involving more than 18 million patients and 200,000 health care providers.1"
+  }
+ ]
+}

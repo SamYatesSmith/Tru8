@@ -38,6 +38,7 @@ from app.models.claim_map import (
 )
 from app.utils.atomicity import is_mixed_shape
 from app.utils.scope_sensitivity import apply_scope_flags
+from app.utils.range_period import element_range, published_before_range_end
 from app.utils.readable_text import (
     MIN_CONTENT_WORDS as READABLE_MIN_CONTENT_WORDS,
     content_word_count,
@@ -1553,6 +1554,7 @@ _SCOPE_RECEIPT_KEYS = (
     "jurisdiction_scope",
     "measure_scope",
     "date_scope",
+    "range_period",
     "figure_scope",
     "interested_party",
     "recital_scope",
@@ -2833,6 +2835,31 @@ class ClaimMapAnalyzer:
                                 ).stated_days(item.text)
                                 if (x.year, x.month) == (_d.year, _d.month)
                             ),
+                        },
+                    )
+                )
+
+        # Range period (A− option 3, 2026-09-24): an aggregate element over a
+        # closed past year range ("between 2010 and 2020 … 54 models") cannot be
+        # established, either way, by a source published before the range ended
+        # (GAO's March-2018 snapshot, e6e0c00d). Straight after date_scope, per
+        # review. Symmetric. ROLLBACK: ENABLE_RANGE_PERIOD_GATE=False.
+        if getattr(settings, "ENABLE_RANGE_PERIOD_GATE", True):
+            _range = element_range(elem.get("description"))
+            if _range is not None:
+                gates.append(
+                    _ScopeGate(
+                        key="range_period",
+                        label="RANGE PERIOD",
+                        pins=f"element spans {_range[0]}-{_range[1]}",
+                        summary={"element_range": f"{_range[0]}-{_range[1]}"},
+                        fires=lambda item, _ref, _r=_range: published_before_range_end(
+                            item.ev, _r[1]
+                        ),
+                        entry=lambda item, _ref, _r=_range: {
+                            "rule": "published_before_range_end",
+                            "element_range": f"{_r[0]}-{_r[1]}",
+                            "published_date": str(item.ev.get("published_date"))[:10],
                         },
                     )
                 )

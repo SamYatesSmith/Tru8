@@ -25,6 +25,8 @@ GATE_WORDS = {
     "temporal_scope": "different period",
     "jurisdiction_scope": "another country's official source",
     "measure_scope": "different interval",
+    "range_period": "published before the period it would cover ended",
+    "readable_text": "no readable text",
     "interested_party": "the claimant's own organ",
     "recital_scope": "reports the claim rather than making it",
     "absence_of_evidence": "says evidence is lacking, not a contrary finding",

@@ -67,7 +67,9 @@ Next: Build C1 (canonical URL key) and C2 (the echo redesign from the trace), pe
   - Interested-party release tightened to ORG-only + own clause (`b091719`, pushed).
 - M1 upgrades built (`982c97b`, flag OFF).
 - **Offline eval FAILED** (≈85p): the review demotes genuine CHALLENGES (NASA vs JWST, Sweden "37th of 42") because it files a contradiction as a scope mismatch — a sycophancy hazard.
-- It stays OFF. Next is a founder decision; see the eval section of the mapping design doc.
+- It stays OFF. Round 2 (prompt fix plus a gemini-3.7-flash arm) also FAILED: the contradiction fix worked, but must-survive demotions were 7.9%, p90 25 s and 1/3 of calls timed out. Hard stop.
+- **Range-period gate BUILT** (option 3): a source published before a closed range ends cannot establish an aggregate over it. 5/5 correct on the labelled set.
+- Owed: the temporal gate reads "2008-09" as September 2008.
 
 **Founder rule, 2026-09-24:** anything rated difficulty 3+ gets a plan and a design review before it is built. That covers tier 2 and everything above it.
 

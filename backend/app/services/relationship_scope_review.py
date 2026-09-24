@@ -294,7 +294,13 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
         "people, organisation, country or region the statement is about; a sub-region is not the whole region, another country "
         "or state is not the one in the element. (3) MEASURE - what is counted or measured; a count is not a value, a rate is not "
         "a total, one measure is not a different one. Set scope_affirmed to true only when time, population/place and measure "
-        "are all compatible with the element. If any is different, return mismatch with that dimension. Then check that the "
+        "are all compatible with the element. If any is different, return mismatch with that dimension. "
+        "DISAGREEMENT IS NOT A SCOPE MISMATCH. A source that says something DIFFERENT ABOUT THE SAME subject, period and "
+        "measure is a contrary result, not a different scope: 'the telescope orbits the Sun' against 'the telescope orbits the "
+        "Earth', 'ranked 37th of 42' against 'lowest in the region', 'twice the usual pace' against 'the lowest level'. For a "
+        "challenge a contrary result is compatible (scope_affirmed true, dimension result). For a support it is mismatch with "
+        "dimension result. Use a time, population or measure mismatch only when the source is ABOUT a different period, "
+        "population or measure, never because it contradicts the element. Then check that the "
         "source addresses the COMPLETE element: a source that addresses only part of it, or only its topic, is unknown with "
         "dimension result. "
         "Do not vote on the parent claim or try to preserve a preferred conclusion. For each pair separately compare "
@@ -372,6 +378,7 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
         receipt["pairs"].append(record)
         row = returned.get(pair["pair_id"])
         if not row or pair["pair_id"] in duplicates:
+            record["invalid_reason"] = "duplicate" if row else "not_returned"
             continue
         decision = row.get("decision")
         # A claim explicitly naming an acronym trial needs that identity in
@@ -474,6 +481,7 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
                 None,
             )
             if excerpt is None:
+                record["invalid_reason"] = "unknown_excerpt_id"
                 continue
             quote = excerpt["text"]
             record["excerpt_id"] = excerpt_id
@@ -490,6 +498,14 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
                 for k in ("claim_scope", "source_scope", "reasoning")
             )
         ):
+            record["invalid_reason"] = (
+                "bad_decision" if decision not in ("compatible", "mismatch", "unknown")
+                else "bad_dimension" if row.get("dimension") not in DIMENSIONS
+                else "unknown_block" if not block
+                else "quote_length" if not isinstance(quote, str) or not 12 <= len(quote) <= 600
+                else "quote_not_in_block" if quote not in block["text"]
+                else "empty_field"
+            )
             continue
         if decision == "compatible":
             record.update(

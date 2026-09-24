@@ -768,6 +768,12 @@ class Settings(BaseSettings):
     # ROLLBACK: ENABLE_READABLE_TEXT_GATE=False.
     ENABLE_READABLE_TEXT_GATE: bool = Field(True, env="ENABLE_READABLE_TEXT_GATE")
 
+    # Range-period gate (A− option 3, 2026-09-24): an aggregate element over a
+    # closed past year range cannot be established by a source published
+    # before 1 December of the range's end year (trusted dates only).
+    # Symmetric. ROLLBACK: ENABLE_RANGE_PERIOD_GATE=False.
+    ENABLE_RANGE_PERIOD_GATE: bool = Field(True, env="ENABLE_RANGE_PERIOD_GATE")
+
     # Recital evidence-text narrowing (A− recital review, 2026-09-24): R0–R5
     # stop the recital gate firing on a sentence the support does not rest on
     # (self-reference, declined speech, passive voice, an ORG's own

@@ -225,3 +225,22 @@ Labels: 114 must_survive / 27 should_demote / 15 either (`labels.csv`, blind adj
 The model files a real contradiction as a scope `mismatch` on `measure` or `time` ("the source says Webb orbits the Sun"). The contrary-result exemption, now gated on `scope_affirmed` + `result`, no longer catches it. Removing the challenges that expose a false claim is the sycophancy failure invariant #7 forbids. Under either policy this cannot ship.
 
 What worked: wrong-PERIOD positives were caught at 90% (demote-unknown policy). The model sees dates once it is given them.
+
+## Eval round 2: 2026-09-24. **FAIL again. Hard stop, stays OFF.** (1 repeat each, ≈£1.30)
+Prompt fix: "disagreement is not a scope mismatch". Two arms over the same 156 labelled pairs.
+
+| Arm | Policy | Positives demoted (≥70%) | Must-survive demoted (≤5%) | Challenges wrongly demoted | p90 latency (≤15 s) | Failed calls |
+|---|---|---|---|---|---|---|
+| gemini-3.5-flash-lite | demote on unknown | 11/27 = 41% | 11/112 = 9.8% | 1/32 | 16.8 s | 1/33 (+47 invalid: `unknown_block`) |
+| | mismatch only | 2/27 = 7% | 1/112 = 0.9% | 0 | | |
+| gemini-3.7-flash | demote on unknown | **20/22 = 91%** | 6/76 = **7.9%** | **0/11** | **25.0 s** | **11/33** (timeouts) |
+| | mismatch only | 6/22 = 27% | 0/76 = 0% | 0 | | |
+
+**Readings:**
+- **The contradiction fix worked.** Genuine challenges are no longer demoted (NASA Orbit, wildfire pace and Sweden 37th of 42 all kept).
+- **Nothing passes the bar.**
+  - The stronger model with demote-on-unknown is close on accuracy, but it wrongly demotes supports (7.9%), is 1.7× over the latency bar, and a third of its calls time out, so about a third of pairs go uninspected.
+  - It also costs about 5× flash-lite per call.
+  - The lite model is not accurate enough under either policy.
+- **Per the hard stop agreed with the founder, the model review stays OFF.** The held-out stage was contingent on a dev pass and was not run (money saved).
+- **A possible future path** (not now; a founder decision): gemini-3.7-flash, demote-on-unknown, **supports only**, with a longer per-call timeout, re-measured with repeats and on the held-out set.

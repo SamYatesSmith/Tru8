@@ -156,8 +156,11 @@ def main() -> None:
     ap.add_argument("--repeats", type=int, default=3)
     ap.add_argument("--out", required=True)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--model", default=None, help="override GOOGLE_LLM_MODEL")
     args = ap.parse_args()
 
+    if args.model:
+        settings.GOOGLE_LLM_MODEL = args.model
     settings.ENABLE_RELATIONSHIP_REVIEW = True
     settings.RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN = True
 
@@ -201,6 +204,7 @@ def main() -> None:
                                         "decision_basis",
                                         "model_decision",
                                         "reasoning",
+                                        "invalid_reason",
                                         "quote",
                                     )
                                 },
@@ -220,6 +224,14 @@ def main() -> None:
             "p90": timings[int(len(timings) * 0.9)] if timings else None,
         },
         "statuses": dict(statuses),
+        "model": settings.GOOGLE_LLM_MODEL,
+        "invalid_reasons": dict(
+            Counter(
+                r.get("invalid_reason")
+                for r in records_out
+                if r.get("status") == "invalid"
+            )
+        ),
         "score": _score(results, labels),
     }
     json.dump(
