@@ -535,3 +535,67 @@ def is_out_of_period(
     if not periods.all_periods:
         return False
     return target not in periods.all_periods
+
+
+# ---------------------------------------------------------------------------
+# Containing periods for EVENT elements (A− M3, 2026-09-24)
+# ---------------------------------------------------------------------------
+#
+# Record 1c90a8bb: "Central Bank of Ireland research published in September
+# 2026 shows …" — the Central Bank's own "Quarterly Bulletin Q3 2026" was scoped
+# out of period, because "Q3 2026" read only as the bare year 2026, and
+# (2026, None) is not (2026, 9). For an EVENT — a publication, an election, a
+# launch — a source dated to the quarter or year that contains the month is
+# about the same event.
+#
+# NOT for values. A Q3 CPI figure is not the September CPI, and year-versus-
+# month is this gate's founding case (618efbc4: annual-2024 figures against a
+# September 2024 CPI claim). Value elements keep the strict rule.
+
+_EVENT_VERB = re.compile(
+    r"\b(?:publish(?:ed|es)?|releas(?:ed|es)|announc(?:ed|es)|held|launch(?:ed|es)|"
+    r"occurr(?:ed|s)|conducted|took\s+place|elected|election|vote[ds]?|voting)\b",
+    re.IGNORECASE,
+)
+_QUARTER_WORDS = {"first": 1, "second": 2, "third": 3, "fourth": 4}
+_QUARTER = re.compile(
+    r"\bQ([1-4])\s*,?\s*(\d{4})\b|\b(\d{4})\s*Q([1-4])\b|"
+    r"\b(first|second|third|fourth)\s+quarter\s+(?:of\s+)?(\d{4})\b",
+    re.IGNORECASE,
+)
+_HALF = re.compile(
+    r"\bH([12])\s*,?\s*(\d{4})\b|\b(first|second)\s+half\s+(?:of\s+)?(\d{4})\b",
+    re.IGNORECASE,
+)
+
+
+def element_is_event(description: Optional[str]) -> bool:
+    """True when the element dates an EVENT (published, held, launched …)."""
+    return bool(description and _EVENT_VERB.search(description))
+
+
+def contains_period(text: Optional[str], target: Period) -> bool:
+    """True when the text names a year, quarter or half containing ``target``."""
+    if not text or target.month is None:
+        return False
+    for m in _QUARTER.finditer(text):
+        if m.group(1):
+            q, y = int(m.group(1)), int(m.group(2))
+        elif m.group(4):
+            q, y = int(m.group(4)), int(m.group(3))
+        else:
+            q, y = _QUARTER_WORDS[m.group(5).lower()], int(m.group(6))
+        if y == target.year and (q - 1) * 3 < target.month <= q * 3:
+            return True
+    for m in _HALF.finditer(text):
+        if m.group(1):
+            h, y = int(m.group(1)), int(m.group(2))
+        else:
+            h, y = (1 if m.group(3).lower() == "first" else 2), int(m.group(4))
+        if y == target.year and (h - 1) * 6 < target.month <= h * 6:
+            return True
+    # A bare year counts only where it is not part of a quarter/half mention:
+    # "Q2 2026" must not re-read as "2026" and so contain September.
+    rest = _HALF.sub(" ", _QUARTER.sub(" ", text))
+    return Period(target.year, None) in extract_periods(rest)
+

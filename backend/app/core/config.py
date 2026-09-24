@@ -762,6 +762,12 @@ class Settings(BaseSettings):
     # when its original is not counted. ROLLBACK: ENABLE_ECHO_SCOPE_GATE=False.
     ENABLE_ECHO_SCOPE_GATE: bool = Field(True, env="ENABLE_ECHO_SCOPE_GATE")
 
+    # Unreadable-text floor (A− M2, 2026-09-24). A directional ref whose source
+    # text is a JavaScript/login wall or an empty shell becomes `context` with a
+    # receipt (rule no_readable_text). Second gate, after temporal. Symmetric.
+    # ROLLBACK: ENABLE_READABLE_TEXT_GATE=False.
+    ENABLE_READABLE_TEXT_GATE: bool = Field(True, env="ENABLE_READABLE_TEXT_GATE")
+
     # Same-study scope gate (2026-09-09, Track Q — Astra finding 10). Hosts of
     # ONE study (shared DOI / PubMed id / PMC id) count once per side of an
     # element: the highest-tier, earliest host keeps its direction, the others

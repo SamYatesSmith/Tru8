@@ -215,7 +215,21 @@ def attach_claim_subjects(
     if isinstance(claimant, str) and claimant.strip():
         entities.append(claimant)
     subjects = interested_party.claim_subjects(entities)
-    claim_map.setdefault("metadata", {})["subjects"] = subjects
+    metadata = claim_map.setdefault("metadata", {})
+    metadata["subjects"] = subjects
+    # A− M3 (2026-09-24): the interested-party release for a named
+    # organisation's own measurement needs to know which subjects ARE
+    # organisations; `claim_subjects` flattens the type away.
+    kinds: Dict[str, str] = {}
+    for ent in entities:
+        if isinstance(ent, dict):
+            text = (ent.get("text") or "").strip().lower()
+            etype = str(ent.get("type", "")).upper()
+            if text and etype in ("ORG", "PERSON"):
+                kinds.setdefault(text, etype.lower())
+        elif isinstance(ent, str) and ent.strip():
+            kinds.setdefault(ent.strip().lower(), "claimant")
+    metadata["subject_kinds"] = {s: kinds.get(s, "claimant") for s in subjects}
     return subjects
 
 

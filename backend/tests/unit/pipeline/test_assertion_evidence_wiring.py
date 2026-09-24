@@ -573,3 +573,129 @@ def test_attribution_claim_disarm_is_symmetric():
     elem = claim_map["elements"][0]
     assert _rel(elem, "ev-inquiry-report") == "challenges"
     assert "interested_party" not in elem["basis"]
+
+
+# ---------------------------------------------------------------------------
+# Per-subject release (A− M3, 2026-09-24)
+#
+# The 2026-09-22 disarm switched the WHOLE gate off for an attribution claim.
+# "The White House published figures showing 6 wars ended" therefore let
+# whitehouse.gov support "six wars ended" — the 018F hole by another door. The
+# release is now per subject, prong 1 only, never for an executive-comms domain,
+# and only where the element itself names the subject or the act.
+# Separately, a claim REPORTING a named organisation's own measurement
+# ("Cook … surveyed …") releases that organisation's own page — record
+# 70ad9e13 scoped Cook's own poll release to context against its own figures.
+# ---------------------------------------------------------------------------
+
+
+def _wh_published_claim_map():
+    return {
+        "claim_id": "0",
+        "normalised_claim": "The White House published figures showing six wars had ended.",
+        "elements": [
+            {
+                "element_id": "e3",
+                "description": "Six wars ended during the administration.",
+                "evidence_refs": [],
+                "state": None,
+            }
+        ],
+        "metadata": {
+            "jurisdiction": "US",
+            "subjects": ["white house", "donald trump"],
+            "subject_kinds": {"white house": "org", "donald trump": "person"},
+        },
+    }
+
+
+def test_an_attribution_claim_no_longer_disarms_the_whole_gate():
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _wh_published_claim_map()
+    analyzer._parse_mapping_response(_mapping_response(), claim_map, EVIDENCE)
+    elem = claim_map["elements"][0]
+    assert _rel(elem, "ev-wh-solved") == "context"
+    assert elem["basis"]["interested_party"]["scoped"]
+
+
+_COOK_EVIDENCE = [
+    {
+        "evidence_id": "ev-cook",
+        "url": "https://www.cookpolitical.com/analysis/national/national-politics/cook-poll",
+        "title": "Cook Political Report survey: Democrats lead in competitive districts",
+        "snippet": "Democrats hold a two-point advantage, 49% to 47%, in the 37 competitive districts.",
+        "tier": "primary",
+        "evidence_type": "data",
+    }
+]
+
+
+def _cook_claim_map(kind="org", element="The generic ballot in the surveyed competitive districts is Democrats 49%, Republicans 47%."):
+    return {
+        "claim_id": "0",
+        "normalised_claim": (
+            "Cook Political Report surveyed 1,052 likely voters in 37 competitive House "
+            "districts; the generic ballot is Democrats 49, Republicans 47."
+        ),
+        "elements": [{"element_id": "e1", "description": element, "evidence_refs": [], "state": None}],
+        "metadata": {
+            "jurisdiction": "US",
+            "subjects": ["cook political report"],
+            "subject_kinds": {"cook political report": kind},
+        },
+    }
+
+
+def _cook_response(rel="supports"):
+    return {
+        "elements": [
+            {
+                "element_id": "e1",
+                "evidence_refs": [
+                    {"evidence_id": "ev-cook", "relationship": rel, "reasoning": "States 49% to 47%."}
+                ],
+            }
+        ]
+    }
+
+
+@pytest.mark.parametrize("rel", ["supports", "challenges"])
+def test_a_publishers_own_survey_is_the_record_of_its_result(rel):
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _cook_claim_map()
+    analyzer._parse_mapping_response(_cook_response(rel), claim_map, _COOK_EVIDENCE)
+    elem = claim_map["elements"][0]
+    assert _rel(elem, "ev-cook") == rel
+    assert "interested_party" not in elem["basis"]
+
+
+def test_the_measurement_release_is_org_only():
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _cook_claim_map(kind="person")
+    analyzer._parse_mapping_response(_cook_response(), claim_map, _COOK_EVIDENCE)
+    assert _rel(claim_map["elements"][0], "ev-cook") == "context"
+
+
+def test_the_element_can_withhold_a_release():
+    # An element naming neither the subject nor the act gets no release.
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _cook_claim_map(element="Democrats lead Republicans in competitive districts.")
+    analyzer._parse_mapping_response(_cook_response(), claim_map, _COOK_EVIDENCE)
+    assert _rel(claim_map["elements"][0], "ev-cook") == "context"
+
+
+def test_the_runner_writes_subject_kinds():
+    claim = {
+        "key_entities": [
+            {"text": "Cook Political Report", "type": "ORG"},
+            {"text": "Donald Trump", "type": "PERSON"},
+        ],
+        "claimant": "G. Elliott Morris",
+    }
+    claim_map = {"metadata": {}}
+    attach_claim_subjects(claim, claim_map)
+    assert claim_map["metadata"]["subject_kinds"] == {
+        "cook political report": "org",
+        "donald trump": "person",
+        "g. elliott morris": "claimant",
+    }

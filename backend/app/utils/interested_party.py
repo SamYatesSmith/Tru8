@@ -45,7 +45,8 @@ safe direction):
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+import re
+from typing import Any, Dict, FrozenSet, Iterable, List, Optional, Tuple
 from urllib.parse import urlparse
 
 #: Tokens too generic to identify a subject inside a hostname. Includes common
@@ -248,13 +249,23 @@ def _hostname(url: Optional[str]) -> Optional[str]:
     return host[4:] if host.startswith("www.") else host
 
 
+def _is_executive_comms(host: str) -> bool:
+    return any(host == d or host.endswith("." + d) for d in _EXECUTIVE_COMMS)
+
+
 def interested_party_match(
-    subjects: List[str], url: Optional[str]
+    subjects: List[str],
+    url: Optional[str],
+    released: FrozenSet[str] = frozenset(),
 ) -> Optional[Dict[str, str]]:
     """The receipt entry if this URL's domain is controlled by a claim subject.
 
     Returns None when no prong matches — including every malformed or absent
     input — so the caller can use it directly as the gate's `fires`.
+
+    ``released`` (from :func:`released_subjects`) are subjects whose OWN
+    domain is the record of what the claim reports. They are skipped on prong 1
+    only; an executive-comms domain is never released.
     """
     host = _hostname(url)
     if not host or not subjects:
@@ -263,6 +274,8 @@ def interested_party_match(
     # Prong 1 — name-in-domain, label-START matching only.
     labels = [part for label in host.split(".") for part in label.split("-")]
     for token, subject in distinctive_tokens(subjects):
+        if subject in released and not _is_executive_comms(host):
+            continue
         if any(label.startswith(token) for label in labels):
             return {
                 "subject_matched": subject,
@@ -282,3 +295,86 @@ def interested_party_match(
                             "prong": "executive_comms",
                         }
     return None
+
+
+# ── Per-subject release (A− M3, 2026-09-24) ─────────────────────────────────
+# The gate asks whether a source is an interested account of the claim. Where
+# the claim REPORTS a named organisation's own measurement or publication —
+# "Cook Political Report … surveyed 1,052 likely voters" — that organisation's
+# own page is the record of the result, not an interested account of it
+# (record 70ad9e13 scoped Cook's own poll release to context against its own
+# figures). Likewise where the claim is that a subject SAID something, the
+# subject's own page is the record of the saying (2026-09-22, record 8d66d41a).
+#
+# The 2026-09-22 version switched the WHOLE gate off for an attribution claim,
+# every subject and prong at once: "The White House published figures showing
+# 6 wars ended" disarmed it, so whitehouse.gov could support "six wars ended" —
+# TRU-018F-44AA again. This replaces it with a release that is:
+#   * per subject — only the subject the verb attaches to (within 80 chars);
+#   * prong 1 only — an executive-comms domain is never released;
+#   * narrowed by the element — the element must itself name the subject or
+#     the act, so decomposition cannot carry a release onto "six wars ended";
+#   * ORG-only for the measurement/publication act (a person's own site is not
+#     the record of a poll). The saying release keeps any subject type, as the
+#     2026-09-22 version did.
+# Symmetric: a released subject's page may support or challenge.
+
+#: Closed list. "found", "shows", "reports" deliberately absent (as 2026-09-22).
+_MEASUREMENT_ACT = re.compile(
+    r"\b(surveyed|polled|published|estimated|measured|counted|analy[sz]ed)\b",
+    re.IGNORECASE,
+)
+_PUBLICATION_NOUN = re.compile(
+    r"\b(polls?|surveys?|stud(?:y|ies)|research|analys[ie]s|bulletins?|index|estimates?|data)\b",
+    re.IGNORECASE,
+)
+#: Saying verbs — mirrors recital_scope._ATTRIBUTION_SHAPED_ELEMENT.
+_SAYING_ACT = re.compile(
+    r"\b(said|says|stated|claim(?:s|ed)|announced|asserted|denied|"
+    r"recommend(?:s|ed|ation|ations)|specif(?:ies|ied)|"
+    r"publish(?:es|ed)|conclud(?:es|ed)|propos(?:es|ed|al|als)|"
+    r"urg(?:es|ed)|advis(?:es|ed)|called\s+for|set\s+out)\b",
+    re.IGNORECASE,
+)
+_ACT_WINDOW = 80
+_NOUN_WINDOW = 30
+
+
+def _subject_acts(text: str, token: str, act: "re.Pattern[str]", window: int) -> bool:
+    for m in re.finditer(r"\b" + re.escape(token) + r"\b", text, re.IGNORECASE):
+        if act.search(text[m.end() : m.end() + window]):
+            return True
+    return False
+
+
+def released_subjects(
+    claim_texts: Iterable[str],
+    element_text: str,
+    subjects: List[str],
+    subject_kinds: Optional[Dict[str, str]] = None,
+) -> FrozenSet[str]:
+    """Subjects whose own domain is the record of what the claim reports."""
+    kinds = subject_kinds or {}
+    texts = [t for t in claim_texts if t]
+    element = element_text or ""
+    released = set()
+    for token, subject in distinctive_tokens(subjects):
+        is_org = kinds.get(subject) == "org"
+        measured = is_org and any(
+            _subject_acts(t, token, _MEASUREMENT_ACT, _ACT_WINDOW)
+            or _subject_acts(t, token, _PUBLICATION_NOUN, _NOUN_WINDOW)
+            for t in texts
+        )
+        said = any(_subject_acts(t, token, _SAYING_ACT, _ACT_WINDOW) for t in texts)
+        if not (measured or said):
+            continue
+        # The element can only withhold a release the claim earned, never grant one.
+        names_subject = re.search(r"\b" + re.escape(token) + r"\b", element, re.IGNORECASE)
+        names_act = (
+            measured
+            and (_MEASUREMENT_ACT.search(element) or _PUBLICATION_NOUN.search(element))
+        ) or (said and _SAYING_ACT.search(element))
+        if names_subject or names_act:
+            released.add(subject)
+    return frozenset(released)
+

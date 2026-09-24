@@ -38,10 +38,16 @@ from app.models.claim_map import (
 )
 from app.utils.atomicity import is_mixed_shape
 from app.utils.scope_sensitivity import apply_scope_flags
+from app.utils.readable_text import (
+    MIN_CONTENT_WORDS as READABLE_MIN_CONTENT_WORDS,
+    content_word_count,
+    is_unreadable,
+)
 from app.utils.interested_party import (
     claim_subjects,
     distinctive_tokens,
     interested_party_match,
+    released_subjects,
 )
 from app.utils.jurisdiction_scope import (
     claim_target_country,
@@ -66,6 +72,8 @@ from app.utils.figure_scope import (
 )
 from app.utils.recital_scope import element_asserts_attribution, recital_match
 from app.utils.temporal_scope import (
+    contains_period,
+    element_is_event,
     Period,
     element_interval_end,
     element_period,
@@ -1537,6 +1545,7 @@ _SCOPE_RECEIPT_KEYS = (
     "relationship_scope",
     "fact_applicability",
     "temporal_scope",
+    "readable_text",
     "jurisdiction_scope",
     "measure_scope",
     "date_scope",
@@ -2633,11 +2642,22 @@ class ClaimMapAnalyzer:
                         ),
                     )
 
+                # A− M3 (2026-09-24): for an EVENT element a source dated to
+                # the containing quarter or year is in period ("Quarterly
+                # Bulletin Q3 2026" for research published in September 2026).
+                # Value elements keep the strict month rule.
+                _is_event = element_is_event(elem.get("description"))
+
                 def _temporal_fires(
-                    item: "_IndexedEvidence", _ref: Dict[str, Any], _p=period
+                    item: "_IndexedEvidence",
+                    _ref: Dict[str, Any],
+                    _p=period,
+                    _event=_is_event,
                 ) -> bool:
                     reading = _temporal_reading(item)
-                    return bool(reading.all_periods) and _p not in reading.all_periods
+                    if not reading.all_periods or _p in reading.all_periods:
+                        return False
+                    return not (_event and contains_period(item.text, _p))
 
                 def _temporal_entry(
                     item: "_IndexedEvidence", _ref: Dict[str, Any], _p=period
@@ -2662,6 +2682,29 @@ class ClaimMapAnalyzer:
                         entry=_temporal_entry,
                     )
                 )
+
+        # A− M2 (2026-09-24): an unreadable source (JavaScript/login wall,
+        # empty shell) bears on the element in neither direction. SECOND, after
+        # temporal (which stays first, test-pinned): an empty page carries no
+        # period, so the two never compete for a reference.
+        if getattr(settings, "ENABLE_READABLE_TEXT_GATE", True):
+            gates.append(
+                _ScopeGate(
+                    key="readable_text",
+                    label="NO READABLE TEXT",
+                    pins="source text is a wall or shell",
+                    summary={"min_content_words": READABLE_MIN_CONTENT_WORDS},
+                    fires=lambda item, _ref: is_unreadable(
+                        _figure_text(item), item.ev.get("title")
+                    ),
+                    entry=lambda item, _ref: {
+                        "rule": "no_readable_text",
+                        "content_words": content_word_count(
+                            _figure_text(item), item.ev.get("title")
+                        ),
+                    },
+                )
+            )
 
         if getattr(settings, "ENABLE_JURISDICTION_SCOPE_GATE", True):
             country = claim_target_country(
@@ -2872,25 +2915,37 @@ class ClaimMapAnalyzer:
         # `supported` off the claimant's own say-so, which is the whole of
         # TRU-018F-44AA. The claim text there names no attribution verb, so the
         # gate stays armed for every one of its elements.
-        _claim_is_attribution = element_asserts_attribution(claim_text_for_recital)
+        #
+        # A− M3 (2026-09-24): that disarm is now PER SUBJECT, not whole-gate.
+        # The whole-gate form let "The White House published figures showing
+        # 6 wars ended" disarm every subject and both prongs.
+        # `released_subjects` releases only the subject the saying (or, for an
+        # ORG, the measurement/publication) verb attaches to, on prong 1 only,
+        # and only where the element itself names that subject or act.
+        _metadata = claim_map.get("metadata") or {}
+        _released = released_subjects(
+            (claim_text_for_recital, _metadata.get("claim_text") or ""),
+            elem.get("description") or "",
+            subjects,
+            _metadata.get("subject_kinds"),
+        )
 
-        if (
-            subjects
-            and getattr(settings, "ENABLE_INTERESTED_PARTY_GATE", True)
-            and not _claim_is_attribution
-        ):
+        if subjects and getattr(settings, "ENABLE_INTERESTED_PARTY_GATE", True):
             gates.append(
                 _ScopeGate(
                     key="interested_party",
                     label="INTERESTED PARTY",
                     pins=f"claim subjects: {', '.join(subjects)}",
-                    summary={"claim_subjects": subjects},
-                    fires=lambda item, _ref, _s=subjects: interested_party_match(
-                        _s, item.ev.get("url")
+                    summary={
+                        "claim_subjects": subjects,
+                        **({"released_subjects": sorted(_released)} if _released else {}),
+                    },
+                    fires=lambda item, _ref, _s=subjects, _r=_released: interested_party_match(
+                        _s, item.ev.get("url"), _r
                     )
                     is not None,
-                    entry=lambda item, _ref, _s=subjects: interested_party_match(
-                        _s, item.ev.get("url")
+                    entry=lambda item, _ref, _s=subjects, _r=_released: interested_party_match(
+                        _s, item.ev.get("url"), _r
                     )
                     or {},
                 )

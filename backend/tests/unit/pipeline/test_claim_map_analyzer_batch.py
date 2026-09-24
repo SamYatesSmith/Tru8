@@ -527,7 +527,7 @@ class TestMapEvidenceBatch:
                 {
                     "evidence_id": f"ev{i}_1",
                     "title": f"Ev {i}",
-                    "snippet": "S",
+                    "snippet": "Snippet stating the measured figure for this element",
                     "tier": "primary",
                 },
             ]
@@ -642,14 +642,14 @@ class TestMapEvidenceBatch:
                     {
                         "evidence_id": "evA1",
                         "title": "A",
-                        "snippet": "S",
+                        "snippet": "Snippet stating the measured figure for this element",
                         "tier": "primary",
                     }
                 ],
             },
             {
                 "claim_map": cm_b,
-                "evidence": [{"evidence_id": "evB1", "title": "B", "snippet": "S"}],
+                "evidence": [{"evidence_id": "evB1", "title": "B", "snippet": "Snippet stating the measured figure for this element"}],
             },
         ]
 

@@ -481,3 +481,82 @@ def test_candidate_temporal_scope_explanation_matches_label(monkeypatch, candida
     saved_reason = ref["reasoning"]
     assert analyzer._apply_scope_gates(elem, _index_evidence(EVIDENCE), claim_map) == {}
     assert ref["reasoning"] == saved_reason
+
+
+# ---------------------------------------------------------------------------
+# Containing periods for EVENT elements (A− M3, 2026-09-24)
+#
+# Record 1c90a8bb: the Central Bank's own "Quarterly Bulletin Q3 2026" was
+# scoped out of period against "research published in September 2026". For an
+# event, the containing quarter or year is the same event. For a VALUE it is
+# not — a Q3 CPI is not the September CPI — and that side stays scoped.
+# ---------------------------------------------------------------------------
+
+from app.utils.temporal_scope import Period, contains_period, element_is_event
+
+
+def _one_element_map(description):
+    return {
+        "claim_id": "0",
+        "normalised_claim": description,
+        "elements": [{"element_id": "e1", "description": description, "evidence_refs": [], "state": None}],
+        "metadata": {},
+    }
+
+
+_Q3_BULLETIN = [
+    {
+        "evidence_id": "ev-q3",
+        "title": "Quarterly Bulletin Q3 2026",
+        "snippet": "Quarterly Bulletin Q3 2026: new analysis on the multinational sector.",
+        "tier": "primary",
+        "evidence_type": "official",
+    }
+]
+
+
+def _support(evidence_id="ev-q3"):
+    return {
+        "elements": [
+            {
+                "element_id": "e1",
+                "evidence_refs": [{"evidence_id": evidence_id, "relationship": "supports", "reasoning": "x"}],
+            }
+        ]
+    }
+
+
+def test_an_event_in_the_containing_quarter_is_in_period():
+    analyzer = ClaimMapAnalyzer()
+    cm = _one_element_map("Central Bank of Ireland research was published in September 2026.")
+    analyzer._parse_mapping_response(_support(), cm, _Q3_BULLETIN)
+    assert _rel(cm["elements"][0], "ev-q3") == EvidenceRelationship.supports.value
+
+
+def test_a_value_in_the_containing_quarter_is_still_out_of_period():
+    analyzer = ClaimMapAnalyzer()
+    cm = _one_element_map("The UK CPI inflation rate in September 2026 was 3.1 percent.")
+    ev = [dict(_Q3_BULLETIN[0], snippet="UK CPI inflation averaged 3.4% in Q3 2026.")]
+    analyzer._parse_mapping_response(_support(), cm, ev)
+    assert _rel(cm["elements"][0], "ev-q3") == EvidenceRelationship.context.value
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("Quarterly Bulletin Q3 2026", True),
+        ("the third quarter of 2026", True),
+        ("H2 2026", True),
+        ("In 2026 the economy grew", True),
+        ("Q2 2026", False),  # the quarter's year is not re-read as a bare year
+        ("H1 2026", False),
+        ("2025 Q3", False),
+    ],
+)
+def test_contains_period(text, expected):
+    assert contains_period(text, Period(2026, 9)) is expected
+
+
+def test_event_detection():
+    assert element_is_event("The AfD won the most seats in the election held in September 2026")
+    assert not element_is_event("UK CPI inflation in September 2024 was below 2%")
