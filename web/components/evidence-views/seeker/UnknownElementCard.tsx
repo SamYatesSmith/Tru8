@@ -8,6 +8,7 @@ import { GapHighlight } from './GapHighlight';
 import { BountyField } from './BountyField';
 import { cleanTitle } from '../shared-utils';
 import { elementCaveatNote } from '@/lib/element-caveat';
+import { elementStateReason } from '@/lib/element-reason';
 
 interface UnknownElementCardProps {
   element: ClaimElement;
@@ -49,6 +50,7 @@ export function UnknownElementCard({
   const isGap = !element.evidenceRefs || element.evidenceRefs.length === 0;
   const refCount = element.evidenceRefs?.length || 0;
   const caveat = elementCaveatNote(element.uncertainty);
+  const reason = elementStateReason(element);
 
   // Build evidence lookup by ID for title display.
   // 2026-09-04: refs carry the stable `ev-…` evidenceId (invariant #4 — the
@@ -75,19 +77,28 @@ export function UnknownElementCard({
   // truncated line, as before.
   if (isKnown) {
     return (
-      <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 bg-zinc-50/50 border border-zinc-100">
-        {/* Badge + description stay one unit, so the number never sits alone
-            on a line above a wrapped description. */}
-        <div className="flex items-center gap-3 flex-grow min-w-0">
-          <ElementBadge n={index + 1} size="sm" />
-          <span className="text-sm text-zinc-700 sm:truncate min-w-0">{element.description}</span>
-        </div>
-        <span className="ml-auto flex items-center gap-3 shrink-0">
-          {element.state && <ElementStateBadge state={element.state} size="sm" basis={element.basis} description={element.description} />}
-          <span className="font-mono text-[10px] text-zinc-400 whitespace-nowrap">
-            {refCount} {refCount === 1 ? 'source' : 'sources'}
+      <div className="px-4 py-2.5 bg-zinc-50/50 border border-zinc-100">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1.5">
+          {/* Badge + description stay one unit, so the number never sits alone
+              on a line above a wrapped description. */}
+          <div className="flex items-center gap-3 flex-grow min-w-0">
+            <ElementBadge n={index + 1} size="sm" />
+            <span className="text-sm text-zinc-700 sm:truncate min-w-0">{element.description}</span>
+          </div>
+          <span className="ml-auto flex items-center gap-3 shrink-0">
+            {element.state && <ElementStateBadge state={element.state} size="sm" basis={element.basis} description={element.description} />}
+            <span className="font-mono text-[10px] text-zinc-400 whitespace-nowrap">
+              {refCount} {refCount === 1 ? 'source' : 'sources'}
+            </span>
           </span>
-        </span>
+        </div>
+        {reason && (
+          <p data-testid="element-reason" className="mt-1.5 font-mono text-[10px] leading-relaxed text-zinc-500">
+            <span className="text-zinc-400 uppercase tracking-wider">Why</span>
+            <span className="text-zinc-300"> &middot; </span>
+            {reason}
+          </p>
+        )}
       </div>
     );
   }
@@ -149,6 +160,14 @@ export function UnknownElementCard({
             );
           })}
         </div>
+      )}
+
+      {reason && (
+        <p data-testid="element-reason" className="font-mono text-[10px] leading-relaxed text-zinc-500 mb-3">
+          <span className="text-zinc-400 uppercase tracking-wider">Why</span>
+          <span className="text-zinc-300"> &middot; </span>
+          {reason}
+        </p>
       )}
 
       {/* Uncertainty note — the SAME fail-closed gate as the ELEMENTS roster

@@ -36,7 +36,14 @@ export function extractDomain(url: string): string {
 export function cleanTitle(title?: string | null): string {
   if (!title) return '';
   const out = title
+    // stored markup (a Wikipedia <span class="mw-page-title-main"> reached the
+    // ledger, TIMELINE and PDF — A− S6, 2026-09-24)
+    .replace(/<[^>]{1,200}>/g, '')
     .trim()
+    // search-result file-type marker: "[PDF] EY European Economic Outlook"
+    .replace(/^\[(?:PDF|HTML|DOC|DOCX|PPT|XLS)\]\s*/i, '')
+    // platform suffix that names no one: "Clip title - YouTube"
+    .replace(/\s+[-|–—]\s+YouTube$/, '')
     // trailing "… - Site" / "... | Site" — keep the marker, drop the suffix
     .replace(/\s*(?:\.{2,}|…)\s*[-|–—]\s*[^-|–—]+$/, '…')
     // normalise any trailing "..." / " …" to one tight "…"

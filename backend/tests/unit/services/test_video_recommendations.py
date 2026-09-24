@@ -11,7 +11,9 @@ def _video(vid: str, channel: str = "Random Channel"):
     return {
         "video_id": vid,
         "title": f"title-{vid}",
-        "description": "desc",
+        # On-topic for the "... claim about oceans" fixtures, so the relevance
+        # floor (A− S5) keeps these and the dedup/parallel tests test that.
+        "description": "A claim about oceans",
         "channel_name": channel,
         "channel_id": "c1",
         "publish_date": None,
@@ -160,3 +162,65 @@ class TestClassifyChannel:
         tier, etype = classify_channel("Reuters UK Edition")
         assert tier == "reporting"
         assert etype == "news_reporting"
+
+
+# ── Relevance floor (A− S5, 2026-09-24) ──────────────────────────────────────
+# Every video stored on the 19 graded records: 2 on-topic, 7 off-topic.
+_KENNEDY = (
+    "As of 11 September 2026, EU-wide gas storage stocks are 67% full against a "
+    "seasonal norm of 83%, pretty much the lowest on record for this time of year."
+)
+_PANTHAGANI = (
+    "A study comparing AI-generated and physician-generated clinical summaries found "
+    "physicians preferred the AI summaries in most cases."
+)
+_BURKE_KENNEDY = "Irish public spending has risen by more than 50 per cent since 2020."
+_REFORM = (
+    "Reform UK's £72 million came in the space of one weekend — £36 million "
+    "from Ben Delo and £36 million from a crypto billionaire."
+)
+
+
+@pytest.mark.parametrize(
+    "claim,title,desc",
+    [
+        (_KENNEDY, "Batomon Showdown - 21 Sep 2026 - Unofficial Northernlion VOD", ""),
+        (_PANTHAGANI, "Artificial Intelligence Essay", ""),
+        (_PANTHAGANI, "How Successful People Turn Daily Habits Into Extraordinary Results", "a summary of habits"),
+        (_PANTHAGANI, "1st yr. Vs Final yr. MBBS student #shorts #neet", "physician study life"),
+        (_BURKE_KENNEDY, "can we make more Efficient solar panels ? Elon Musk", ""),
+    ],
+)
+def test_off_topic_videos_are_dropped(claim, title, desc):
+    assert vr.video_is_on_topic(claim, title, desc) is False
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "Richard Tice Defends Reform UK’s £72m Donations from Crypto Billionaires",
+        "Government suggests that Reform donations of £36 million from Ben Delo could be breaking new rules",
+    ],
+)
+def test_on_topic_videos_are_kept(title):
+    assert vr.video_is_on_topic(_REFORM, title, "") is True
+
+
+def test_years_alone_never_make_a_video_relevant():
+    # "2026" on a gaming stream matched nothing in the claim but the year.
+    assert vr.video_is_on_topic("Europe had record heat in 2026", "Speedrun 2026 highlights", "") is False
+
+
+@pytest.mark.asyncio
+async def test_fetch_drops_off_topic_videos(monkeypatch):
+    async def fake_search(query, max_results):
+        off = _video("off")
+        off["description"] = "Unofficial gaming stream"
+        return [_video("on"), off]
+
+    monkeypatch.setattr(vr, "search_youtube_videos", fake_search)
+    fake = _FakeSession()
+    monkeypatch.setattr(vr, "async_session", lambda: fake)
+    await vr.fetch_video_recommendations("chk-3", [{"id": "ca", "text": "A claim about oceans"}])
+    assert [v.video_id for v in fake.added] == ["on"]
+

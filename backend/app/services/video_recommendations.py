@@ -8,6 +8,8 @@ This is a standalone feature — NOT part of the evidence pipeline.
 
 import asyncio
 import logging
+import math
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import select
@@ -106,6 +108,53 @@ def classify_channel(channel_name: str) -> Tuple[str, str]:
     return ("commentary", "analysis")
 
 
+# Relevance floor (A− S5, 2026-09-24). YouTube search on the raw claim text
+# returns whatever ranks, with no floor: a gaming stream on an EU gas-storage
+# claim, an Elon Musk solar clip on Irish public spending, five unrelated
+# videos on a clinical-summaries study. Measured on all 9 videos stored on the
+# 19 graded records: the 2 on-topic ones share 5-6 of the claim's content
+# words, the 7 off-topic ones share 0-2. Keep a video only when its title +
+# description shares at least max(2, 25%) of the claim's content words.
+_VIDEO_STOP_WORDS = frozenset(
+    """this that with from have has had were was been being their there them
+    they than then what when where which while will would could should about
+    above after again against among also because before between both each
+    every more most much other over same some such into only very just your
+    yours ours itself here those these many made make said says like including
+    since until upon within without under across during around through time
+    year years first last next according percent cent""".split()
+)
+_WORD_RE = re.compile(r"[A-Za-z][A-Za-z'’]+|\d[\d,.]*")
+_YEAR_RE = re.compile(r"(19|20)\d\d")
+
+
+def _content_words(text: str) -> set:
+    """Content words, crudely stemmed to 6 letters; numbers kept, years not."""
+    out = set()
+    for raw in _WORD_RE.findall(text or ""):
+        word = raw.lower().strip("'’")
+        if word[0].isdigit():
+            word = word.replace(",", "").rstrip(".")
+            if len(word) >= 2 and not _YEAR_RE.fullmatch(word):
+                out.add(word)
+            continue
+        if len(word) < 4 or word in _VIDEO_STOP_WORDS:
+            continue
+        out.add(word[:6])
+    return out
+
+
+def video_is_on_topic(claim_text: str, title: str, description: str) -> bool:
+    """True when the video shares enough of the claim's content words."""
+    claim_words = _content_words(claim_text)
+    if not claim_words:
+        return True  # nothing to judge against; the floor never blocks blind
+    shared = claim_words & _content_words(f"{title} {description}")
+    # Capped at the claim's own word count, so a one-word claim can still pass.
+    need = min(len(claim_words), max(2, math.ceil(0.25 * len(claim_words))))
+    return len(shared) >= need
+
+
 async def fetch_video_recommendations(
     check_id: str,
     claims: List[Dict[str, Any]],
@@ -123,6 +172,7 @@ async def fetch_video_recommendations(
     """
     try:
         seen_video_ids: set = set()
+        off_topic = 0
         all_recommendations: List[Dict[str, Any]] = []
 
         # Fetch every claim's videos CONCURRENTLY — collapses the fire-and-forget
@@ -151,6 +201,11 @@ async def fetch_video_recommendations(
                 vid_id = video["video_id"]
                 if vid_id in seen_video_ids:
                     continue
+                if not video_is_on_topic(
+                    claim["text"], video.get("title") or "", video.get("description") or ""
+                ):
+                    off_topic += 1
+                    continue
                 seen_video_ids.add(vid_id)
 
                 tier, etype = classify_channel(video["channel_name"])
@@ -172,6 +227,10 @@ async def fetch_video_recommendations(
                     }
                 )
 
+        if off_topic:
+            logger.info(
+                f"[VIDEO RECS] Dropped {off_topic} off-topic videos for check {check_id}"
+            )
         if not all_recommendations:
             logger.info(f"[VIDEO RECS] No videos found for check {check_id}")
             return

@@ -886,6 +886,14 @@ def derive_orientation(elements: List[ClaimElement]) -> str:
     for state, count in most_common:
         phrase = _ITEM_PHRASE.get(state, state)
         parts.append(f"{count} {phrase}")
+    # "Mixed" asserts conflict, so it needs one: a disputed element, or a
+    # supported element beside a challenged one. A tie between supported and
+    # contextual (TRU-2669-9BC7) has nothing pulling the other way.
+    has_conflict = "disputed" in counts or (
+        "supported" in counts and "challenged_only" in counts
+    )
+    if not has_conflict:
+        return f"Of {total} elements examined, {'; '.join(parts)}."
     joined = ", ".join(parts)
     return f"Of {total} elements examined, evidence is mixed: {joined}."
 

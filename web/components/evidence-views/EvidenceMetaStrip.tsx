@@ -58,7 +58,11 @@ export function EvidenceMetaStrip({
           <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">
             Sources Reviewed
           </span>
-          <span className="font-mono text-[11px] font-medium">{sourcesFoundCount || sourcesCount}</span>
+          {/* Every organised source was reviewed, so Reviewed can never be the
+              smaller number. The stored count is taken at the first search and
+              misses items added later (coverage recovery, specialist APIs),
+              which printed "Reviewed 10 · Organised 14" (A− S6, 2026-09-24). */}
+          <span className="font-mono text-[11px] font-medium">{Math.max(sourcesFoundCount || 0, sourcesCount)}</span>
         </div>
 
         <Divider />

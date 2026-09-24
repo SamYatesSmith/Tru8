@@ -8,7 +8,7 @@
  *
  * C2 rule: EVERY FACT GETS EXACTLY ONE HOME. Reads, top to bottom: identity →
  * claim → the lean line (mechanical orientation, BLUF) → ONE stat line (sources ·
- * directly-relevant count · element coverage only when partial) → ELEMENTS
+ * sources filed supports/challenges · element coverage only when partial) → ELEMENTS
  * EXAMINED (the roster — one-line intro, not a paragraph) → SOURCES MAPPED (the
  * neutral stance distribution bar; click a band → filtered Evidence) → NOTABLES
  * (the labelled most-relevant support/challenge cards; top-relevance rows only
@@ -45,6 +45,7 @@ import { capture } from '@/lib/analytics';
 import { ElementList, TopUpCapability } from './ElementList';
 import { TopUpButton } from './TopUpButton';
 import { thinElementCount } from '@/lib/support-structure';
+import { evidenceCoverage } from '@/lib/evidence-coverage';
 
 const TYPE_LABELS: Record<string, string> = {
   empirical: 'Empirical',
@@ -112,23 +113,29 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   const barTotal = counts.total; // distinct mapped sources (header label)
   const bandSum = counts.supports + counts.context + counts.challenges; // width denominator
 
-  // Coverage: elements that carry a resolved state (gap = no/unresolved state).
-  const coveredElements = elements.filter((el) => el.state && el.state !== 'unresolved').length;
-  const gapElements = elements.filter((el) => !el.state || el.state === 'unresolved');
+  // Coverage uses the Gaps lens's own definitions (lib/evidence-coverage): a GAP
+  // has no mapped evidence; NEEDS REVIEW has evidence but is not a supported
+  // element with a supporting ref. The digest used to count an unresolved
+  // element as a "gap" while the lens it links to said "Gaps 0" (A− S6,
+  // 2026-09-24) — one page, two answers.
+  const coverage = evidenceCoverage(elements);
   // Thin elements the signed-in user can top up (dashboard-only capability).
   const thinCount = topUp ? thinElementCount(elements) : 0;
 
   // Source mix by tier (nullable tier → commentary in the helper).
   const tiers = tierCounts(evidence);
 
-  // F6 — topical-relevance coverage. How many SHOWN sources bear directly on the
-  // claim = llmRelevanceScore >= 4 ("directly/strongly addresses", scorer rubric).
-  // A COUNT, not a per-source score — topical proximity, never source quality
-  // (classify-don't-score). Hidden when nothing is scored (pre-scorer/older
-  // checks or all over-cap), so it never shows a misleading "0 of N".
-  const scoredCount = evidence.filter((ev) => typeof ev.llmRelevanceScore === 'number').length;
-  const directCount = evidence.filter((ev) => (ev.llmRelevanceScore ?? 0) >= 4).length;
-  const showCoverage = scoredCount > 0 && evidenceCount > 0;
+  // "Bear directly on the claim" = SHOWN sources filed as supporting or
+  // challenging at least one element — the same join as the bar below, so the
+  // two numbers always reconcile (directional <= mapped). It was the topical
+  // relevance score (>= 4), a different measure that disagreed with the bar on
+  // 15 of 19 graded records ("3 bear directly" beside "15 of 19 mapped",
+  // A− S6, 2026-09-24). Still a count, never a quality score.
+  const directCount = evidence.filter((ev) => {
+    const rels = relMap.get(ev.evidenceId || ev.id);
+    return hasRelationship(rels, 'supports') || hasRelationship(rels, 'challenges');
+  }).length;
+  const showCoverage = barTotal > 0;
 
   // R2 — ONE stat line under the lean (replaces the qualitative "broad set"
   // confidence line + the separate F6 line). Element coverage prints ONLY when
@@ -140,8 +147,8 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   if (showCoverage) {
     statParts.push(`${directCount} ${directCount === 1 ? 'bears' : 'bear'} directly on the claim`);
   }
-  if (elements.length > 0 && coveredElements < elements.length) {
-    statParts.push(`${coveredElements} of ${elements.length} elements covered`);
+  if (elements.length > 0 && coverage.gaps > 0) {
+    statParts.push(`${coverage.withEvidence} of ${elements.length} elements have evidence`);
   }
   const statLine = statParts.length > 0 ? `${statParts.join(' · ')}.` : null;
 
@@ -242,14 +249,18 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
               />
             </div>
           )}
-          {nav && gapElements.length > 0 && (
+          {nav && (coverage.gaps > 0 || coverage.needsReview > 0) && (
             <button
               type="button"
               onClick={() => go('seeker')}
               aria-label="Open Gaps lens"
               className="mt-2 font-mono text-[10px] text-zinc-500 hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1 cursor-pointer text-left"
             >
-              {gapElements.length} {gapElements.length === 1 ? 'gap' : 'gaps'} — open the Gaps lens &rarr;
+              {[
+                coverage.gaps > 0 ? `${coverage.gaps} ${coverage.gaps === 1 ? 'gap' : 'gaps'}` : null,
+                coverage.needsReview > 0 ? `${coverage.needsReview} ${coverage.needsReview === 1 ? 'needs' : 'need'} review` : null,
+              ].filter(Boolean).join(' · ')}{' '}
+              — open the Gaps lens &rarr;
             </button>
           )}
         </div>

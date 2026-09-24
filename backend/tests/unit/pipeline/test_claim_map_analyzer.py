@@ -599,6 +599,34 @@ class TestDeriveOrientation:
         result = derive_orientation(elements)
         assert "1 predominantly supported" in result
         assert "1 challenged with none supporting" in result
+        assert "evidence is mixed" in result
+
+    def test_tie_without_conflict_is_not_mixed(self):
+        """TRU-2669-9BC7: 1 supported + 1 contextual read "evidence is mixed"
+        with zero challenges anywhere. "Mixed" needs something pulling the
+        other way."""
+        elements = [
+            ClaimElement(
+                element_id="e1",
+                description="A",
+                evidence_refs=[],
+                state=ElementState.supported,
+                uncertainty=None,
+            ),
+            ClaimElement(
+                element_id="e2",
+                description="B",
+                evidence_refs=[],
+                state=ElementState.contextual,
+                uncertainty=None,
+            ),
+        ]
+        result = derive_orientation(elements)
+        assert "mixed" not in result
+        assert result == (
+            "Of 2 elements examined, 1 predominantly supported; "
+            "1 informed by contextual evidence."
+        )
 
     def test_enum_relationship_values_also_detected(self):
         """EvidenceRelationship enum members (not just plain strings) count."""

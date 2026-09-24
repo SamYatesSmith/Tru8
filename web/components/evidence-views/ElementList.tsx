@@ -7,6 +7,7 @@ import { EvidenceQualityNote } from './EvidenceQualityNote';
 import { TopUpButton } from './TopUpButton';
 import { elementIsThin } from '@/lib/support-structure';
 import { elementCaveatNote } from '@/lib/element-caveat';
+import { elementStateReason } from '@/lib/element-reason';
 
 /** Dashboard-only capability to top up a thin element. Absent on the public report. */
 export interface TopUpCapability {
@@ -45,6 +46,9 @@ export function ElementList({ elements, topUp }: ElementListProps) {
         // restating the badge. Grey, no colour, verbatim or nothing.
         // Design: audit/2026-09-02_fix1_element_caveat_render_design.md
         const caveat = isGap ? null : elementCaveatNote(element.uncertainty);
+        // A− S2 (2026-09-24): a non-supported card always says why, from the
+        // stored derivation counts — never model text (lib/element-reason.ts).
+        const reason = isGap ? null : elementStateReason(element);
 
         return (
           <div
@@ -90,6 +94,16 @@ export function ElementList({ elements, topUp }: ElementListProps) {
                     but a hover tooltip does not exist on a phone, so the note
                     ended in "…" with no way to read the rest. Verbatim or
                     nothing was the rule; a cut sentence is neither. */}
+                {reason && (
+                  <p
+                    data-testid="element-reason"
+                    className="mt-1.5 font-mono text-[10px] leading-relaxed text-zinc-500"
+                  >
+                    <span className="text-zinc-400 uppercase tracking-wider">Why</span>
+                    <span className="text-zinc-300"> &middot; </span>
+                    {reason}
+                  </p>
+                )}
                 {caveat && (
                   <p
                     data-testid="element-caveat"

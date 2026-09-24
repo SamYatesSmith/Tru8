@@ -21,67 +21,80 @@ function ev(id: string, llm?: number, excluded = false): Evidence {
   } as Evidence;
 }
 
-// elements: [] keeps the panel minimal (no ElementList / distribution bar) so
-// the tests target only the merged stat line (C2 R2: sources · F6 direct count
-// · element coverage only when partial).
-function claimWith(evidence: Evidence[]): Claim {
-  return { id: 'c1', text: 'A claim.', evidence, claimMap: { elements: [] } } as unknown as Claim;
+type Rel = 'supports' | 'challenges' | 'context';
+function el(id: string, state: string, refs: [string, Rel][]) {
+  return {
+    elementId: id,
+    description: id,
+    state,
+    evidenceRefs: refs.map(([evidenceId, relationship]) => ({ evidenceId, relationship })),
+  };
+}
+function claimWith(evidence: Evidence[], elements: unknown[] = []): Claim {
+  return { id: 'c1', text: 'A claim.', evidence, claimMap: { elements } } as unknown as Claim;
 }
 
-describe('ClaimSummaryPanel — merged stat line (C2 R2, carries F6 coverage)', () => {
-  it('counts sources that bear directly on the claim (score >= 4)', () => {
-    const { getByText } = render(
-      <ClaimSummaryPanel claim={claimWith([ev('1', 5), ev('2', 4), ev('3', 2), ev('4', 5)])} position={0} />,
-    );
-    expect(getByText(/4 sources · 3 bear directly on the claim\./)).toBeTruthy();
+// A− S6 (2026-09-24): every count on the digest must reconcile with the bar
+// beside it and the Gaps lens it links to.
+describe('ClaimSummaryPanel — stat line counts reconcile', () => {
+  it('"bear directly" counts sources filed supports/challenges, not the relevance score', () => {
+    // Relevance scores deliberately disagree with the mapping: 1 and 4 are
+    // scored 5 but only 2 and 3 are directional.
+    const evidence = [ev('1', 5), ev('2', 2), ev('3', 1), ev('4', 5)];
+    const elements = [el('e1', 'supported', [['1', 'context'], ['2', 'supports'], ['3', 'challenges']])];
+    const { getByText } = render(<ClaimSummaryPanel claim={claimWith(evidence, elements)} position={0} />);
+    expect(getByText(/4 sources · 2 bear directly on the claim\./)).toBeTruthy();
+    expect(getByText(/3 of 4 sources mapped/i)).toBeTruthy();
   });
 
-  it('excludes receipt-excluded sources from both counts', () => {
+  it('a source that both supports and challenges counts once', () => {
+    const elements = [el('e1', 'supported', [['1', 'supports']]), el('e2', 'disputed', [['1', 'challenges']])];
+    const { getByText } = render(<ClaimSummaryPanel claim={claimWith([ev('1')], elements)} position={0} />);
+    expect(getByText(/1 source · 1 bears directly on the claim\./)).toBeTruthy();
+  });
+
+  it('excludes receipt-excluded sources', () => {
+    const elements = [el('e1', 'supported', [['1', 'supports'], ['2', 'supports'], ['3', 'supports']])];
     const { getByText } = render(
-      <ClaimSummaryPanel claim={claimWith([ev('1', 5), ev('2', 4), ev('3', 5, true)])} position={0} />,
+      <ClaimSummaryPanel claim={claimWith([ev('1'), ev('2'), ev('3', undefined, true)], elements)} position={0} />,
     );
     expect(getByText(/2 sources · 2 bear directly on the claim\./)).toBeTruthy();
   });
 
-  it('renders no coverage clause when nothing is scored (older/pre-scorer checks)', () => {
-    const { getByText, queryByText } = render(
-      <ClaimSummaryPanel claim={claimWith([ev('1'), ev('2')])} position={0} />,
-    );
+  it('renders no directional clause when nothing is mapped', () => {
+    const { getByText, queryByText } = render(<ClaimSummaryPanel claim={claimWith([ev('1'), ev('2')])} position={0} />);
     expect(queryByText(/bear directly on the claim/)).toBeNull();
-    // The source count still prints — the clause, not the line, is gated.
     expect(getByText(/2 sources\./)).toBeTruthy();
   });
 
-  it('handles the singular and stays topical — no quality/credibility words', () => {
-    const { getByText } = render(<ClaimSummaryPanel claim={claimWith([ev('1', 5)])} position={0} />);
+  it('stays a count — no quality/credibility words', () => {
+    const elements = [el('e1', 'supported', [['1', 'supports']])];
+    const { getByText } = render(<ClaimSummaryPanel claim={claimWith([ev('1')], elements)} position={0} />);
     const line = getByText(/1 source · 1 bears directly on the claim\./);
     expect(line.textContent).not.toMatch(/quality|credib|strong|reliab|authorit|trust/i);
   });
 
-  it('prints element coverage only when partial (full coverage says nothing)', () => {
-    const partial = {
-      id: 'c2',
-      text: 'A claim.',
-      evidence: [ev('1', 5)],
-      claimMap: {
-        elements: [
-          { elementId: 'e1', description: 'covered', state: 'supported', evidenceRefs: [] },
-          { elementId: 'e2', description: 'gap', state: 'unresolved', evidenceRefs: [] },
-        ],
-      },
-    } as unknown as Claim;
-    const { getByText } = render(<ClaimSummaryPanel claim={partial} position={0} />);
-    expect(getByText(/1 of 2 elements covered\./)).toBeTruthy();
+  it('element coverage uses the Gaps lens definition (evidence present), only when partial', () => {
+    // e2 is UNRESOLVED but has evidence: the lens calls that "needs review",
+    // not a gap, so coverage is full and the clause is silent.
+    const elements = [el('e1', 'supported', [['1', 'supports']]), el('e2', 'unresolved', [['1', 'context']])];
+    const { container } = render(<ClaimSummaryPanel claim={claimWith([ev('1')], elements)} position={0} />);
+    expect(container.textContent).not.toMatch(/elements have evidence/);
 
-    const full = {
-      ...partial,
-      id: 'c3',
-      claimMap: {
-        elements: [{ elementId: 'e1', description: 'covered', state: 'supported', evidenceRefs: [] }],
-      },
-    } as unknown as Claim;
-    // Scope to this render's container — both renders share document.body.
-    const { container } = render(<ClaimSummaryPanel claim={full} position={0} />);
-    expect(container.textContent).not.toMatch(/elements covered/);
+    const partial = [el('e1', 'supported', [['1', 'supports']]), el('e2', 'unresolved', [])];
+    const r2 = render(<ClaimSummaryPanel claim={claimWith([ev('1')], partial)} position={0} />);
+    expect(r2.container.textContent).toMatch(/1 of 2 elements have evidence\./);
+  });
+
+  it('the Gaps link counts gaps and needs-review exactly as the lens does', () => {
+    const elements = [
+      el('e1', 'supported', [['1', 'supports']]),
+      el('e2', 'unresolved', [['1', 'context']]), // needs review
+      el('e3', 'unresolved', []), // gap
+    ];
+    const { getByRole } = render(
+      <ClaimSummaryPanel claim={claimWith([ev('1')], elements)} position={0} onNavigate={() => {}} />,
+    );
+    expect(getByRole('button', { name: 'Open Gaps lens' }).textContent).toMatch(/^1 gap · 1 needs review — open the Gaps lens/);
   });
 });

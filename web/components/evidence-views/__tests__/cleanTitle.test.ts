@@ -59,4 +59,15 @@ describe('cleanTitle', () => {
     expect(cleanTitle('...')).toBe('');
     expect(cleanTitle('…')).toBe('');
   });
+
+  // A− S6 (2026-09-24): surface warts graders saw on stored records.
+  it('strips stored markup, file-type markers and the YouTube suffix', () => {
+    expect(cleanTitle('<span class="mw-page-title-main">Eurostat</span> - Wikipedia')).toBe('Eurostat - Wikipedia');
+    expect(cleanTitle('[PDF] EY European Economic Outlook September 2026')).toBe(
+      'EY European Economic Outlook September 2026'
+    );
+    expect(cleanTitle("Trump's 1,000+ Stock Trades Exposed - YouTube")).toBe("Trump's 1,000+ Stock Trades Exposed");
+    // A comparison inside a title is not markup.
+    expect(cleanTitle('Inflation < 2% for the first time')).toBe('Inflation < 2% for the first time');
+  });
 });
