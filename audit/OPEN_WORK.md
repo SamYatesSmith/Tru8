@@ -12,6 +12,45 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## 2026-09-24 — ALL SENDS HELD: the A− bar (founder decision)
+
+**What the founder decided:** for £20/month, users will accept nothing below **A−**. All outreach sends are **HELD** until the A− rate is measured and rising.
+
+**Where the records stand:**
+- None of the 16 records graded between 11 and 24 Sep reached A−.
+- Wave-1 status today:
+  - Tidman `1ccc0eb9`: B+
+  - Katz `bff4f803`: B
+  - Kennedy `75ef5e70`: B
+  - Legum `26699bc7`: B. Its pass is in `legum.md`; it found a **"evidence is mixed" headline with zero challenges** and three wrong supports on the count.
+- The badges are now mostly right. Grades are lost to five things:
+  - missing authoritative sources
+  - weak sources in PRIMARY
+  - filler elements
+  - cards that do not explain themselves
+  - Notables choice
+
+**The measurement:** checklist, record set and method are in `audit/2026-09-24_a_minus_measurement.md`.
+- It covers 19 stored records, graded blind and for free, with every deduction attributed to a stage.
+- Next: fix the biggest buckets, then re-run the same 19 inputs. That costs about 19 credits and needs the founder's go.
+
+**Baseline measured: 0 of 19 at A−.**
+- Mapping is the binding constraint: fixing it takes the ceiling from 4/19 to 12/19.
+- Retrieval sets the final ceiling.
+
+**Tier 1 built (uncommitted at time of writing):**
+- The "mixed" headline.
+- Counts that reconcile.
+- A "Why" line on non-supported cards.
+- A video relevance floor.
+
+Notables re-ranking was dropped after measurement: no rule beat the current one. See the measurement doc's tier-1 table.
+
+**Founder rule, 2026-09-24:** anything rated difficulty 3+ gets a plan and a design review before it is built. That covers tier 2 and everything above it.
+
+**Also 2026-09-24:** Jev (TypeSafe) appraisal in `audit/2026-09-24_jev_appraisal.md`. It recommends no production use; an offline test is optional.
+
+---
 ## 2026-09-22 — EVIDENCE SUPPLY FIXED: the mapper was starved, not wrong
 
 **Why this exists:** the four wave-1 records prepared for Tuesday's send (Tidman, Kennedy,
