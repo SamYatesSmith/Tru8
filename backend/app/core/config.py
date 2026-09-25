@@ -792,6 +792,13 @@ class Settings(BaseSettings):
         True, env="ENABLE_RECITAL_DIRECTION_RELEASE"
     )
 
+    # A− Build C SHADOW (2026-09-25): log `[COPY DEDUP] would_drop=… survivor=…`
+    # for pre-fetch candidates that are copies of one article. LOGS ONLY —
+    # nothing is dropped, so the fetched pool and cassettes are unchanged.
+    # Enforcing is a separate flag and commit (with a RETRIEVAL_CACHE_VERSION
+    # bump). Design: audit/2026-09-24_a_minus_build_c_design.md §9.
+    ENABLE_COPY_DEDUP_SHADOW: bool = Field(True, env="ENABLE_COPY_DEDUP_SHADOW")
+
     # Relationship review on the DEFAULT path (A− M1, 2026-09-24). Decoupled
     # from ENABLE_PASSAGE_MAPPING, whose other parts the 09-09 regrade judged
     # not ready. A demote-only model review of every directional ref (period,

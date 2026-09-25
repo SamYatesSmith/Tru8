@@ -43,7 +43,17 @@
   - C1 + C2a run SHADOW first.
 - `app/utils/url_identity.py` is built with 46 tests.
 - On the 19 payloads it finds 14 collapses, all true copies. Carbon Brief survives its RocketNews reprints; lu.se and PMC win over paywalled journal copies.
-- **Next:** wire the shadow log (`[COPY DEDUP] would_drop=…`) at the main path and at coverage recovery, and read every would-drop line over the corpus cassettes' full pre-fetch pools (free). Then the enforce phase, with the cache bump and a re-record (paid; ask first).
+- **Shadow wiring shipped** (`ENABLE_COPY_DEDUP_SHADOW`, logs only, drops nothing; C1 at coverage recovery).
+- **Shadow read over the 10 corpus claims' full pre-fetch pools (free):** 17 would-drops, of which 12 were true copies and 3 were wrong. None of the wrong ones was visible on the stored payloads:
+  - the 2020 NEJM trial merged with its 2021 six-month follow-up (truncated-prefix match);
+  - "Inflation Reduction Act of 2022" merged across energy.gov and irs.gov (a generic title);
+  - a YouTube upload beat the Guardian's own page.
+- **All three fixed:**
+  - a truncated prefix now needs dates within 7 days;
+  - an exact title across hosts needs ≥7 words;
+  - platforms rank with reprints.
+- **Re-read:** only true copies remain. The cost is 2 of 14 true pairs on the stored payloads (the PA copy and Sweden sagepub↔lu.se, both with truncated titles and no dates). Precision was chosen over recall.
+- **Next:** read the shadow lines on the 19-record re-measure (free, it rides that run), then the enforce phase, with the cache bump, a re-record and survivor fetch fallbacks (paid; ask first).
 
 **Found in passing:** `app/utils/date_utils.parse_date("20 Aug 2025")` returns 2025-01-01. Build C uses its own SERP date parser; the shared parser is untouched.
 

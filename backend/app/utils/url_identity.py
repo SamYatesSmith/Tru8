@@ -252,8 +252,18 @@ class Candidate:
     """What the copy key reads from a search result (or a pooled item)."""
 
     __slots__ = (
-        "index", "url", "title", "date", "key", "host", "slug", "item",
-        "norm", "suffix", "truncated", "shell",
+        "index",
+        "url",
+        "title",
+        "date",
+        "key",
+        "host",
+        "slug",
+        "item",
+        "norm",
+        "suffix",
+        "truncated",
+        "shell",
     )
 
     def __init__(
@@ -271,13 +281,33 @@ class Candidate:
         self.shell = is_shell_title(title)
 
 
+#: Shadow read 2026-09-25 over the corpus pre-fetch pools: two different pages
+#: titled "Inflation Reduction Act of 2022" (energy.gov, irs.gov) merged. A
+#: short exact title is a topic, not an article, once it spans two hosts.
+_MIN_CROSS_HOST_TITLE_WORDS = 7
+#: Same read: "Safety and Efficacy of the BNT162b2 mRNA Covid-19 …" linked the
+#: 2020 trial to its 2021 six-month follow-up. A truncated prefix is weak, so
+#: it also needs a second signal: the same site, or dates within a week.
+_TRUNCATED_DATE_DAYS = 7
+
+
 def _cand_titles_match(a: "Candidate", b: "Candidate") -> bool:
     if a.shell or b.shell:
         return False
+    same_site = _label(a.host) == _label(b.host)
     if not (a.truncated or b.truncated):
+        if not same_site and len(a.norm.split()) < _MIN_CROSS_HOST_TITLE_WORDS:
+            return False
         return a.norm == b.norm
     short, long_ = (a.norm, b.norm) if len(a.norm) <= len(b.norm) else (b.norm, a.norm)
     if len(short.split()) < _MIN_TRUNCATED_TOKENS or len(short) < _MIN_TRUNCATED_CHARS:
+        return False
+    close_dates = (
+        bool(a.date and b.date) and abs((a.date - b.date).days) <= _TRUNCATED_DATE_DAYS
+    )
+    # Dates only: "the same site" is no signal on a database host. Two PubMed
+    # papers (the 2020 trial and its 2021 follow-up) share a truncated prefix.
+    if not close_dates:
         return False
     return long_.startswith(short)
 
@@ -386,8 +416,27 @@ def suffix_names_host(suffix: Optional[str], host: str) -> bool:
     return len(label) >= 3 and compact.startswith(label)
 
 
+#: Platforms rank with reprints: a publisher's own page beats its upload (the
+#: Guardian's video page over the same video on YouTube, shadow read 2026-09-25).
+PLATFORM_HOSTS = frozenset(
+    {
+        "youtube.com",
+        "facebook.com",
+        "instagram.com",
+        "tiktok.com",
+        "x.com",
+        "twitter.com",
+        "reddit.com",
+        "threads.com",
+        "threads.net",
+        "linkedin.com",
+    }
+)
+
+
 def _is_reprint(host: str) -> bool:
-    return host in REPRINT_HOSTS or any(host.endswith("." + h) for h in REPRINT_HOSTS)
+    hosts = REPRINT_HOSTS | PLATFORM_HOSTS
+    return host in hosts or any(host.endswith("." + h) for h in hosts)
 
 
 def choose_survivor(
@@ -399,8 +448,7 @@ def choose_survivor(
 
     def named_by_other(c: Candidate) -> bool:
         return any(
-            o.host != c.host and suffix_names_host(o.suffix, c.host)
-            for o in group
+            o.host != c.host and suffix_names_host(o.suffix, c.host) for o in group
         )
 
     academic = any(

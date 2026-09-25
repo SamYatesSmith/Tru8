@@ -134,19 +134,6 @@ class TestCopyRules:
         )
         assert copy_rule(a, b) is None
 
-    def test_truncated_prefix_long_enough_matches(self):
-        a = _c(
-            0,
-            "https://academic.oup.com/x",
-            "Excess mortality in Denmark, Finland, Norway and Sweden during ...",
-        )
-        b = _c(
-            1,
-            "https://www.healthdata.org/y",
-            "Excess mortality in Denmark, Finland, Norway and Sweden during the COVID-19 pandemic",
-        )
-        assert copy_rule(a, b) == "iii"
-
     def test_html_tags_stripped_so_eurostat_pages_do_not_merge(self):
         a = _c(
             0,
@@ -354,3 +341,52 @@ def test_parse_serp_date_formats():
     assert parse_serp_date("20 Aug 2025") == datetime(2025, 8, 20)
     assert parse_serp_date("2025-08-20T00:00:00") == datetime(2025, 8, 20)
     assert parse_serp_date("sometime") is None
+
+
+# ── Shadow read 2026-09-25 (corpus pre-fetch pools) ───────────────────────────
+
+
+def test_generic_short_title_across_hosts_does_not_merge():
+    t = "Inflation Reduction Act of 2022"
+    assert (
+        copy_rule(
+            _c(0, "https://www.energy.gov/edf/inflation-reduction-act-2022", t),
+            _c(1, "https://www.irs.gov/inflation-reduction-act-of-2022", t),
+        )
+        is None
+    )
+
+
+def test_truncated_prefix_across_hosts_needs_close_dates():
+    trial = _c(
+        0,
+        "https://pubmed.ncbi.nlm.nih.gov/33301246/",
+        "Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine",
+    )
+    followup = _c(
+        1,
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2110345",
+        "Safety and Efficacy of the BNT162b2 mRNA Covid-19 ...",
+    )
+    assert copy_rule(trial, followup) is None
+
+
+def test_truncated_prefix_with_close_dates_still_matches():
+    a = _c(0, "https://academic.oup.com/x", "Excess mortality in Denmark, Finland, Norway and Sweden during ...", "2024-03-01")
+    b = _c(1, "https://www.healthdata.org/y", "Excess mortality in Denmark, Finland, Norway and Sweden during the COVID-19 pandemic", "2024-03-03")
+    assert copy_rule(a, b) == "iii"
+
+
+def test_publisher_page_beats_its_platform_upload():
+    t = "Fact-checking Donald Trump's false and misleading claims during his UN address"
+    group = [
+        _c(0, "https://www.youtube.com/watch?v=_vnBOobf7jY", t),
+        _c(1, "https://www.theguardian.com/us-news/video/2025/sep/24/fact-checking-video", t),
+    ]
+    assert choose_survivor(group).host == "theguardian.com"
+
+
+def test_truncated_prefix_on_one_database_host_needs_close_dates():
+    trial = _c(0, "https://pubmed.ncbi.nlm.nih.gov/33301246/", "Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine")
+    followup = _c(1, "https://pubmed.ncbi.nlm.nih.gov/34525277/", "Safety and Efficacy of the BNT162b2 mRNA Covid-19 ...")
+    assert copy_rule(trial, followup) is None

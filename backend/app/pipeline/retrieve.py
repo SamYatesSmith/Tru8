@@ -14,6 +14,7 @@ from app.services.evidence import (
     is_domain_blocked,
 )
 from app.utils.date_provenance import DATE_BASIS_API, derive_date_basis
+from app.utils.url_identity import canonical_url_key
 from app.utils.url_utils import extract_domain
 from app.services.government_api_client import get_api_registry
 from app.core.config import settings
@@ -133,6 +134,38 @@ def _same_page(a: Optional[str], b: Optional[str]) -> bool:
         return host + (parts.path or "/").rstrip("/").lower()
 
     return bool(a and b) and key(a) == key(b)
+
+
+def _log_copy_shadow(candidates: List[Any], max_sources: int, site: str) -> None:
+    """Build C shadow: one `[COPY DEDUP]` line per candidate a collapse would
+    drop, naming its survivor and rule. Never alters `candidates`; a failure
+    here is logged and swallowed, since shadow logging must not break retrieval."""
+    from app.utils.url_identity import shadow_report
+
+    try:
+        head = {id(c) for c in candidates[:max_sources]}
+        by_url = {getattr(c, "url", None): c for c in candidates}
+        report = shadow_report(
+            candidates,
+            lambda c: getattr(c, "url", "") or "",
+            lambda c: getattr(c, "title", "") or "",
+            lambda c: getattr(c, "published_date", None),
+        )
+        for row in report:
+            dropped = by_url.get(row["would_drop"])
+            logger.info(
+                f"[COPY DEDUP] site={site} rule={row['rule']} "
+                f"in_fetch_set={id(dropped) in head} "
+                f"would_drop={row['would_drop'][:160]} "
+                f"survivor={row['survivor'][:160]}"
+            )
+        if report:
+            logger.info(
+                f"[COPY DEDUP] site={site} summary would_drop={len(report)} "
+                f"of candidates={len(candidates)}"
+            )
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning(f"[COPY DEDUP] shadow failed site={site}: {exc}")
 
 
 def _source_exclusion(
@@ -1396,6 +1429,7 @@ class EvidenceRetriever:
         """
         all_evidence = []
         claim_context = claim_text[:100]
+        _existing_keys: Optional[Dict[str, str]] = None  # Build C shadow, lazy
 
         # Runtime blocklist for recovery URL filtering (same rationale as
         # _recover_evidence_for_claim above). The main retrieve path's
@@ -1488,6 +1522,20 @@ class EvidenceRetriever:
                         )
                         if url in existing_urls:
                             continue
+                        # Build C shadow (C1 at recovery): a raw-different URL
+                        # naming a page already in the pool (bbc.co.uk/bbc.com).
+                        if getattr(settings, "ENABLE_COPY_DEDUP_SHADOW", True):
+                            if _existing_keys is None:
+                                _existing_keys = {
+                                    canonical_url_key(u): u for u in existing_urls
+                                }
+                            twin = _existing_keys.get(canonical_url_key(url))
+                            if twin:
+                                logger.info(
+                                    f"[COPY DEDUP] site=recovery rule=i "
+                                    f"element={elem['element_id']} "
+                                    f"would_drop={url[:160]} survivor={twin[:160]}"
+                                )
 
                         if is_domain_blocked(url, blocked_domains):
                             logger.info(
@@ -2342,6 +2390,13 @@ class EvidenceRetriever:
                 fetch_candidates = _allocate_fetch_budget(
                     unique_search_results, plan_element_ids, query_twin_of
                 )
+            # A− Build C, SHADOW (2026-09-25): log which candidates are copies
+            # of one article (canonical URL / slug / title) and which would
+            # survive. Drops nothing — read over full pre-fetch pools before
+            # enforcing. Design: audit/2026-09-24_a_minus_build_c_design.md §9.
+            if getattr(settings, "ENABLE_COPY_DEDUP_SHADOW", True):
+                _log_copy_shadow(fetch_candidates, max_sources, site="main")
+
             fetch_set = fetch_candidates[:max_sources]
 
             budget_dropped = len(unique_search_results) - len(fetch_set)
