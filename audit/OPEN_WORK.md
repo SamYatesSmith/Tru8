@@ -12,6 +12,14 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ MONDAY 28 SEPTEMBER 2026 — START HERE (founder task)
+**Run the 19-record A− re-measure** (~19 credits; the founder deferred it on 25 Sep and wants to pick it up on the 28th). It is the only way to know whether the A− rate has moved since the 0/19 baseline.
+- Inputs, checklist and method: `audit/2026-09-24_a_minus_measurement.md`. Re-run the same 19 inputs and grade them blind against H1–H5 / S1–S9.
+- Production is on `9aff4ea` (deployed 25 Sep): R6 recital release, the "2008-09" year-span fix, and the Build C copy-dedup SHADOW logging.
+- Read the `[COPY DEDUP] would_drop=` lines from those runs in the Railway logs. This is the second shadow population, and it decides whether Build C moves to enforcing.
+- Confirm the spend before starting. Rule: ask before every paid run.
+
+---
 ## 2026-09-25 — Recital gate stops demoting fact-checks (R6) · Build C revised + copy key built (shadow, not wired)
 
 **R6: shipped (default on; rollback `ENABLE_RECITAL_DIRECTION_RELEASE=False`).**
