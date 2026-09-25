@@ -320,3 +320,39 @@ def test_a_capitalised_month_behind_a_preposition_still_resolves():
     ):
         reading = read_evidence_periods(text, datetime(2025, 10, 22), "engine")
         assert len(reading.inferred) == 1, text
+
+
+# ---------------------------------------------------------------------------
+# Year spans (2026-09-25): "2008-09" is two years, not September 2008
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "text,years",
+    [
+        ("the 2008-09 recession", (2008, 2009)),
+        ("in the 2019/20 financial year", (2019, 2020)),
+        ("the 2010–11 season", (2010, 2011)),
+        ("tax year 1999-00", (1999, 2000)),
+    ],
+)
+def test_consecutive_year_span_is_two_years(text, years):
+    assert extract_periods(text) == {Period(years[0], None), Period(years[1], None)}
+
+
+def test_year_span_never_pins_an_element_to_a_month():
+    """The review's finding: the temporal gate armed on September 2008."""
+    assert element_period("GDP fell sharply during the 2008-09 recession") is None
+
+
+def test_iso_month_is_still_a_month():
+    assert extract_periods("CPI 2024-09 was 1.7%") == {Period(2024, 9)}
+
+
+def test_iso_date_in_the_span_window_is_still_a_date():
+    assert extract_periods("published 2008-09-15") == {Period(2008, 9)}
+
+
+def test_non_consecutive_pair_is_left_to_the_iso_reading():
+    """Out of scope on purpose: "2010-12" stays December 2010 (see design note)."""
+    assert extract_periods("2010-12") == {Period(2010, 12)}

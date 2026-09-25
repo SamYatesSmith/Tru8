@@ -55,6 +55,14 @@
 - **Re-read:** only true copies remain. The cost is 2 of 14 true pairs on the stored payloads (the PA copy and Sweden sagepub↔lu.se, both with truncated titles and no dates). Precision was chosen over recall.
 - **Next:** read the shadow lines on the 19-record re-measure (free, it rides that run), then the enforce phase, with the cache bump, a re-record and survivor fetch fallbacks (paid; ask first).
 
+**Yesterday's two small owed items, closed:**
+- **"2008-09" read as September 2008: FIXED.** `temporal_scope._YEAR_SPAN` reads a consecutive-year pair (`2008-09`, `2019/20`, `2010–11`) as two years. Only consecutive years count, because as an ISO month that shape exists only for Aug 2007 – Dec 2011. "2010-12" stays December 2010, deliberately out of scope. 5 tests; unit suite 4,130; bench unchanged on every claim.
+- **0005's period pin UNEXERCISED: not a regression, recorded in the golden.** On this recording the mapper files one directional ref (ONS September 2024, supports) and already files every off-period source as `context`, ONS August 2026 included. The gate has nothing to catch.
+  - The pinned off-period source is absent from the SERP responses themselves.
+  - Pointing the precondition at ONS August 2026 would fail falsely.
+  - The gate stays guarded end to end by `test_temporal_scope_wiring.py` (33 tests).
+  - Exercising it on the bench again needs a recording where the mapper errs, or a mapping-injection hook. Neither is built.
+
 **Found in passing:** `app/utils/date_utils.parse_date("20 Aug 2025")` returns 2025-01-01. Build C uses its own SERP date parser; the shared parser is untouched.
 
 ---

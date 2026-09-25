@@ -160,6 +160,12 @@ _DAY_MONTH_YEAR = re.compile(rf"\b\d{{1,2}}\s+({_MONTH_ALT})\.?\s+(\d{{4}})\b", 
 _MONTH_DAY_YEAR = re.compile(rf"\b({_MONTH_ALT})\.?\s+\d{{1,2}},\s*(\d{{4}})\b", re.I)
 # "2024-09", "2024-09-16"
 _ISO = re.compile(r"\b(\d{4})-(\d{2})(?:-\d{2})?\b")
+# "2008-09", "2019/20", "2010–11": a financial / academic / season YEAR SPAN when
+# the second part is the next year (2026-09-25; the range-period review found
+# "the 2008-09 recession" read as September 2008). Only consecutive years count:
+# as an ISO month that shape exists only for Aug 2007–Dec 2011, so the trade is
+# almost free. Never when a day follows ("2008-09-15" is a date).
+_YEAR_SPAN = re.compile(r"\b(\d{4})[-/–—](\d{2})\b(?![-/–—]\d)")
 # A bare four-digit year in a plausible range. Deliberately narrow: "1.7" or
 # "2%" must never read as a year, and neither should arbitrary large numbers.
 _YEAR = re.compile(r"\b(19\d{2}|20\d{2})\b")
@@ -233,7 +239,17 @@ def _scan(text: str) -> tuple[Set[Period], List[tuple]]:
         )
         consumed.append(m.span())
 
+    for m in _YEAR_SPAN.finditer(text):
+        start_year = int(m.group(1))
+        if int(m.group(2)) != (start_year + 1) % 100:
+            continue
+        periods.add(Period(start_year, None))
+        periods.add(Period(start_year + 1, None))
+        consumed.append(m.span())
+
     for m in _ISO.finditer(text):
+        if any(start <= m.start() < end for start, end in consumed):
+            continue
         month = int(m.group(2))
         if 1 <= month <= 12:
             periods.add(Period(int(m.group(1)), month))
@@ -598,4 +614,3 @@ def contains_period(text: Optional[str], target: Period) -> bool:
     # "Q2 2026" must not re-read as "2026" and so contain September.
     rest = _HALF.sub(" ", _QUARTER.sub(" ", text))
     return Period(target.year, None) in extract_periods(rest)
-
