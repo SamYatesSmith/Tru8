@@ -12,6 +12,42 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## 2026-09-25 — Recital gate stops demoting fact-checks (R6) · Build C revised + copy key built (shadow, not wired)
+
+**R6: shipped (default on; rollback `ENABLE_RECITAL_DIRECTION_RELEASE=False`).**
+- **The 018F "off by 1" was not drift.** Read ref by ref, all 4 recital fires on the corpus recording were fact-check **CHALLENGES** (USA Today, AP, Guardian, CNN). Their attribution sentence was the claim itself, restated so it could be rebutted.
+- On a false claim by a prominent person, the gate was removing the fact-checks. That is a sycophancy hazard (invariant 7).
+- **The fix:** a challenge is not demoted for its subject restating the claim.
+- **What still fires:**
+  - supports (the 2026-08-13 trap);
+  - denials;
+  - lower figures;
+  - role reversals;
+  - another speaker;
+  - another subject's denial.
+- Design, independent review and as-built record: `audit/2026-09-25_recital_direction_release_{design,review}.md`. The review's 7 findings are all fixed, and the supports mirror was dropped.
+- **Tests:**
+  - 42 new, with 8/8 mutants killed;
+  - 204 across the recital, interested-party and wiring suites;
+  - 4,118 in the full unit suite.
+- **The 19 graded records:** 0 of 156 directional refs change.
+- **Bench:** R6 on vs a control arm with R6 off, per claim. The only difference is 018F's recital pins. The `--all` cassette drift on 5647 and 93DD was the known ordering effect: run alone, both claims are identical in both arms.
+- **018F re-pinned:** the recital counters go to 0/0 at tolerance 0, which makes them a positive pin. `recital_scope` comes out of must-fire, with a dated note.
+- **Owed:**
+  - veto words `false|misleading|incorrect` (review F10), as a separate change;
+  - a corpus fixture carrying a genuine recital SUPPORT.
+
+**Build C (S4, one article counted once): design revised, copy key built, NOT wired.**
+- §9 of `audit/2026-09-24_a_minus_build_c_design.md` answers the review:
+  - C2b is withdrawn. It removed correct echoes on TTE and did not clear #12's H1.
+  - C1 + C2a run SHADOW first.
+- `app/utils/url_identity.py` is built with 46 tests.
+- On the 19 payloads it finds 14 collapses, all true copies. Carbon Brief survives its RocketNews reprints; lu.se and PMC win over paywalled journal copies.
+- **Next:** wire the shadow log (`[COPY DEDUP] would_drop=…`) at the main path and at coverage recovery, and read every would-drop line over the corpus cassettes' full pre-fetch pools (free). Then the enforce phase, with the cache bump and a re-record (paid; ask first).
+
+**Found in passing:** `app/utils/date_utils.parse_date("20 Aug 2025")` returns 2025-01-01. Build C uses its own SERP date parser; the shared parser is untouched.
+
+---
 ## 2026-09-24 — ALL SENDS HELD: the A− bar (founder decision)
 
 **What the founder decided:** for £20/month, users will accept nothing below **A−**. All outreach sends are **HELD** until the A− rate is measured and rising.

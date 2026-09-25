@@ -72,6 +72,7 @@ from app.utils.figure_scope import (
     unstated_reason,
 )
 from app.utils.recital_scope import (
+    DirectionRelease,
     EvidenceNarrowing,
     element_asserts_attribution,
     recital_match,
@@ -2088,7 +2089,10 @@ class ClaimMapAnalyzer:
             # (safe — it stages a copy — but silently ineffective).
             _COMPLETION_TIMEOUT = (
                 50
-                if (settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW)
+                if (
+                    settings.ENABLE_PASSAGE_MAPPING
+                    or settings.ENABLE_RELATIONSHIP_REVIEW
+                )
                 else 25
             )
 
@@ -2975,7 +2979,11 @@ class ClaimMapAnalyzer:
                     pins=f"claim subjects: {', '.join(subjects)}",
                     summary={
                         "claim_subjects": subjects,
-                        **({"released_subjects": sorted(_released)} if _released else {}),
+                        **(
+                            {"released_subjects": sorted(_released)}
+                            if _released
+                            else {}
+                        ),
                     },
                     fires=lambda item, _ref, _s=subjects, _r=_released: interested_party_match(
                         _s, item.ev.get("url"), _r
@@ -3018,11 +3026,34 @@ class ClaimMapAnalyzer:
                     claim_texts=recital_texts,
                     element_text=elem.get("description") or "",
                     released_tokens=[
-                        tok for tok, subj in distinctive_tokens(subjects) if subj in _pub
+                        tok
+                        for tok, subj in distinctive_tokens(subjects)
+                        if subj in _pub
                     ],
                 )
 
-            def _recital_either(item, ref, _t, _texts=tuple(recital_texts), _n=_narrowing):
+            # R6 (2026-09-25): a challenge cannot rest on its subject restating
+            # the claim ("Trump says he's ended eight wars. His numbers are
+            # off"). One DirectionRelease per direction, over BOTH recital
+            # texts; polarity comes from the normalised claim (texts[0]).
+            # ROLLBACK: ENABLE_RECITAL_DIRECTION_RELEASE=False.
+            _releases: Dict[str, DirectionRelease] = {}
+
+            def _release_for(ref, _t, _texts=tuple(recital_texts), _el=elem):
+                if not getattr(settings, "ENABLE_RECITAL_DIRECTION_RELEASE", True):
+                    return None
+                rel = ref.get("relationship")
+                direction = getattr(rel, "value", rel)
+                if direction not in _releases:
+                    _releases[direction] = DirectionRelease(
+                        direction, _texts, _el.get("description") or "", _t
+                    )
+                return _releases[direction]
+
+            def _recital_either(
+                item, ref, _t, _texts=tuple(recital_texts), _n=_narrowing
+            ):
+                _r = _release_for(ref, _t)
                 for text in _texts:
                     match = recital_match(
                         ref.get("reasoning"),
@@ -3031,6 +3062,7 @@ class ClaimMapAnalyzer:
                         text,
                         allow_reported_results=settings.ENABLE_PASSAGE_MAPPING,
                         narrowing=_n,
+                        release=_r,
                     )
                     if match is not None:
                         return match

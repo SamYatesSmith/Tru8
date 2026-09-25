@@ -150,9 +150,12 @@ _FIRE, _VETOED, _SILENT = "fire", "veto", "silent"
 
 
 def _assess(
-    text: Optional[str], patterns: List[re.Pattern]
+    text: Optional[str],
+    patterns: List[re.Pattern],
+    release: Optional["DirectionRelease"] = None,
 ) -> Tuple[str, Optional[Dict[str, str]]]:
-    """One text's verdict: veto beats fire beats silence."""
+    """One text's verdict: veto beats fire beats silence. R6 (`release`) skips
+    a match that cannot be what the reference rests on."""
     if not text:
         return _SILENT, None
     if _VETO.search(text):
@@ -164,8 +167,9 @@ def _assess(
             "excerpt": _excerpt(text, match.start(), match.end()),
         }
     for pattern in patterns:
-        match = pattern.search(text)
-        if match:
+        for match in pattern.finditer(text):
+            if release is not None and release.releases(text, match):
+                continue
             return _FIRE, {
                 "marker": match.group(0)[:60].lower(),
                 "excerpt": _excerpt(text, match.start(), match.end()),
@@ -203,13 +207,17 @@ _PASSIVE_SPEECH = re.compile(
     r"\b(?:was|were|been|being|is|are|be)\s+(?:\w+ly\s+)?(?:announc\w*|said|claimed|declared|asserted|touted)\s*$",
     re.IGNORECASE,
 )
-_SELF_ASSESSMENT = re.compile(r"\b(?:claim\w*|tout\w*|boast\w*|insist\w*)\b", re.IGNORECASE)
+_SELF_ASSESSMENT = re.compile(
+    r"\b(?:claim\w*|tout\w*|boast\w*|insist\w*)\b", re.IGNORECASE
+)
 _TRANSACTION_ACT = re.compile(
     r"\b(donat\w*|gift\w*|pledg\w*|match\w*|resign\w*|appoint\w*|acqui\w*|purchas\w*)",
     re.IGNORECASE,
 )
 _TRANSFER_STEMS = frozenset({"donat", "gift", "pledg", "match"})
-_MONEY_FROM = re.compile(r"\d[\d.,]*\s*(?:m|bn|million|billion)?\b[^.]{0,40}\bfrom\b", re.IGNORECASE)
+_MONEY_FROM = re.compile(
+    r"\d[\d.,]*\s*(?:m|bn|million|billion)?\b[^.]{0,40}\bfrom\b", re.IGNORECASE
+)
 _PERFORMATIVE_CLAIM = re.compile(
     r"\b(?:pledg\w*|announc\w*|appoint\w*|resign\w*|nominat\w*)\b", re.IGNORECASE
 )
@@ -246,7 +254,8 @@ def _own_voice_figure(text: str, claim_texts: Iterable[str]) -> bool:
         f.replace(",", "")
         for c in claim_texts
         for f in _FIGURE.findall(c or "")
-        if len(f.replace(",", "").replace(".", "")) >= 2 and not re.fullmatch(r"(?:19|20)\d\d", f)
+        if len(f.replace(",", "").replace(".", "")) >= 2
+        and not re.fullmatch(r"(?:19|20)\d\d", f)
     }
     if not figures:
         return False
@@ -293,14 +302,20 @@ class EvidenceNarrowing:
             return False
         if _SELF_ASSESSING_ELEMENT.search(self.element_text):
             return False
-        claim_stems = set().union(*(_act_stems(c) for c in self.claim_texts)) if self.claim_texts else set()
+        claim_stems = (
+            set().union(*(_act_stems(c) for c in self.claim_texts))
+            if self.claim_texts
+            else set()
+        )
         if not (_act_stems(sentence) & claim_stems):
             return False
         performative = any(_PERFORMATIVE_CLAIM.search(c) for c in self.claim_texts)
         return performative or _own_voice_figure(text, self.claim_texts)
 
 
-def _tagged_patterns(tokens: Iterable[Tuple[str, str]]) -> List[Tuple[re.Pattern, str, str]]:
+def _tagged_patterns(
+    tokens: Iterable[Tuple[str, str]]
+) -> List[Tuple[re.Pattern, str, str]]:
     """`_subject_patterns`, each tagged with its token and kind."""
     tagged: List[Tuple[re.Pattern, str, str]] = []
     compiled = _subject_patterns(tokens)
@@ -315,8 +330,9 @@ def _assess_evidence(
     text: Optional[str],
     tagged: List[Tuple[re.Pattern, str, str]],
     narrowing: "EvidenceNarrowing",
+    release: Optional["DirectionRelease"] = None,
 ) -> Tuple[str, Optional[Dict[str, str]]]:
-    """`_assess` for the EVIDENCE text, with R0–R5 applied per match."""
+    """`_assess` for the EVIDENCE text, with R0–R6 applied per match."""
     if not text:
         return _SILENT, None
     if _VETO.search(text):
@@ -339,11 +355,309 @@ def _assess_evidence(
             pos = match.start() + 1
             if narrowing.skip(text, match, token, kind):
                 continue
+            if release is not None and release.releases(text, match):
+                continue
             return _FIRE, {
                 "marker": match.group(0)[:60].lower(),
                 "excerpt": _excerpt(text, match.start(), match.end()),
             }
     return _SILENT, None
+
+
+# ── Direction release, R6 (2026-09-25) ────────────────────────────────────────
+# Design: audit/2026-09-25_recital_direction_release_design.md; review:
+# audit/2026-09-25_recital_direction_release_review.md (classifier reworked).
+#
+# A reference can only REST on a recital that points its own way. On corpus
+# claim TRU-018F-44AA all four recital fires were fact-check CHALLENGES whose
+# attribution sentence was the claim itself, restated so it could be rebutted:
+# "Trump says he's ended eight wars. His numbers are off". The challenge rests
+# on the rebuttal; demoting it made a false claim look less challenged than it
+# was (invariant #7).
+#
+# Released, on a `challenges` ref ONLY:
+#   a subject-anchored match, spoken BY that subject (not "critics of Trump
+#   say"), not itself a denial or a lower-figure / "only" account, in a text
+#   that presents THAT subject solely as the claim's proponent: it reports
+#   them restating the claim (a self-report: "he has", "to have", "of having",
+#   sharing >= 2 content stems with the claim or element, same polarity) and
+#   never contradicting it.
+# Everything else fires exactly as before. A self-serving contrary account
+# ("Biden says inflation was caused by Putin") is not a self-report of the
+# claim; a denial never releases.
+#
+# The supports mirror (a support resting on a DENIAL) is deliberately NOT
+# built: the review showed every polarity heuristic reaching the trap through
+# it. Releasing only challenges whose text restates the claim cannot release a
+# recital support.
+_SELF_REPORT_HEAD = re.compile(
+    r"^[\s,:'\"‘’“”]*(?:to\s+(?:have\s+)?[a-z]|of\s+having\b|"
+    r"(?:that\s+)?(?:he|she|i)\b)",
+    re.IGNORECASE,
+)
+_SELF_REPORT_PRONOUN = re.compile(
+    r"\b(?:he|she|i)(?:['’](?:s|ve|d|m|ll)\b|"
+    r"\s+(?:has|have|had|was|is|would|will|did)\b)",
+    re.IGNORECASE,
+)
+_ENDS_TO_HAVE = re.compile(r"\bto\s+have\s*$", re.IGNORECASE)
+#: Negation that can deny a predicate. "no" and "without" are excluded: they
+#: negate a noun ("no president could", "without a single casualty").
+_NEGATION = re.compile(
+    r"\b(?:not|never|neither|nor|den(?:y|ies|ied))\b|n['’]t\b", re.IGNORECASE
+)
+#: A downtoner makes a self-report contrary to the claim: "he has only ended
+#: two wars" does not restate "stopped 6 wars".
+_DOWNTONER = re.compile(
+    r"\b(?:only|just|merely|barely|fewer|less\s+than)\b", re.IGNORECASE
+)
+#: Words allowed between the subject token and the speech verb while the
+#: subject is still the SPEAKER. Anything else ("Trump's aides say") means
+#: someone else speaks.
+_SPEAKER_BRIDGE = re.compile(
+    r"^(?:['’]s)?(?:\s+(?:has|have|had|was|is|repeatedly|also|again|then|"
+    r"later|himself|herself|once|now|\w+ly))*\s*$",
+    re.IGNORECASE,
+)
+#: A word just before the token that makes it an object, not the speaker.
+_OBJECT_LEAD = re.compile(
+    r"\b(?:of|for|against|about|by|to|with|on|at|from|than|over|under|toward|"
+    r"towards)\s+(?:(?:president|former|mr|mrs|ms|dr|the)\.?\s+){0,3}$",
+    re.IGNORECASE,
+)
+_NUMBER_WORDS = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+}
+_STOP = frozenset(
+    "the a an and or of to in on at for by with from that this these those his her "
+    "their its our was were is are be been has have had he she they we i it as than "
+    "into over under about after before during while which who whom what when where "
+    "why how all any some such very more most also only just said says say saying "
+    "claim claims claimed stated not never no nor neither without".split()
+)
+#: Voice. A self-report is passive when a be-verb precedes its first shared
+#: stem AND one of its first two shared words is a participle ("she was the
+#: one physically abused"); "he was responsible for ending" stays active. The
+#: claim's own voice is read from "<be> <participle> by".
+_BE_VERB = re.compile(r"\b(?:was|were|been|being|is|are)\b", re.IGNORECASE)
+_PARTICIPLE = re.compile(r"(?:ed|en)$", re.IGNORECASE)
+_PASSIVE_CLAIM = re.compile(
+    r"\b(?:was|were|been|being|is|are)\s+(?:\w+ly\s+)?\w+(?:ed|en)\s+by\b",
+    re.IGNORECASE,
+)
+_SELF_REPORT_WINDOW = 120
+_NEGATION_WINDOW = 4
+_MIN_SHARED_STEMS = 2
+_RESTATES, _CONTRARY = "restates", "contrary"
+
+
+def _stem(word: str) -> str:
+    w = word.lower()
+    if w in _NUMBER_WORDS:
+        return str(_NUMBER_WORDS[w])
+    for suffix in ("ing", "ed", "es", "s"):
+        if len(w) > len(suffix) + 2 and w.endswith(suffix):
+            w = w[: -len(suffix)]
+            break
+    return w[:6]
+
+
+def _numbers(text: str) -> List[float]:
+    out: List[float] = []
+    for word in re.findall(r"\d[\d,]*(?:\.\d+)?|[A-Za-z]+", text or ""):
+        low = word.lower()
+        if low in _NUMBER_WORDS:
+            out.append(float(_NUMBER_WORDS[low]))
+        elif word[0].isdigit():
+            try:
+                value = float(word.replace(",", ""))
+            except ValueError:
+                continue
+            if not 1900 <= value <= 2100:  # a year is not a count
+                out.append(value)
+    return out
+
+
+class DirectionRelease:
+    """R6: whether a `challenges` ref's subject-anchored match is the claim
+    restated by its proponent, and so never the basis of that challenge."""
+
+    def __init__(
+        self,
+        direction: Optional[str],
+        claim_texts: Iterable[str] = (),
+        element_text: str = "",
+        tokens: Iterable[Tuple[str, str]] = (),
+    ):
+        self.direction = direction
+        texts = [c for c in claim_texts if c]
+        self.tokens = [(t, s) for t, s in tokens if t]
+        self._subject_words = {
+            w for _t, s in self.tokens for w in re.findall(r"[a-z0-9]+", s.lower())
+        } | {t.lower() for t, _s in self.tokens}
+        # Polarity from the NORMALISED claim (texts[0]) only.
+        self.claim_negated = bool(texts) and bool(_NEGATION.search(texts[0]))
+        self.claim_passive = bool(texts) and bool(_PASSIVE_CLAIM.search(texts[0]))
+        self.claim_stems = {
+            _stem(w)
+            for w in re.findall(r"[A-Za-z0-9]+", " ".join(texts + [element_text or ""]))
+            if w.lower() not in _STOP
+            and w.lower() not in self._subject_words
+            and (w.isdigit() or len(w) >= 3)
+        }
+        claim_numbers = _numbers(" ".join(texts))
+        self.claim_min_number = min(claim_numbers) if claim_numbers else None
+        tagged = _tagged_patterns(self.tokens)
+        subjects = [s for _t, s in self.tokens for _ in range(3)]
+        self._tagged = [
+            (pattern, token, kind, subject)
+            for (pattern, token, kind), subject in zip(tagged, subjects)
+        ]
+        self._owner = {
+            pattern.pattern: (token, kind, subject)
+            for pattern, token, kind, subject in self._tagged
+        }
+        self._stance_cache: Dict[str, Dict[str, set]] = {}
+
+    # ── one match ─────────────────────────────────────────────────────────────
+    def _speaker_is_subject(
+        self, text: str, match: "re.Match[str]", token: str, kind: str
+    ) -> bool:
+        if kind != "verb":
+            # "quotes … Trump" / "according to Trump": no self-report shape.
+            return False
+        span = match.group(0)
+        tok = re.match(rf"{re.escape(token)}\b", span, re.IGNORECASE)
+        if tok is None:
+            return False
+        bridge = re.sub(
+            rf"\b(?:{_ATTRIBUTION_VERBS})\b\s*$",
+            "",
+            span[tok.end() :],
+            flags=re.IGNORECASE,
+        )
+        # The subject's own other words ("Donald [Trump] claims") are not a
+        # different speaker.
+        for word in self._subject_words:
+            bridge = re.sub(rf"\b{re.escape(word)}\b", "", bridge, flags=re.IGNORECASE)
+        if not _SPEAKER_BRIDGE.match(bridge):
+            return False
+        before = text[max(0, match.start() - 40) : match.start()]
+        # "Donald Trump" anchors on its last token too: strip the subject's
+        # other words before reading the word that leads the name.
+        if self._subject_words:
+            before = re.sub(
+                r"(?:\b(?:"
+                + "|".join(re.escape(w) for w in sorted(self._subject_words))
+                + r")\s+)+$",
+                "",
+                before,
+                flags=re.IGNORECASE,
+            )
+        return not _OBJECT_LEAD.search(before)
+
+    @staticmethod
+    def _speech_skipped(span: str) -> bool:
+        """R0 (sentence crossing), R2 (declined/negated speech), R5 (passive)."""
+        return bool(
+            _SENTENCE_BREAK.search(span)
+            or _NEGATED_SPEECH.search(span)
+            or _PASSIVE_SPEECH.search(span)
+        )
+
+    def classify(self, text: str, match: "re.Match[str]") -> Optional[str]:
+        """_RESTATES / _CONTRARY for a self-report of the claim, else None."""
+        breaks = _SENTENCE_BREAK.search(text, match.end())
+        tail = text[match.end() : breaks.start() if breaks else len(text)]
+        if _ENDS_TO_HAVE.search(match.group(0)) or _SELF_REPORT_HEAD.search(tail):
+            content = tail
+        else:
+            pronoun = _SELF_REPORT_PRONOUN.search(tail[:_SELF_REPORT_WINDOW])
+            if pronoun is None:
+                return None
+            content = tail[pronoun.start() :]
+        # Keep "n't" attached, so "didn't" stays one negated word.
+        words = re.findall(r"[A-Za-z0-9]+(?:['’]t\b)?", content)
+        shared: List[str] = []
+        shared_words: List[str] = []
+        first_shared_at: Optional[int] = None
+        for idx, word in enumerate(words):
+            low = word.lower()
+            if low in _STOP or low in self._subject_words or _NEGATION.search(word):
+                continue
+            stem = _stem(word)
+            if stem in self.claim_stems and stem not in shared:
+                shared.append(stem)
+                shared_words.append(word)
+                if first_shared_at is None:
+                    first_shared_at = idx
+        if len(shared) < _MIN_SHARED_STEMS:
+            return None
+        head = words[: first_shared_at or 0][-_NEGATION_WINDOW:]
+        if bool(_NEGATION.search(" ".join(head))) != self.claim_negated:
+            return _CONTRARY
+        # Voice: "she was the one abused" reverses "Heard abused Depp".
+        passive = bool(_BE_VERB.search(" ".join(head))) and any(
+            _PARTICIPLE.search(w) for w in shared_words[:2]
+        )
+        if passive != self.claim_passive:
+            return _CONTRARY
+        if _DOWNTONER.search(content):
+            return _CONTRARY
+        if self.claim_min_number is not None and any(
+            n < self.claim_min_number for n in _numbers(content)
+        ):
+            return _CONTRARY
+        return _RESTATES
+
+    # ── one text ──────────────────────────────────────────────────────────────
+    def _stances(self, text: str) -> Dict[str, set]:
+        """Per subject: the self-report kinds this text attributes to them."""
+        if text in self._stance_cache:
+            return self._stance_cache[text]
+        kinds: Dict[str, set] = {}
+        for pattern, token, kind, subject in self._tagged:
+            pos = 0
+            while True:
+                match = pattern.search(text, pos)
+                if match is None:
+                    break
+                pos = match.start() + 1
+                if self._speech_skipped(match.group(0)):
+                    continue
+                if not self._speaker_is_subject(text, match, token, kind):
+                    continue
+                found = self.classify(text, match)
+                if found:
+                    kinds.setdefault(subject, set()).add(found)
+        self._stance_cache[text] = kinds
+        return kinds
+
+    def releases(self, text: str, match: "re.Match[str]") -> bool:
+        """True when this attribution cannot be what the challenge rests on."""
+        if self.direction != "challenges" or not self.claim_stems:
+            return False
+        owner = self._owner.get(match.re.pattern)
+        if owner is None:
+            return False
+        token, kind, subject = owner
+        # Only the subject's own speech is released; "aides of Trump say"
+        # fires as before. A denial by the subject needs no separate check:
+        # it puts _CONTRARY into the stance, which then never equals {_RESTATES}.
+        if not self._speaker_is_subject(text, match, token, kind):
+            return False
+        return self._stances(text).get(subject) == {_RESTATES}
 
 
 #: Minimum normalised length before a claim is ELIGIBLE to match on at all.
@@ -495,6 +809,7 @@ def recital_match(
     *,
     allow_reported_results: bool = False,
     narrowing: Optional["EvidenceNarrowing"] = None,
+    release: Optional["DirectionRelease"] = None,
 ) -> Optional[Dict[str, str]]:
     """The receipt entry if this reference rests on recital, else None.
 
@@ -507,7 +822,7 @@ def recital_match(
     if tokens:
         patterns = _subject_patterns(tokens)
 
-        verdict, entry = _assess(reasoning, patterns)
+        verdict, entry = _assess(reasoning, patterns, release)
         if verdict == _VETOED:
             return None
         if verdict == _FIRE and entry is not None:
@@ -516,10 +831,10 @@ def recital_match(
 
         if narrowing is not None:
             verdict, entry = _assess_evidence(
-                evidence_text, _tagged_patterns(tokens), narrowing
+                evidence_text, _tagged_patterns(tokens), narrowing, release
             )
         else:
-            verdict, entry = _assess(evidence_text, patterns)
+            verdict, entry = _assess(evidence_text, patterns, release)
         if verdict == _FIRE and entry is not None:
             entry["found_in"] = "evidence"
             return entry

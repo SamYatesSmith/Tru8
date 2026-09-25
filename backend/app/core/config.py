@@ -783,6 +783,15 @@ class Settings(BaseSettings):
         True, env="ENABLE_RECITAL_EVIDENCE_NARROWING"
     )
 
+    # Recital direction release, R6 (2026-09-25): a CHALLENGE never rests on
+    # its subject restating the claim — a fact-check reciting "Trump says he's
+    # ended eight wars" to rebut it stays a challenge (TRU-018F-44AA: four
+    # fact-checks were demoted). Challenges only; denials, lower figures and
+    # other speakers still fire. ROLLBACK: ENABLE_RECITAL_DIRECTION_RELEASE=False.
+    ENABLE_RECITAL_DIRECTION_RELEASE: bool = Field(
+        True, env="ENABLE_RECITAL_DIRECTION_RELEASE"
+    )
+
     # Relationship review on the DEFAULT path (A− M1, 2026-09-24). Decoupled
     # from ENABLE_PASSAGE_MAPPING, whose other parts the 09-09 regrade judged
     # not ready. A demote-only model review of every directional ref (period,

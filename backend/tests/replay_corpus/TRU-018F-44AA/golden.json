@@ -3,7 +3,7 @@
   "captured_at": "2026-09-10T15:26:12.825233+00:00",
   "captured_with": "cc6fbd9",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-09 RE-PIN: recital 3 refs/3 elements -> 2 refs/1 element at tolerance 0. The decomposition prompt now forbids trivially-true prerequisite elements, so this claim decomposes to 2 elements (was 3); the recital trap still fires (2 refs scoped on e2, read from the observation). The interested_party precondition (whitehouse.gov) is absent from this pool -> UNEXERCISED by design, pins kept. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10 RE-PIN: recital 2 refs/1 element -> 2 refs/2 elements at tolerance 0, READ from the observation (recital_scope_events e1:1, e2:1). This recording decomposed to 3 elements again (the prerequisite element 'Six distinct conflicts existed' came back — decomposition is nondeterministic on this claim between 2 and 3 elements); the trap fires once on each of the two directional elements. Refs pin unchanged at 2. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py. | 2026-09-10 (afternoon) RE-PIN, read from the observation: recital 3 refs (was 2), element counter 2 (unchanged — it counts scope EVENTS, both on e1). This recording decomposed the claim to ONE element under the build-2 prompts (2 → 3 → 1 across the three 2026-09-10 recordings — decomposition is draw-dependent on this claim); the recital trap fires three times on that element. Pool 43 web / 19 sources after a single re-record (the --all pass had 34 ConnectTimeouts and a 12-source pool with no trap).",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-09 RE-PIN: recital 3 refs/3 elements -> 2 refs/1 element at tolerance 0. The decomposition prompt now forbids trivially-true prerequisite elements, so this claim decomposes to 2 elements (was 3); the recital trap still fires (2 refs scoped on e2, read from the observation). The interested_party precondition (whitehouse.gov) is absent from this pool -> UNEXERCISED by design, pins kept. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10 RE-PIN: recital 2 refs/1 element -> 2 refs/2 elements at tolerance 0, READ from the observation (recital_scope_events e1:1, e2:1). This recording decomposed to 3 elements again (the prerequisite element 'Six distinct conflicts existed' came back — decomposition is nondeterministic on this claim between 2 and 3 elements); the trap fires once on each of the two directional elements. Refs pin unchanged at 2. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py. | 2026-09-10 (afternoon) RE-PIN, read from the observation: recital 3 refs (was 2), element counter 2 (unchanged — it counts scope EVENTS, both on e1). This recording decomposed the claim to ONE element under the build-2 prompts (2 → 3 → 1 across the three 2026-09-10 recordings — decomposition is draw-dependent on this claim); the recital trap fires three times on that element. Pool 43 web / 19 sources after a single re-record (the --all pass had 34 ConnectTimeouts and a 12-source pool with no trap). | 2026-09-25 RE-PIN (R6, audit/2026-09-25_recital_direction_release_design.md): read ref by ref, the 4 recital fires on this recording were all fact-check CHALLENGES (USA Today, AP, Guardian, CNN) whose attribution sentence was the claim restated to be rebutted - misfires, not the trap. R6 releases them; they stay challenges. recital counters 3/2 -> 0/0 at tolerance 0: now a POSITIVE pin - any recital fire on this pool fails the bench. recital_scope removed from scope_gates_must_fire: this recording holds no recital SUPPORT (all 21 directional refs are challenges), so the gate has nothing legitimate to fire on; support-side safety rests on the 2026-08-13 verbatim unit pins and the wiring test in test_recital_direction_release.py. The earlier notes calling these fires 'the trap still fires' were wrong since 2026-09-10.",
   "hard_invariants": {
     "must_have_url_substrings": [
       "politifact",
@@ -28,8 +28,7 @@
     },
     "coverage_recovery_must_not_timeout": true,
     "scope_gates_must_fire": [
-      "interested_party",
-      "recital_scope"
+      "interested_party"
     ],
     "must_fire_preconditions": {
       "interested_party": [
@@ -67,11 +66,11 @@
       "tolerance": 4
     },
     "recital_scoped_refs": {
-      "value": 3,
+      "value": 0,
       "tolerance": 0
     },
     "recital_scoped_elements": {
-      "value": 2,
+      "value": 0,
       "tolerance": 0
     },
     "interested_party_scoped_refs": {
