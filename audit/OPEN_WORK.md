@@ -23,6 +23,20 @@
   - Unit suite 4,154 pass. 8/8 mutants killed.
   - Bench: 0004 re-keyed (its Wikipedia adapter item) and patched with `--record-missing`; it now replays equal to the control arm. 5647/82CF/93DD drift is the known noise, identical with the change off.
   - Open: class D (an unmapped row still shows a tier badge; founder decision) and off-topic weather adapters (S5).
+- **Mapping (H1/H2) reviewed** (`audit/2026-09-28_mapping_failures_review.md`), three families:
+  - Family A: gates demote an org's own publication (#7, #10). Design owed.
+  - Family B: a source is mapped to one element but not its sibling. Root cause is the NF-19 single-element rule + completion's leftover-only scope + the recovery trigger. A sibling re-offer was designed and reviewed (`2026-09-28_sibling_reoffer_{design,review}.md`) and **PARKED by the founder**: the candidate pool leans 56:6 toward supports (an #7 hazard), for about one A− record.
+  - Family C: model judgement; M1 is a hard stop.
+  - Fixed on the way: completion was dropping `llm_state` (`a0d869a`).
+- **Retrieval (H3) reviewed** (`audit/2026-09-28_retrieval_h3_review.md`).
+  - Fixed (`765b434`): the plan's search window now widens to reach a dated event earlier this year (pw hid 6–11 Sep events on 28 Sep). `RETRIEVAL_CACHE_VERSION` is 2026-09-28.
+  - The probe clears #7 and improves #4's pool; it does not help #5.
+  - Next H3 builds, each needing a design: a native-language lane for foreign official results (#4), a GIE AGSI+ adapter (#5), an official-filing vocabulary lane (#6).
+- All pushed (`786b205`); prod healthy after the deploy.
+- Still owed:
+  - #9 re-run (1 credit);
+  - `railway login` for the `[COPY DEDUP]` shadow lines and the 08:59 UTC restart cause;
+  - the class-D decision.
 
 ### (done) Monday 28 Sep founder task
 **Run the 19-record A− re-measure** (~19 credits; the founder deferred it on 25 Sep and wants to pick it up on the 28th). It is the only way to know whether the A− rate has moved since the 0/19 baseline.
