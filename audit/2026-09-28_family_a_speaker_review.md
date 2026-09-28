@@ -149,3 +149,139 @@ It fixes #10 by accident of word order. Thirlwall (`8d66d41a`) is unaffected: it
 8. **Drop or redo the place-name fix (F12).** If kept, use a closed list of country and nation names, and pin Bank of England, NHS England and Central Bank of Ireland.
 9. **Add a release reason to the interested-party receipt (F14).**
 10. **Verification (F15):** fire-diff over the public payloads if they carry reasoning; read #7 and #10's stored fields first; add the adversarial set in this review as the regression suite; report lost and gained fires by direction and by claim type (boast or accusation).
+
+
+---
+
+## Review of revision 2 (2026-09-28)
+
+**Method:** as above. I re-ran every probe against a new offline prototype of A1′, A2′ and R3′ as revision 2 states them (`r2proto.py`, `probes_r2a.py`, `probes_r2b.py` in the session scratchpad). The prototype plugs into the real `recital_match` (R0–R6 still applied) and the real `interested_party_match`. No model calls, no network, no spend.
+
+**Overall: A1′ is right in shape and needs one exclusion. A2′ breaks a record that is fixed today, and its claimant test does not carry the founder's rule. R3′ is right, but it inherits A2′'s claimant problem.**
+
+| Part | Verdict |
+|---|---|
+| A1′ instrument skip | **APPROVE WITH CHANGES** (G1) |
+| A2′ claim-level measurer release | **REWORK** (G2, G3, G4) |
+| A2′ claimant exclusion (founder rule) | **REWORK: the signal does not carry the rule** (G3) |
+| R3′ narrowed recital release, both paths | **APPROVE WITH CHANGES** (G5) |
+| Dropping the place-name fix | **APPROVE** |
+| Tests and verification plan | **APPROVE WITH CHANGES** (G6) |
+| Invariant #7 | A1′ is neutral once G1 is fixed; A2′ tilts toward supports only through G3 |
+
+### What revision 2 fixes (re-run, old → new fire)
+- **Every F1 and F2 sentence keeps firing** (15 of 15). That includes "Trump on Tuesday claimed…", "Trump, who has repeatedly boasted…", "Trump's spokesman said…", "According to administration officials…", "According to the company, Tesla…" and "According to its spokesperson…".
+- **The design's targets are skipped:** "According to the September 2026 toplines, Democrats…", the no-comma "According to the poll Democrats…" and "…, the poll said" all go True → False.
+- **All 29 pinned fire sentences** from the recital, narrowing and R6 tests still fire (0 lost). Corpus: 145 directional reasoning strings, 1 fire today, 0 changed.
+- **R6 is untouched,** because A1′ does not share `_speaker_is_subject`.
+- **R3′ fixes #10 on both paths.** "…according to Central Bank of Ireland research." fires today, and under R3′ goes True → False on the evidence path and on the reasoning path. "The Central Bank of Ireland said…" still fires. A news report "Vote Leave has repeatedly claimed…" still fires (F8 closed).
+- **A2′ withholds as designed:** "the company's emissions", the reordered Exxon claim, and a claim with "that" inside the act clause.
+- F4's "…, it said" still fires. The design accepts this.
+
+### G1. The instrument skip also skips the subject's own documents (A1′)
+A document can be the subject's own voice. The list includes `report`, `release`, `data`, `figures` and `analysis`, and the skip does not ask who owns the document.
+
+| Sentence (claim "Donald Trump stopped 6 wars", supports unless marked) | old → new |
+|---|---|
+| According to a White House report, Trump has ended six wars. | True → **False** |
+| According to a White House press release, Trump has ended six wars. | True → **False** |
+| According to the campaign's analysis, Trump has ended six wars. | True → **False** |
+| According to his own figures, Trump has ended six wars. | True → **False** |
+| Trump ended six wars, the new WH report said. | True → **False** |
+| Trump ended no wars, their analysis says. (challenges) | True → **False** |
+
+"According to a White House statement" fires, but "a White House report" does not, although both are the same office speaking. "Trump's own data show…" did not fire before either, because "show" is not an attribution verb. That is a known gap, not a regression.
+
+**Fix:** do not skip when the instrument phrase has an owner that points back to a speaker. An owner is any of:
+- a possessive (`his|her|their|its|our|own`) or `X's`;
+- an executive-comms term (`White House`, `Downing Street`, `No 10`);
+- an agent modifier (`campaign|administration|government|party|press`).
+
+Also drop `release` from the list: a press release is speech. Keep "the poll said", "the latest survey says" and "the toplines" skipped.
+
+### G2. A2′ breaks #7-type claims that are fixed today (A2′)
+A2′ requires a finding head (`shows|finds|that|:` and so on), and it **replaces** the element rule. A survey claim written as "X surveyed…; the result is…" has no head.
+- **Pinned claim, `test_a_publishers_own_survey_is_the_record_of_its_result`:** "Cook Political Report surveyed 1,052 likely voters in 37 competitive House districts; the generic ballot is Democrats 49, Republicans 47." Today `released_subjects` gives `{cook political report}`. Under A2′ it gives **∅**, so cookpolitical.com goes back to context. That is record 70ad9e13 regressing.
+- **#7's own claim** ("…surveyed 1,052 likely voters…; the generic ballot in them is Democrats 49…") has no head either. So on #7, A2′ withholds everywhere, including on the elements that the element rule releases today.
+
+**Fix:** keep the element rule as a second route rather than deleting it. Release when **either** route holds:
+- the claim-level route (act, then head, then a finding not about itself);
+- or today's element route.
+
+Put the claimant exclusion and the refers-back check on both routes. That also closes F11 on the element route.
+
+Accepting `;` or a copula clause after a measurement verb as a head is weaker and harder to pin.
+
+### G3. The claimant field cannot carry the founder's rule (A2′; the most important finding)
+**The two definitions differ.**
+- The founder rule reads "claimant" as the party asserting its own finding: Vote Leave, yes; a journalist reporting the Central Bank, no.
+- Extraction defines it differently (`extract.py:524-530`): *"the body issuing a statement **or figures** ('NHS England said…', 'according to the campaign…') … Set null when … study findings [are] reported neutrally."* Its worked example sets claimant "NHS England" on NHS England's own figures.
+
+"Central Bank of Ireland research shows X" and "Vote Leave analysis shows X" have the same shape. Extraction may name the body as claimant on both, or null on both. Which one it picks is a model call, not a rule.
+
+Measured on the prototype:
+
+| Claim | claimant | domain gate fires |
+|---|---|---|
+| #10 verbatim | null or "Cliff Taylor" | False (released) |
+| #10 verbatim | "Central Bank of Ireland" (the prompt's own rule for figures) | **True: #10 not fixed** |
+| Vote Leave analysis shows £350m a week | "Vote Leave" | True (withheld) |
+| same | null ("finding reported neutrally") | **False (released)** |
+| same | "Boris Johnson" | **False (released)** |
+| Labour analysis shows Tory plans cost £2,000 | "Keir Starmer" | **False (released)** |
+| Tesla data show Autopilot is ten times safer | "Elon Musk" | **False (released)** |
+| Reform UK poll shows Farage will be PM | "Nigel Farage" | **False (released)** |
+
+Most of the holes are an **organisation's own leader as claimant** (Johnson, Starmer, Musk, Farage). That is the TRU-018F shape again, with the person as claimant and the organisation released.
+
+**Name variants also fail.** Plain containment on normalised names misses:
+- "Exxon Mobil Corp" vs subject `exxonmobil`;
+- "the Conservatives" vs `conservative party`;
+- "the Central Bank" vs `central bank of ireland`. This matches only if articles are stripped, and then it withholds #10.
+
+It also fails the other way: short subjects match by substring (`ons` is inside "Jones"). That is a safe-direction withhold, but it shows the comparison is not a name match.
+
+**Required before build:**
+1. **Read the stored `claimant`** on #10 and #7 (already owed), and on every stored record whose claim has the "X research/data/poll shows" shape. If #10's claimant is the Central Bank, A2′ as written does not fix #10.
+2. **State what "claimant" must mean for this rule, and check that extraction produces it.** If it does not, the founder rule needs a different signal, and the choice goes back to the founder. Options:
+   - a new extraction field ("who asserts this finding in their own interest"), which is a prompt change and re-keys cassettes;
+   - withhold when the claimant is a person who is also a key entity linked to the organisation. There is no free signal for that link today.
+3. **Compare names on distinctive tokens, not raw containment.** A match is any shared distinctive token of at least 4 characters, after stripping articles and corporate suffixes (`plc|inc|corp|ltd|group|party`). Pin the Exxon Mobil Corp, Conservatives and Central Bank variants.
+
+### G4. Finding-head and refers-back edge cases (A2′)
+- **Name variants in the finding.** "An Exxon study shows **ExxonMobil's** emissions fell 20%" is released: the whole-phrase match on `exxon` misses "ExxonMobil's". "…shows **the oil major's** emissions fell" is released too: "oil major" is not in the closed noun list.
+  - Fix: match any distinctive subject token **as a word prefix** in the finding ("exxon" then matches "ExxonMobil"), excluding place-name tokens. This is the one place a place-name rule is needed.
+  - Add `major|operator|retailer|manufacturer|insurer|lender|carrier|broadcaster|club|council` to the closed noun list.
+- **The act noun can also be the head.** "Exxon estimates published in March put its emissions 20% lower" is withheld only because `its` follows. The word "estimates" is both the act noun and a head word. Pin a case where the only head candidate is the act noun itself, and search for the head only after the act.
+- **#7 and 70ad9e13 have no head** (G2).
+
+### G5. R3′ is right, but it releases third-party recitals wherever A2′ releases wrongly (R3′)
+R3′ applies to every source's text, not only the organisation's own domain. So wherever G3 releases wrongly, R3′ also silences news recitals of the organisation's finding.
+
+| Sentence (news source; claim "Vote Leave analysis shows £350m", Vote Leave released) | old → new |
+|---|---|
+| Britain sends the EU 350 million pounds every week, according to Vote Leave analysis. | True → **False** |
+
+The same sentence stays gated when Vote Leave is withheld. So R3′ is exactly as safe as the claimant signal, and no safer.
+
+A known miss: the Central Bank's own press release says "the Central Bank said…", which still fires on centralbank.ie. That is the safe direction, but #10's second Central Bank page stays context.
+
+**Fix:** once G3 is solved, nothing more is needed. Until then, limit R3′ to evidence on the released organisation's own domain, meaning the host that prong 1 would match. On a third-party host the according-to form keeps firing.
+
+### G6. Tests and verification
+- The test list must include every G1–G5 row, in the direction shown as correct.
+- Add the pinned Cook test (G2) under "must still release", so the regression is visible.
+- **Mutants to add:**
+  - remove the owner exclusion (G1);
+  - remove the element route (G2);
+  - remove article and suffix stripping (G3).
+- **Verification step 1 must cover more than #7 and #10.** It needs the stored `claimant` on every record whose claim reports an organisation's measurement, to measure how often extraction names the body itself. If it does so often, the founder rule cannot be built on this field.
+
+### Required changes to revision 2, in priority order
+1. **G3:** from stored records, establish what the `claimant` field holds on "X research shows" claims, before building. If it names the body, change the signal and put the choice back to the founder.
+2. **G2:** keep today's element route beside the claim-level route, both behind the claimant exclusion and the refers-back check. Otherwise 70ad9e13 and the pinned Cook test regress.
+3. **G1:** do not apply the instrument skip when the instrument has an owner that points back (possessive, `X's`, executive-comms term, or campaign/administration/government/party/press). Drop `release` from the list.
+4. **G3:** compare claimant names on distinctive tokens, with articles and corporate suffixes stripped.
+5. **G4:** match refers-back on subject-token word prefixes (excluding place names), and widen the closed noun list.
+6. **G5:** until G3 is resolved, limit R3′ to the released organisation's own domain.
+7. **G6:** add every G row, the Cook regression and the three mutants to the suite.
