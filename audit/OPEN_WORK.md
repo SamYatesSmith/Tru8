@@ -43,7 +43,7 @@
   - #9 re-run (1 credit);
   - the class-D decision;
   - the Build C enforce decision;
-  - PDF memory: consider a page-count cap alongside the 20 MB cap.
+  - ~~PDF memory~~ **FIXED**: pdfplumber kept every parsed page (a 2.1 MB, 259-page PDF peaked at 1,175 MB over 200 pages). Each page is now released after reading, so the same search peaks at 27 MB with identical results. A page cap was not needed.
 
 ### (done) Monday 28 Sep founder task
 **Run the 19-record A− re-measure** (~19 credits; the founder deferred it on 25 Sep and wants to pick it up on the 28th). It is the only way to know whether the A− rate has moved since the 0/19 baseline.

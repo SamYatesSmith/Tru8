@@ -166,7 +166,16 @@ class PDFEvidenceExtractor:
                         )
 
                     page = pdf.pages[page_num]
-                    page_text = page.extract_text()
+                    try:
+                        page_text = page.extract_text()
+                    finally:
+                        # Memory guard 3 (2026-09-28, restart at 09:00 UTC):
+                        # pdfplumber caches every parsed page's objects until
+                        # the document closes. A 2.1 MB, 259-page PDF peaked at
+                        # 1,175 MB over 200 pages this way, and 22 MB with each
+                        # page released after reading. The 20 MB byte cap never
+                        # saw it: memory scales with pages parsed, not bytes.
+                        page.close()
 
                     if not page_text:
                         continue

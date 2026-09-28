@@ -147,3 +147,52 @@ async def test_parse_serialised_module_wide():
             ),
         )
     assert max_in_parse == 1, f"parse overlap detected (max={max_in_parse})"
+
+
+# ── Guard 3 (2026-09-28): every parsed page is released ─────────────────────
+# pdfplumber keeps each parsed page's objects until the document closes. On a
+# 2.1 MB, 259-page PDF that measured 1,175 MB peak over 200 pages, and 22 MB
+# with page.close() after each page. It is the likely cause of the 09:00 UTC
+# production restart (SIGKILL mid PDF search).
+
+
+class _FakePage:
+    def __init__(self, text, closed_log, raise_on_extract=False):
+        self._text = text
+        self._closed = closed_log
+        self._raise = raise_on_extract
+
+    def extract_text(self):
+        if self._raise:
+            raise RuntimeError("bad page")
+        return self._text
+
+    def close(self):
+        self._closed.append(self)
+
+
+class _FakePdf:
+    def __init__(self, pages):
+        self.pages = pages
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+
+def test_every_searched_page_is_released():
+    closed = []
+    pages = [_FakePage("unrelated text", closed) for _ in range(5)]
+    with patch("pdfplumber.open", return_value=_FakePdf(pages)):
+        PDFEvidenceExtractor()._search_pdf_for_claim(BytesIO(b"x"), "gas storage", 5)
+    assert closed == pages
+
+
+def test_a_page_is_released_even_when_extraction_fails():
+    closed = []
+    pages = [_FakePage("", closed, raise_on_extract=True)]
+    with patch("pdfplumber.open", return_value=_FakePdf(pages)):
+        assert PDFEvidenceExtractor()._search_pdf_for_claim(BytesIO(b"x"), "claim", 1) == []
+    assert closed == pages
