@@ -223,6 +223,25 @@ export default function EvidenceResearchForAgentsPage() {
             </Link>
           </div>
 
+          {/* Related */}
+          <div className="mt-8 pt-8 border-t border-zinc-100">
+            <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
+              Related
+            </p>
+            <ul className="space-y-2.5">
+              <li>
+                <Link href="/pricing" className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors">
+                  API and Console pricing
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog/first-public-release" className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors">
+                  Tru8 — A First Public Release — the product behind the API
+                </Link>
+              </li>
+            </ul>
+          </div>
+
           {/* Back to Blog */}
           <div className="mt-10 pt-8 border-t border-zinc-200">
             <Link
