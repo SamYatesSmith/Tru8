@@ -33,10 +33,17 @@
   - The probe clears #7 and improves #4's pool; it does not help #5.
   - Next H3 builds, each needing a design: a native-language lane for foreign official results (#4), a GIE AGSI+ adapter (#5), an official-filing vocabulary lane (#6).
 - All pushed (`786b205`); prod healthy after the deploy.
+- **Restart at 09:00 UTC, read from the Railway logs:**
+  - The last application line was "PDF search progress 20/28 pages" at 09:00:11 (#9's retrieve, just after two 250+ page PDFs had been parsed for #7/#8).
+  - Then there was silence, then a cold start at 09:00:33 with no shutdown log. That is a SIGKILL, consistent with OOM during PDF parsing (the PDF guard caps size at 20 MB, not page count).
+  - The 5-minute sweep failed and refunded #9 at 09:10:37, as designed.
+  - Deeper cause not proven: Railway memory metrics were not read.
+- **Build C shadow read 2:** 12 would-drops, 10 clear copies, 2 plausible social cross-posts, 0 substantive sources lost (`audit/2026-09-24_a_minus_build_c_design.md`, last section). Enforce is the founder's call.
 - Still owed:
   - #9 re-run (1 credit);
-  - `railway login` for the `[COPY DEDUP]` shadow lines and the 08:59 UTC restart cause;
-  - the class-D decision.
+  - the class-D decision;
+  - the Build C enforce decision;
+  - PDF memory: consider a page-count cap alongside the 20 MB cap.
 
 ### (done) Monday 28 Sep founder task
 **Run the 19-record A− re-measure** (~19 credits; the founder deferred it on 25 Sep and wants to pick it up on the 28th). It is the only way to know whether the A− rate has moved since the 0/19 baseline.

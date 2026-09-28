@@ -159,3 +159,18 @@ Freed fetch slots are refilled from deeper results, so fetch and distil counts d
 ### 9.8 Before phase 2
 - Check every golden's `must_have` URLs against the copy key. A must-have that loses a survivor contest would break a tolerance-0 pin.
 - Replay reports states changed per record by direction. The review's stored-ref simulation found no direction changes; #14 e3 moves unresolved → contextual, which is correct.
+
+## Shadow read 2: the 2026-09-28 re-measure (production `9aff4ea`, Railway logs)
+There were 12 would-drops across 7 of 18 checks (the others had none):
+- **10 are clear copies:**
+  - bbc.co.uk ↔ bbc.com ×3;
+  - Statista `srsltid` variants ×2;
+  - an Instagram `/p/` ↔ `/reel/` of the same id;
+  - Lancet ↔ ScienceDirect for the same eBioMedicine article;
+  - an Instagram repost of the Silicon Republic article (the article survives);
+  - a talkshop.blog reprint of Brussels Signal (Brussels Signal survives);
+  - Surrey & Sussex ICB URL variants.
+- **2 are plausible but unproven** (#6, rule iii): social posts from different accounts carrying the same Bloomberg headline (Democracy Now on Facebook vs an Instagram post; an Instagram reel vs a Benzinga Facebook post). If they are distinct posts, dropping one costs no substantive source (social tier), but it is not strictly a copy.
+- **No would-drop removed a substantive or primary source.**
+
+**Reading:** precision holds on the second population. Enforcing is the founder's call. It needs the cache bump, a bench re-record (paid) and survivor fetch fallbacks, per §9.
