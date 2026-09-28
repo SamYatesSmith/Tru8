@@ -33,6 +33,12 @@
   - The probe clears #7 and improves #4's pool; it does not help #5.
   - Next H3 builds, each needing a design: a native-language lane for foreign official results (#4), a GIE AGSI+ adapter (#5), an official-filing vocabulary lane (#6).
 - All pushed (`786b205`); prod healthy after the deploy.
+- **Soft checks, afternoon 2026-09-28** (after the fixes, 7 records carry no hard fail, so A− is now a soft-check problem for them):
+  - **S3 Notables:** re-chosen by reach and tier, not raw relevance (`29314a2`, `audit/2026-09-28_notables_selection.md`). It scored 9/15 against the graders' named best source; relevance scored 3/15. The label is now "Main … source".
+  - **S6 shell titles:** "Reddit", "X - The Everything App" and login walls now read from the URL (`a71e109`).
+  - Both are live and apply on read to every stored record.
+  - Still open in S6: undated rows, and site suffixes on untruncated titles.
+  - Still open in S5: off-topic rows (Reddit threads, weather adapters).
 - **Restart at 09:00 UTC, read from the Railway logs:**
   - The last application line was "PDF search progress 20/28 pages" at 09:00:11 (#9's retrieve, just after two 250+ page PDFs had been parsed for #7/#8).
   - Then there was silence, then a cold start at 09:00:33 with no shutdown log. That is a SIGKILL, consistent with OOM during PDF parsing (the PDF guard caps size at 20 MB, not page count).
