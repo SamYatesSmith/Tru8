@@ -418,6 +418,37 @@ async def test_the_completion_census_cannot_bypass_the_gates(monkeypatch):
     assert recital["scoped"][0]["evidence_id"] == "ev-cbs"
 
 
+async def test_the_completion_census_keeps_the_main_pass_llm_state(monkeypatch):
+    """The main pass's llm_state survives the completion re-derivation.
+
+    It used to be read AFTER the basis rebuild, so it was always lost: 9 of 48
+    elements on the 2026-09-28 A− re-measure carried llm_state None."""
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _claim_map()
+    elem = claim_map["elements"][0]
+    elem["evidence_refs"] = [
+        {
+            "evidence_id": "ev-politifact",
+            "relationship": "challenges",
+            "reasoning": "Rated Pants on Fire, directly challenges the claim.",
+        }
+    ]
+    elem["basis"] = {"state_derivation": {"llm_state": "disputed", "rule_applied": "x"}}
+    monkeypatch.setattr(
+        analyzer,
+        "_call_llm",
+        _canned_llm(
+            {"elements": [{"element_id": "e3", "additional_refs": [WH_365_REF]}]}
+        ),
+    )
+    evidence_list = [e for e in EVIDENCE if e["evidence_id"] == "ev-politifact"] + [
+        WH_365
+    ]
+    await analyzer._complete_unmapped_evidence(claim_map, evidence_list)
+
+    assert elem["basis"]["state_derivation"]["llm_state"] == "disputed"
+
+
 async def test_coverage_recovery_cannot_bypass_the_gates(monkeypatch):
     """RECOVERY MAP is the seam the acceptance run's ev-rec-* refs came
     through — whitehouse.gov supporting a Trump claim, unscoped."""
@@ -539,9 +570,7 @@ def test_the_subjects_own_record_supports_an_attribution_CLAIM():
     """The inquiry's own report is the record of what the inquiry recommended."""
     analyzer = ClaimMapAnalyzer()
     claim_map = _attribution_claim_map()
-    analyzer._parse_mapping_response(
-        _inquiry_response(), claim_map, _INQUIRY_EVIDENCE
-    )
+    analyzer._parse_mapping_response(_inquiry_response(), claim_map, _INQUIRY_EVIDENCE)
     elem = claim_map["elements"][0]
     assert _rel(elem, "ev-inquiry-report") == "supports"
     assert "interested_party" not in elem["basis"]
@@ -636,14 +665,24 @@ _COOK_EVIDENCE = [
 ]
 
 
-def _cook_claim_map(kind="org", element="The generic ballot in the surveyed competitive districts is Democrats 49%, Republicans 47%."):
+def _cook_claim_map(
+    kind="org",
+    element="The generic ballot in the surveyed competitive districts is Democrats 49%, Republicans 47%.",
+):
     return {
         "claim_id": "0",
         "normalised_claim": (
             "Cook Political Report surveyed 1,052 likely voters in 37 competitive House "
             "districts; the generic ballot is Democrats 49, Republicans 47."
         ),
-        "elements": [{"element_id": "e1", "description": element, "evidence_refs": [], "state": None}],
+        "elements": [
+            {
+                "element_id": "e1",
+                "description": element,
+                "evidence_refs": [],
+                "state": None,
+            }
+        ],
         "metadata": {
             "jurisdiction": "US",
             "subjects": ["cook political report"],
@@ -658,7 +697,11 @@ def _cook_response(rel="supports"):
             {
                 "element_id": "e1",
                 "evidence_refs": [
-                    {"evidence_id": "ev-cook", "relationship": rel, "reasoning": "States 49% to 47%."}
+                    {
+                        "evidence_id": "ev-cook",
+                        "relationship": rel,
+                        "reasoning": "States 49% to 47%.",
+                    }
                 ],
             }
         ]
@@ -685,7 +728,9 @@ def test_the_measurement_release_is_org_only():
 def test_the_element_can_withhold_a_release():
     # An element naming neither the subject nor the act gets no release.
     analyzer = ClaimMapAnalyzer()
-    claim_map = _cook_claim_map(element="Democrats lead Republicans in competitive districts.")
+    claim_map = _cook_claim_map(
+        element="Democrats lead Republicans in competitive districts."
+    )
     analyzer._parse_mapping_response(_cook_response(), claim_map, _COOK_EVIDENCE)
     assert _rel(claim_map["elements"][0], "ev-cook") == "context"
 
@@ -731,4 +776,3 @@ def test_a_person_is_never_released_even_on_a_plain_saying():
         ["donald trump"],
         {"donald trump": "person"},
     )
-

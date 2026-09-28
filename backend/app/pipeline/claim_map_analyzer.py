@@ -3645,6 +3645,13 @@ class ClaimMapAnalyzer:
                     for k, v in (elem.get("basis") or {}).items()
                     if k in _SCOPE_RECEIPT_KEYS
                 }
+                # Captured BEFORE the basis rebuild below (2026-09-28): it used
+                # to be read after `_compute_element_basis` had replaced the
+                # basis, so the main pass's llm_state was always lost here —
+                # 9 of 48 elements on the A− re-measure carried llm_state None.
+                prior_state_derivation = (elem.get("basis") or {}).get(
+                    "state_derivation"
+                )
                 scope_receipts = self._apply_scope_gates(
                     elem, completion_ev_index, claim_map
                 )
@@ -3660,13 +3667,10 @@ class ClaimMapAnalyzer:
                     elem, evidence_list, *_state_floor_for(claim_map)
                 )
                 # Preserve the main pass's llm_state record if present.
-                prior_basis = (
-                    elem["basis"].get("state_derivation")
-                    if isinstance(elem.get("basis"), dict)
-                    else None
-                )
-                if prior_basis and prior_basis.get("llm_state"):
-                    state_basis["llm_state"] = prior_basis["llm_state"]
+                if isinstance(
+                    prior_state_derivation, dict
+                ) and prior_state_derivation.get("llm_state"):
+                    state_basis["llm_state"] = prior_state_derivation["llm_state"]
                 elem["basis"]["state_derivation"] = state_basis
                 elem["state"] = mech_state
 
