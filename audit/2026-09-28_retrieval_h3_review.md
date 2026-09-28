@@ -19,9 +19,24 @@
 - `RETRIEVAL_CACHE_VERSION` is bumped to `2026-09-28` in the same commit (piece 3 rule).
 - ⚠️ **Honesty note:** part of this failure is an artefact of the re-measure. These claims were first checked within days of their events, when `pw` was reasonable, and were re-run weeks later. A real user submitting a claim about a 3-week-old event would hit the same wall, so the fix is genuine. Its effect on the A− rate is measured only by re-running the same claims.
 
-**Not yet verified:** whether the widened queries actually return the authoritative pages. The honest test is to issue them and read the results (Serper, pence; ask first).
+**Verified by probe:** see the last section. It clears #7, improves #4's pool, and does not help #5.
 
 ## Not fixed (named)
 - **#6 vocabulary:** an official-filing lane ("financial disclosure report" / OGE) for claims about a public official's disclosed holdings. Needs design.
 - **#2 paywall/copy:** a repository copy of a paper should be linked to its publisher record, not left as unmapped commentary. It relates to Build C (copy identity).
 - **#13, #15 discovery:** the same class as Phase D. Do not attempt a query-side fix without first reading actual result lists.
+
+## Probe: past week vs past month (founder-approved, 12 Serper calls, 2026-09-28)
+The same queries as the stored plans, run with `pw` and then with `pm`:
+- **#7: fixed.** With `pm`, Cook's own write-up ("new-battleground-district-poll-shows", rank 2–3) and the September methodology PDF (rank 1) are returned. With `pw` only the results page came back.
+- **#4: the pool improved, H3 is not fixed.**
+  - `pw` returned junk: Facebook posts, Medium, Wikipedia "Bauhaus", Britannica on the Soviet Union.
+  - `pm` returns the real coverage: BBC, Time, DW, CS Monitor.
+  - The returning officer's results page appears in **neither**. It is German-language, and every query is English. That needs a jurisdiction-native query lane (not built; needs design).
+- **#5: no help.** GIE appeared once, as its homepage at rank 6, and only under `pw`. `pm` gave a mixed set (LinkedIn, X, low-grade aggregators). AGSI+ is a data app that search does not rank. The route to it is a GIE AGSI+ API adapter (not built).
+
+**Net:** the widening is right, and it improves #4's pool a great deal, but it clears H3 on one record (#7) of three.
+**What this points to for H3:**
+- a native-language query lane for foreign official results (#4);
+- an AGSI adapter (#5);
+- an official-filing vocabulary lane (#6).
