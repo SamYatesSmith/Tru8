@@ -80,7 +80,7 @@ export function PickerRow({
         </div>
         <div className="flex-grow min-w-0">
           <div className="text-[13px] font-medium text-zinc-900 leading-snug break-words">
-            {cleanTitle(evidence.title) || 'Untitled source'}
+            {cleanTitle(evidence.title, evidence.url) || 'Untitled source'}
           </div>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
             <span className="font-mono text-[10px] text-zinc-500">{domain}</span>

@@ -239,7 +239,7 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian }: Cartogr
                       {ev.source}
                     </div>
                     <div className="text-[12px] text-zinc-900 font-medium leading-snug mb-1.5">
-                      {cleanTitle(ev.title)}
+                      {cleanTitle(ev.title, ev.url)}
                     </div>
                     {ev.publishedDate && (
                       <div className="text-[10px] text-zinc-400 font-mono mb-2">

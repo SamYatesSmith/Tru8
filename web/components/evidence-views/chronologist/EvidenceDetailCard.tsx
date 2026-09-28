@@ -61,7 +61,7 @@ export function EvidenceDetailCard({ evidence, elementDescriptions, onClose }: E
 
       {/* Title */}
       <p className="text-sm font-medium text-zinc-900 mb-1">
-        {cleanTitle(evidence.title) || 'Untitled source'}
+        {cleanTitle(evidence.title, evidence.url) || 'Untitled source'}
       </p>
 
       {/* Date */}

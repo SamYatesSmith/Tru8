@@ -782,7 +782,7 @@ export function EvidenceMap({
             {hoveredNode.evidence.source}
           </div>
           <div className="text-[11px] text-zinc-800 font-medium line-clamp-2 leading-tight">
-            {cleanTitle(hoveredNode.evidence.title)}
+            {cleanTitle(hoveredNode.evidence.title, hoveredNode.evidence.url)}
           </div>
           {hoveredNode.evidence.publishedDate && (
             <div className="text-[10px] text-zinc-400 mt-1 font-mono">

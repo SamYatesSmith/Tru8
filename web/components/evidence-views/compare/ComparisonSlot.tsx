@@ -128,7 +128,7 @@ export function ComparisonSlot({
       </div>
 
       <div className="text-sm text-zinc-700 leading-snug break-words mb-2">
-        {cleanTitle(evidence.title) || 'Untitled source'}
+        {cleanTitle(evidence.title, evidence.url) || 'Untitled source'}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

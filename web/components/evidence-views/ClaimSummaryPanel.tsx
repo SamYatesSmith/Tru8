@@ -361,7 +361,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
                   <span aria-hidden className="mt-2 w-1 h-1 bg-zinc-400 shrink-0" />
                   {/* Source title, not the raw snippet — source-platforming invariant
                       (relevance summaries drive visits; never reproduce article content). */}
-                  <span className="flex-1 leading-snug line-clamp-2">{cleanTitle(ev.title) || extractDomain(ev.url)}</span>
+                  <span className="flex-1 leading-snug line-clamp-2">{cleanTitle(ev.title, ev.url) || extractDomain(ev.url)}</span>
                   <a
                     href={ev.url}
                     target="_blank"
@@ -460,7 +460,7 @@ function PointCard({ kind, title, url, nav, onOpen }: { kind: EvidenceRelationsh
       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-600">
         {meta.glyph} Main {adj} source
       </span>
-      <p className="mt-1.5 text-sm text-zinc-900 leading-snug">{cleanTitle(title)}</p>
+      <p className="mt-1.5 text-sm text-zinc-900 leading-snug">{cleanTitle(title, url)}</p>
       <div className="mt-2 flex items-center justify-between gap-3">
         <a
           href={url}

@@ -71,3 +71,38 @@ describe('cleanTitle', () => {
     expect(cleanTitle('Inflation < 2% for the first time')).toBe('Inflation < 2% for the first time');
   });
 });
+
+// A− S6 (2026-09-28): shell titles that name only the platform or a wall.
+describe('cleanTitle — shell titles yield to the URL', () => {
+  it('builds a Reddit title from the thread slug and subreddit', () => {
+    expect(
+      cleanTitle(
+        'Reddit',
+        'https://www.reddit.com/r/ClimateOffensive/comments/1abcd/without_action_wildfires_in_europe_will_increase/'
+      )
+    ).toBe('Without action wildfires in europe will increase (r/ClimateOffensive)');
+  });
+
+  it('names the account for an X post', () => {
+    expect(cleanTitle('X - The Everything App', 'https://x.com/CookPolitical/status/123')).toBe(
+      'Post by @CookPolitical on X'
+    );
+  });
+
+  it('uses the path words for a login wall', () => {
+    expect(
+      cleanTitle('Register Login Page', 'https://healthcareleadernews.com/news/thirlwall-inquiry-final-report-managers')
+    ).toBe('Thirlwall inquiry final report managers');
+  });
+
+  it('keeps the shell when nothing better can be built', () => {
+    expect(cleanTitle('Reddit', 'https://www.reddit.com/')).toBe('Reddit');
+    expect(cleanTitle('Reddit')).toBe('Reddit');
+  });
+
+  it('leaves a real title alone even with a URL', () => {
+    expect(cleanTitle('Reddit shares jump after earnings', 'https://www.reuters.com/x')).toBe(
+      'Reddit shares jump after earnings'
+    );
+  });
+});

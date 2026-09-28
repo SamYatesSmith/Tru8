@@ -46,7 +46,7 @@ export function UnmappedEvidenceGroup({ evidence }: { evidence: Evidence[] }) {
                 rel="noopener noreferrer"
                 className="min-w-0 flex-1 text-[12px] text-zinc-600 hover:text-[var(--accent)] transition-colors"
               >
-                <span className="block leading-snug">{cleanTitle(ev.title) || domain}</span>
+                <span className="block leading-snug">{cleanTitle(ev.title, ev.url) || domain}</span>
                 <span className="inline-flex items-center gap-1 font-mono text-[10px] text-zinc-400">
                   {domain} <ArrowUpRight size={10} />
                 </span>

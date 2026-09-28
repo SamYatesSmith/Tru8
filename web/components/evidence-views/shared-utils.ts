@@ -33,8 +33,55 @@ export function extractDomain(url: string): string {
  *
  * Clean titles (no ellipsis) are returned untouched.
  */
-export function cleanTitle(title?: string | null): string {
-  if (!title) return '';
+// A− S6 (2026-09-28): page titles that name only the platform or a wall, not
+// the item. Rows titled "Reddit", "X - The Everything App", "TikTok - Make Your
+// Day" and "Register Login Page" appeared on 7 of 19 re-measured records.
+const SHELL_TITLE =
+  /^(?:reddit|x|twitter|x - the everything app|tiktok - make your day|tiktok|instagram|facebook|log in(?: or sign up)?|sign in|register login page|login|just a moment\.*|access denied|attention required!?.*|home|untitled)$/i;
+
+function words(slug: string): string {
+  const w = decodeURIComponent(slug).replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return w ? w.charAt(0).toUpperCase() + w.slice(1) : '';
+}
+
+/** A readable title from the URL, for a shell title. Empty when none can be built. */
+export function titleFromUrl(url?: string | null): string {
+  if (!url) return '';
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return '';
+  }
+  const host = u.hostname.toLowerCase().replace(/^www\.|^old\.|^m\./, '');
+  const parts = u.pathname.split('/').filter(Boolean);
+  if (host.endsWith('reddit.com')) {
+    const sub = parts[0] === 'r' && parts[1] ? `r/${parts[1]}` : '';
+    const slug = parts[2] === 'comments' && parts[4] ? words(parts[4]) : '';
+    if (slug && sub) return `${slug} (${sub})`;
+    return sub ? `Reddit thread in ${sub}` : '';
+  }
+  if (host === 'x.com' || host === 'twitter.com') {
+    return parts[0] && parts[0] !== 'i' ? `Post by @${parts[0]} on X` : '';
+  }
+  if (host.endsWith('tiktok.com')) {
+    return parts[0]?.startsWith('@') ? `TikTok video by ${parts[0]}` : 'TikTok video';
+  }
+  if (host.endsWith('instagram.com')) return parts[0] === 'reel' ? 'Instagram reel' : 'Instagram post';
+  if (host.endsWith('facebook.com')) return parts[0] ? `Facebook post by ${words(parts[0])}` : '';
+  // Anything else: the last path segment that reads as words.
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const seg = parts[i].replace(/\.(?:html?|php|aspx?)$/i, '');
+    if (/[a-z]{3,}[-_][a-z]{3,}/i.test(seg)) return words(seg);
+  }
+  return '';
+}
+
+export function cleanTitle(title?: string | null, url?: string | null): string {
+  if (!title) return url ? titleFromUrl(url) : '';
+  // A shell title yields to one built from the URL; if none can be built, the
+  // shell ("Reddit") still names the platform, which beats "Untitled source".
+  if (SHELL_TITLE.test(title.trim())) return titleFromUrl(url) || title.trim();
   const out = title
     // stored markup (a Wikipedia <span class="mw-page-title-main"> reached the
     // ledger, TIMELINE and PDF — A− S6, 2026-09-24)

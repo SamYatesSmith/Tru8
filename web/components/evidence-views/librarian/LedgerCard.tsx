@@ -78,7 +78,7 @@ export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, relat
         </div>
         <div className="flex-grow min-w-0">
           <div className="text-sm font-medium text-zinc-900 mb-1 leading-snug break-words">
-            {cleanTitle(evidence.title) || 'Untitled source'}
+            {cleanTitle(evidence.title, evidence.url) || 'Untitled source'}
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex items-center gap-1 font-mono text-[10px] text-zinc-500">
