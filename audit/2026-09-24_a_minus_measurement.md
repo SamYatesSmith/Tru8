@@ -180,7 +180,7 @@ The same 19 inputs were re-run on the current build through `/checks/run`, one a
 
 **#9 did not complete.** The API went down for about a minute at 08:59 UTC while #9 was in retrieve. There was no Sentry exception, which points to an OOM kill. The check was stranded, then failed and refunded by the sweep. So the re-measure covers **18 records**; #9 is owed. Cost: 18 credits.
 
-**Result: 0 of 18 at A−.** Grades: B+ 3 · B 6 · B− 4 · C 5 (baseline: B+ 1 · B 5 · B− 5 · C 8, over 19).
+**Result: 0 of 19 at A−** (#9 re-run later the same day, B). Grades: B+ 3 · B 7 · B− 4 · C 5 (baseline: B+ 1 · B 5 · B− 5 · C 8).
 
 | n | new check | grade | failed checks (stage) |
 |---|---|---|---|
@@ -192,7 +192,7 @@ The same 19 inputs were re-run on the current build through `/checks/run`, one a
 | 6 | 8d7013a2 | C | H2 map · H3 retrieve · H4 classify · S3 · S4 · S5 · S6 |
 | 7 | 50e08e0e | B− | H1 scope_gates (recital demoted Cook's own results) · H3 retrieve · S3 · S5 · S6 |
 | 8 | 66a8fce1 | B | S3 · S4 · S5 · S6 |
-| 9 | — | not run | stranded by the restart, refunded |
+| 9 | 96ab8de1 | B | all hard pass · S1 · S3 · S4 · S5 · S6 · S7 (claimant's Substack as support) — re-run 2026-09-28 afternoon on `b50672e` |
 | 10 | 1139fbdb | C | H1 scope_gates (interested-party on a "research says" claim) · H2 map · H4 classify · S5 |
 | 11 | d60ea371 | B | H4 classify · S3 · S6 |
 | 12 | 168a7af0 | C | H1 map · H2 map · H4 classify · S1 · S3 · S5 |
