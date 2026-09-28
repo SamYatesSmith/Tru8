@@ -41,7 +41,7 @@
 - **Build C shadow read 2:** 12 would-drops, 10 clear copies, 2 plausible social cross-posts, 0 substantive sources lost (`audit/2026-09-24_a_minus_build_c_design.md`, last section). Enforce is the founder's call.
 - Still owed:
   - ~~#9 re-run~~ done: **B**, so the re-measure is **0/19 at A−**. Per record against the baseline: 7 up, 4 down, 8 same (3 of the downs trace to faults fixed on 2026-09-28);
-  - the class-D decision;
+  - ~~the class-D decision~~ **DECIDED 2026-09-28 (founder): unmapped rows KEEP their tier badge.** Dropping it would mainly flatter the grade. Class D (the LLM calling non-originators such as KFF, trade bodies and corporate papers primary) stays a classifier problem to fix;
   - ~~the Build C enforce decision~~ **Build C ENFORCING** (main site; see the design doc § Phase 2 as built). The recovery sites are still shadow;
   - ~~PDF memory~~ **FIXED**: pdfplumber kept every parsed page (a 2.1 MB, 259-page PDF peaked at 1,175 MB over 200 pages). Each page is now released after reading, so the same search peaks at 27 MB with identical results. A page cap was not needed.
 

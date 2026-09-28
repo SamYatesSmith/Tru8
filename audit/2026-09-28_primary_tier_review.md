@@ -55,3 +55,7 @@ All in `backend/app/pipeline/evidence_classifier.py`. Everything is lower-only a
 - Not demoted: JRC, CSO, Cook, NASA, whereyourmoneygoes.gov.ie, OWID.
 - The BMJ override change needs the LLM's own verdict, so it is covered by tests only.
 - Not caught, as expected: projectcuria (unmapped), class D rows, and the off-topic weather adapters (a routing bug, logged under S5).
+
+
+## Decision — 2026-09-28 (founder)
+Class D: unmapped rows **keep** their tier badge. The H4 check still applies to them, so class D is fixed in the classifier, not by hiding the label.
