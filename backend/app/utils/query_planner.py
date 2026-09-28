@@ -16,8 +16,8 @@ Key Features:
 import logging
 import json
 import re
-from datetime import datetime
-from typing import Dict, List, Any, Optional
+from datetime import date, datetime
+from typing import Dict, List, Any, Optional, Tuple
 import httpx
 from app.core.config import settings
 from app.services.google_ai import call_google_ai
@@ -108,6 +108,83 @@ def _inject_freshness_for_historical_dates(
             f"freshness='none' for historical claims"
         )
 
+    return plans
+
+
+# A− H3 (2026-09-28): a dated event earlier THIS year could still be searched
+# through a window narrower than its age. B4 above only widens for earlier
+# YEARS. Three of seven "authoritative source missing" records on the A−
+# re-measure ran every query with freshness=pw (past week) for events of 6,
+# 8–11 and 11 September, searched on 28 September, so the returning officer's
+# results page, GIE's data and Cook's own release were outside the window.
+# Widen-only: the planner's choice stands when it already reaches back far
+# enough. audit/2026-09-28_retrieval_h3_review.md
+_WINDOW_DAYS = (("pd", 1), ("pw", 7), ("pm", 31), ("py", 366))
+_WINDOW_RANK = {"pd": 0, "pw": 1, "pm": 2, "py": 3, "2y": 4, "none": 5}
+_MONTHS = {
+    m: i
+    for i, m in enumerate(
+        (
+            "january february march april may june july august "
+            "september october november december"
+        ).split(),
+        1,
+    )
+}
+# "September 8-11, 2026" / "September 8, 2026" — a day or day range the
+# month-level period reader does not see.
+_MONTH_DAY_YEAR = re.compile(
+    r"\b("
+    + "|".join(_MONTHS)
+    + r")\s+\d{1,2}(?:\s*[-–]\s*\d{1,2})?(?:st|nd|rd|th)?,?\s+(\d{4})\b",
+    re.IGNORECASE,
+)
+
+
+def _stated_months(text: str) -> List[Tuple[int, int]]:
+    """(year, month) pairs the text states, month-level or finer."""
+    from app.utils.temporal_scope import extract_periods
+
+    months = {(p.year, p.month) for p in extract_periods(text) if p.is_month_level}
+    for m in _MONTH_DAY_YEAR.finditer(text or ""):
+        months.add((int(m.group(2)), _MONTHS[m.group(1).lower()]))
+    return sorted(months)
+
+
+def _widen_freshness_for_dated_events(
+    plans: List[Dict[str, Any]],
+    claims_with_elements: List[Dict[str, Any]],
+    today: date,
+) -> List[Dict[str, Any]]:
+    """Widen a plan's window so it reaches back to the claim's earliest
+    stated month in the current year. Never narrows. Mutates in place."""
+    needed_by_claim: Dict[int, str] = {}
+    for claim in claims_with_elements:
+        past = [
+            (y, m)
+            for y, m in _stated_months(claim.get("text") or "")
+            if y == today.year and m <= today.month
+        ]
+        if not past:
+            continue
+        y, m = past[0]
+        age = (today - date(y, m, 1)).days
+        needed_by_claim[claim.get("claim_index", 0)] = next(
+            (w for w, days in _WINDOW_DAYS if age < days), "2y"
+        )
+
+    for plan in plans:
+        needed = needed_by_claim.get(plan.get("claim_index", 0))
+        if needed is None:
+            continue
+        current = plan.get("freshness", "py")
+        if _WINDOW_RANK.get(current, 3) < _WINDOW_RANK[needed]:
+            plan["freshness"] = needed
+            logger.info(
+                f"[FRESHNESS WIDEN] claim={plan.get('claim_index', 0)} "
+                f"element={plan.get('element_id')} '{current}'->'{needed}' "
+                f"(dated event older than the window)"
+            )
     return plans
 
 
@@ -424,6 +501,9 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
             # freshness="none" so original-period evidence isn't filtered out.
             validated_plans = _inject_freshness_for_historical_dates(
                 validated_plans, claims_with_elements, datetime.now().year
+            )
+            validated_plans = _widen_freshness_for_dated_events(
+                validated_plans, claims_with_elements, datetime.now().date()
             )
 
             if len(validated_plans) < total_elements:

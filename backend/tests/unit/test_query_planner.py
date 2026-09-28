@@ -268,6 +268,52 @@ class TestQueryPlannerIntegration:
             assert len(result[0]["queries"]) == 2
 
     @pytest.mark.asyncio
+    async def test_plan_queries_batch_widens_dated_event_windows(self):
+        """The dated-event widening runs on the batch path (A− H3 2026-09-28)."""
+        from app.utils import query_planner as qp
+
+        planner = qp.LLMQueryPlanner()
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "choices": [
+                {
+                    "message": {
+                        "content": """{"plans": [{"claim_index": 0, "element_id": "e1",
+                        "queries": ["q"], "freshness": "pw", "reasoning": "r"}]}"""
+                    }
+                }
+            ]
+        }
+        seen = {}
+
+        def spy(plans, claims, today):
+            seen["args"] = (plans, claims, today)
+            for plan in plans:
+                plan["freshness"] = "pm"
+            return plans
+
+        with patch("httpx.AsyncClient") as mock_client, patch.object(
+            qp, "_widen_freshness_for_dated_events", side_effect=spy
+        ):
+            mock_instance = AsyncMock()
+            mock_instance.post = AsyncMock(return_value=mock_response)
+            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+            mock_instance.__aexit__ = AsyncMock(return_value=None)
+            mock_client.return_value = mock_instance
+            claims = [
+                {
+                    "text": "As of 11 September 2026, EU gas storage is 67% full",
+                    "claim_index": 0,
+                    "elements": [{"element_id": "e1", "description": "storage 67%"}],
+                }
+            ]
+            result = await planner.plan_queries_batch(claims)
+
+        assert seen["args"][1] == claims
+        assert result[0]["freshness"] == "pm"
+
+    @pytest.mark.asyncio
     async def test_plan_queries_batch_no_api_key(self):
         """Planning bails only when NO provider is configured.
 
@@ -968,3 +1014,77 @@ class TestBatchCapacityAndAttribution:
         )
 
         assert str(historical_year) in validated[0]["queries"][0]
+
+
+# ============================================================
+# A− H3 (2026-09-28): a dated event older than the planner's window
+# ============================================================
+
+
+class TestWidenFreshnessForDatedEvents:
+    """The re-measure searched 6/8–11/11 September events on 28 September
+    with freshness=pw, so the authoritative pages were outside the window."""
+
+    @staticmethod
+    def _run(text, freshness, today):
+        from datetime import date
+
+        from app.utils.query_planner import _widen_freshness_for_dated_events
+
+        plans = [{"claim_index": 0, "element_id": "c0", "freshness": freshness}]
+        _widen_freshness_for_dated_events(
+            plans, [{"claim_index": 0, "text": text}], date(*today)
+        )
+        return plans[0]["freshness"]
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "In the September 2026 Saxony-Anhalt state election the AfD won the most seats",
+            "As of 11 September 2026, EU-wide gas storage stocks are 67% full",
+            "surveyed 1,052 likely voters from September 8-11, 2026 across 37 districts",
+        ],
+    )
+    def test_past_week_widens_to_past_month(self, text):
+        assert self._run(text, "pw", (2026, 9, 28)) == "pm"
+
+    def test_older_month_this_year_widens_to_past_year(self):
+        assert self._run("GDP fell in March 2026", "pm", (2026, 9, 28)) == "py"
+
+    def test_window_already_wide_enough_is_kept(self):
+        assert self._run("As of 11 September 2026, storage", "pw", (2026, 9, 3)) == "pw"
+
+    def test_never_narrows(self):
+        assert self._run("As of 11 September 2026, storage", "none", (2026, 9, 28)) == "none"
+        assert self._run("As of 11 September 2026, storage", "py", (2026, 9, 28)) == "py"
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "The inquiry said a barring system must exist by September 2027",  # future
+            "CPI in 2025 was 3%",  # year only
+            "Unemployment is rising this week",  # no date
+            "Inflation hit 11% in October 2022",  # earlier year: B4's job
+        ],
+    )
+    def test_no_current_year_past_month_leaves_plan_alone(self, text):
+        assert self._run(text, "pw", (2026, 9, 28)) == "pw"
+
+    def test_only_the_dated_claim_is_widened(self):
+        from datetime import date
+
+        from app.utils.query_planner import _widen_freshness_for_dated_events
+
+        plans = [
+            {"claim_index": 0, "element_id": "c0", "freshness": "pw"},
+            {"claim_index": 1, "element_id": "c0", "freshness": "pw"},
+        ]
+        _widen_freshness_for_dated_events(
+            plans,
+            [
+                {"claim_index": 0, "text": "As of 11 September 2026, storage"},
+                {"claim_index": 1, "text": "Prices are rising"},
+            ],
+            date(2026, 9, 28),
+        )
+        assert [p["freshness"] for p in plans] == ["pm", "pw"]
