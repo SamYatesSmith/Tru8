@@ -628,8 +628,12 @@ def _arxiv_smell_test(evidence: Dict[str, Any]) -> Optional[str]:
 # b8cf098b, republishing NOAA). A news organisation's own analysis is
 # reporting; an aggregator is at most reporting. Lower-only: never raises a
 # tier. Host-anchored, so "ap.org" cannot match "sitemap.org".
-_NEWS_OUTLET_HOST = re.compile(r"(?:^|\.)(?:" + _WIRE_SERVICES.pattern + r")$", re.IGNORECASE)
-_AGGREGATOR_HOST = re.compile(r"(?:^|\.)(?:statista\.com|tradingeconomics\.com)$", re.IGNORECASE)
+_NEWS_OUTLET_HOST = re.compile(
+    r"(?:^|\.)(?:" + _WIRE_SERVICES.pattern + r")$", re.IGNORECASE
+)
+_AGGREGATOR_HOST = re.compile(
+    r"(?:^|\.)(?:statista\.com|tradingeconomics\.com)$", re.IGNORECASE
+)
 
 
 def _url_host(url: str) -> str:
@@ -639,8 +643,58 @@ def _url_host(url: str) -> str:
         return ""
 
 
+# A− H4 round 2 (2026-09-28, audit/2026-09-28_primary_tier_review.md). The
+# 18-record re-measure still had weak sources in PRIMARY on 10 records:
+#   - third-party trackers and live dashboards (tracefour, orbitalradar,
+#     voltstack, inquirytracker.uk) — a page of figures reads as primary/data to
+#     the LLM, but the tracker republishes someone else's series;
+#   - Wikipedia through its API adapter — every adapter result is primary, so
+#     the same page is commentary from web search and primary from the adapter;
+#   - a go.nature.com shortlink whose text was Carbon Brief — the host names a
+#     journal, the page is not one;
+#   - a KYOS page that never rendered ("{{ type == 'gas' ? … }}").
+# All caps are lower-only (primary → reporting/commentary) and never touch a
+# host whose identity already settles the tier (gov / academic / data portal).
+_TRACKER_TITLE = re.compile(
+    r"tracker|\blive\b|\btoday\b|updated daily|real[- ]?time",
+    re.IGNORECASE,
+)
+_TRACKER_URL = re.compile(r"tracker", re.IGNORECASE)
+_SHORTLINK_HOST = re.compile(
+    r"^(?:go\.nature\.com|bit\.ly|t\.co|ow\.ly|tinyurl\.com|buff\.ly|lnkd\.in"
+    r"|trib\.al|dlvr\.it|shorturl\.at|rb\.gy)$",
+    re.IGNORECASE,
+)
+# An unrendered client-side template: "{{ type == 'gas' ? … }}".
+_UNRENDERED_TEMPLATE = re.compile(r"\{\{[^{}]{1,200}\}\}")
+
+
+def _identity_settles_tier(host: str) -> bool:
+    """True when the host alone makes a source primary (gov/academic/data)."""
+    if _SHORTLINK_HOST.search(host):
+        return False
+    return bool(
+        _GOV_PATTERNS.search(host)
+        or _ACADEMIC_PATTERNS.search(host)
+        or _DATA_PORTALS.search(host)
+    )
+
+
+def _is_tracker(evidence: Dict[str, Any], host: str) -> bool:
+    title = evidence.get("title", "") or ""
+    return bool(
+        _TRACKER_TITLE.search(title)
+        or _TRACKER_URL.search(host)
+        or _TRACKER_URL.search(urlparse(evidence.get("url", "") or "").path or "")
+    )
+
+
 def _apply_primary_cap(evidence: Dict[str, Any]) -> Optional[str]:
-    """Cap a PRIMARY verdict at reporting for news outlets and aggregators."""
+    """Cap a PRIMARY verdict for sources that cannot be primary.
+
+    News outlets, aggregators, third-party trackers, shortlinks and unrendered
+    pages. Lower-only: returns None unless the item is currently primary.
+    """
     if evidence.get("tier") != "primary":
         return None
     host = _url_host(evidence.get("url", "") or "")
@@ -654,7 +708,65 @@ def _apply_primary_cap(evidence: Dict[str, Any]) -> Optional[str]:
         evidence["tier"] = "reporting"
         evidence["classification_method"] = "aggregator_cap"
         return "aggregator_cap"
+    if _SHORTLINK_HOST.search(host):
+        # The publisher behind a shortlink is unknown, so identity cannot
+        # establish primary (go.nature.com → a Carbon Brief interactive).
+        evidence["tier"] = "reporting"
+        evidence["classification_method"] = "shortlink_cap"
+        return "shortlink_cap"
+    if _identity_settles_tier(host):
+        return None
+    text = f"{evidence.get('snippet') or ''} {evidence.get('text') or ''}"
+    if _UNRENDERED_TEMPLATE.search(text):
+        evidence["tier"] = "reporting"
+        evidence["classification_method"] = "unrendered_cap"
+        return "unrendered_cap"
+    if _is_tracker(evidence, host):
+        evidence["tier"] = "reporting"
+        evidence["classification_method"] = "tracker_cap"
+        return "tracker_cap"
     return None
+
+
+# Journals that also run a newsroom. URL identity says "academic" for every
+# page on the host, which raised a BMJ news story (C Dyer, record d60ea371)
+# from the LLM's reporting verdict to primary/academic. On these hosts a
+# reporting verdict stands; a commentary verdict is still overridden, because
+# the LLM's known failure is under-calling journals (NEJM as commentary).
+_MIXED_PUBLISHER_HOST = re.compile(
+    r"(?:^|\.)(?:bmj\.com|nature\.com|science\.org)$", re.IGNORECASE
+)
+
+
+def _keeps_news_verdict(evidence: Dict[str, Any], llm_tier: str) -> bool:
+    """True when an LLM reporting verdict on a mixed publisher must stand."""
+    if llm_tier != "reporting":
+        return False
+    return bool(_MIXED_PUBLISHER_HOST.search(_url_host(evidence.get("url", "") or "")))
+
+
+def _apply_tracker_host_cap(evidence_items: List[Dict[str, Any]]) -> int:
+    """Pool pass: once a host is capped as a tracker, cap its other pages too.
+
+    A tracker site's sibling pages ("EU Gas Storage Trajectory" beside "Live
+    AGSI+ Tracker"; orbitalradar's /satellites/ page beside /jwst-tracker)
+    carry the same republished series without the tell in their own title.
+    """
+    tracker_hosts = {
+        _url_host(item.get("url", "") or "")
+        for item in evidence_items
+        if item.get("classification_method") == "tracker_cap"
+    }
+    tracker_hosts.discard("")
+    capped = 0
+    for item in evidence_items:
+        if item.get("tier") != "primary":
+            continue
+        if _url_host(item.get("url", "") or "") in tracker_hosts:
+            item["tier"] = "reporting"
+            item["classification_method"] = "tracker_host_cap"
+            capped += 1
+    return capped
 
 
 def _apply_quality_floor(evidence: Dict[str, Any]) -> Optional[str]:
@@ -737,6 +849,16 @@ def _apply_quality_floor(evidence: Dict[str, Any]) -> Optional[str]:
             evidence["evidence_type"] = "analysis"
             evidence["classification_method"] = "preprint_floor"
             return "preprint_floor"
+
+    # A− H4 round 2: a reference platform is never primary. The heuristic
+    # already says so for a wikipedia.org URL from web search, but the
+    # Wikipedia API adapter reached PRIMARY through the adapter rule (record
+    # e72bf789, "COVID-19 pandemic in Sweden" as primary/data).
+    if _REFERENCE_PLATFORMS.search(url) and evidence.get("tier") == "primary":
+        evidence["tier"] = "commentary"
+        evidence["evidence_type"] = "analysis"
+        evidence["classification_method"] = "reference_floor"
+        return "reference_floor"
 
     return _apply_primary_cap(evidence)
 
@@ -846,7 +968,7 @@ class EvidenceClassifier:
 
                 # Check if a high-confidence URL pattern disagrees
                 hc = _high_confidence_override(item)
-                if hc and hc[0] != tier:
+                if hc and hc[0] != tier and not _keeps_news_verdict(item, tier):
                     logger.info(
                         "[CLASSIFIER OVERRIDE] %s: LLM=%s/%s → %s/%s (URL identity)",
                         (item.get("url", ""))[:60],
@@ -907,6 +1029,9 @@ class EvidenceClassifier:
                     floor,
                     (item.get("url") or "")[:60],
                 )
+
+        tracker_host_capped = _apply_tracker_host_cap(evidence_items)
+        quality_floor_count += tracker_host_capped
 
         # Log summary
         tier_counts = Counter(item.get("tier", "unknown") for item in evidence_items)

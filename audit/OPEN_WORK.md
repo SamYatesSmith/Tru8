@@ -12,7 +12,19 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## ▶ MONDAY 28 SEPTEMBER 2026 — START HERE (founder task)
+## ▶ 2026-09-28 — A− RE-MEASURE DONE: 0/18 at A−, but the distribution moved (START HERE)
+- 18 of 19 re-run on `9aff4ea` and graded blind: B+ 3 · B 6 · B− 4 · C 5 (baseline B+ 1 · B 5 · B− 5 · C 8). Wrong refs (H2) 13 → 5; card reasons (S2) 11 → 0; headline contradictions (H5) 3 → 0.
+- **Classify (H4, weak source in PRIMARY) is now the largest hard bucket: 10/18.** It is the only hard fail on #3, #11 and #18. Ceiling what-if: H4 + off-topic rows + surface warts → ~6/18 at A−.
+- #9 was stranded by an API restart at 08:59 UTC (no Sentry trace → likely OOM in retrieve), then refunded. Re-run owed, after the cause is read from Railway logs.
+- Owed: the `[COPY DEDUP]` shadow read (Railway login needed).
+- Full record: `audit/2026-09-24_a_minus_measurement.md` § Re-measure 2026-09-28; grades in `audit/a_minus/2026-09-28_rerun/`.
+- **H4 round 2 BUILT (same day)** (`audit/2026-09-28_primary_tier_review.md`). New lower-only rules: tracker cap + host propagation, reference floor for adapter Wikipedia, shortlink cap, unrendered-template cap, and the URL-identity override no longer raises an LLM *reporting* verdict on bmj/nature/science.
+  - Replay on the 18 pools: 14 tier changes, 0 state changes.
+  - Unit suite 4,154 pass. 8/8 mutants killed.
+  - Bench: 0004 re-keyed (its Wikipedia adapter item) and patched with `--record-missing`; it now replays equal to the control arm. 5647/82CF/93DD drift is the known noise, identical with the change off.
+  - Open: class D (an unmapped row still shows a tier badge; founder decision) and off-topic weather adapters (S5).
+
+### (done) Monday 28 Sep founder task
 **Run the 19-record A− re-measure** (~19 credits; the founder deferred it on 25 Sep and wants to pick it up on the 28th). It is the only way to know whether the A− rate has moved since the 0/19 baseline.
 - Inputs, checklist and method: `audit/2026-09-24_a_minus_measurement.md`. Re-run the same 19 inputs and grade them blind against H1–H5 / S1–S9.
 - Production is on `9aff4ea` (deployed 25 Sep): R6 recital release, the "2008-09" year-span fix, and the Build C copy-dedup SHADOW logging.

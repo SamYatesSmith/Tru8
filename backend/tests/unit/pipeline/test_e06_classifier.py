@@ -1104,3 +1104,181 @@ class TestPrimaryMeansPrimary:
         evidence = {"url": url, "tier": tier, "evidence_type": "data"}
         assert _apply_quality_floor(evidence) is None
         assert evidence["tier"] == tier
+
+
+# ============================================================
+# A− H4 round 2 (2026-09-28): trackers, reference adapters, shortlinks,
+# unrendered pages, mixed publishers. audit/2026-09-28_primary_tier_review.md
+# ============================================================
+
+
+class TestPrimaryMeansPrimaryRound2:
+    """Weak sources left in PRIMARY on the 2026-09-28 re-measure."""
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "url,title",
+        [
+            ("https://tracefour.com/trackers/trump-portfolio", "Donald Trump Stock Portfolio & Trade Tracker (Q2 2026) | Tracefour"),
+            ("https://orbitalradar.com/jwst-tracker", "James Webb (JWST) Tracker — Live Position & Images"),
+            ("https://www.inquirytracker.uk/inquiries/40/", "Thirlwall Inquiry - UK Inquiry Tracker"),
+            ("https://oireachtasconnect.ie/spending-tracker", "Irish Government Spending Tracker | Oireachtas Connect"),
+            ("https://energyriskiq.com/gas-storage-levels-in-europe", "Europe Gas Storage Levels Today (Updated Daily)"),
+            ("https://voltstack.energy/insights/european-gas-power-statistics-2026", "European Gas & Power in Numbers: 50+ Live Statistics for 2026"),
+        ],
+    )
+    def test_third_party_tracker_capped(self, url, title):
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {"url": url, "title": title, "tier": "primary", "evidence_type": "data"}
+        assert _apply_quality_floor(evidence) == "tracker_cap"
+        assert evidence["tier"] == "reporting"
+        assert evidence["evidence_type"] == "data"
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "url,title",
+        [
+            # Official and data-portal trackers keep PRIMARY: identity settles it.
+            ("https://joint-research-centre.ec.europa.eu/wildfires/current", "Current wildfire situation in Europe (live)"),
+            ("https://www.whereyourmoneygoes.gov.ie/en/2025/", "Spending tracker"),
+            ("https://www.ons.gov.uk/economy/inflation", "Inflation today"),
+            ("https://ourworldindata.org/wildfires", "Wildfires tracker"),
+            # No tracker signal at all.
+            ("https://cso.ie/en/releases/gfs2025", "Key Findings Government Finance Statistics 2025"),
+            ("https://www.cookpolitical.com/battleground", "2026 Battleground District Project"),
+        ],
+    )
+    def test_primary_kept(self, url, title):
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {"url": url, "title": title, "tier": "primary", "evidence_type": "data"}
+        assert _apply_quality_floor(evidence) is None
+        assert evidence["tier"] == "primary"
+
+    @pytest.mark.unit
+    def test_tracker_cap_is_lower_only(self):
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {"url": "https://tracefour.com/trackers/x", "title": "Tracker", "tier": "reporting", "evidence_type": "data"}
+        assert _apply_quality_floor(evidence) is None
+        assert evidence["tier"] == "reporting"
+
+    @pytest.mark.unit
+    def test_tracker_host_propagates_within_pool(self):
+        from app.pipeline.evidence_classifier import (
+            _apply_quality_floor,
+            _apply_tracker_host_cap,
+        )
+
+        items = [
+            {"url": "https://global-energy-flow.com/storage/", "title": "EU Gas Storage Levels Today — Live AGSI+ Tracker", "tier": "primary", "evidence_type": "data"},
+            {"url": "https://global-energy-flow.com/storage/trajectory/", "title": "EU Gas Storage Trajectory — Fill Curve vs 5-Year Norm", "tier": "primary", "evidence_type": "data"},
+            {"url": "https://energy.ec.europa.eu/news/gcg", "title": "Gas Coordination Group", "tier": "primary", "evidence_type": "official_statement"},
+        ]
+        for item in items:
+            _apply_quality_floor(item)
+        assert items[1]["tier"] == "primary"  # no tell of its own
+        assert _apply_tracker_host_cap(items) == 1
+        assert items[1]["tier"] == "reporting"
+        assert items[1]["classification_method"] == "tracker_host_cap"
+        assert items[2]["tier"] == "primary"
+
+    @pytest.mark.unit
+    def test_wikipedia_adapter_is_not_primary(self):
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://en.wikipedia.org/wiki/COVID-19_pandemic_in_Sweden",
+            "source": "Wikipedia",
+            "external_source_provider": "Wikipedia",
+            "tier": "primary",
+            "evidence_type": "data",
+        }
+        assert _apply_quality_floor(evidence) == "reference_floor"
+        assert evidence["tier"] == "commentary"
+        assert evidence["evidence_type"] == "analysis"
+
+    @pytest.mark.unit
+    def test_shortlink_cannot_claim_journal_identity(self):
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {"url": "http://go.nature.com/2jypsyc", "title": "Mapped: How climate change affects extreme weather - Carbon Brief", "tier": "primary", "evidence_type": "academic"}
+        assert _apply_quality_floor(evidence) == "shortlink_cap"
+        assert evidence["tier"] == "reporting"
+
+    @pytest.mark.unit
+    def test_nature_article_keeps_identity(self):
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {"url": "https://www.nature.com/articles/s41586-026-0001", "title": "Live imaging of neurons", "tier": "primary", "evidence_type": "academic"}
+        assert _apply_quality_floor(evidence) is None
+        assert evidence["tier"] == "primary"
+
+    @pytest.mark.unit
+    def test_unrendered_template_page_capped(self):
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://gas.kyos.com/gas",
+            "title": "KYOS - European Gas Storage - Underground gas storage data",
+            "snippet": "{{ type == 'gas' ? 'Underground gas storage data' : 'LNG terminal data' }} Country Facility No current data available.",
+            "tier": "primary",
+            "evidence_type": "data",
+        }
+        assert _apply_quality_floor(evidence) == "unrendered_cap"
+        assert evidence["tier"] == "reporting"
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "url,llm_tier,expected",
+        [
+            ("https://www.bmj.com/content/394/bmj-2026-100878", "reporting", True),
+            ("https://www.nature.com/articles/d41586-026-0001", "reporting", True),
+            # The LLM's known failure is calling journals commentary: override stays.
+            ("https://www.bmj.com/content/394/bmj-2026-100878", "commentary", False),
+            ("https://www.nejm.org/doi/full/10.1056/x", "reporting", False),
+            ("https://www.thelancet.com/journals/x", "reporting", False),
+        ],
+    )
+    def test_mixed_publisher_keeps_news_verdict(self, url, llm_tier, expected):
+        from app.pipeline.evidence_classifier import _keeps_news_verdict
+
+        assert _keeps_news_verdict({"url": url}, llm_tier) is expected
+
+
+class TestPrimaryRound2Wiring:
+    """The round-2 caps run inside classify_batch, not only as helpers."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_classify_batch_applies_round2_caps(self):
+        from unittest.mock import AsyncMock
+
+        from app.pipeline.evidence_classifier import EvidenceClassifier
+
+        classifier = EvidenceClassifier()
+        items = [
+            {"title": "EU Gas Storage Levels Today — Live AGSI+ Tracker", "source": "global-energy-flow.com", "url": "https://global-energy-flow.com/storage/", "snippet": "70.87% full"},
+            {"title": "EU Gas Storage Trajectory", "source": "global-energy-flow.com", "url": "https://global-energy-flow.com/storage/trajectory/", "snippet": "fill curve"},
+            {"title": "Letby and Thirlwall: Doctors' fears were dismissed", "source": "bmj.com", "url": "https://www.bmj.com/content/394/bmj-2026-100878", "snippet": "by C Dyer"},
+            {"title": "COVID-19 pandemic in Sweden", "source": "Wikipedia", "url": "https://en.wikipedia.org/wiki/COVID-19_pandemic_in_Sweden", "external_source_provider": "Wikipedia", "snippet": "The pandemic in Sweden"},
+        ]
+        classifier._call_llm = AsyncMock(
+            return_value={
+                "classifications": [
+                    {"index": 0, "tier": "primary", "type": "data"},
+                    {"index": 1, "tier": "primary", "type": "data"},
+                    {"index": 2, "tier": "reporting", "type": "news_reporting"},
+                    {"index": 3, "tier": "primary", "type": "data"},
+                ]
+            }
+        )
+        result = await classifier.classify_batch(items)
+        assert [r["tier"] for r in result] == ["reporting", "reporting", "reporting", "commentary"]
+        assert [r["classification_method"] for r in result] == [
+            "tracker_cap",
+            "tracker_host_cap",
+            "llm",
+            "reference_floor",
+        ]

@@ -174,3 +174,62 @@ Re-simulated on the 19 graded tallies, counting only what is actually built (tie
 - Notables returns as a real need, but only after mapping (its misses come from mis-filed supports).
 
 Caveats: the tallies come from stored records on older builds, graded strictly; fixes are assumed perfect.
+
+## Re-measure — 2026-09-28 (production `9aff4ea`)
+The same 19 inputs were re-run on the current build through `/checks/run`, one at a time, then graded blind by four fresh graders. The graders never saw the baseline grades. Per-record files are in `audit/a_minus/2026-09-28_rerun/`.
+
+**#9 did not complete.** The API went down for about a minute at 08:59 UTC while #9 was in retrieve. There was no Sentry exception, which points to an OOM kill. The check was stranded, then failed and refunded by the sweep. So the re-measure covers **18 records**; #9 is owed. Cost: 18 credits.
+
+**Result: 0 of 18 at A−.** Grades: B+ 3 · B 6 · B− 4 · C 5 (baseline: B+ 1 · B 5 · B− 5 · C 8, over 19).
+
+| n | new check | grade | failed checks (stage) |
+|---|---|---|---|
+| 1 | 392525b1 | B | H1 map · S6 |
+| 2 | a4380061 | C | H1 map · H2 map · H3 retrieve · H4 classify · S3 · S5 · S7 |
+| 3 | 739230ee | B | H4 classify · S5 |
+| 4 | e916e351 | B | H3 retrieve · S3 · S5 · S6 · S8 |
+| 5 | 31dac79a | C | H1 scope_gates (figure gate, close call) · H3 retrieve · H4 classify · S3 · S5 · S6 |
+| 6 | 8d7013a2 | C | H2 map · H3 retrieve · H4 classify · S3 · S4 · S5 · S6 |
+| 7 | 50e08e0e | B− | H1 scope_gates (recital demoted Cook's own results) · H3 retrieve · S3 · S5 · S6 |
+| 8 | 66a8fce1 | B | S3 · S4 · S5 · S6 |
+| 9 | — | not run | stranded by the restart, refunded |
+| 10 | 1139fbdb | C | H1 scope_gates (interested-party on a "research says" claim) · H2 map · H4 classify · S5 |
+| 11 | d60ea371 | B | H4 classify · S3 · S6 |
+| 12 | 168a7af0 | C | H1 map · H2 map · H4 classify · S1 · S3 · S5 |
+| 13 | 874ac2f2 | B− | H3 retrieve · H4 classify · S4 |
+| 14 | 77a6669f | B+ | S3 · S5 · S6 |
+| 15 | 7bf6d175 | B− | H1 map · H3 retrieve · S1 · S3 · S4 · S6 |
+| 16 | b951f3d3 | B+ | S4 · S5 · S6 |
+| 17 | 8186c399 | B+ | S4 · S5 · S6 |
+| 18 | 08a0e26d | B | H4 classify · S3 · S6 |
+| 19 | e72bf789 | B− | H2 map · H4 classify · S3 · S6 |
+
+**Failures by check, baseline (19) → now (18):**
+
+| Check | Baseline | Now |
+|---|---|---|
+| H2 wrong directional ref | 13 | **5** |
+| S2 card gives no reason | 11 | **0** |
+| H5 headline contradicts states | 3 | **0** |
+| H4 weak source in PRIMARY | 11 | **10** |
+| H1 badge wrong | 6 | 7 |
+| H3 authoritative source missing | 6 | 7 |
+| S6 surface warts | 15 | 13 |
+| S3 Notables headline | 14 | 12 |
+| S5 off-topic rows | 13 | 12 |
+| S4 duplicates / echo | 10 | 6 |
+| S1 filler element | 5 | 2 |
+| S7 claimant's own piece | 7 | 1 |
+| S8 rebuttal missed | 1 | 1 |
+
+**Hard deductions by stage now:** classify 10 · map 9 · retrieve 7 · scope_gates 3.
+
+**Reading:**
+- Tier 1 and the gate work landed: wrong refs fell from 13 to 5; no record lacks a card reason or contradicts its own states; C grades fell from 8 to 5.
+- **Classify (H4) is now the largest hard bucket.** It is the *only* hard fail on #3, #11 and #18. Build A did not clear it. What remains is tracker shells (Oireachtas Connect, inquirytracker.uk, orbitalradar, Tracefour), off-topic official pages (Open-Meteo, a Lloyds trade portal), a Wikipedia page and a BMJ news story.
+- The next largest cheap bucket is surface: rows titled just "Reddit" (#16–19), "Register Login Page", undated rows, and a `/comments` twin of one article (S5/S6).
+- **What-if, assuming perfect fixes** (a ceiling, not a forecast): fix H4 + S5 + S6 → about **6/18 at A− or better** (#3, #11, #14, #16, #17, #18). Mapping (H1/H2) and retrieval (H3) then bind the rest.
+- Two scope-gate misfires cost a hard check each: recital on Cook's own results page (#7), and interested-party on a claim about what the Central Bank's research says (#10).
+- #16/#17 (the same input twice) graded identically.
+
+**Owed:** re-run #9 (1 credit), after the restart cause is known · read the `[COPY DEDUP] would_drop=` lines (needs a Railway login) · confirm the 08:59 restart cause in Railway logs.
