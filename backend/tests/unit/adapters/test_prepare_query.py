@@ -344,6 +344,29 @@ class TestMarketauxPrepareQuery:
         ]
         assert adapter.prepare_query("UK Energy Act provisions", entities) == ""
 
+    def test_skips_a_claim_with_place_and_date_but_no_weather_quantity(self):
+        """A− S5 (2026-09-28): the CO2 / North Sea claim (Climate, a place, a
+        date) pulled a North Sea forecast and NOAA temperatures into the pool."""
+        claim = (
+            "Atmospheric CO2 concentrations are now greater than 420 parts per "
+            "million, compared to around 320 ppm when the decision was made to "
+            "extract from the North Sea in the late 1960s."
+        )
+        entities = [
+            {"text": "North Sea", "label": "LOCATION"},
+            {"text": "late 1960s", "label": "DATE"},
+        ]
+        for adapter in [WeatherAPIAdapter(), OpenMeteoAdapter(), NOAAAdapter()]:
+            assert adapter.prepare_query(claim, entities) == ""
+
+    def test_weather_vocabulary_is_word_bounded(self):
+        from app.services.api_adapters.climate import _is_weather_claim
+
+        assert _is_weather_claim("Europe's recent heatwaves are worsening")
+        assert _is_weather_claim("Storms battered Cornwall in January")
+        assert not _is_weather_claim("The shot was fired in the theatre")
+        assert not _is_weather_claim("CO2 is above 420 ppm")
+
     def test_skips_when_entities_none(self):
         adapter = MarketauxAdapter()
         assert adapter.prepare_query("Some news headline", None) == ""
@@ -437,12 +460,12 @@ class TestClimateAdaptersPrepareQuery:
     def test_returns_location_only_when_date_absent(self):
         adapter = WeatherAPIAdapter()
         entities = [{"text": "Berlin", "label": "LOCATION"}]
-        assert adapter.prepare_query("anything", entities) == "Berlin|"
+        assert adapter.prepare_query("Rain fell in Berlin", entities) == "Berlin|"
 
     def test_returns_date_only_when_location_absent(self):
         adapter = OpenMeteoAdapter()
         entities = [{"text": "March 2024", "label": "DATE"}]
-        assert adapter.prepare_query("anything", entities) == "|March 2024"
+        assert adapter.prepare_query("It was the warmest March", entities) == "|March 2024"
 
     def test_skips_when_entities_none(self):
         for adapter in [WeatherAPIAdapter(), OpenMeteoAdapter(), NOAAAdapter()]:

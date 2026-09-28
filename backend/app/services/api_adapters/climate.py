@@ -129,6 +129,46 @@ _NOAA_DATA_TYPE_TERMS: Tuple[Tuple[str, Tuple[str, ...]], ...] = (
 )
 
 
+# A− S5 (2026-09-28): a place + a date is not enough. A claim about CO2
+# concentrations "when the decision was made to extract from the North Sea in
+# the late 1960s" (Climate, place, date) pulled a 7-day North Sea forecast,
+# geocoded to Long Island, and NOAA temperature rows into the pool. Weather
+# APIs answer questions about weather, so the claim must name a weather
+# quantity. Word-bounded: "hot" must not match "shot", "heat" not "theatre".
+_WEATHER_TERMS = sorted(
+    {t for _dtype, terms in _NOAA_DATA_TYPE_TERMS for t in terms}
+    | {
+        "weather",
+        "rain",
+        "rainfall",
+        "snow",
+        "snowfall",
+        "wind",
+        "winds",
+        "storm",
+        "storms",
+        "flood",
+        "flooding",
+        "drought",
+        "forecast",
+        "precipitation",
+        "humidity",
+        "sunshine",
+    },
+    key=len,
+    reverse=True,
+)
+_WEATHER_RE = re.compile(
+    r"(?<![a-z])(?:" + "|".join(re.escape(t) for t in _WEATHER_TERMS) + r")(?:e?s)?(?![a-z])",
+    re.IGNORECASE,
+)
+
+
+def _is_weather_claim(claim_text: str) -> bool:
+    """True when the claim names a weather quantity a weather API can answer."""
+    return bool(_WEATHER_RE.search(claim_text or ""))
+
+
 def _classify_noaa_data_type(
     claim_text: str,
     entities: Optional[List[Dict[str, str]]] = None,
@@ -510,6 +550,8 @@ class NOAAAdapter(GovernmentAPIClient):
         cache namespaces, which is correct — they call different NOAA
         endpoints with different params and produce different evidence.
         """
+        if not _is_weather_claim(claim_text):
+            return ""
         loc_date = _location_date_cache_key(entities)
         if not loc_date:
             return ""
@@ -951,7 +993,8 @@ class WeatherAPIAdapter(GovernmentAPIClient):
         the raw claim text. Skipping cleanly is preferable to returning
         ostensibly-relevant-but-actually-noise results.
         """
-        del claim_text
+        if not _is_weather_claim(claim_text):
+            return ""
         return _location_date_cache_key(entities)
 
     def search(
@@ -1352,7 +1395,8 @@ class OpenMeteoAdapter(GovernmentAPIClient):
         weather APIs need a place + a time, otherwise the result is
         guaranteed noise.
         """
-        del claim_text
+        if not _is_weather_claim(claim_text):
+            return ""
         return _location_date_cache_key(entities)
 
     def _extract_location_coords(
