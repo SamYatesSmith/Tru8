@@ -458,7 +458,7 @@ class Settings(BaseSettings):
     # part of the key. **Bump it in the SAME commit as any change to what
     # retrieval gathers** (queries, lanes, windows, filters, blocklist policy).
     # Scope: audit/2026-09-02_pool_quality_gate_scope.md, Piece 3.
-    RETRIEVAL_CACHE_VERSION: str = Field("2026-09-28", env="RETRIEVAL_CACHE_VERSION")
+    RETRIEVAL_CACHE_VERSION: str = Field("2026-09-28b", env="RETRIEVAL_CACHE_VERSION")
 
     # Fetch-phase deadline (2026-09-02). The per-claim 45 s wait in
     # retrieve.py (RETRIEVE_CLAIM_TIMEOUT_S) cancels the WHOLE web task when
@@ -798,6 +798,14 @@ class Settings(BaseSettings):
     # Enforcing is a separate flag and commit (with a RETRIEVAL_CACHE_VERSION
     # bump). Design: audit/2026-09-24_a_minus_build_c_design.md §9.
     ENABLE_COPY_DEDUP_SHADOW: bool = Field(True, env="ENABLE_COPY_DEDUP_SHADOW")
+    # A− Build C ENFORCE (2026-09-28), main retrieval site only: collapse each
+    # copy group to its survivor BEFORE the fetch budget is sliced, so a copy
+    # never takes a second fetch slot. The dropped copies become the
+    # survivor's ordered fetch fallbacks and each gets a receipt (URL ledger +
+    # RawEvidence `copy_dedup`). Shadow read 2 (the 18-record re-measure): 12
+    # would-drops, 10 clear copies, 0 substantive sources lost. Recovery sites
+    # stay shadow. Rollback: False.
+    ENABLE_COPY_DEDUP: bool = Field(True, env="ENABLE_COPY_DEDUP")
 
     # Relationship review on the DEFAULT path (A− M1, 2026-09-24). Decoupled
     # from ENABLE_PASSAGE_MAPPING, whose other parts the 09-09 regrade judged

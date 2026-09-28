@@ -168,6 +168,64 @@ def _log_copy_shadow(candidates: List[Any], max_sources: int, site: str) -> None
         logger.warning(f"[COPY DEDUP] shadow failed site={site}: {exc}")
 
 
+def _json_date(value: Any) -> Optional[str]:
+    """Receipts land in JSONB (`Evidence.api_metadata`): dates as strings."""
+    if value is None:
+        return None
+    return value.isoformat() if hasattr(value, "isoformat") else str(value)
+
+
+def _collapse_copy_candidates(candidates: List[Any]) -> List[Any]:
+    """Build C enforce (main site): one fetch slot per article.
+
+    Each copy group collapses to its survivor at the group's earliest
+    position. The survivor gains every member's lanes (`_element_ids`), its
+    ordered fetch fallbacks (`_copy_fallbacks`) and its receipts
+    (`_copy_receipts`). Every dropped copy gets a URL-ledger line here, so
+    the receipt exists even if the survivor's fetch later fails (invariant
+    #5). A failure here logs and returns the list unchanged: dedup must never
+    break retrieval."""
+    from app.utils.url_identity import collapse_copies
+
+    try:
+        kept, groups = collapse_copies(
+            candidates,
+            lambda c: getattr(c, "url", "") or "",
+            lambda c: getattr(c, "title", "") or "",
+            lambda c: getattr(c, "published_date", None),
+        )
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning(f"[COPY DEDUP] enforce failed, pool unchanged: {exc}")
+        return candidates
+    for survivor, dropped in groups:
+        lanes = set(getattr(survivor, "_element_ids", set()) or set())
+        for item, _rule in dropped:
+            lanes |= set(getattr(item, "_element_ids", set()) or set())
+        survivor._element_ids = lanes
+        survivor._copy_fallbacks = [item for item, _rule in dropped]
+        survivor._copy_receipts = [
+            {
+                "url": getattr(item, "url", "") or "",
+                "title": getattr(item, "title", "") or "",
+                "source": extract_domain(getattr(item, "url", "") or "", fallback=""),
+                "published_date": _json_date(getattr(item, "published_date", None)),
+                "rule": rule,
+            }
+            for item, rule in dropped
+        ]
+        for receipt in survivor._copy_receipts:
+            logger.info(
+                f"[URL LEDGER] dropped stage=copy_dedup rule={receipt['rule']} "
+                f"url={receipt['url'][:160]} survivor={survivor.url[:160]}"
+            )
+    if groups:
+        logger.info(
+            f"[COPY DEDUP] site=main enforced dropped="
+            f"{len(candidates) - len(kept)} of candidates={len(candidates)}"
+        )
+    return kept
+
+
 def _source_exclusion(
     url: Optional[str],
     excluded_domain: Optional[str],
@@ -2394,7 +2452,9 @@ class EvidenceRetriever:
             # of one article (canonical URL / slug / title) and which would
             # survive. Drops nothing — read over full pre-fetch pools before
             # enforcing. Design: audit/2026-09-24_a_minus_build_c_design.md §9.
-            if getattr(settings, "ENABLE_COPY_DEDUP_SHADOW", True):
+            if getattr(settings, "ENABLE_COPY_DEDUP", True):
+                fetch_candidates = _collapse_copy_candidates(fetch_candidates)
+            elif getattr(settings, "ENABLE_COPY_DEDUP_SHADOW", True):
                 _log_copy_shadow(fetch_candidates, max_sources, site="main")
 
             fetch_set = fetch_candidates[:max_sources]
@@ -2482,7 +2542,7 @@ class EvidenceRetriever:
         if not settings.ENABLE_FETCH_PHASE_DEADLINE:
             return await asyncio.gather(
                 *[
-                    self._extract_with_fallback(r, claim_text, semaphore)
+                    self._extract_with_copy_fallback(r, claim_text, semaphore)
                     for r in fetch_set
                 ],
                 return_exceptions=True,
@@ -2490,7 +2550,9 @@ class EvidenceRetriever:
 
         deadline = float(settings.RETRIEVE_FETCH_PHASE_TIMEOUT_S)
         tasks = [
-            asyncio.create_task(self._extract_with_fallback(r, claim_text, semaphore))
+            asyncio.create_task(
+                self._extract_with_copy_fallback(r, claim_text, semaphore)
+            )
             for r in fetch_set
         ]
         if not tasks:
@@ -2524,6 +2586,63 @@ class EvidenceRetriever:
                     f"reason='fetch_deadline_{deadline:g}s' url={url}"
                 )
         return results
+
+    async def _extract_with_copy_fallback(
+        self, search_result, claim_text: str, semaphore: asyncio.Semaphore
+    ) -> Optional[EvidenceSnippet]:
+        """Build C: fetch the survivor; if it yields nothing or only a search
+        snippet, fetch its collapsed copies in order within the same slot (the
+        #19 case: a paywalled journal page beside an open repository copy).
+        The winning snippet carries the copy receipts in
+        ``metadata["copy_dedup"]`` for the RawEvidence snapshot."""
+        result = await self._extract_with_fallback(search_result, claim_text, semaphore)
+        fallbacks = list(getattr(search_result, "_copy_fallbacks", None) or [])
+        receipts = list(getattr(search_result, "_copy_receipts", None) or [])
+        if not fallbacks:
+            return result
+
+        def _is_full(snippet) -> bool:
+            return snippet is not None and not (snippet.metadata or {}).get(
+                "is_snippet_fallback"
+            )
+
+        if not _is_full(result):
+            for copy in fallbacks:
+                for attr in (
+                    "_query_index",
+                    "_query_used",
+                    "_claim_type",
+                    "_freshness",
+                    "_element_ids",
+                    "_same_domain_as_source",
+                ):
+                    if hasattr(search_result, attr):
+                        setattr(copy, attr, getattr(search_result, attr))
+                alt = await self._extract_with_fallback(copy, claim_text, semaphore)
+                if _is_full(alt):
+                    logger.info(
+                        f"[COPY DEDUP] fetch fallback: {search_result.url[:120]} "
+                        f"-> {copy.url[:120]}"
+                    )
+                    # The survivor becomes a dropped copy; the used copy leaves
+                    # the receipt list.
+                    receipts = [
+                        {
+                            "url": search_result.url,
+                            "title": getattr(search_result, "title", "") or "",
+                            "source": extract_domain(search_result.url, fallback=""),
+                            "published_date": _json_date(
+                                getattr(search_result, "published_date", None)
+                            ),
+                            "rule": "fallback",
+                        }
+                    ] + [r for r in receipts if r["url"] != copy.url]
+                    result = alt
+                    break
+        if result is not None and receipts:
+            result.metadata = result.metadata or {}
+            result.metadata["copy_dedup"] = receipts
+        return result
 
     async def _extract_with_fallback(
         self, search_result, claim_text: str, semaphore: asyncio.Semaphore
@@ -2691,6 +2810,32 @@ class EvidenceRetriever:
                 if track_raw_evidence
                 else {}
             )
+            # Build C receipts (invariant #5): each copy collapsed before the
+            # fetch is recorded as an excluded raw row naming its survivor.
+            if track_raw_evidence:
+                for ev in evidence_list:
+                    for copy in (ev.get("metadata") or {}).get("copy_dedup") or []:
+                        if not copy.get("url") or copy["url"] in url_to_raw:
+                            continue
+                        row = {
+                            "source": copy.get("source", ""),
+                            "url": copy["url"],
+                            "title": copy.get("title", ""),
+                            "snippet": "",
+                            "published_date": copy.get("published_date"),
+                            "is_included": False,
+                            "filter_stage": "copy_dedup",
+                            "filter_reason": (
+                                f"Copy of {ev.get('url', '')} "
+                                f"(rule {copy.get('rule', '?')})"
+                            )[:500],
+                            "tier": None,
+                            "is_factcheck": False,
+                            "external_source_provider": None,
+                            "relevance_score": 0.0,
+                        }
+                        raw_evidence_tracking.append(row)
+                        url_to_raw[copy["url"]] = row
 
             # --- STAGE 1: Satire exclusion ---
             before_satire = len(evidence_list)

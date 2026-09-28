@@ -469,6 +469,43 @@ def choose_survivor(
     return min(group, key=rank)
 
 
+def collapse_copies(
+    items: Sequence[Any],
+    url_of: Callable[[Any], str],
+    title_of: Callable[[Any], str],
+    date_of: Callable[[Any], Any],
+    now: Optional[datetime] = None,
+) -> Tuple[List[Any], List[Tuple[Any, List[Tuple[Any, str]]]]]:
+    """Enforce: one item per copy group (design §9.5).
+
+    Returns ``(kept, groups)``. ``kept`` is ``items`` with every non-survivor
+    removed and each survivor moved to its group's EARLIEST position, so a
+    collapse never pushes a lane's article later in the fetch order.
+    ``groups`` lists ``(survivor, [(dropped_item, rule), ...])``, dropped
+    members in list order — the caller's fetch fallbacks and receipts.
+    """
+    candidates = [
+        Candidate(i, url_of(it), title_of(it), parse_serp_date(date_of(it), now), it)
+        for i, it in enumerate(items)
+    ]
+    slot_of: Dict[int, Any] = {}
+    dropped_idx: set = set()
+    groups_out: List[Tuple[Any, List[Tuple[Any, str]]]] = []
+    for group in copy_groups(candidates):
+        survivor = choose_survivor([c for c, _r in group])
+        first = min(c.index for c, _r in group)
+        slot_of[first] = survivor.item
+        others = sorted(
+            ((c, r) for c, r in group if c is not survivor), key=lambda p: p[0].index
+        )
+        for c, _r in group:
+            if c.index != first:
+                dropped_idx.add(c.index)
+        groups_out.append((survivor.item, [(c.item, r) for c, r in others]))
+    kept = [slot_of.get(i, it) for i, it in enumerate(items) if i not in dropped_idx]
+    return kept, groups_out
+
+
 def shadow_report(
     items: Sequence[Any],
     url_of: Callable[[Any], str],

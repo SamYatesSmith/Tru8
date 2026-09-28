@@ -519,7 +519,7 @@ class RawEvidence(SQLModel, table=True):
     )
     filter_stage: Optional[str] = Field(
         default=None,
-        description="Which filter stage excluded this source: credibility|temporal|dedup|diversity|domain_cap|validation|extraction_failed",
+        description="Which filter stage excluded this source: credibility|temporal|dedup|copy_dedup|diversity|domain_cap|validation|extraction_failed",
     )
     filter_reason: Optional[str] = Field(
         default=None,

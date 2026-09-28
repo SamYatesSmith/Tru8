@@ -174,3 +174,19 @@ There were 12 would-drops across 7 of 18 checks (the others had none):
 - **No would-drop removed a substantive or primary source.**
 
 **Reading:** precision holds on the second population. Enforcing is the founder's call. It needs the cache bump, a bench re-record (paid) and survivor fetch fallbacks, per §9.
+
+## Phase 2 as built — 2026-09-28 (enforcing, main site)
+- **Flag and scope:** `ENABLE_COPY_DEDUP` (default True). Main retrieval site only (`_collapse_copy_candidates`, after `_allocate_fetch_budget` and before the fetch-budget slice). The recovery sites stay shadow.
+- **Collapse:** `url_identity.collapse_copies` places the survivor at its group's earliest position. The survivor takes the union of every member's `_element_ids`.
+- **Fetch fallback:** `_extract_with_copy_fallback`. If the survivor yields None or snippet-only, the copies are fetched in order in the same slot, inheriting the survivor's lane metadata. The survivor then becomes the recorded copy (`rule: fallback`).
+- **Receipts:**
+  - one `[URL LEDGER] dropped stage=copy_dedup` line per dropped copy, written at collapse time, so it exists even if the fetch later fails;
+  - `metadata.copy_dedup` on the fetched evidence;
+  - a RawEvidence row per copy (`is_included=False`, `filter_stage="copy_dedup"`, "Copy of <survivor> (rule x)");
+  - `copy_dedup` added to the filter breakdown and the `filter_stage` description.
+- Receipt dates are stored as strings (`api_metadata` is JSONB). `api_metadata` is not in the signed manifest.
+- `RETRIEVAL_CACHE_VERSION` → `2026-09-28b`.
+- **Verification:**
+  - 10 new tests; unit 4,179 pass.
+  - Must-have URLs checked: politifact, prio.org, the ONS Sept 2024 bulletin and gianlucabenigno are all originals.
+  - Bench: A3E8, 0004 and 0005 re-keyed. Each was patched with `--record-missing` (founder-approved) and now replays equal to its pre-change control (A3E8 16/1/1; 0004 17/2/1; 0005 the same 3 pre-existing fails, unique domains 1 → 2).

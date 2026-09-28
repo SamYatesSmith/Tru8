@@ -2540,6 +2540,7 @@ async def get_check_sources(
     filter_breakdown = {
         "temporal": 0,
         "dedup": 0,
+        "copy_dedup": 0,
         "diversity": 0,
         "domain_cap": 0,
         "validation": 0,
