@@ -91,6 +91,14 @@ export function cleanTitle(title?: string | null, url?: string | null): string {
     .replace(/^\[(?:PDF|HTML|DOC|DOCX|PPT|XLS)\]\s*/i, '')
     // platform suffix that names no one: "Clip title - YouTube"
     .replace(/\s+[-|–—]\s+YouTube$/, '')
+    // hosting-platform suffixes, same reason (A− S6, 2026-09-28): "| Oxford
+    // Academic", "- ScienceDirect" name the database, not the publication.
+    // A journal name before them ("| JAMIA Open") stays; so do publisher
+    // suffixes like "- Britannica".
+    .replace(
+      /\s+[-|–—]\s+(?:Oxford Academic|ScienceDirect|Wiley Online Library|SpringerLink|PubMed|PMC|ResearchGate|Taylor & Francis Online|JSTOR|Semantic Scholar)$/,
+      ''
+    )
     // trailing "… - Site" / "... | Site" — keep the marker, drop the suffix
     .replace(/\s*(?:\.{2,}|…)\s*[-|–—]\s*[^-|–—]+$/, '…')
     // normalise any trailing "..." / " …" to one tight "…"

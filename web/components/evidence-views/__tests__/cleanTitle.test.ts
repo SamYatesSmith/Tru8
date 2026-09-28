@@ -72,6 +72,17 @@ describe('cleanTitle', () => {
   });
 });
 
+describe('cleanTitle — hosting-platform suffixes (A− S6, 2026-09-28)', () => {
+  it('drops the database, keeps the journal', () => {
+    expect(cleanTitle('Clinical text summarization by LLMs | JAMIA Open | Oxford Academic')).toBe(
+      'Clinical text summarization by LLMs | JAMIA Open'
+    );
+    expect(cleanTitle('Effects of lockdown on excess mortality - ScienceDirect')).toBe(
+      'Effects of lockdown on excess mortality'
+    );
+  });
+});
+
 // A− S6 (2026-09-28): shell titles that name only the platform or a wall.
 describe('cleanTitle — shell titles yield to the URL', () => {
   it('builds a Reddit title from the thread slug and subreddit', () => {
