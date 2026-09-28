@@ -12,6 +12,14 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-09-28 (evening) — Mapping family A design, in independent review
+- Founder steer: raise the pipeline in general; the 19 records find fault classes, they are not the target.
+- Family A is two general faults, reproduced offline:
+  - **A1:** the recital gate never works out who is speaking. "According to the toplines, Democrats hold…" and "Democrats lead, the poll said" fire as if Democrats spoke.
+  - **A2:** the interested-party release is withheld on content elements that do not name the measuring organisation.
+- Design: `audit/2026-09-28_family_a_speaker_design.md`. Review: `audit/2026-09-28_family_a_speaker_review.md` (running). No build before founder approval.
+- S5 weather-adapter routing shipped (`0032ef7`).
+
 ## ▶ 2026-09-28 — A− RE-MEASURE DONE: 0/18 at A−, but the distribution moved (START HERE)
 - 18 of 19 re-run on `9aff4ea` and graded blind: B+ 3 · B 6 · B− 4 · C 5 (baseline B+ 1 · B 5 · B− 5 · C 8). Wrong refs (H2) 13 → 5; card reasons (S2) 11 → 0; headline contradictions (H5) 3 → 0.
 - **Classify (H4, weak source in PRIMARY) is now the largest hard bucket: 10/18.** It is the only hard fail on #3, #11 and #18. Ceiling what-if: H4 + off-topic rows + surface warts → ~6/18 at A−.
