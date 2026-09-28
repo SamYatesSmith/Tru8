@@ -46,6 +46,7 @@ import { ElementList, TopUpCapability } from './ElementList';
 import { TopUpButton } from './TopUpButton';
 import { thinElementCount } from '@/lib/support-structure';
 import { evidenceCoverage } from '@/lib/evidence-coverage';
+import { pickNotable } from '@/lib/notables';
 
 const TYPE_LABELS: Record<string, string> = {
   empirical: 'Empirical',
@@ -161,8 +162,12 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   const relsOf = (ev: Evidence) => relMap.get(ev.evidenceId || ev.id);
   const mappedEvidence = evidence.filter((ev) => (relsOf(ev)?.length ?? 0) > 0);
   const byRelevance = [...mappedEvidence].sort((a, b) => (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0));
-  const strongestSupport = byRelevance.find((ev) => hasRelationship(relsOf(ev), 'supports'));
-  const strongestChallenge = byRelevance.find((ev) => hasRelationship(relsOf(ev), 'challenges'));
+  // Headline per direction (A− S3, 2026-09-28): not a platform/rewrite/opinion
+  // page, then the most elements it bears on, then tier, then relevance — the
+  // same rule both ways (lib/notables.ts). Relevance alone picked the wrong
+  // source on 13 of 19 re-measured records.
+  const strongestSupport = pickNotable(evidence, elements, 'supports');
+  const strongestChallenge = pickNotable(evidence, elements, 'challenges');
   // R5 fallback ONLY: when no directional card exists (e.g. all-context claims),
   // the top-relevance rows keep the Notables section from going empty.
   const fallbackFindings = !strongestSupport && !strongestChallenge ? byRelevance.slice(0, 3) : [];
@@ -441,8 +446,10 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function PointCard({ kind, title, url, nav, onOpen }: { kind: EvidenceRelationship; title: string; url: string; nav: boolean; onOpen: () => void }) {
   const meta = STANCE_META[kind];
-  // "Most relevant", not "strongest" — ranked by topical relevance, which carries
-  // NO source authority (invariant), so "strongest" would overclaim evidential weight.
+  // "Main", not "strongest": chosen by reach (elements it bears on) and tier
+  // classification (lib/notables.ts), never by an authority score, so
+  // "strongest" would overclaim evidential weight. It was "Most relevant" while
+  // the rule was retrieval relevance alone (changed 2026-09-28, A− S3).
   const adj = kind === 'supports' ? 'supporting' : kind === 'challenges' ? 'challenging' : 'context';
   // Two distinct affordances (2026-08-26 partner finding), so the card is a
   // plain div — a link inside a button is invalid HTML. The domain visits the
@@ -451,7 +458,7 @@ function PointCard({ kind, title, url, nav, onOpen }: { kind: EvidenceRelationsh
   return (
     <div className="border border-zinc-200 p-4">
       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-600">
-        {meta.glyph} Most relevant {adj} source
+        {meta.glyph} Main {adj} source
       </span>
       <p className="mt-1.5 text-sm text-zinc-900 leading-snug">{cleanTitle(title)}</p>
       <div className="mt-2 flex items-center justify-between gap-3">
