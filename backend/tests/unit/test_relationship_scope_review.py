@@ -365,13 +365,23 @@ async def test_frozen_select_pair_quantitative_support_becomes_context():
         r["evidence_id"]: r["relationship"] for r in cm["elements"][0]["evidence_refs"]
     }
     assert refs == {"ev-e034ece5a149": "context", "ev-49522d797c58": "context"}
+    # 2026-09-29: the source giving 37.8% for a different endpoint states a
+    # CONTRADICTING figure (mismatch); the one saying only "reduced MACE" is
+    # silent on the figure (unknown). Both are still demoted.
+    bases = {
+        r["evidence_id"]: r["decision_basis"]
+        for r in cm["metadata"]["scope_review"]["pairs"]
+    }
+    assert bases == {
+        "ev-49522d797c58": "quantitative_result_contradicted",
+        "ev-e034ece5a149": "quantitative_result_not_quoted",
+    }
     for record in cm["metadata"]["scope_review"]["pairs"]:
-        assert record["decision_basis"] == "quantitative_result_not_quoted"
         assert record["model_decision"] == "compatible"
         assert record["status"] == "scoped" and record["dimension"] == "result"
     assert ev == before
-    # A− M1 (2026-09-24): both demotions rest on `unknown` (the figure is not
-    # quoted), so the review NEEDS review. The old branch tested a status that
+    # A− M1 (2026-09-24): a demotion resting on `unknown` (the figure is not
+    # stated) means the review NEEDS review. The old branch tested a status that
     # scoped records never carry, so it read "complete" (the mapping review's
     # dead-branch finding).
     assert cm["metadata"]["scope_review"]["status"] == "needs_review"
@@ -723,3 +733,92 @@ def test_plan_review_uses_the_default_path_cap(monkeypatch):
     assert len(rsr.plan_review(cm, evidence)[0]) == 12  # the old cap, flag off
     monkeypatch.setattr(rsr.settings, "ENABLE_RELATIONSHIP_REVIEW", True)
     assert len(rsr.plan_review(cm, evidence)[0]) == 13  # every ref, flag on
+
+
+# ---------------------------------------------------------------------------
+# 2026-09-29: figure presence loosened for the review only; a contradicting
+# figure is a mismatch, silence is unknown. Cases from the 09-24 round-2 draws.
+# ---------------------------------------------------------------------------
+from app.services.relationship_scope_review import _figure_status  # noqa: E402
+
+
+def test_a_spelled_out_unit_states_the_figure():
+    element = "Atmospheric CO2 concentrations were around 320 ppm in the late 1960s."
+    text = "- In 1968, the atmospheric CO2 concentration was 322.89 parts per million."
+    assert _figure_status(element, [text]) == "stated"
+
+
+def test_the_counted_noun_may_sit_beyond_the_second_word():
+    element = "Between 2010 and 2020, the CMS Innovation Center launched 54 demonstration models nationwide."
+    text = "CMMI has launched 54 different innovation models encompassing nearly 26 million patients."
+    assert _figure_status(element, [text]) == "stated"
+
+
+def test_a_figure_reached_only_by_adding_or_converting_is_not_stated():
+    # Record 1ca0070f: two £36m donations and "$97m" do not state £72m.
+    element = "Reform UK has been pledged a total of £72m this week."
+    text = (
+        "Christopher Harborne made a donation of $48.7m (£36m). The two donations "
+        "increase the total sum of money pledged to Reform since Friday to $97m."
+    )
+    assert _figure_status(element, [text]) == "contradicted"
+
+
+def test_a_figure_elsewhere_in_the_read_text_counts():
+    element = "The poll found 49% support."
+    assert _figure_status(element, ["Support was high.", "Support stood at 49 percent."]) == "stated"
+
+
+def test_no_figure_of_the_kind_is_silence_not_contradiction():
+    element = "Semaglutide reduced MACE by 20% in SELECT."
+    assert _figure_status(element, ["Semaglutide reduced MACE incidence in SELECT."]) == "silent"
+
+
+def test_a_different_count_with_a_far_noun_is_not_stated():
+    # Loose for "stated" only: a far-noun count with another value never
+    # matches, and is not read as a contradiction either (silence keeps the
+    # support, as it would be without the review).
+    element = "The centre launched 54 demonstration models."
+    assert _figure_status(element, ["It launched 45 different innovation models."]) == "silent"
+
+
+def _figure_fixture(snippet):
+    cm, ev, row = fixture("supports")
+    cm["elements"][0]["description"] = "Semaglutide reduced MACE by 20% in SELECT."
+    ev[0]["snippet"] = snippet
+    row.update(
+        decision="compatible",
+        dimension="result",
+        quote=snippet,
+        scope_affirmed=True,
+        claim_scope="20% MACE reduction",
+        source_scope="MACE reduced",
+        reasoning="Reports MACE reduced.",
+    )
+    return cm, ev, row
+
+
+@pytest.mark.asyncio
+async def test_mismatch_only_keeps_a_silent_support(monkeypatch):
+    from app.services import relationship_scope_review as rsr
+
+    monkeypatch.setattr(rsr.settings, "RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN", False)
+    cm, ev, row = _figure_fixture("Semaglutide reduced MACE incidence in the SELECT trial.")
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "supports"
+
+
+@pytest.mark.asyncio
+async def test_mismatch_only_still_demotes_a_contradicting_figure(monkeypatch):
+    from app.services import relationship_scope_review as rsr
+
+    monkeypatch.setattr(rsr.settings, "RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN", False)
+    cm, ev, row = _figure_fixture("In SELECT, semaglutide reduced MACE by 37.8% on a secondary endpoint.")
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "context"
+    record = cm["metadata"]["scope_review"]["pairs"][0]
+    assert record["decision_basis"] == "quantitative_result_contradicted"

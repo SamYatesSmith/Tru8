@@ -83,6 +83,69 @@ def _figure_forms(description):
     return {f.lower() for f in forms if f}
 
 
+# ── Figure presence, loosened for the review only (2026-09-29) ───────────────
+# The 09-24 round-2 draws, re-scored supports-only, demoted three good supports
+# through the quote guard. Two were parser gaps, fixed here without touching
+# the mapping figure gate (figure_scope):
+#   * a spelled-out unit: "320 ppm" vs "322.89 parts per million";
+#   * the counted noun beyond the second word: "54 demonstration models" vs
+#     "54 different innovation models".
+# The third ("£72m" vs two "£36m" donations and "$97m") is NOT loosened: a
+# support must state the figure, not let us sum or convert it (figure-scope
+# design, 2026-09-23). The figure is also accepted anywhere in the text the
+# model was given, not only inside its chosen quote.
+_UNIT_ALIASES = (
+    (re.compile(r"\bparts?\s+per\s+million\b", re.I), "ppm"),
+    (re.compile(r"\bparts?\s+per\s+billion\b", re.I), "ppb"),
+)
+_LOOSE_NUMBER = re.compile(r"(?<![\w.])(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?")
+_NOUN_WINDOW = 4
+
+
+def _alias_units(text):
+    for pattern, unit in _UNIT_ALIASES:
+        text = pattern.sub(unit, text)
+    return text
+
+
+def _loose_count_match(figures, text):
+    """A counted figure whose noun follows within four words ("54 different
+    innovation models"), at the element's tolerance."""
+    from app.utils.figure_scope import Figure, _noun, _precision, _value
+
+    wanted = [f for f in figures.figures if f.kind.startswith("n:")]
+    if not wanted:
+        return False
+    for m in _LOOSE_NUMBER.finditer(text):
+        following = re.findall(r"[a-z]{3,}", text[m.end() : m.end() + 60].lower())
+        nouns = {_noun(w) for w in following[:_NOUN_WINDOW]} - {None}
+        have_value = _value(m[1], m[2], None)
+        have_precision = _precision(m[1], m[2], None)
+        for want in wanted:
+            if want.kind[2:] in nouns and _matches(
+                figures, want, Figure(want.kind, have_value, have_precision)
+            ):
+                return True
+    return False
+
+
+def _figure_status(description, texts):
+    """ "stated", "contradicted" or "silent" for an element's figures over the
+    texts the model read. Contradicted = the texts state figures of the
+    element's kind and none is the element's; silence is never a mismatch."""
+    figures = element_figures(_alias_units(description or ""))
+    joined = _alias_units(" ".join(t for t in texts if t))
+    if any(_quotes_stated_figure(description, t) for t in texts if t):
+        return "stated"
+    if figures is None:
+        return "silent"
+    if _quotes_stated_figure(
+        _alias_units(description or ""), joined
+    ) or _loose_count_match(figures, joined):
+        return "stated"
+    return "contradicted" if same_kind_figures(figures, joined) else "silent"
+
+
 def _quotes_stated_figure(description, quote):
     """True when the quoted result carries one of the element's stated
     figures in some accepted form; True when the element states no figure.
@@ -455,12 +518,26 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
         # "reduced MACE by 20%" (2026-09-09 SELECT pair). Absence of the figure
         # is unestablished scope, not a mismatch; the model's decision is kept
         # in the receipt.
-        if (
-            decision == "compatible"
-            and pair["relationship"] == "supports"
-            and pair["blocks"]
-            and not _quotes_stated_figure(pair["element_description"], row.get("quote"))
-        ):
+        # 2026-09-29: the figure may be stated anywhere the model read, and a
+        # CONTRADICTING figure (same kind, none the element's) is a mismatch —
+        # silence alone stays unknown, so a mismatch-only policy still removes
+        # a wrong figure but keeps a support whose text simply has no number.
+        figure_status = (
+            _figure_status(
+                pair["element_description"],
+                [row.get("quote")] + [b["text"] for b in pair["blocks"]],
+            )
+            if (
+                decision == "compatible"
+                and pair["relationship"] == "supports"
+                and pair["blocks"]
+                and not _quotes_stated_figure(
+                    pair["element_description"], row.get("quote")
+                )
+            )
+            else "stated"
+        )
+        if figure_status != "stated":
             chosen = next(
                 (b for b in pair["blocks"] if b["id"] == row.get("block_id")),
                 pair["blocks"][0],
@@ -472,9 +549,10 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
                 and quote in chosen["text"]
             ):
                 quote = chosen["text"][:600]
+            guard_decision = "mismatch" if figure_status == "contradicted" else "unknown"
             row = dict(
                 row,
-                decision="unknown",
+                decision=guard_decision,
                 dimension="result",
                 claim_scope=row.get("claim_scope") or pair["element_description"],
                 source_scope="The quoted result does not state the asserted effect size.",
@@ -487,9 +565,13 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
                     + (row.get("reasoning") or "")
                 ).strip(),
             )
-            record["decision_basis"] = "quantitative_result_not_quoted"
+            record["decision_basis"] = (
+                "quantitative_result_contradicted"
+                if guard_decision == "mismatch"
+                else "quantitative_result_not_quoted"
+            )
             record["model_decision"] = decision
-            decision = "unknown"
+            decision = guard_decision
         block = next(
             (b for b in pair["blocks"] if b["id"] == row.get("block_id")), None
         )
