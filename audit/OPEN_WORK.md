@@ -12,7 +12,21 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## ▶ 2026-09-28 (evening) — Mapping family A design, in independent review
+## ▶ 2026-09-30 — NEXT: classification, PRIMARY means originator (START HERE)
+**Read `audit/2026-09-30_classify_originator_brief.md` first.** It holds the goal, the fault, the decisions already made, the code map, the data and the rules.
+- **The task:** design, get an independent review, get founder approval, and only then build a general fix for class D (the LLM calls non-originators primary: explainers, trade bodies, white papers, commercial profiles).
+  - Lower-only. No host whitelist; that was rejected on 28 Sep.
+  - Judge it on held-out pools, not the 19 records.
+- **State at the end of 29 Sep:**
+  - Production `6971cab`, healthy.
+  - The relationship review is ON (supports only, 3.7-flash, about 1p per check); two live checks pass. Watch its demotions on real checks.
+  - Bench `139/8/11/5`. Unit suite 4,268 pass.
+- **Parked, waiting on the founder:** A2 (it needs a new extraction field) and family B (the sibling re-offer).
+- **Also open:**
+  - retrieval H3 lanes (#4 foreign official, #5 AGSI, #6 filings), each needing a design;
+  - surface S5 (Reddit rows) and S6 (undated rows).
+
+## 2026-09-28/29 — Mapping family A + the relationship review (M1)
 - Founder steer: raise the pipeline in general; the 19 records find fault classes, they are not the target.
 - Family A is two general faults, reproduced offline:
   - **A1:** the recital gate never works out who is speaking. "According to the toplines, Democrats hold…" and "Democrats lead, the poll said" fire as if Democrats spoke.
@@ -47,7 +61,7 @@
   - Record: `audit/2026-09-24_a_minus_mapping_design.md`, last section.
 - S5 weather-adapter routing shipped (`0032ef7`).
 
-## ▶ 2026-09-28 — A− RE-MEASURE DONE: 0/18 at A−, but the distribution moved (START HERE)
+## 2026-09-28 — A− RE-MEASURE DONE: 0/18 at A−, but the distribution moved
 - 18 of 19 re-run on `9aff4ea` and graded blind: B+ 3 · B 6 · B− 4 · C 5 (baseline B+ 1 · B 5 · B− 5 · C 8). Wrong refs (H2) 13 → 5; card reasons (S2) 11 → 0; headline contradictions (H5) 3 → 0.
 - **Classify (H4, weak source in PRIMARY) is now the largest hard bucket: 10/18.** It is the only hard fail on #3, #11 and #18. Ceiling what-if: H4 + off-topic rows + surface warts → ~6/18 at A−.
 - #9 was stranded by an API restart at 08:59 UTC (no Sentry trace → likely OOM in retrieve), then refunded. Re-run owed, after the cause is read from Railway logs.
