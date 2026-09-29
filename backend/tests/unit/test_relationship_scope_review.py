@@ -861,13 +861,14 @@ async def test_the_review_runs_on_its_own_model(monkeypatch, enabled, expected):
 
 
 def test_the_default_path_review_ships_on_supports_only():
-    """Founder decision 2026-09-29: on in production, supports only, on
+    """Founder decision 2026-09-29: supports only, on
     gemini-3.7-flash, demote-on-unknown, 40 s per call."""
     from app.core.config import Settings
 
     fields = Settings.model_fields if hasattr(Settings, "model_fields") else Settings.__fields__
     default = lambda name: getattr(fields[name], "default", None)
-    assert default("ENABLE_RELATIONSHIP_REVIEW") is True
+    # Rolled back 2026-09-29 after live check e562b46b; see config.py.
+    assert default("ENABLE_RELATIONSHIP_REVIEW") is False
     assert default("RELATIONSHIP_REVIEW_DIRECTIONS") == "supports"
     assert default("RELATIONSHIP_REVIEW_MODEL") == "gemini-3.7-flash"
     assert default("RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN") is True
