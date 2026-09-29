@@ -37,6 +37,13 @@
     4. Re-run the held-out eval (~£1.45).
     5. A passing live check.
   - Stray check `91d22f02` ("x", a script slip) failed; its credit is refunded by the failure path.
+  - **FIXED and RE-ENABLED 2026-09-29 (`ac071e6` fixes, `43c757a` ON).**
+    - Year ranges are not counts, and a silent count never demotes.
+    - Held-out v2: 38/40 bad supports removed and 5/120 good ones demoted.
+    - **Live checks PASS:**
+      - `f6025cd8` Thames: both elements supported; the review inspected 9 supports and kept 9.
+      - `d94e9bb0` UK CPI 1.7% Sep 2024: both supported; 5 inspected, 5 kept.
+    - Watch: `scopeReview.pairs` on real checks over the next days, for demotions of supports a reader would keep.
   - Record: `audit/2026-09-24_a_minus_mapping_design.md`, last section.
 - S5 weather-adapter routing shipped (`0032ef7`).
 
