@@ -2,7 +2,7 @@
 import asyncio, glob, json, os, sys
 sys.path.insert(0, os.getcwd())
 from app.core.config import settings
-settings.GOOGLE_LLM_MODEL = "gemini-3.7-flash"
+settings.RELATIONSHIP_REVIEW_MODEL = "gemini-3.7-flash"
 settings.ENABLE_RELATIONSHIP_REVIEW = True
 settings.RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN = True
 settings.RELATIONSHIP_REVIEW_DIRECTIONS = "supports"

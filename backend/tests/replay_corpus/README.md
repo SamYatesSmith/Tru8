@@ -25,7 +25,17 @@
 > record once after it. **End-of-day pass state: `117 ok / 4 warn / 10 fail` + 3
 > drift (82CF and 5647 at random; 018F re-keyed, owed).**
 >
-> ## ✅ CURRENT PASS STATE (2026-09-22): **`173 ok / 11 warn / 16 fail / 5 unexercised`, ZERO cassette drift on all 10**
+> ## ✅ CURRENT PASS STATE (2026-09-29): **`139 ok / 8 warn / 11 fail / 5 unexercised` + known drift on 5647 and 82CF**
+>
+> **The relationship review is ON by default** (supports only, gemini-3.7-flash). Its calls were patched into 8 cassettes with `--record-missing`. **B4A3 and 93DD needed a SECOND patch pass**: the review's demotions trigger coverage recovery, and recovery's order-sensitive prompts converge only on the second pass. Both then replayed identically twice.
+> - **The only change from the review-off baseline (140/7/11/5):** B4A3 goes from 18/2/0 to 17/3/0. `tier_commentary` falls from 11±5 to 4, because recovery reshapes its pool.
+> - **B4A3's demotions were read one by one:**
+>   - four are right: Chicago Fed never states 5.1%, and two Medium pages and a Bank of England page never name the spike or Truss;
+>   - Sky's link to the 30-year spike is borderline;
+>   - OFX's "5%" filed as a mismatch against 5.1% is a rounding, so one arguable error.
+> - 5647 and 82CF were not patched; their cross-process drift predates this change.
+>
+> ## Previous pass state (2026-09-22): **`173 ok / 11 warn / 16 fail / 5 unexercised`, ZERO cassette drift on all 10**
 >
 > Full re-record after the evidence-supply fix + the attribution-gate fix
 > (`audit/2026-09-22_mapper_reads_framing_defect.md`). ~£1.20 (`--record --all`) plus a

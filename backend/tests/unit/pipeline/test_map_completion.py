@@ -32,6 +32,16 @@ from app.pipeline.claim_map_analyzer import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _relationship_review_off(monkeypatch):
+    """These tests count mapping-stage model calls. The default-path
+    relationship review (on since 2026-09-29) adds its own call and is pinned
+    in tests/unit/test_relationship_scope_review.py."""
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", False)
+
+
 # ── Helpers ───────────────────────────────────────────────────────────
 
 

@@ -821,7 +821,16 @@ class Settings(BaseSettings):
     # from ENABLE_PASSAGE_MAPPING, whose other parts the 09-09 regrade judged
     # not ready. A demote-only model review of every directional ref (period,
     # place, measure before result). OFF until the offline eval passes.
-    ENABLE_RELATIONSHIP_REVIEW: bool = Field(False, env="ENABLE_RELATIONSHIP_REVIEW")
+    # 2026-09-29 ON (founder): held-out eval passed on gemini-3.7-flash,
+    # supports only, demote-on-unknown (37/40 bad supports removed, 6/120 good
+    # demoted); measured 1.0p per check. Record: the mapping design's last
+    # sections. ROLLBACK: ENABLE_RELATIONSHIP_REVIEW=False.
+    ENABLE_RELATIONSHIP_REVIEW: bool = Field(True, env="ENABLE_RELATIONSHIP_REVIEW")
+    # The review's own model (the eval ran on it; flash-lite was not accurate
+    # enough). Introductory price doubles on 1 January 2027.
+    RELATIONSHIP_REVIEW_MODEL: str = Field(
+        "gemini-3.7-flash", env="RELATIONSHIP_REVIEW_MODEL"
+    )
     RELATIONSHIP_REVIEW_MAX_PAIRS: int = Field(60, env="RELATIONSHIP_REVIEW_MAX_PAIRS")
     # Whether an `unknown` (scope unestablished) demotes, or is only recorded.
     RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN: bool = Field(
@@ -831,11 +840,13 @@ class Settings(BaseSettings):
     # scoped path after the 09-24 FAIL: supports only). Challenges were where
     # the review demoted genuine contradictions (NASA Orbit, Sweden 37th).
     RELATIONSHIP_REVIEW_DIRECTIONS: str = Field(
-        "supports,challenges", env="RELATIONSHIP_REVIEW_DIRECTIONS"
+        "supports", env="RELATIONSHIP_REVIEW_DIRECTIONS"
     )
     # Per-call deadline. 25 s cost a third of 3.7-flash's calls (09-24 round 2).
+    # 40 s: the held-out p90 was 11 s with 0 timeouts at 60 s. The completion
+    # window grows to hold it (claim_map_analyzer `_COMPLETION_TIMEOUT`).
     RELATIONSHIP_REVIEW_CALL_TIMEOUT_S: int = Field(
-        25, env="RELATIONSHIP_REVIEW_CALL_TIMEOUT_S"
+        40, env="RELATIONSHIP_REVIEW_CALL_TIMEOUT_S"
     )
 
     # Same-study scope gate (2026-09-09, Track Q — Astra finding 10). Hosts of

@@ -14,6 +14,16 @@ from app.services.relationship_scope_review import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _review_module_defaults(monkeypatch):
+    """These tests pin the review module itself, in BOTH directions, as written
+    before the default-path review went live (2026-09-29, supports only). Each
+    test that needs the default path on sets it explicitly."""
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", False)
+
+
 def fixture(relationship="challenges"):
     cm = {
         "claim_id": "x",
@@ -822,3 +832,43 @@ async def test_mismatch_only_still_demotes_a_contradicting_figure(monkeypatch):
     assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "context"
     record = cm["metadata"]["scope_review"]["pairs"][0]
     assert record["decision_basis"] == "quantitative_result_contradicted"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("enabled,expected", [(True, "gemini-3.7-flash"), (False, None)])
+async def test_the_review_runs_on_its_own_model(monkeypatch, enabled, expected):
+    """2026-09-29: the default-path review uses RELATIONSHIP_REVIEW_MODEL (the
+    model the held-out eval passed on), not the bulk GOOGLE_LLM_MODEL."""
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", enabled)
+    monkeypatch.setattr(settings, "RELATIONSHIP_REVIEW_MODEL", "gemini-3.7-flash")
+    a = ClaimMapAnalyzer()
+    a.google_ai_api_key = "test"
+    seen = {}
+
+    async def fake_google(prompt, temperature, max_tokens, model=None, timeout=None, **kw):
+        seen["model"], seen["timeout"] = model, timeout
+        return {"pairs": []}, {"input_tokens": 1, "output_tokens": 1}
+
+    monkeypatch.setattr(a, "_call_google", fake_google)
+    await a._call_llm(prompt="x", temperature=0, max_tokens=10, label="scope_review")
+    if enabled:
+        assert seen["model"] == expected
+        assert seen["timeout"] == settings.RELATIONSHIP_REVIEW_CALL_TIMEOUT_S
+    else:
+        assert seen["model"] == a.google_model
+
+
+def test_the_default_path_review_ships_on_supports_only():
+    """Founder decision 2026-09-29: on in production, supports only, on
+    gemini-3.7-flash, demote-on-unknown, 40 s per call."""
+    from app.core.config import Settings
+
+    fields = Settings.model_fields if hasattr(Settings, "model_fields") else Settings.__fields__
+    default = lambda name: getattr(fields[name], "default", None)
+    assert default("ENABLE_RELATIONSHIP_REVIEW") is True
+    assert default("RELATIONSHIP_REVIEW_DIRECTIONS") == "supports"
+    assert default("RELATIONSHIP_REVIEW_MODEL") == "gemini-3.7-flash"
+    assert default("RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN") is True
+    assert default("RELATIONSHIP_REVIEW_CALL_TIMEOUT_S") == 40

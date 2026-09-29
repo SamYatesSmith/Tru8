@@ -169,6 +169,7 @@ def main() -> None:
 
     if args.model:
         settings.GOOGLE_LLM_MODEL = args.model
+        settings.RELATIONSHIP_REVIEW_MODEL = args.model
     settings.ENABLE_RELATIONSHIP_REVIEW = True
     settings.RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN = True
     settings.RELATIONSHIP_REVIEW_DIRECTIONS = args.directions
@@ -239,7 +240,7 @@ def main() -> None:
             "p90": timings[int(len(timings) * 0.9)] if timings else None,
         },
         "statuses": dict(statuses),
-        "model": settings.GOOGLE_LLM_MODEL,
+        "model": settings.RELATIONSHIP_REVIEW_MODEL,
         "directions": settings.RELATIONSHIP_REVIEW_DIRECTIONS,
         "call_timeout_s": settings.RELATIONSHIP_REVIEW_CALL_TIMEOUT_S,
         "invalid_reasons": dict(

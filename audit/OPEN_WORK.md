@@ -23,7 +23,10 @@
   - Bench identical to a control arm (140/7/11/5, known 5647/82CF drift).
 - **A2 PARKED.** Extraction's `claimant` means "the body issuing figures", so it cannot separate a central bank from a campaign. It needs a new extraction signal: founder decision, and it re-keys cassettes. Owed: #7/#10 stored fields (full check ids needed).
 - **M1 relationship review, held-out eval PASSED 2026-09-29** (3.7-flash, supports only, demote-on-unknown). 37/40 bad supports removed; 6/120 good ones demoted (5.0%; ≈2.5% after reading them); p90 11 s; ≈ £1.45. Still OFF.
-  - Activation needs founder calls on: model routing, timeout, cost (≈5–10p per full check) and a bench re-record.
+  - **Measured cost 1.0p per check** (median 0.8p, max 2.5p); ≈2p from 1 Jan 2027.
+  - **SWITCHED ON 2026-09-29** (founder): `ENABLE_RELATIONSHIP_REVIEW=True`, supports only, own model `RELATIONSHIP_REVIEW_MODEL=gemini-3.7-flash`, 40 s per call; the completion window grows to hold it.
+  - Unit suite 4,255 pass. Bench re-patched: 139/8/11/5; B4A3's commentary count moved (recovery), the rest is unchanged.
+  - Rollback: `ENABLE_RELATIONSHIP_REVIEW=False`. Live verification: see the next entry.
   - Record: `audit/2026-09-24_a_minus_mapping_design.md`, last section.
 - S5 weather-adapter routing shipped (`0032ef7`).
 

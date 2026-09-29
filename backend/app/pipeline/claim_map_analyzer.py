@@ -2087,8 +2087,16 @@ class ClaimMapAnalyzer:
 
             # The review shares this timeout; at 25 s it would often be cancelled
             # (safe — it stages a copy — but silently ineffective).
+            # 2026-09-29: with the review ON by default, the window is the
+            # completion call's 25 s plus one review call's deadline plus slack,
+            # so a slow completion cannot silently cancel the review.
             _COMPLETION_TIMEOUT = (
-                50
+                max(
+                    50,
+                    25
+                    + int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 25))
+                    + 5,
+                )
                 if (
                     settings.ENABLE_PASSAGE_MAPPING
                     or settings.ENABLE_RELATIONSHIP_REVIEW
@@ -2189,6 +2197,15 @@ class ClaimMapAnalyzer:
         # Mapping calls use the thinking model which needs more time
         is_mapping = label in ("mapping", "batch_mapping")
         google_timeout = self.mapping_timeout if is_mapping else self.timeout
+        # 2026-09-29: the default-path relationship review runs on its own
+        # model (the eval ran on it) under its own per-call deadline.
+        is_review = label == "scope_review" and getattr(
+            settings, "ENABLE_RELATIONSHIP_REVIEW", False
+        )
+        if is_review:
+            google_timeout = int(
+                getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", google_timeout)
+            )
 
         # Select response_schema for mapping calls — constrains output structure
         # at the API level so the model can't return malformed JSON. Other
@@ -2211,7 +2228,13 @@ class ClaimMapAnalyzer:
         if self.google_ai_api_key:
             try:
                 model_to_use = (
-                    self.mapping_google_model if is_mapping else self.google_model
+                    self.mapping_google_model
+                    if is_mapping
+                    else (
+                        getattr(settings, "RELATIONSHIP_REVIEW_MODEL", self.google_model)
+                        if is_review
+                        else self.google_model
+                    )
                 )
                 parsed, usage = await asyncio.wait_for(
                     self._call_google(

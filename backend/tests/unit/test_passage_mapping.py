@@ -216,7 +216,11 @@ async def test_rollout_off_does_not_call_passage_model(monkeypatch):
     analyzer = ClaimMapAnalyzer()
     analyzer._call_llm = AsyncMock()
     await analyzer._complete_unmapped_evidence(cm, evidence)
-    analyzer._call_llm.assert_not_called()  # old completion excludes an already mapped source
+    # No PASSAGE model call. The default-path relationship review (on since
+    # 2026-09-29) is a separate call, pinned in test_relationship_scope_review.
+    labels = [c.kwargs.get("label") for c in analyzer._call_llm.call_args_list]
+    assert "passage_review" not in labels
+    assert set(labels) <= {"scope_review"}  # old completion excludes an already mapped source
     assert "passage_review" not in cm["metadata"]
 
 
