@@ -26,7 +26,17 @@
   - **Measured cost 1.0p per check** (median 0.8p, max 2.5p); ≈2p from 1 Jan 2027.
   - **SWITCHED ON 2026-09-29** (founder): `ENABLE_RELATIONSHIP_REVIEW=True`, supports only, own model `RELATIONSHIP_REVIEW_MODEL=gemini-3.7-flash`, 40 s per call; the completion window grows to hold it.
   - Unit suite 4,255 pass. Bench re-patched: 139/8/11/5; B4A3's commentary count moved (recovery), the rest is unchanged.
-  - Rollback: `ENABLE_RELATIONSHIP_REVIEW=False`. Live verification: see the next entry.
+  - **ROLLED BACK the same afternoon (`fcb7e98`), after about 40 minutes live.** Live check `e562b46b` (Thames Barrier closed 50 times in 2013-14, a true claim) lost ALL 11 supports, gov.uk included.
+    - The figure parser read "2013-14" as a count of 14 closures, and "50 times during" as 50 "during".
+    - The quote guard treats a figure missing from the quote as `unknown`, which demotes. So a bogus element figure demotes every source.
+    - The mapping figure gate (live since 23 Sep) is shielded: its bogus kinds never match a source's nouns, so it reads silence. Tested offline.
+  - **Owed before re-enabling:**
+    1. Parser: year-range tails are not counts, and a function word after "times" is not a counted noun.
+    2. Guard: the silence rule applies only to percentages and currency; a count demotes only on contradiction.
+    3. Thames-shaped tests.
+    4. Re-run the held-out eval (~£1.45).
+    5. A passing live check.
+  - Stray check `91d22f02` ("x", a script slip) failed; its credit is refunded by the failure path.
   - Record: `audit/2026-09-24_a_minus_mapping_design.md`, last section.
 - S5 weather-adapter routing shipped (`0032ef7`).
 
