@@ -825,12 +825,11 @@ class Settings(BaseSettings):
     # supports only, demote-on-unknown (37/40 bad supports removed, 6/120 good
     # demoted); measured 1.0p per check. Record: the mapping design's last
     # sections. ROLLBACK: ENABLE_RELATIONSHIP_REVIEW=False.
-    # ROLLED BACK 2026-09-29 (same day): live check e562b46b (Thames Barrier,
-    # a true claim) lost EVERY support. The figure parser read "2013-14" as a
-    # count of 14 closures and "50 times during" as 50 "during", so the quote
-    # guard demanded figures no source states. Off until the parser is fixed
-    # and a live check passes.
-    ENABLE_RELATIONSHIP_REVIEW: bool = Field(False, env="ENABLE_RELATIONSHIP_REVIEW")
+    # Rolled back 2026-09-29 after live check e562b46b (Thames Barrier, true)
+    # lost every support to a parser fault ("2013-14" read as 14 closures).
+    # Re-enabled the same day after the fixes (ac071e6): year ranges are not
+    # counts, and a silent count never demotes. Held-out v2: 38/40 / 5/120.
+    ENABLE_RELATIONSHIP_REVIEW: bool = Field(True, env="ENABLE_RELATIONSHIP_REVIEW")
     # The review's own model (the eval ran on it; flash-lite was not accurate
     # enough). Introductory price doubles on 1 January 2027.
     RELATIONSHIP_REVIEW_MODEL: str = Field(

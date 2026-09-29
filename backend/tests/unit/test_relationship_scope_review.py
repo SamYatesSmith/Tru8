@@ -867,8 +867,8 @@ def test_the_default_path_review_ships_on_supports_only():
 
     fields = Settings.model_fields if hasattr(Settings, "model_fields") else Settings.__fields__
     default = lambda name: getattr(fields[name], "default", None)
-    # Rolled back 2026-09-29 after live check e562b46b; see config.py.
-    assert default("ENABLE_RELATIONSHIP_REVIEW") is False
+    # Rolled back and re-enabled 2026-09-29; see config.py.
+    assert default("ENABLE_RELATIONSHIP_REVIEW") is True
     assert default("RELATIONSHIP_REVIEW_DIRECTIONS") == "supports"
     assert default("RELATIONSHIP_REVIEW_MODEL") == "gemini-3.7-flash"
     assert default("RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN") is True
