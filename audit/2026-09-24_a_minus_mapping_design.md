@@ -298,3 +298,14 @@ Run: gemini-3.7-flash, supports only, 60 s call timeout, the figure-guard fix (`
 - **Timeouts:** the call timeout must stay under `_COMPLETION_TIMEOUT` (50 s under the flag), or the review is cancelled. Use 40 s; p90 is 11 s.
 - **Cost:** about 3p per call of 6 pairs, so roughly 5–10p per full check. That is material against the £0.15 full-tier price.
 - **Bench re-record:** new model calls re-key cassettes (pence).
+
+## M1 real cost per check — 2026-09-29 (measured, 19.2p spent)
+Measured on the 19 A− records at production shape (unpruned), with the settings activation would use: 3.7-flash, supports only, 40 s timeout. Token counts come from the analyzer; thinking is billed as output. Script: `backend/scripts/measure_relationship_review_cost.py`.
+
+**Per check: mean 1.0p · median 0.8p · max 2.5p.**
+- Scale: 0–12 supports per check, 0–2 calls.
+- Per call: 0.8p. The earlier "≈3p per call" estimate was about 4× too high.
+- **1 January 2027:** the introductory price ends and 3.7-flash doubles, to about 2p per check on average.
+- **Against revenue:**
+  - Console, 200 checks at 10p each: about +1p per check, roughly 10% of revenue per check.
+  - Agent `full` at £0.15: under 1% today, about 1.3% from 2027.
