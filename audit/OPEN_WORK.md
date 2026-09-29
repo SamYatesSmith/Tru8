@@ -22,6 +22,9 @@
   - 60 adversarial tests; 5/5 mutants killed; unit suite 4,244 pass.
   - Bench identical to a control arm (140/7/11/5, known 5647/82CF drift).
 - **A2 PARKED.** Extraction's `claimant` means "the body issuing figures", so it cannot separate a central bank from a campaign. It needs a new extraction signal: founder decision, and it re-keys cassettes. Owed: #7/#10 stored fields (full check ids needed).
+- **M1 relationship review, held-out eval PASSED 2026-09-29** (3.7-flash, supports only, demote-on-unknown). 37/40 bad supports removed; 6/120 good ones demoted (5.0%; ≈2.5% after reading them); p90 11 s; ≈ £1.45. Still OFF.
+  - Activation needs founder calls on: model routing, timeout, cost (≈5–10p per full check) and a bench re-record.
+  - Record: `audit/2026-09-24_a_minus_mapping_design.md`, last section.
 - S5 weather-adapter routing shipped (`0032ef7`).
 
 ## ▶ 2026-09-28 — A− RE-MEASURE DONE: 0/18 at A−, but the distribution moved (START HERE)

@@ -261,3 +261,40 @@ Path: gemini-3.7-flash, demote-on-unknown, **supports only**, longer call timeou
     Approximate figures ("around"), currency conversion, and the figure sitting outside the quote defeat the guard.
   - **3 × `unknown` on short snippets** that do state the element (£72m and two £36m donations; the Sussex NHS App pilot). Demote-on-unknown is too strict for supports.
 - **Decision:** do not spend on the held-out run until the figure guard honours stated figures, and until the unknown policy for supports is settled (mismatch-only for supports is the obvious candidate). Otherwise the run pays to confirm a fail.
+
+## M1 held-out eval — 2026-09-29: **PASS on demote-on-unknown** (≈ £1.45, founder-approved)
+Run: gemini-3.7-flash, supports only, 60 s call timeout, the figure-guard fix (`ac871fc`), 160 held-out pairs from the 09-09/10 blind sheets (never used for tuning), 1 repeat. Results: `audit/a_minus/review_eval/results_2026_09_29_heldout_flash_supports.json`.
+
+| Policy | Should-demote demoted (bar ≥ 70%) | Must-survive demoted (bar ≤ 5%) |
+|---|---|---|
+| demote on unknown | **37/40 = 92.5%** | **6/120 = 5.0%** |
+| mismatch only | 9/40 = 22.5% | 1/120 = 0.8% |
+
+**Other measures:**
+- Calls: 47/47 ok, 0 timeouts.
+- Latency: p50 5.8 s, p90 11.3 s (bar ≤ 15 s).
+- Invalid: 2/160.
+
+**Readings:**
+- **Mismatch-only fails.** On held-out, the review files a source that is "neither" as `unknown`, not `mismatch`, so demote-on-unknown is the policy that works. Fix 2's premise came from the dev draws and does not hold on held-out.
+- **The 6 must-survive demotions, read one by one:**
+  - **3 are defensible catches**, where the label is arguably wrong:
+    - EV battery-only figures for a "total lifecycle volume";
+    - "July 2010" for "July 21, 2010";
+    - SELECT's CVD population for "people who are overweight" (the known SELECT scope error).
+  - **3 are wrong:**
+    - NASA's "hottest planet" (the review distrusted the distilled text);
+    - Robinhood's stated event date;
+    - MIT's truncated snippet.
+  - Adjudicated wrong rate ≈ **2.5%**.
+
+**Caveats:**
+- The held-out labels are blind **Gemini** verdicts: the same model family as the reviewer, so their errors may correlate.
+- The 160 pairs come from 13 claims re-run across 9 runs, which is low topic diversity.
+- One repeat only.
+
+**Before any activation (founder decisions):**
+- **Model routing:** `scope_review` uses `GOOGLE_LLM_MODEL` (lite) in production. It needs a per-label model setting for 3.7-flash.
+- **Timeouts:** the call timeout must stay under `_COMPLETION_TIMEOUT` (50 s under the flag), or the review is cancelled. Use 40 s; p90 is 11 s.
+- **Cost:** about 3p per call of 6 pairs, so roughly 5–10p per full check. That is material against the £0.15 full-tier price.
+- **Bench re-record:** new model calls re-key cassettes (pence).
