@@ -776,3 +776,73 @@ def test_a_person_is_never_released_even_on_a_plain_saying():
         ["donald trump"],
         {"donald trump": "person"},
     )
+
+
+# ---------------------------------------------------------------------------
+# A1′ (2026-09-29): an unowned document speaking is not a recital, wired
+# ---------------------------------------------------------------------------
+
+_TOPLINES_EVIDENCE = [
+    {
+        "evidence_id": "ev-toplines",
+        "url": "https://example-poll-aggregator.org/battleground-2026",
+        "title": "2026 Battleground District Project",
+        "snippet": (
+            "According to the September 2026 toplines, Democrats hold a two-point "
+            "advantage on the generic congressional ballot, 49% to 47%."
+        ),
+        "tier": "primary",
+        "evidence_type": "data",
+    }
+]
+
+
+def _toplines_claim_map():
+    claim_map = _cook_claim_map()
+    claim_map["metadata"]["subjects"] = ["cook political report", "democrats"]
+    claim_map["metadata"]["subject_kinds"] = {
+        "cook political report": "org",
+        "democrats": "org",
+    }
+    return claim_map
+
+
+def _toplines_response(rel):
+    return {
+        "elements": [
+            {
+                "element_id": "e1",
+                "evidence_refs": [
+                    {
+                        "evidence_id": "ev-toplines",
+                        "relationship": rel,
+                        "reasoning": "States 49% to 47%.",
+                    }
+                ],
+            }
+        ]
+    }
+
+
+@pytest.mark.parametrize("rel", ["supports", "challenges"])
+def test_the_toplines_speaking_keep_their_direction(rel):
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _toplines_claim_map()
+    analyzer._parse_mapping_response(
+        _toplines_response(rel), claim_map, _TOPLINES_EVIDENCE
+    )
+    elem = claim_map["elements"][0]
+    assert _rel(elem, "ev-toplines") == rel
+    assert "recital_scope" not in elem["basis"]
+
+
+def test_the_instrument_skip_rolls_back(monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "ENABLE_RECITAL_INSTRUMENT_SKIP", False)
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _toplines_claim_map()
+    analyzer._parse_mapping_response(
+        _toplines_response("supports"), claim_map, _TOPLINES_EVIDENCE
+    )
+    assert _rel(claim_map["elements"][0], "ev-toplines") == "context"

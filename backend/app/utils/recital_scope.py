@@ -153,9 +153,11 @@ def _assess(
     text: Optional[str],
     patterns: List[re.Pattern],
     release: Optional["DirectionRelease"] = None,
+    instrument: Optional["InstrumentSkip"] = None,
 ) -> Tuple[str, Optional[Dict[str, str]]]:
     """One text's verdict: veto beats fire beats silence. R6 (`release`) skips
-    a match that cannot be what the reference rests on."""
+    a match that cannot be what the reference rests on; A1′ (`instrument`)
+    skips a match whose speaker is an unowned document."""
     if not text:
         return _SILENT, None
     if _VETO.search(text):
@@ -168,6 +170,8 @@ def _assess(
         }
     for pattern in patterns:
         for match in pattern.finditer(text):
+            if instrument is not None and instrument.skips(match):
+                continue
             if release is not None and release.releases(text, match):
                 continue
             return _FIRE, {
@@ -331,8 +335,9 @@ def _assess_evidence(
     tagged: List[Tuple[re.Pattern, str, str]],
     narrowing: "EvidenceNarrowing",
     release: Optional["DirectionRelease"] = None,
+    instrument: Optional["InstrumentSkip"] = None,
 ) -> Tuple[str, Optional[Dict[str, str]]]:
-    """`_assess` for the EVIDENCE text, with R0–R6 applied per match."""
+    """`_assess` for the EVIDENCE text, with R0–R6 and A1′ applied per match."""
     if not text:
         return _SILENT, None
     if _VETO.search(text):
@@ -354,6 +359,8 @@ def _assess_evidence(
                 break
             pos = match.start() + 1
             if narrowing.skip(text, match, token, kind):
+                continue
+            if instrument is not None and instrument.skips(match):
                 continue
             if release is not None and release.releases(text, match):
                 continue
@@ -660,6 +667,95 @@ class DirectionRelease:
         return self._stances(text).get(subject) == {_RESTATES}
 
 
+# ── Instrument skip, A1′ (2026-09-29) ─────────────────────────────────────────
+# Design: audit/2026-09-28_family_a_speaker_design.md (Revision 2); review:
+# audit/2026-09-28_family_a_speaker_review.md (G1 applied).
+#
+# The subject anchor finds attribution; it does not decide who speaks. Record
+# 50e08e0e (Cook's poll) lost its own results page to "According to the
+# September 2026 toplines, Democrats hold…": the toplines speak, and Democrats
+# are what they report on. Likewise "Democrats lead by two, the poll said".
+#
+# Skipped: ONLY a match whose speaker is an UNOWNED document or instrument —
+# an `according` phrase headed by an instrument noun that names no subject,
+# or an attribution verb whose own subject is "the/this/that/a/an (+ up to
+# three modifiers) + instrument noun". Every person or agent speaker keeps
+# firing, whoever it is (the gate catches recitals by anyone, not only the
+# subject), and so does a document with an owner pointing at a speaker
+# ("a White House report", "the campaign's analysis", "his own figures") —
+# the subject's own paper is the subject's own voice. "release" is not an
+# instrument: a press release is speech. Pronoun speakers ("…, it said") are
+# unknown and keep firing. Symmetric: supports and challenges alike.
+_INSTRUMENT_NOUN = (
+    r"(?:toplines?|polls?|polling|surveys?|data|figures|results|"
+    r"stud(?:y|ies)|research|reports?|bulletins?|index|estimates?|"
+    r"analys[ie]s|statistics|datasets?)"
+)
+_INSTRUMENT_HEAD = re.compile(rf"\b{_INSTRUMENT_NOUN}$", re.IGNORECASE)
+#: An owner pointing back to a speaker. Any of these keeps the match firing.
+_INSTRUMENT_OWNER = re.compile(
+    r"\b(?:his|her|their|its|our|my|your|own)\b|['’]s\b|"
+    r"\b(?:white\s+house|downing\s+street|no\.?\s*10|number\s+10|wh|"
+    r"campaign|administration|government|party|press|office|spokes\w*)\b",
+    re.IGNORECASE,
+)
+_ACCORDING_LEAD = re.compile(r"^according\s+to\s+", re.IGNORECASE)
+#: "(the|this|that|a|an) [≤3 modifiers] <instrument> [has|have|had]" ending
+#: right where the attribution verb begins.
+_INSTRUMENT_SUBJECT = re.compile(
+    rf"(?:^|[\s,;])((?:the|this|that|a|an)\s+(?:[\w'’-]+\s+){{0,3}}?"
+    rf"{_INSTRUMENT_NOUN})\s+(?:(?:has|have|had)\s+)?$",
+    re.IGNORECASE,
+)
+_VERB_AT_END = re.compile(
+    rf"\b(?:{_ATTRIBUTION_VERBS})\b(?:\s+to\s+have)?\s*$", re.IGNORECASE
+)
+
+
+class InstrumentSkip:
+    """A1′: whether a subject-anchored match's speaker is an unowned document.
+
+    No "phrase names a subject" check is needed: a subject named inside the
+    instrument phrase ("the Trump survey") gets its own anchored match, which
+    this never skips (mutation-checked 2026-09-29)."""
+
+    def __init__(self, tokens: Iterable[Tuple[str, str]]):
+        self.tokens = [(t, s) for t, s in tokens if t]
+        self._owner = {
+            pattern.pattern: (token, kind)
+            for pattern, token, kind in _tagged_patterns(self.tokens)
+        }
+
+    @staticmethod
+    def _unowned_instrument(phrase: str) -> bool:
+        return bool(_INSTRUMENT_HEAD.search(phrase)) and not _INSTRUMENT_OWNER.search(
+            phrase
+        )
+
+    def skips(self, match: "re.Match[str]") -> bool:
+        owner = self._owner.get(match.re.pattern)
+        if owner is None:
+            return False
+        token, kind = owner
+        span = match.group(0)
+        if kind == "according":
+            cut = span.lower().rfind(token.lower())
+            phrase = _ACCORDING_LEAD.sub("", span[:cut] if cut > 0 else "")
+            phrase = phrase.strip().rstrip(",;:").strip()
+            if not phrase:
+                return False
+            return self._unowned_instrument(phrase)
+        if kind == "verb":
+            verb = _VERB_AT_END.search(span)
+            if verb is None:
+                return False
+            subject = _INSTRUMENT_SUBJECT.search(span[: verb.start()])
+            if subject is None:
+                return False
+            return self._unowned_instrument(subject.group(1))
+        return False
+
+
 #: Minimum normalised length before a claim is ELIGIBLE to match on at all.
 #: Short claims share wording with ordinary prose and would over-fire.
 _MIN_CLAIM_CHARS = 40
@@ -810,6 +906,7 @@ def recital_match(
     allow_reported_results: bool = False,
     narrowing: Optional["EvidenceNarrowing"] = None,
     release: Optional["DirectionRelease"] = None,
+    instrument_skip: bool = False,
 ) -> Optional[Dict[str, str]]:
     """The receipt entry if this reference rests on recital, else None.
 
@@ -821,8 +918,9 @@ def recital_match(
     """
     if tokens:
         patterns = _subject_patterns(tokens)
+        instrument = InstrumentSkip(tokens) if instrument_skip else None
 
-        verdict, entry = _assess(reasoning, patterns, release)
+        verdict, entry = _assess(reasoning, patterns, release, instrument)
         if verdict == _VETOED:
             return None
         if verdict == _FIRE and entry is not None:
@@ -831,10 +929,10 @@ def recital_match(
 
         if narrowing is not None:
             verdict, entry = _assess_evidence(
-                evidence_text, _tagged_patterns(tokens), narrowing, release
+                evidence_text, _tagged_patterns(tokens), narrowing, release, instrument
             )
         else:
-            verdict, entry = _assess(evidence_text, patterns, release)
+            verdict, entry = _assess(evidence_text, patterns, release, instrument)
         if verdict == _FIRE and entry is not None:
             entry["found_in"] = "evidence"
             return entry

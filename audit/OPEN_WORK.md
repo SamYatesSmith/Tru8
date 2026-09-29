@@ -17,7 +17,11 @@
 - Family A is two general faults, reproduced offline:
   - **A1:** the recital gate never works out who is speaking. "According to the toplines, Democrats hold…" and "Democrats lead, the poll said" fire as if Democrats spoke.
   - **A2:** the interested-party release is withheld on content elements that do not name the measuring organisation.
-- Design: `audit/2026-09-28_family_a_speaker_design.md`. Review: `audit/2026-09-28_family_a_speaker_review.md` (running). No build before founder approval.
+- Design: `audit/2026-09-28_family_a_speaker_design.md` (revision 2 + build log). Review: `audit/2026-09-28_family_a_speaker_review.md` (two rounds).
+- **A1′ SHIPPED 2026-09-29.** The recital gate skips only an unowned document speaking ("the toplines", "the poll said"). People, agents and subject-owned documents still fire. Flag `ENABLE_RECITAL_INSTRUMENT_SKIP`.
+  - 60 adversarial tests; 5/5 mutants killed; unit suite 4,244 pass.
+  - Bench identical to a control arm (140/7/11/5, known 5647/82CF drift).
+- **A2 PARKED.** Extraction's `claimant` means "the body issuing figures", so it cannot separate a central bank from a campaign. It needs a new extraction signal: founder decision, and it re-keys cassettes. Owed: #7/#10 stored fields (full check ids needed).
 - S5 weather-adapter routing shipped (`0032ef7`).
 
 ## ▶ 2026-09-28 — A− RE-MEASURE DONE: 0/18 at A−, but the distribution moved (START HERE)

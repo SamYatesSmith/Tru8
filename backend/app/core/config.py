@@ -792,6 +792,16 @@ class Settings(BaseSettings):
         True, env="ENABLE_RECITAL_DIRECTION_RELEASE"
     )
 
+    # Recital instrument skip, A1′ (2026-09-29): a subject-anchored match whose
+    # speaker is an unowned document ("According to the toplines, Democrats
+    # hold…", "…, the poll said") is not a recital by anyone. Person, agent and
+    # subject-owned documents ("a White House report") still fire. Both paths.
+    # Design: audit/2026-09-28_family_a_speaker_design.md, Revision 2.
+    # ROLLBACK: ENABLE_RECITAL_INSTRUMENT_SKIP=False.
+    ENABLE_RECITAL_INSTRUMENT_SKIP: bool = Field(
+        True, env="ENABLE_RECITAL_INSTRUMENT_SKIP"
+    )
+
     # A− Build C SHADOW (2026-09-25): log `[COPY DEDUP] would_drop=… survivor=…`
     # for pre-fetch candidates that are copies of one article. LOGS ONLY —
     # nothing is dropped, so the fetched pool and cassettes are unchanged.

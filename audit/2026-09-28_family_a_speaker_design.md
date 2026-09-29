@@ -193,3 +193,18 @@ Out of family A's scope. The saying branch keeps today's token test. A proper fi
 - **The instrument list is closed.** A missing noun keeps firing, which is safe but a miss.
 - **A2′'s claimant signal is only as good as extraction's `claimant` field.** A campaign that extraction misses as claimant is released. That exposure is limited to the organisation's own domain, and R3′ never silences sayings.
 - **A2′ still releases an interested measurer quoted by a third party.** Example: "the Guardian reports Tesla data show…", where the claimant is the Guardian writer. This is the reading the founder accepted, and the element receipt discloses it.
+
+---
+
+## Build log: A1′ — 2026-09-29 (founder: "proceed"; A2 parked on the claimant signal)
+- **Code:** `recital_scope.InstrumentSkip`, applied on both paths (`_assess` for the reasoning, `_assess_evidence` for the evidence), before R6. Wired in `claim_map_analyzer` under `ENABLE_RECITAL_INSTRUMENT_SKIP` (default True).
+- **Review G1 applied:** there is no skip when the instrument has an owner:
+  - a possessive, or `X's`;
+  - White House, Downing Street, No 10 or WH;
+  - campaign, administration, government, party, press, office or spokes*.
+
+  `release` is not an instrument noun.
+- **Dropped as redundant:** the "phrase names a subject" check. A subject inside the phrase gets its own anchored match, which is never skipped. A mutant proved it untestable.
+- **Tests:** `tests/unit/pipeline/test_recital_instrument_skip.py` has 60 cases: the review's F1, F2, F4 and G1 sentences, both directions, both paths, and flag-off. There are 2 wiring tests in `test_assertion_evidence_wiring.py`.
+- **Mutants:** 5 of 5 killed (owner check, the according branch, the verb branch, wiring, and the redundant check shown removable).
+- **A2 status:** PARKED. `extract.py:524-530` defines claimant as "the body issuing a statement or figures", so it cannot separate an independent measurer from a party to the claim. It needs a new extraction signal, which is a founder decision (prompt change; re-keys cassettes).

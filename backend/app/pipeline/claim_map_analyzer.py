@@ -3063,6 +3063,9 @@ class ClaimMapAnalyzer:
                         allow_reported_results=settings.ENABLE_PASSAGE_MAPPING,
                         narrowing=_n,
                         release=_r,
+                        instrument_skip=getattr(
+                            settings, "ENABLE_RECITAL_INSTRUMENT_SKIP", True
+                        ),
                     )
                     if match is not None:
                         return match
