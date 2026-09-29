@@ -152,16 +152,36 @@ def _max_pairs():
     return MAX_PAIRS
 
 
+def _directions():
+    """Directional refs the review inspects. Only when the default-path
+    review is on; the candidate path keeps both directions."""
+    both = ("supports", "challenges")
+    if not getattr(settings, "ENABLE_RELATIONSHIP_REVIEW", False):
+        return both
+    raw = getattr(settings, "RELATIONSHIP_REVIEW_DIRECTIONS", "") or ""
+    chosen = tuple(d.strip() for d in raw.split(",") if d.strip() in both)
+    return chosen or both
+
+
+def _call_timeout():
+    if getattr(settings, "ENABLE_RELATIONSHIP_REVIEW", False):
+        return int(
+            getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 0) or CALL_TIMEOUT_S
+        )
+    return CALL_TIMEOUT_S
+
+
 def plan_review(claim_map, evidence, assessed=frozenset()):
     """Pairs to review. ``assessed`` holds (element_id, evidence_id) already
     decided by an earlier run on this claim (coverage recovery re-runs the
     review): they are not re-sent, so a second draw cannot undo the first."""
     index = {e.get("evidence_id"): e for e in evidence}
+    directions = _directions()
     queues = []
     for element in claim_map.get("elements", []):
         queue = []
         for ref in element.get("evidence_refs", []):
-            if ref.get("relationship") not in ("supports", "challenges"):
+            if ref.get("relationship") not in directions:
                 continue
             ev = index.get(ref.get("evidence_id"))
             if not ev or ev.get("receipt_status") == "excluded":
@@ -215,9 +235,9 @@ def plan_review(claim_map, evidence, assessed=frozenset()):
         if i < len(queue)
     ]
     cap = _max_pairs()
-    return [
-        dict(p, pair_id=f"scope-{i}") for i, p in enumerate(ordered[:cap])
-    ], len(ordered)
+    return [dict(p, pair_id=f"scope-{i}") for i, p in enumerate(ordered[:cap])], len(
+        ordered
+    )
 
 
 async def _review_call(analyzer, instructions, chunk):
@@ -232,7 +252,7 @@ async def _review_call(analyzer, instructions, chunk):
                 max_tokens=4800,
                 label="scope_review",
             ),
-            timeout=CALL_TIMEOUT_S,
+            timeout=_call_timeout(),
         )
     except asyncio.CancelledError:
         raise
@@ -499,12 +519,25 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
             )
         ):
             record["invalid_reason"] = (
-                "bad_decision" if decision not in ("compatible", "mismatch", "unknown")
-                else "bad_dimension" if row.get("dimension") not in DIMENSIONS
-                else "unknown_block" if not block
-                else "quote_length" if not isinstance(quote, str) or not 12 <= len(quote) <= 600
-                else "quote_not_in_block" if quote not in block["text"]
-                else "empty_field"
+                "bad_decision"
+                if decision not in ("compatible", "mismatch", "unknown")
+                else (
+                    "bad_dimension"
+                    if row.get("dimension") not in DIMENSIONS
+                    else (
+                        "unknown_block"
+                        if not block
+                        else (
+                            "quote_length"
+                            if not isinstance(quote, str) or not 12 <= len(quote) <= 600
+                            else (
+                                "quote_not_in_block"
+                                if quote not in block["text"]
+                                else "empty_field"
+                            )
+                        )
+                    )
+                )
             )
             continue
         if decision == "compatible":

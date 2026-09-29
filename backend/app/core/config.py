@@ -827,6 +827,16 @@ class Settings(BaseSettings):
     RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN: bool = Field(
         True, env="RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN"
     )
+    # Which directional refs the review inspects (2026-09-29, the founder's
+    # scoped path after the 09-24 FAIL: supports only). Challenges were where
+    # the review demoted genuine contradictions (NASA Orbit, Sweden 37th).
+    RELATIONSHIP_REVIEW_DIRECTIONS: str = Field(
+        "supports,challenges", env="RELATIONSHIP_REVIEW_DIRECTIONS"
+    )
+    # Per-call deadline. 25 s cost a third of 3.7-flash's calls (09-24 round 2).
+    RELATIONSHIP_REVIEW_CALL_TIMEOUT_S: int = Field(
+        25, env="RELATIONSHIP_REVIEW_CALL_TIMEOUT_S"
+    )
 
     # Same-study scope gate (2026-09-09, Track Q — Astra finding 10). Hosts of
     # ONE study (shared DOI / PubMed id / PMC id) count once per side of an

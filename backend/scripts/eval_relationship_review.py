@@ -157,12 +157,23 @@ def main() -> None:
     ap.add_argument("--out", required=True)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--model", default=None, help="override GOOGLE_LLM_MODEL")
+    ap.add_argument(
+        "--directions",
+        default="supports,challenges",
+        help="RELATIONSHIP_REVIEW_DIRECTIONS (2026-09-29: 'supports' = founder's path)",
+    )
+    ap.add_argument(
+        "--timeout", type=int, default=None, help="RELATIONSHIP_REVIEW_CALL_TIMEOUT_S"
+    )
     args = ap.parse_args()
 
     if args.model:
         settings.GOOGLE_LLM_MODEL = args.model
     settings.ENABLE_RELATIONSHIP_REVIEW = True
     settings.RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN = True
+    settings.RELATIONSHIP_REVIEW_DIRECTIONS = args.directions
+    if args.timeout:
+        settings.RELATIONSHIP_REVIEW_CALL_TIMEOUT_S = args.timeout
 
     from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
 
@@ -180,7 +191,11 @@ def main() -> None:
             payload = json.load(open(path, encoding="utf-8"))
             if "claims" not in payload:
                 continue
-            short = os.path.basename(path)[:8]
+            # Dev payloads are named <check-id>.json and keyed on its 8-char
+            # prefix; held-out payloads (2026-09-29) are named <run>__<record>.json
+            # and keyed on the whole stem.
+            stem = os.path.splitext(os.path.basename(path))[0]
+            short = stem if "__" in stem else stem[:8]
             for claim_map, evidence in _to_internal(payload):
                 for rep in range(args.repeats):
                     receipt, seconds = await _run_one(analyzer, claim_map, evidence)
@@ -225,6 +240,8 @@ def main() -> None:
         },
         "statuses": dict(statuses),
         "model": settings.GOOGLE_LLM_MODEL,
+        "directions": settings.RELATIONSHIP_REVIEW_DIRECTIONS,
+        "call_timeout_s": settings.RELATIONSHIP_REVIEW_CALL_TIMEOUT_S,
         "invalid_reasons": dict(
             Counter(
                 r.get("invalid_reason")

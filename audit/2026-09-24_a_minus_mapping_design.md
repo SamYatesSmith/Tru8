@@ -244,3 +244,20 @@ Prompt fix: "disagreement is not a scope mismatch". Two arms over the same 156 l
   - The lite model is not accurate enough under either policy.
 - **Per the hard stop agreed with the founder, the model review stays OFF.** The held-out stage was contingent on a dev pass and was not run (money saved).
 - **A possible future path** (not now; a founder decision): gemini-3.7-flash, demote-on-unknown, **supports only**, with a longer per-call timeout, re-measured with repeats and on the held-out set.
+
+## M1 founder path, first read — 2026-09-29 (£0 spent; held-out run HELD)
+Path: gemini-3.7-flash, demote-on-unknown, **supports only**, longer call timeout.
+- **Tooling:** `RELATIONSHIP_REVIEW_DIRECTIONS` and `RELATIONSHIP_REVIEW_CALL_TIMEOUT_S` (effective only when `ENABLE_RELATIONSHIP_REVIEW` is on). The eval gains `--directions` and `--timeout`.
+- **Held-out set:** `audit/a_minus/review_eval/build_eval_sets_2026_09_29.py`, from the 2026-09-09/10 blind sheets. It uses pairs where both reviewers agree: 40 should-demote and 120 must-survive, in 47 calls (≈ £1.45).
+- **Free re-score of the round-2 3.7-flash dev draws, supports only:**
+  - positives demoted: **11/11**;
+  - must-survive supports demoted: **6/54 inspected = 11%** (bar ≤ 5%), with 11 more uninspected (timeouts).
+- **The 6 wrong demotions have two causes, both fixable without the model:**
+  - **3 × `quantitative_result_not_quoted`:** the figure guard, not the model.
+    - Statista's 322.89 ppm for "around 320 ppm";
+    - "54 models" stated exactly;
+    - "$97m" for "£72m".
+
+    Approximate figures ("around"), currency conversion, and the figure sitting outside the quote defeat the guard.
+  - **3 × `unknown` on short snippets** that do state the element (£72m and two £36m donations; the Sussex NHS App pilot). Demote-on-unknown is too strict for supports.
+- **Decision:** do not spend on the held-out run until the figure guard honours stated figures, and until the unknown policy for supports is settled (mismatch-only for supports is the obvious candidate). Otherwise the run pays to confirm a fail.
