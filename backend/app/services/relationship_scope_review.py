@@ -129,6 +129,14 @@ def _loose_count_match(figures, text):
     return False
 
 
+def _typed_figure(description):
+    """The element states a percentage or a currency amount."""
+    figures = element_figures(_alias_units(description or ""))
+    return bool(figures) and any(
+        f.kind == "pct" or f.kind.startswith("cur") for f in figures.figures
+    )
+
+
 def _figure_status(description, texts):
     """ "stated", "contradicted" or "silent" for an element's figures over the
     texts the model read. Contradicted = the texts state figures of the
@@ -537,6 +545,16 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
             )
             else "stated"
         )
+        # 2026-09-29 (after live check e562b46b): SILENCE demotes only for a
+        # percentage or currency figure, whose kind reads the same in any
+        # wording ("20%" is "20 per cent"). A count's noun changes with the
+        # paraphrase ("closed 50 times" / "50 closures"), so silence on a
+        # count is not evidence of anything; a count demotes only when the
+        # text states a DIFFERENT count of the same thing.
+        if figure_status == "silent" and not _typed_figure(
+            pair["element_description"]
+        ):
+            figure_status = "stated"
         if figure_status != "stated":
             chosen = next(
                 (b for b in pair["blocks"] if b["id"] == row.get("block_id")),

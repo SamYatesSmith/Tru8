@@ -137,6 +137,17 @@ def _is_year(integer: str, decimal: Optional[str], mult: Optional[str]) -> bool:
     return 1800 <= int(integer) <= 2100
 
 
+#: The tail of a year range ("2013-14", "2020/21", "2019–20") is part of a
+#: date, never a count. Live check e562b46b (2026-09-29) read "the winter of
+#: 2013-14" as 14 closures, and the relationship review then demoted every
+#: source for not stating it.
+_YEAR_RANGE_HEAD = re.compile(r"(?:1[89]|20)\d\d\s?[-/–—]\s?$")
+
+
+def _year_range_tail(text: str, start: int) -> bool:
+    return bool(_YEAR_RANGE_HEAD.search(text[max(0, start - 6) : start]))
+
+
 def _scan(text: str) -> List[Tuple[Figure, int]]:
     """Every figure the text states, with the offset where its expression starts."""
     out: List[Tuple[Figure, int]] = []
@@ -155,10 +166,14 @@ def _scan(text: str) -> List[Tuple[Figure, int]]:
     for m in _CNT.finditer(text):
         if any(a < m.end(1) and m.start(1) < b for a, b in taken):
             continue
-        if _is_year(m[1], m[2], m[3]):
+        if _is_year(m[1], m[2], m[3]) or _year_range_tail(text, m.start(1)):
             continue
         value, precision = _value(m[1], m[2], m[3]), _precision(m[1], m[2], m[3])
         # "28,700 securities trades": either word may be the thing counted.
+        # But a first word that names nothing ends the phrase: in "50 times
+        # during the winter" the second word is not what is counted (e562b46b).
+        if _noun(m[4]) is None:
+            continue
         for word in (m[4], m[5]):
             noun = _noun(word)
             if noun:
@@ -198,7 +213,7 @@ def _counted_elsewhere(text: str) -> List[Tuple[Figure, int]]:
     nouns = [n for n in (_noun(w) for w in (phrase[1], phrase[2])) if n]
     out: List[Tuple[Figure, int]] = []
     for m in _BARE_NUMBER.finditer(text):
-        if _is_year(m[1], m[2], m[3]):
+        if _is_year(m[1], m[2], m[3]) or _year_range_tail(text, m.start(1)):
             continue
         value, precision = _value(m[1], m[2], m[3]), _precision(m[1], m[2], m[3])
         out.extend((Figure("n:" + noun, value, precision), m.start()) for noun in nouns)

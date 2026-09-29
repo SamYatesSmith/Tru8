@@ -451,3 +451,39 @@ def test_part_period_counts_do_not_state_the_total(source, unstated):
 def test_without_a_number_of_phrase_a_bare_number_arms_nothing():
     assert element_figures("Version 3.22.0 was released on January 22, 2018.") is None
     assert element_figures("The mission launched in 1984.") is None
+
+
+# ── 2026-09-29: live check e562b46b (Thames Barrier) ────────────────────────
+from app.utils.figure_scope import element_figures as _ef  # noqa: E402
+
+
+@pytest.mark.parametrize(
+    "element",
+    [
+        "The Thames Barrier was closed 50 times during the winter of 2013-14.",
+        "The number of closures during the winter of 2013-14 exceeded all previous records.",
+        "Rainfall in 2019/20 set a record.",
+        "Admissions fell in the 2020–21 season.",
+    ],
+)
+def test_a_year_range_or_a_function_word_is_never_a_count(element):
+    assert _ef(element) is None
+
+
+@pytest.mark.parametrize(
+    "element,kind,value",
+    [
+        ("The number of deaths in 2020-21 was 12,000.", "n:death", 12000.0),
+        ("Admissions in 2019/20 rose to 4,300 patients.", "n:patient", 4300.0),
+        ("Donald Trump has made almost 28,700 securities trades since 2025.", "n:trade", 28700.0),
+    ],
+)
+def test_real_counts_beside_a_year_range_still_parse(element, kind, value):
+    figures = _ef(element)
+    assert figures is not None
+    assert (kind, value) in [(f.kind, f.value) for f in figures.figures]
+
+
+def test_a_year_range_ending_a_number_of_sentence_is_not_a_count():
+    # The "number of X" path reads a bare trailing number as the count.
+    assert _ef("The number of closures set a record in 2013-14.") is None

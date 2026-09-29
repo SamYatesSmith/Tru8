@@ -873,3 +873,68 @@ def test_the_default_path_review_ships_on_supports_only():
     assert default("RELATIONSHIP_REVIEW_MODEL") == "gemini-3.7-flash"
     assert default("RELATIONSHIP_REVIEW_DEMOTE_UNKNOWN") is True
     assert default("RELATIONSHIP_REVIEW_CALL_TIMEOUT_S") == 40
+
+
+def _count_fixture(description, snippet):
+    cm, ev, row = fixture("supports")
+    cm["elements"][0]["description"] = description
+    ev[0]["snippet"] = snippet
+    row.update(
+        decision="compatible",
+        dimension="result",
+        quote=snippet,
+        scope_affirmed=True,
+        claim_scope=description,
+        source_scope=snippet,
+        reasoning="States it.",
+    )
+    return cm, ev, row
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "description,snippet,expected",
+    [
+        # e562b46b: a true claim lost every support to a year-range "count".
+        (
+            "The Thames Barrier was closed 50 times during the winter of 2013-14.",
+            "During the winter of 2013/14 the Thames Barrier closed 50 times, the most in its history.",
+            "supports",
+        ),
+        (
+            "The number of closures during the winter of 2013-14 exceeded all previous records.",
+            "The 50 closures in 2013-14 were a record for the barrier.",
+            "supports",
+        ),
+        # A count the text is silent on is not demoted...
+        ("The trial enrolled 17,604 adults.", "The trial enrolled overweight adults without diabetes.", "supports"),
+        # ...but a DIFFERENT count of the same thing still is.
+        ("The trial enrolled 17,604 adults.", "The trial enrolled 12,000 adults without diabetes.", "context"),
+    ],
+)
+async def test_counts_demote_only_on_contradiction(monkeypatch, description, snippet, expected):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", True)
+    monkeypatch.setattr(settings, "RELATIONSHIP_REVIEW_DIRECTIONS", "supports")
+    cm, ev, row = _count_fixture(description, snippet)
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == expected
+
+
+@pytest.mark.asyncio
+async def test_a_silent_percentage_still_demotes(monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", True)
+    monkeypatch.setattr(settings, "RELATIONSHIP_REVIEW_DIRECTIONS", "supports")
+    cm, ev, row = _count_fixture(
+        "Semaglutide reduced MACE by 20% in SELECT.",
+        "Semaglutide reduced MACE incidence in the SELECT trial.",
+    )
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "context"

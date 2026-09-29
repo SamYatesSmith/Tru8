@@ -309,3 +309,21 @@ Measured on the 19 A− records at production shape (unpruned), with the setting
 - **Against revenue:**
   - Console, 200 checks at 10p each: about +1p per check, roughly 10% of revenue per check.
   - Agent `full` at £0.15: under 1% today, about 1.3% from 2027.
+
+## M1 fixes after the live rollback — 2026-09-29
+- **Parser (`figure_scope`, shared with the live mapping figure gate):**
+  - a year-range tail ("2013-14", "2019/20", "2020–21") is never a count;
+  - a first word that names nothing ends the counted phrase ("50 times during" is not 50 "during").
+  - Real counts beside a year range still parse.
+  - Mutants: 4/4 killed.
+- **Review guard:** silence demotes only for a **percentage or currency** figure. A count demotes only when the text states a different count of the same thing, because a count's noun changes with the paraphrase ("closed 50 times" / "50 closures").
+- **Tests:**
+  - Thames `e562b46b`: both elements now keep their supports.
+  - SELECT's silent 20% still demotes.
+  - A contradicting count still demotes.
+- **Held-out re-run (v2, ≈ £1.45): PASS.**
+  - Bad supports removed: 38/40 = 95%.
+  - Good supports demoted: 5/120 = 4.2%.
+  - p90 11.3 s, 47/47 calls ok.
+  - Results: `audit/a_minus/review_eval/results_2026_09_29_heldout_flash_supports_v2.json`.
+- **Bench, review off:** unchanged from baseline. A 93DD control arm with the old and new parser replays identically (14/1/2 both, twice each). Its drift in `--all` runs is cross-run noise.
