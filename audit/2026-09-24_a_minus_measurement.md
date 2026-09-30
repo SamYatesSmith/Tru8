@@ -233,3 +233,55 @@ The same 19 inputs were re-run on the current build through `/checks/run`, one a
 - #16/#17 (the same input twice) graded identically.
 
 **Owed:** re-run #9 (1 credit), after the restart cause is known · read the `[COPY DEDUP] would_drop=` lines (needs a Railway login) · confirm the 08:59 restart cause in Railway logs.
+
+## Re-measure 3 — 2026-09-30 (production `ffe31b0`, then `fe207a0` for #8/#9)
+The same 19 inputs were re-run after the originator review went live (`ed83167`), then graded blind by fresh graders who never saw earlier grades. Per-record files are in `audit/a_minus/2026-09-30_rerun/`; the plan is in `audit/2026-09-30_a_minus_remeasure_plan.md`. #8 and #9 were first lost to the API crashes (`audit/2026-09-30_api_crash_brief.md`). They were re-run after the fix and both completed on one process.
+
+**Result: 1 of 19 at A−** (#19). Grades: A− 1 · B+ 5 · B 10 · B− 3 · C 0 (28 Sep: A− 0 · B+ 3 · B 7+1 · B− 4 · C 5). 11 up, 5 same, 3 down. The crash brief's summary line said "B 9 · B− 4"; that was a miscount. Its per-record table and the files agree on B 10 · B− 3.
+
+| n | check | 28 Sep | now | failed checks (stage) |
+|---|---|---|---|---|
+| 1 | 206199c9 | B | B | H3 retrieve · S3 · S6 |
+| 2 | f987a0f4 | C | B | H3 retrieve · S3 · S7 |
+| 3 | 6c6f26fa | B | B | H2 map · S5 · S6 |
+| 4 | 2e959f07 | B | B | H3 retrieve · S4 · S6 · S8 |
+| 5 | 4dba6ce3 | C | B | H4 classify · S3 · S4 |
+| 6 | 02c8c252 | C | B | H3 retrieve · S3 · S4 · S6 |
+| 7 | 0b2c0c07 | B− | B+ | S6 · S7 |
+| 8 | 8fefb637 | B | B+ | S4 (scope_gates: echo) · S6 (render: archive-index title "September - University of Galway") |
+| 9 | ccb174bc | B | B+ | S1 (decompose: premise element) · S4 (scope_gates: citing paper + blog count as extra supports) |
+| 10 | 0e8e5a72 | C | B | H4 map |
+| 11 | 8c9657d8 | B | B | H2 map · S1 · S3 · S4 |
+| 12 | 997912d7 | C | B− | H1 map · H4 classify · S3 · S4 · S5 |
+| 13 | 59f86abd | B− | B+ | S4 · S6 |
+| 14 | 7e4ddfaa | B+ | B− | H1 map · H2 map · S4 · S5 · S6 |
+| 15 | 018f9a18 | B− | B | H3 retrieve · S1 · S4 · S6 |
+| 16 | a4b90246 | B+ | B | H2 map · S5 · S6 · S8 |
+| 17 | 802cebc9 | B+ | B− | H3 retrieve · H4 classify · S5 · S6 · S8 |
+| 18 | d0754a0d | B | B+ | S3 · S5 |
+| 19 | da19fb7b | B− | **A−** | S4 |
+
+**Failures by check, 28 Sep (19) → now (19):**
+
+| Check | 28 Sep | Now |
+|---|---|---|
+| H4 weak source in PRIMARY | 10 | **4** |
+| H1 badge wrong | 7 | **2** |
+| H3 authoritative source missing | 7 | 6 |
+| H2 wrong directional ref | 5 | 4 |
+| S6 surface warts | 14 | 11 |
+| S3 Notables headline | 13 | **7** |
+| S5 off-topic rows | 13 | **6** |
+| S4 duplicates / echo | 7 | **11** ↑ |
+| S1 filler element | 3 | 3 |
+| S8 rebuttal missed | 1 | 3 |
+| S7 claimant's own piece | 2 | 2 |
+
+**Hard deductions by stage:** 28 Sep classify 10 · map 9 · retrieve 7 · scope_gates 3 → now **map 7 · retrieve 6 · classify 3** · scope_gates 0.
+
+**Reading:**
+- The originator review did what it was built for: H4 fell from 10 to 4 (one of the four, #10, is attributed to map), and the Notables headline (S3) and off-topic rows (S5) roughly halved with it. No C remains.
+- **Map (H1/H2, 7) and retrieve (H3, 6) are now the hard buckets.** Retrieve H3 is the missing authoritative source on #1, #2, #4, #6, #15, #17.
+- **S4 (duplicates/echo) is now the most common soft fail with S6, and it rose (7 → 11).** On #8 and #9 it is the echo gate missing relays: a news rewrite that says "According to the University of Galway…", and a citing paper and a blog that repeat one study's figures. The likely cause is that fewer weak primaries now crowd the pool, so echoes that used to be hidden are now visible and counted. Not proven.
+- Six records are one soft fail away from A− (the five B+ each have two, #19 has one). S4 appears in four of them (#8, #9, #13, #19). Fixing echo detection is the cheapest route to more A− records.
+- #16/#17 (same input) graded B and B−: run-to-run noise is real at this resolution.
