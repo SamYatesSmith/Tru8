@@ -1,0 +1,2107 @@
+{
+ "id": "ad8aeb92-83bf-441c-8aa1-57418e51eeee",
+ "inputType": "text",
+ "inputContent": {
+  "content": "Python 3.13 introduced an experimental free-threaded build that can run without the GIL.",
+  "url": null,
+  "file_path": null
+ },
+ "inputUrl": null,
+ "status": "completed",
+ "creditsUsed": 0,
+ "processingTimeMs": 74468,
+ "errorMessage": null,
+ "entryMode": "focused",
+ "selectedClaimsCount": 1,
+ "articleDomain": "Science",
+ "articleSecondaryDomains": [],
+ "articleJurisdiction": "Global",
+ "articleClassificationSource": "llm_primary",
+ "userQuery": null,
+ "queryResponse": null,
+ "queryConfidence": null,
+ "querySources": null,
+ "queryRelatedClaims": null,
+ "claims": [
+  {
+   "id": "6c85e9f7-f0f9-439e-85c2-14522c104061",
+   "text": "Python 3.13 introduced an experimental free-threaded build that can run without the GIL",
+   "position": 0,
+   "claimMap": {
+    "claimId": "0",
+    "elements": [
+     {
+      "basis": {
+       "echo_scope": {
+        "scoped": [
+         {
+          "was": "supports",
+          "evidence_id": "ev-060e65a8a251",
+          "original_id": "ev-81c426776b1d"
+         }
+        ],
+        "scoped_count": 1
+       },
+       "evidence_count": 5,
+       "tier_breakdown": {
+        "primary": 3,
+        "reporting": 1,
+        "commentary": 1
+       },
+       "state_derivation": {
+        "caveat": "Some evidence has different or unestablished applicability to this element and is retained as context; see the relationship explanations.",
+        "rule_applied": "all_supports",
+        "context_count": 2,
+        "supports_count": 3,
+        "challenges_count": 0,
+        "weighted_supports": 7,
+        "weighted_challenges": 0
+       },
+       "support_structure": {
+        "count": 3,
+        "derivation": {
+         "originals": 1,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 2,
+         "reporting": 0,
+         "commentary": 1
+        },
+        "distinct_domains": 3
+       },
+       "relationship_scope": {
+        "scoped": [
+         {
+          "quote": "- The upstream manylinux project removed CPython 3.13t from its Docker images on 2026-05-07 because it was an experimental free-threaded build.",
+          "status": "scoped",
+          "block_id": "mapping-text",
+          "decision": "unknown",
+          "dimension": "result",
+          "reasoning": "While the passage notes that CPython 3.13t was an experimental free-threaded build, it does not state that Python 3.13 was the release that introduced it.",
+          "element_id": "e1",
+          "excerpt_id": "line-1",
+          "claim_scope": "Python 3.13 introducing an experimental free-threaded build",
+          "evidence_id": "ev-1e96b3ee2876",
+          "quote_basis": "selected_exact_excerpt",
+          "input_sha256": "2102f7cbe10a27b313d5279f686a4279b9c2021796c0eb87a64f433fc244d8c4",
+          "original_ref": {
+           "reasoning": "Notes that CPython 3.13t was released as an experimental free-threaded build.",
+           "evidence_id": "ev-1e96b3ee2876",
+           "relationship": "supports"
+          },
+          "source_scope": "CPython 3.13t being an experimental free-threaded build dropped by manylinux",
+          "content_basis": "distilled",
+          "original_uncertainty": "Free-threaded builds in Python 3.13 remain experimental."
+         }
+        ],
+        "scoped_count": 1
+       },
+       "challenge_structure": {
+        "count": 0,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 0,
+         "reporting": 0,
+         "commentary": 0
+        },
+        "distinct_domains": 0
+       },
+       "relationship_breakdown": {
+        "context": 2,
+        "supports": 3
+       },
+       "content_basis_breakdown": {
+        "snippet": 1,
+        "distilled": 4
+       },
+       "classification_breakdown": {
+        "llm": 4,
+        "originator_review": 1
+       }
+      },
+      "state": "supported",
+      "elementId": "e1",
+      "description": "Python 3.13 introduced an experimental free-threaded build",
+      "scopeReach": "CPython interpreter",
+      "uncertainty": "Some evidence has different or unestablished applicability to this element and is retained as context; see the relationship explanations.",
+      "evidenceRefs": [
+       {
+        "reasoning": "Confirms that Python 3.13 introduced experimental support for running in a free-threaded mode under PEP 703.",
+        "evidenceId": "ev-868ec94baf6d",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "States that CPython 3.13 introduced the free-threaded build as an experimental mode.",
+        "evidenceId": "ev-81c426776b1d",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Confirms that CPython 3.13 shipped an experimental free-threaded build after the acceptance of PEP 703.",
+        "evidenceId": "ev-060e65a8a251",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "Context: applicability to this element is unestablished. While the passage notes that CPython 3.13t was an experimental free-threaded build, it does not state that Python 3.13 was the release that introduced it.",
+        "evidenceId": "ev-1e96b3ee2876",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "The evidence directly confirms the existence of Python 3.13's experimental free-threaded build.",
+        "evidenceId": "ev-ca61da0f15d7",
+        "relationship": "supports"
+       }
+      ]
+     },
+     {
+      "basis": {
+       "echo_scope": {
+        "scoped": [
+         {
+          "was": "supports",
+          "evidence_id": "ev-eb7ddfddf31d",
+          "original_id": "ev-5ffaa5106d5b"
+         }
+        ],
+        "scoped_count": 1
+       },
+       "evidence_count": 7,
+       "tier_breakdown": {
+        "primary": 1,
+        "reporting": 3,
+        "commentary": 3
+       },
+       "state_derivation": {
+        "caveat": "Free-threaded execution can be optionally re-enabled at runtime.",
+        "llm_state": "supported",
+        "rule_applied": "all_supports",
+        "context_count": 1,
+        "supports_count": 6,
+        "challenges_count": 0,
+        "weighted_supports": 10,
+        "weighted_challenges": 0
+       },
+       "support_structure": {
+        "count": 6,
+        "derivation": {
+         "originals": 1,
+         "derivative_count": 3
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 1,
+         "reporting": 2,
+         "commentary": 3
+        },
+        "distinct_domains": 6
+       },
+       "challenge_structure": {
+        "count": 0,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 0,
+         "reporting": 0,
+         "commentary": 0
+        },
+        "distinct_domains": 0
+       },
+       "relationship_breakdown": {
+        "context": 1,
+        "supports": 6
+       },
+       "content_basis_breakdown": {
+        "distilled": 7
+       },
+       "classification_breakdown": {
+        "llm": 4,
+        "originator_review": 2,
+        "arxiv_unvetted_demotion": 1
+       }
+      },
+      "state": "supported",
+      "elementId": "e2",
+      "description": "The experimental free-threaded build introduced in Python 3.13 can run without the GIL",
+      "scopeReach": "CPython interpreter",
+      "uncertainty": "Free-threaded execution can be optionally re-enabled at runtime.",
+      "evidenceRefs": [
+       {
+        "reasoning": "States that free-threading in Python 3.13 allows CPython to run with the Global Interpreter Lock (GIL) disabled.",
+        "evidenceId": "ev-149886ca8115",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Confirms Python 3.13 features an experimental free-threaded build mode which disables the Global Interpreter Lock.",
+        "evidenceId": "ev-5ffaa5106d5b",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Explains that sys._is_gil_enabled() returns False on the free-threaded build and documents runtime controls for running with the GIL disabled.",
+        "evidenceId": "ev-19fe23930728",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Reports that Python 3.13 introduced an optional build of CPython that operates without the GIL.",
+        "evidenceId": "ev-eb7ddfddf31d",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "Confirms that starting with Python 3.13, an experimental build allows disabling the GIL.",
+        "evidenceId": "ev-e623edebcddd",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "States that starting with Python 3.13, the free-threading interpreter disables the global interpreter lock.",
+        "evidenceId": "ev-9780b1024364",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "The evidence supports the capability of running free-threaded Python 3.13 without the GIL.",
+        "evidenceId": "ev-f72b5bb3215e",
+        "relationship": "supports"
+       }
+      ]
+     }
+    ],
+    "metadata": {
+     "subjects": [],
+     "claimText": "Python 3.13 introduced an experimental free-threaded build that can run without the GIL",
+     "queryPlan": {
+      "queries": [
+       "Python 3.13 experimental free-threaded build GIL removal",
+       "Python 3.13 experimental free-threaded build GIL removal",
+       "Python 3.13 free threaded build release notes",
+       "Python 3.13 experimental free-threaded build GIL removal site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+       "Python 3.13 free-threaded build experimental feature",
+       "Python 3.13 no GIL free threaded download",
+       "Python 3.13 run without GIL free-threaded performance",
+       "Python 3.13 disable GIL free threaded build"
+      ],
+      "freshness": [
+       "py",
+       "none",
+       "none",
+       "py",
+       "py",
+       "none",
+       "py",
+       "none"
+      ],
+      "element_ids": [
+       "c0",
+       "c0",
+       "c0",
+       "c0",
+       "e1",
+       "e1",
+       "e2",
+       "e2"
+      ]
+     },
+     "completedAt": "2026-09-30T12:00:42.158381+00:00",
+     "jurisdiction": "Global",
+     "scopeReview": {
+      "calls": [
+       {
+        "pairs": 6,
+        "status": "ok",
+        "seconds": 12.92200000000048
+       },
+       {
+        "pairs": 4,
+        "status": "ok",
+        "seconds": 3.125
+       }
+      ],
+      "pairs": [
+       {
+        "quote": "Python 3.13 is a stable release of the Python programming language, with a mix of changes to the language, the implementation and the standard library. The biggest changes include a new interactive interpreter, experimental support for running in a free-threaded mode (PEP 703), and a Just-In-Time compiler (PEP 744).",
+        "status": "compatible",
+        "block_id": "p-460a6701941f9dde-0-898",
+        "dimension": "result",
+        "reasoning": "The release summary directly confirms that Python 3.13 introduced experimental support for running in a free-threaded mode under PEP 703.",
+        "element_id": "e1",
+        "claim_scope": "Python 3.13 introducing an experimental free-threaded build",
+        "evidence_id": "ev-868ec94baf6d",
+        "input_sha256": "22cb8d381f99f15a139d9fc44e64fcef4c3c377a29e4dce40b8eff40d355f9de",
+        "source_scope": "Python 3.13 release highlights including experimental support for running in a free-threaded mode",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "Free-threading is an experimental feature in Python 3.13 that allows CPython to run without the Global Interpreter Lock (GIL).",
+        "status": "compatible",
+        "block_id": "p-7b6dbb3528d45270-0-899",
+        "dimension": "result",
+        "reasoning": "The text directly states that free-threading in Python 3.13 is an experimental feature enabling CPython to execute without the GIL.",
+        "element_id": "e2",
+        "claim_scope": "experimental free-threaded build in Python 3.13 running without the GIL",
+        "evidence_id": "ev-149886ca8115",
+        "input_sha256": "4e0b1bd5d25e907217b2439a2a32c2121d05e59d5cf00f2b73ebdaecb2e13120",
+        "source_scope": "Python 3.13 free-threading experimental feature running without the Global Interpreter Lock",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "see the what’s new entry in the 3.13 release notes (when the “free-threaded” build was first added as an experimental mode)",
+        "status": "compatible",
+        "block_id": "p-88f9af5e79ff3e64-0-893",
+        "dimension": "result",
+        "reasoning": "The documentation explicitly states that Python 3.13 was when the free-threaded build was first added as an experimental mode.",
+        "element_id": "e1",
+        "claim_scope": "Python 3.13 introducing an experimental free-threaded build",
+        "evidence_id": "ev-81c426776b1d",
+        "input_sha256": "a61797ebca2a3c6bb81bcfb8abfaf466b5c73161f90d421f6f52ad0bf93accb0",
+        "source_scope": "CPython 3.13 release notes when the free-threaded build was first added as an experimental mode",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "- Python 3.13 features an experimental free-threaded build mode which disables the Global Interpreter Lock, allowing threads to run more concurrently.",
+        "status": "compatible",
+        "block_id": "mapping-text",
+        "dimension": "result",
+        "reasoning": "The text explicitly confirms that Python 3.13 features an experimental free-threaded build mode that disables the Global Interpreter Lock.",
+        "element_id": "e2",
+        "claim_scope": "experimental free-threaded build in Python 3.13 running without the GIL",
+        "evidence_id": "ev-5ffaa5106d5b",
+        "input_sha256": "f207b964b465ee77c4c06c858fafab07c287de8fbb3d90c0fc4938b1caee8813",
+        "source_scope": "Python 3.13 experimental free-threaded build mode disabling the Global Interpreter Lock",
+        "content_basis": "distilled"
+       },
+       {
+        "quote": "- The upstream manylinux project removed CPython 3.13t from its Docker images on 2026-05-07 because it was an experimental free-threaded build.",
+        "status": "scoped",
+        "block_id": "mapping-text",
+        "decision": "unknown",
+        "dimension": "result",
+        "reasoning": "While the passage notes that CPython 3.13t was an experimental free-threaded build, it does not state that Python 3.13 was the release that introduced it.",
+        "element_id": "e1",
+        "excerpt_id": "line-1",
+        "claim_scope": "Python 3.13 introducing an experimental free-threaded build",
+        "evidence_id": "ev-1e96b3ee2876",
+        "quote_basis": "selected_exact_excerpt",
+        "input_sha256": "2102f7cbe10a27b313d5279f686a4279b9c2021796c0eb87a64f433fc244d8c4",
+        "original_ref": {
+         "reasoning": "Notes that CPython 3.13t was released as an experimental free-threaded build.",
+         "evidence_id": "ev-1e96b3ee2876",
+         "relationship": "supports"
+        },
+        "source_scope": "CPython 3.13t being an experimental free-threaded build dropped by manylinux",
+        "content_basis": "distilled",
+        "original_uncertainty": "Free-threaded builds in Python 3.13 remain experimental."
+       },
+       {
+        "status": "invalid",
+        "element_id": "e2",
+        "evidence_id": "ev-19fe23930728",
+        "invalid_reason": "unknown_block"
+       },
+       {
+        "quote": "Down from 40% in 3.13's experimental build",
+        "status": "compatible",
+        "block_id": "mapping-text",
+        "dimension": "result",
+        "reasoning": "The source explicitly confirms the existence of Python 3.13's experimental free-threaded build ('3.13's experimental build' in the context of free-threaded Python).",
+        "element_id": "e1",
+        "claim_scope": "Python 3.13 introduced an experimental free-threaded build",
+        "evidence_id": "ev-ca61da0f15d7",
+        "input_sha256": "1bbab5e318d0682235b0c8695cf7e2bd05bbfa33c2787d709a008fb544d2d52f",
+        "source_scope": "Python 3.13 experimental free-threaded build",
+        "content_basis": "snippet"
+       },
+       {
+        "quote": "starting with Python 3.13 an experimental build allows disabling the GIL.",
+        "status": "compatible",
+        "block_id": "p-152b0a22679e1bce-0-890",
+        "dimension": "result",
+        "reasoning": "The text directly states that starting with Python 3.13 an experimental build allows disabling the GIL, supporting the claim that it can run without the GIL.",
+        "element_id": "e2",
+        "claim_scope": "The experimental free-threaded build introduced in Python 3.13 can run without the GIL",
+        "evidence_id": "ev-e623edebcddd",
+        "input_sha256": "9902c46c877f19bbcc504b6e7a589370754958bbf595490e8592514b7c8b15ad",
+        "source_scope": "Python 3.13 experimental build allows disabling the GIL",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "Starting with Python 3.13, the CPython interpreter comes in three flavors: standard, free-threading (FT) and just-in-time (JIT). The free-threading interpreter disables the global interpreter lock (GIL)",
+        "status": "compatible",
+        "block_id": "p-0ed40dabb0a0337b-5384-6284",
+        "dimension": "result",
+        "reasoning": "The evidence directly affirms that starting with Python 3.13, the free-threading interpreter disables the global interpreter lock (GIL).",
+        "element_id": "e2",
+        "claim_scope": "The experimental free-threaded build introduced in Python 3.13 can run without the GIL",
+        "evidence_id": "ev-9780b1024364",
+        "input_sha256": "4e8699f8c9e6800df0514d222238493c61831fa6c9ea2601d4dbb9fdd12353ca",
+        "source_scope": "Starting with Python 3.13, free-threading interpreter disables the GIL",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "Using the latest version of Cython, PyAV builds and passes all tests on free-threaded Python 3.13.5 on my Mac if I force the GIL to be disabled.",
+        "status": "compatible",
+        "block_id": "p-7a63c21205df5d24-0-896",
+        "dimension": "result",
+        "reasoning": "The passage confirms running tests on free-threaded Python 3.13.5 with the GIL disabled, which directly supports the claim that the free-threaded build in Python 3.13 can run without the GIL.",
+        "element_id": "e2",
+        "claim_scope": "The experimental free-threaded build introduced in Python 3.13 can run without the GIL",
+        "evidence_id": "ev-f72b5bb3215e",
+        "input_sha256": "4e1c8de4d0edd28a8469dc1692cf5dbe6a7f2bf528351effa5fdc04f7bb8bc37",
+        "source_scope": "Free-threaded Python 3.13.5 with GIL disabled",
+        "content_basis": "retained_extraction"
+       }
+      ],
+      "method": "model_scope_review_not_entailment_proof",
+      "status": "needs_review",
+      "version": 3,
+      "assessed_pairs": 9,
+      "selected_pairs": 10,
+      "candidate_pairs": 10,
+      "uninspected_pairs": 1
+     },
+     "elementCount": 2,
+     "mappingModel": "gemini-3.7-flash",
+     "subjectKinds": {},
+     "decompositionModel": "gemini-3.5-flash-lite",
+     "sourceConcentration": {
+      "basis": "mapped_documents_by_domain",
+      "domains": [
+       {
+        "domain": "py-free-threading.github.io",
+        "documents": 2
+       },
+       {
+        "domain": "arxiv.org",
+        "documents": 1
+       },
+       {
+        "domain": "blog.miguelgrinberg.com",
+        "documents": 1
+       },
+       {
+        "domain": "codspeed.io",
+        "documents": 1
+       },
+       {
+        "domain": "dev-discuss.pytorch.org",
+        "documents": 1
+       },
+       {
+        "domain": "docs.python.org",
+        "documents": 1
+       },
+       {
+        "domain": "github.com",
+        "documents": 1
+       },
+       {
+        "domain": "opensourceforu.com",
+        "documents": 1
+       },
+       {
+        "domain": "pyo3.rs",
+        "documents": 1
+       },
+       {
+        "domain": "python.org",
+        "documents": 1
+       },
+       {
+        "domain": "python.plainenglish.io",
+        "documents": 1
+       }
+      ],
+      "independence": "not_established",
+      "mapped_documents": 12
+     }
+    },
+    "claimType": "empirical",
+    "orientation": "Of 2 elements examined, retrieved evidence predominantly supports all 2.",
+    "normalisedClaim": "Python 3.13 introduced an experimental free-threaded build that can run without the GIL",
+    "orientationBasis": {
+     "total_elements": 2,
+     "state_distribution": {
+      "disputed": 0,
+      "supported": 2,
+      "contextual": 0,
+      "unresolved": 0
+     }
+    }
+   },
+   "claimType": "empirical",
+   "isSelected": true,
+   "significanceRank": 1,
+   "subjectContext": "Python 3.13 free-threaded build",
+   "keyEntities": [
+    {
+     "text": "Python 3.13",
+     "type": "PRODUCT"
+    },
+    {
+     "text": "GIL",
+     "type": "OTHER"
+    }
+   ],
+   "sourceTitle": null,
+   "sourceUrl": null,
+   "sourcesReviewedCount": 40,
+   "evidence": [
+    {
+     "id": "f5269b84-e50b-49eb-9415-a4ce24d16adc",
+     "evidenceId": "ev-868ec94baf6d",
+     "source": "docs.python.org",
+     "url": "https://docs.python.org/3/whatsnew/3.13.html",
+     "title": "What’s New In Python 3.13",
+     "snippet": "- Python 3.13 was released on October 7, 2024.\n- Python 3.13 introduced experimental support for running in a free-threaded mode under PEP 703.\n- CPython 3.13 has experimental support for running with the global interpreter lock disabled.\n- The free-threaded mode requires a different executable, usually called python3.13t or python3.13t.exe.\n- Free-threaded builds of CPython support optionally running with the GIL enabled at runtime using the environment variable PYTHON_GIL or the command-line option -X gil=1.\n- To check if the current interpreter supports free-threading, python -VV and sys.version contain \"experimental free-threading build\".\n- The new sys._is_gil_enabled() function can be used to check whether the GIL is actually disabled in the running process.",
+     "publishedDate": null,
+     "relevanceScore": 0.1259493670886076,
+     "tier": "primary",
+     "evidenceType": "official_statement",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-460a6701941f9dde-0-898",
+        "end": 898,
+        "text": "What’s New In Python 3.13¶ - Editors: Adam Turner and Thomas Wouters This article explains the new features in Python 3.13, compared to 3.12. Python 3.13 was released on October 7, 2024. For full details, see the changelog. See also PEP 719 – Python 3.13 Release Schedule Summary – Release Highlights¶ Python 3.13 is a stable release of the Python programming language, with a mix of changes to the language, the implementation and the standard library. The biggest changes include a new interactive interpreter, experimental support for running in a free-threaded mode (PEP 703), and a Just-In-Time compiler (PEP 744). Error messages continue to improve, with tracebacks now highlighted in color by default. The locals() builtin now has defined semantics for changing the returned mapping, and type parameters now support default values. The library changes contain removal of deprecated APIs and ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-460a6701941f9dde-1796-2686",
+        "end": 2686,
+        "text": "returned mapping. Python debuggers and similar tools may now more reliably update local variables in optimized scopes even during concurrent code execution. PEP 703: CPython 3.13 has experimental support for running with the global interpreter lock disabled. See Free-threaded CPython for more details. PEP 744: A basic JIT compiler was added. It is currently disabled by default (though we may turn it on later). Performance improvements are modest – we expect to improve this over the next few releases. Color support in the new interactive interpreter, as well as in tracebacks and doctest output. This can be disabled through the PYTHON_COLORSand NO_COLORenvironment variables. Python data model improvements: __static_attributes__stores the names of attributes accessed through self.Xin any function in a class body. __firstlineno__records the first line number of a class definition. ",
+        "start": 1796,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-460a6701941f9dde-8069-8966",
+        "end": 8966,
+        "text": "to suggest the correct keyword argument when an incorrect keyword argument is passed to a function. >>> \"Better error messages!\".split(max_split=1) Traceback (most recent call last): File \"<python-input-0>\", line 1, in <module> \"Better error messages!\".split(max_split=1) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^ TypeError: split() got an unexpected keyword argument 'max_split'. Did you mean 'maxsplit'? (Contributed by Pablo Galindo Salgado and Shantanu Jain in gh-107944.) Free-threaded CPython¶ CPython now has experimental support for running in a free-threaded mode, with the global interpreter lock (GIL) disabled. This is an experimental feature and therefore is not enabled by default. The free-threaded mode requires a different executable, usually called python3.13t or python3.13t.exe. Pre-built binaries marked as free-threaded can be installed as part of the official Windows and ",
+        "start": 8069,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-460a6701941f9dde-8966-9858",
+        "end": 9858,
+        "text": "macOS installers, or CPython can be built from source with the --disable-gil option. Free-threaded execution allows for full utilization of the available processing power by running threads in parallel on available CPU cores. While not all software will benefit from this automatically, programs designed with threading in mind will run faster on multi-core hardware. The free-threaded mode is experimental and work is ongoing to improve it: expect some bugs and a substantial single-threaded performance hit. Free-threaded builds of CPython support optionally running with the GIL enabled at runtime using the environment variable PYTHON_GIL or the command-line option -X gil=1. To check if the current interpreter supports free-threading, python -VV and sys.version contain “experimental free-threading build”. The new sys._is_gil_enabled() function can be used to check whether the GIL is ",
+        "start": 8966,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-460a6701941f9dde-9858-10755",
+        "end": 10755,
+        "text": "actually disabled in the running process. C-API extension modules need to be built specifically for the free-threaded build. Extensions that support running with the GIL disabled should use the Py_mod_gil slot. Extensions using single-phase init should use PyUnstable_Module_SetGIL() to indicate whether they support running with the GIL disabled. Importing C extensions that don’t use these mechanisms will cause the GIL to be enabled, unless the GIL was explicitly disabled with the PYTHON_GIL environment variable or the -X gil=0 option. pip 24.1 or newer is required to install packages with C extensions in the free-threaded build. This work was made possible thanks to many individuals and organizations, including the large community of contributors to Python and third-party projects to test and enable free-threading support. Notable contributors include: Sam Gross, Ken Jin, Donghee Na, ",
+        "start": 9858,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-460a6701941f9dde-10755-11648",
+        "end": 11648,
+        "text": "Itamar Oren, Matt Page, Brett Simmers, Dino Viehland, Carl Meyer, Nathan Goldbaum, Ralf Gommers, Lysandros Nikolaou, and many others. Many of these contributors are employed by Meta, which has provided significant engineering resources to support this project. See also PEP 703 “Making the Global Interpreter Lock Optional in CPython” contains rationale and information surrounding this work. Porting Extension Modules to Support Free-Threading: A community-maintained porting guide for extension authors. An experimental just-in-time (JIT) compiler¶ When CPython is configured and built using the --enable-experimental-jit option, a just-in-time (JIT) compiler is added which may speed up some Python programs. On Windows, use PCbuild/build.bat --experimental-jit to enable the JIT or --experimental-jit-interpreter to enable the Tier 2 interpreter. Build requirements and further supporting ",
+        "start": 10755,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-460a6701941f9dde-12545-13443",
+        "end": 13443,
+        "text": "micro-ops (“uops”). The Tier 2 IR uses the same stack-based virtual machine as Tier 1, but the instruction format is better suited to translation to machine code. We have several optimization passes for Tier 2 IR, which are applied before it is interpreted or translated to machine code. There is a Tier 2 interpreter, but it is mostly intended for debugging the earlier stages of the optimization pipeline. The Tier 2 interpreter can be enabled by configuring Python with --enable-experimental-jit=interpreter. When the JIT is enabled, the optimized Tier 2 IR is translated to machine code, which is then executed. The machine code translation process uses a technique called copy-and-patch. It has no runtime dependencies, but there is a new build-time dependency on LLVM. See also (JIT by Brandt Bucher, inspired by a paper by Haoran Xu and Fredrik Kjolstad. Tier 2 IR by Mark Shannon and Guido ",
+        "start": 12545,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-460a6701941f9dde-96553-97452",
+        "end": 97452,
+        "text": "with configure --with-trace-refs(tracing references) is now ABI compatible with the Python release build and debug build. (Contributed by Victor Stinner in gh-108634.) On POSIX systems, the pkg-config ( .pc) filenames now include the ABI flags. For example, the free-threaded build generates python-3.13t.pcand the debug build generates python-3.13d.pc. The errno, fcntl, grp, md5, pwd, resource, termios, winsound, _ctypes_test, _multiprocessing.posixshmem, _scproxy, _stat, _statistics, _testconsole, _testimportmultipleand _uuidC extensions are now built with the limited C API. (Contributed by Victor Stinner in gh-85283.) Porting to Python 3.13¶ This section lists previously described changes and other bugfixes that may require changes to your code. Changes in the Python API¶ PEP 667 introduces several changes to the semantics of locals()and f_locals: Calling locals()in an optimized scope ",
+        "start": 96553,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://docs.python.org/3/whatsnew/3.13.html",
+      "captured_at": "2026-09-30T12:00:05.020402+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Python 3.13 was released on October 7, 2024.\n- Python 3.13 introduced experimental support for running in a free-threaded mode under PEP 703.\n- CPython 3.13 has experimental support for running with the global interpreter lock disabled.\n- The free-threaded mode requires a different executable, usually called python3.13t or python3.13t.exe.\n- Free-threaded builds of CPython support optionally running with the GIL enabled at runtime using the environment variable PYTHON_GIL or the command-line option -X gil=1.\n- To check if the current interpreter supports free-threading, python -VV and sys.version contain \"experimental free-threading build\".\n- The new sys._is_gil_enabled() function can be used to check whether the GIL is actually disabled in the running process.",
+      "original_snippet": "While not all software will benefit from this automatically, programs designed with threading in mind will run faster on multi-core hardware. The free-threaded mode is experimental and work is ongoing to improve it: expect some bugs and a substantial single-threaded performance hit. Free-threaded builds of CPython support optionally running with the GIL enabled at runtime using the environment variable PYTHON_GIL or the command-line option -X gil=1. To check if the current interpreter supports free-threading, python -VV and sys. version contain “experimental free-threading build”",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "460a6701941f9dde5014b9b3601f6486c52f0194749b78a49d75d96fd1dafc94",
+      "input_content_basis": "full",
+      "retained_characters": 7164,
+      "extraction_characters": 104748
+     },
+     "dateBasis": null,
+     "originatorReview": {
+      "cue": "This article explains the new features in Python 3.13, compared to 3.12. Python 3.13 was released on October 7, 2024.",
+      "role": "originates",
+      "status": "reviewed",
+      "to_tier": "primary",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "Python Software Foundation",
+      "cue_verified": true,
+      "original_type": "official_statement"
+     }
+    },
+    {
+     "id": "c0676c52-c6fa-4fbd-b275-b5ea33c6e183",
+     "evidenceId": "ev-149886ca8115",
+     "source": "codspeed.io",
+     "url": "https://codspeed.io/blog/state-of-python-3-13-performance-free-threading",
+     "title": "State of Python 3.13 Performance: Free-Threading",
+     "snippet": "- CPython can now run in free-threaded mode, with the global interpreter lock (GIL) disabled in Python 3.13.\n- Free-threading is an experimental feature in Python 3.13 that allows CPython to run without the Global Interpreter Lock (GIL).\n- The free-threaded build of CPython 3.13 can have a significant impact on the performance of parallel applications.\n- Free-threaded CPython 3.13t was tested both with and without the GIL using environment variable PYTHON_GIL.",
+     "publishedDate": "2024-11-05T00:00:00",
+     "relevanceScore": 0.17352941176470588,
+     "tier": "commentary",
+     "evidenceType": "analysis",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-9780b1024364,ev-1e96b3ee2876,ev-f72b5bb3215e,ev-07c71309e8dd,ev-eb7ddfddf31d,ev-76d94d8bd6cd,ev-7c3f60387ae5",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-7b6dbb3528d45270-0-899",
+        "end": 899,
+        "text": "State of Python 3.13 Performance: Free-Threading CPython 3.13 was released two weeks ago and this release is the most performance-oriented in some time. After a quick read of the release notes, a few things stand out for the impact they can have on the performance: - CPython can now run in free-threaded mode, with the global interpreter lock (GIL) disabled - a brand new just-in-time (JIT) compiler has been added - CPython now bundles the mimallocallocator out of the box Let's focus on the free-threaded mode in this article to see how to leverage this change and how it can impact the performance of Python applications by measuring performance with CodSpeed. ⏭️ The JIT and mimallocperformance will be covered in the next post. Stay tuned! Free-threaded CPython Free-threading is an experimental feature in Python 3.13 that allows CPython to run without the Global Interpreter Lock (GIL). The ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7b6dbb3528d45270-899-1797",
+        "end": 1797,
+        "text": "GIL is a mutex preventing multiple threads from executing Python bytecode simultaneously. This design choice has simplified CPython's memory management and made the C API easier to work with. However, it has also been one of the most significant barriers to utilizing modern multi-core processors effectively. The Multiprocessing Workaround The traditional solution has been to use the multiprocessing module, which spawns separate Python processes instead of threads and while this approach works, it comes with significant limitations: - Memory Overhead: Each process requires its own Python interpreter instance and memory space. For data-intensive applications, this can quickly become a bottleneck. - Communication Cost: Processes can't share memory directly. Data must be serialized and deserialized when passed between processes, which adds overhead and complexity. - Startup Time: Creating ",
+        "start": 899,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7b6dbb3528d45270-1797-2693",
+        "end": 2693,
+        "text": "new processes is significantly slower than creating threads, making it impractical for tasks that require frequent spawning of workers. Real-World Impact: The PageRank Example To illustrate these limitations, let's consider implementing PageRank, the algorithm that powered Google's early search engine. PageRank is an ideal example because it: - Is compute-intensive (matrix operations) - Works with large datasets (the web graph) - Can benefit significantly from parallelization A naive multithreaded implementation in Python 3.12 or earlier would be bottlenecked by the GIL during matrix operations, while a multiprocessing version would struggle with: - The memory overhead of copying the graph to each process - The cost of transferring partial results between processes - The complexity of managing shared state Before we proceed, it's important to clarify that our focus here isn't on the ",
+        "start": 1797,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7b6dbb3528d45270-8069-8963",
+        "end": 8963,
+        "text": "ids=[\"XS\", \"L\", \"XL\"], ) def test_pagerank( benchmark: BenchmarkFixture, pagerank: PagerankFunc, graph: np.ndarray, ): benchmark(pagerank, graph, num_iterations=10) Here we're testing the 3 implementations with 3 different graph sizes. The benchmark fixture is provided by pytest-codspeed and will measure the execution time of the pagerank function with the given args. Then, let's write a GitHub Actions workflow to measure the performance with various builds of CPython on CodSpeed's infrastructure: on: push: jobs: codspeed: runs-on: codspeed-macro # requests a CodSpeed Macro runner for the jobs strategy: matrix: python-version: [\"3.12\", \"3.13\"] include: - { python-version: \"3.13t\", gil: \"1\" } - { python-version: \"3.13t\", gil: \"0\" } env: UV_PYTHON: ${{ matrix.python-version }} steps: - uses: actions/checkout@v4 - name: Install uv uses: astral-sh/setup-uv@v3 - name: Install CPython & ",
+        "start": 8069,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7b6dbb3528d45270-8963-9860",
+        "end": 9860,
+        "text": "dependencies run: uv sync --all-extras - name: Run benchmarks uses: CodSpeedHQ/action@v3 env: PYTHON_GIL: ${{ matrix.gil }} with: run: uv run pytest --codspeed --codspeed-max-time 10 -vs src/tests.py Here we're running the benchmarks with Python 3.12, 3.13, and 3.13 with free threading support ( 3.13t), both with and without the GIL. Running 3.13 both with and without free-threading support will allow us to see its impact on the performance even when the GIL is enabled. The python builds used are pulled by uv directly from python-build-standalone built with GCC 6.3.0 20170516 The jobs will run on CodSpeed Macro runners, which are ARM64 bare-metal instances with 16 cores and 32GB of RAM, dedicated to each job. Results - Without enabling new build options both 3.12 and 3.13 perform very similarly. We also clearly see the limitation of the multiprocessingimplementation being even slower ",
+        "start": 8963,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7b6dbb3528d45270-9860-10758",
+        "end": 10758,
+        "text": "than the single-threaded one due to the overhead of the inter-process communication. - As expected the threadingbased implementation is the fastest when running 3.13t with no GIL and the GIL is effectively not limiting the parallel execution of the threads anymore. - Still, when running with the free threaded build both with and without the GIL, we see a significant slowdown for all other implementations. This is mostly because the free-threaded build requires the specializing adaptive interpreter to be disabled, thus clearly decreasing the performance of the other implementations. This overhead should be reduced in the 3.14 release where the specializing adaptive interpreter will be thread-safe and thus will be re-enabled. At that point, migrating to the free-threaded build should be a no-brainer for a lot of parallel applications and it will be interesting to measure the performance ",
+        "start": 9860,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7b6dbb3528d45270-10758-11651",
+        "end": 11651,
+        "text": "changes. For all other graph sizes, the results are very similar and the conclusions are the same. From this measurement, we can see that the new free-threaded build of CPython 3.13 can have a significant impact on the performance of parallel applications, bringing a very relevant alternative to multiprocessing. Still it's experimental and not yet ready for production use because of the overall slowdown it introduces, but it's a very promising step in the right direction! Note This benchmark doesn't include subinterpreters, which is another way to run Python code parallelly without the GIL introduced in Python 3.12. Subintepreters proved to be slower than other approaches in most cases, mostly because where data sharing and inter-worker communication has not been fully solved yet. But when it's there, it might definitely be a nice alternative to multiprocessing. Resources - - - - ",
+        "start": 10758,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7b6dbb3528d45270-11651-12169",
+        "end": 12169,
+        "text": "py-free-threading: a centralized collection of documentation and trackers around compatibility with free-threaded CPython - - Docs on having the Specializing Adaptive Interpreter without the GIL Share this: You may also like: One pytest Marker to Track the Performance of Your Tests Why glibc is faster on some Github Actions Runners Why glibc is faster on some Github Actions Runners We handle performance, so you can focus on shipping. Talk to our team about deployment, security, and scale; or start building today.",
+        "start": 11651,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2024-11-05"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://codspeed.io/blog/state-of-python-3-13-performance-free-threading",
+      "captured_at": "2026-09-30T12:00:05.021046+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- CPython can now run in free-threaded mode, with the global interpreter lock (GIL) disabled in Python 3.13.\n- Free-threading is an experimental feature in Python 3.13 that allows CPython to run without the Global Interpreter Lock (GIL).\n- The free-threaded build of CPython 3.13 can have a significant impact on the performance of parallel applications.\n- Free-threaded CPython 3.13t was tested both with and without the GIL using environment variable PYTHON_GIL.",
+      "original_snippet": "- As expected the threadingbased implementation is the fastest when running 3. 13t with no GIL and the GIL is effectively not limiting the parallel execution of the threads anymore. - Still, when running with the free threaded build both with and without the GIL, we see a significant slowdown for all other implementations. This is mostly because the free-threaded build requires the specializing adaptive interpreter to be disabled, thus clearly decreasing the performance of the other implementations. This overhead should be reduced in the 3",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "7b6dbb3528d45270468c73e18cc3f668bbf47aba79da0ef28250704b49919615",
+      "input_content_basis": "full",
+      "retained_characters": 6793,
+      "extraction_characters": 12169
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "92630e6d-59a2-4cd7-afbe-208e13927d9c",
+     "evidenceId": "ev-81c426776b1d",
+     "source": "pyo3.rs",
+     "url": "https://pyo3.rs/main/free-threading",
+     "title": "Supporting Free-Threaded Python - PyO3 user guide",
+     "snippet": "- CPython 3.13 introduced the \"free-threaded\" build as an experimental mode where it was first added.\n- In Python 3.13, the free-threaded build triggers global synchronization events when the first background thread is started in order to mark certain objects as immortal.",
+     "publishedDate": null,
+     "relevanceScore": 0.15000000000000002,
+     "tier": "primary",
+     "evidenceType": "analysis",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-eb7ddfddf31d,ev-7c3f60387ae5",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-88f9af5e79ff3e64-0-893",
+        "end": 893,
+        "text": "Supporting Free-Threaded CPython CPython 3.14 declared support for the “free-threaded” build of CPython that does not rely on the global interpreter lock (often referred to as the GIL) for thread safety. Since version 0.23, PyO3 supports building Rust extension modules for the free-threaded Python build and calling into free-threaded Python from Rust. If you want more background on free-threaded Python in general, see the what’s new entry in the 3.13 release notes (when the “free-threaded” build was first added as an experimental mode), the free-threading HOWTO guide in the CPython docs, the extension module porting guide in the community-maintained Python free-threading guide, and PEP 703, which provides the technical background for the free-threading implementation in CPython. In the GIL-enabled build (the only choice before the “free-threaded” build was introduced), the global ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-88f9af5e79ff3e64-893-1789",
+        "end": 1789,
+        "text": "interpreter lock serializes access to the Python runtime. The GIL is therefore a fundamental limitation to parallel scaling of multithreaded Python workflows, due to Amdahl’s law, because any time spent executing a parallel processing task on only one execution context fundamentally cannot be sped up using parallelism. The free-threaded build removes this limit on multithreaded Python scaling. This means it’s much more straightforward to achieve parallelism using the Python threading module. If you have ever needed to use multiprocessing to achieve a parallel speedup for some Python code, free-threading will likely allow the use of Python threads instead for the same workflow. PyO3’s support for free-threaded Python will enable authoring native Python extension modules that are thread-safe by construction, with much stronger safety guarantees than C extension modules. Our goal is to ",
+        "start": 893,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-88f9af5e79ff3e64-1789-2687",
+        "end": 2687,
+        "text": "enable “fearless concurrency” in the native Python runtime by building on the Rust Send and Sync traits. This document provides advice for porting Rust code using PyO3 to run under free-threaded Python. Supporting free-threaded Python with PyO3 Since PyO3 0.28, PyO3 defaults to assuming Python modules created with it are thread-safe. This will be the case except for Rust code which has used unsafe to assume thread-safety incorrectly. An example of this is unsafe code which was written with the historical assumption that Python was single-threaded due to the GIL, and so the Python<'py> token used by PyO3 could be used to guarantee thread-safety. A module can opt-out of supporting free-threaded Python until it has audited its unsafe code for correctness by declaring the module with #[pymodule(gil_used = true)] (see below). Complicated #[pyclass] types may need to deal with thread-safety ",
+        "start": 1789,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-88f9af5e79ff3e64-3583-4474",
+        "end": 4474,
+        "text": "call PyModule::gil_used on a PyModule instance. For example: Example opting-in (Note: for PyO3 versions 0.23 through 0.27, the default was gil_used = true and so the opposite was needed; modules needed to opt-in to free-threaded Python support with gil_used = false.) /// This module relies on the GIL for thread safety #[pyo3::pymodule(gil_used = true)] #[pyo3(name = \"example_thread_unsafe_module\")] mod my_extension { use pyo3::prelude::*; // this type is not thread-safe #[pyclass] struct MyNotThreadSafeType { // insert not thread-safe code } } Or for a module that is set up without using the pymodule macro: use pyo3::prelude::*; #[allow(dead_code)] fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> { let child_module = PyModule::new(parent_module.py(), \"child_module\")?; child_module.gil_used(true)?; parent_module.add_submodule(&child_module) } See the ",
+        "start": 3583,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-88f9af5e79ff3e64-4474-5370",
+        "end": 5370,
+        "text": "string-sum example for how to declare free-threaded support using raw FFI calls for modules using single-phase initialization and the sequential example for modules using multi-phase initialization. If you would like to use conditional compilation to trigger different code paths under the free-threaded build, you can use the Py_GIL_DISABLED attribute once you have configured your crate to generate the necessary build configuration data. See the guide section for more details about supporting multiple different Python versions, including the free-threaded build. Special considerations for the free-threaded build The free-threaded interpreter does not have a GIL. Many existing extension modules providing mutable data structures relied on the GIL to lock Python objects and make interior mutability thread-safe. Calling into the CPython C API is only legal when an OS thread is explicitly ",
+        "start": 4474,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-88f9af5e79ff3e64-5370-6267",
+        "end": 6267,
+        "text": "attached to the interpreter runtime. In the GIL-enabled build, this happens when the GIL is acquired. In the free-threaded build there is no GIL, but the same C macros that release or acquire the GIL in the GIL-enabled build instead ask the interpreter to attach the thread to the Python runtime, and there can be many threads simultaneously attached. See PEP 703 for more background about how threads can be attached and detached from the interpreter runtime, in a manner analogous to releasing and acquiring the GIL in the GIL-enabled build. In the GIL-enabled build, PyO3 uses the Python<'py> type and the 'py lifetime to signify that the global interpreter lock is held. In the freethreaded build, holding a 'py lifetime means only that the thread is currently attached to the Python interpreter – other threads can be simultaneously interacting with the interpreter. Attaching to the runtime ",
+        "start": 5370,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-88f9af5e79ff3e64-6267-7166",
+        "end": 7166,
+        "text": "You still need to obtain a 'py lifetime to interact with Python objects or call into the CPython C API. If you are not yet attached to the Python runtime, you can register a thread using the Python::attach function. Threads created via the Python threading module do not need to do this, and pyo3 will handle setting up the Python<'py> token when CPython calls into your extension module. Detaching to avoid hangs and deadlocks The free-threaded build triggers global synchronization events in the following situations: - During garbage collection in order to get a globally consistent view of reference counts and references between objects - In Python 3.13, when the first background thread is started in order to mark certain objects as immortal - When either sys.settraceor sys.setprofileare called in order to instrument running code objects and threads - During a call to os.fork(), to ensure ",
+        "start": 6267,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-88f9af5e79ff3e64-9861-10748",
+        "end": 10748,
+        "text": "locking, possibly using conditional compilation or using the critical section API, to avoid creating deadlocks with the GIL. Cannot build extension modules using the limited API The free-threaded build uses a completely new ABI and there is not yet an equivalent to the limited API for the free-threaded ABI. That means if your crate depends on PyO3 using the abi3 feature or an abi3-pyxx feature, PyO3 will print a warning and ignore that setting when building extension modules using the free-threaded interpreter. This means that if your package makes use of the ABI forward compatibility provided by the limited API to upload only one wheel for each release of your package, you will need to update your release procedure to also upload a version-specific free-threaded wheel. See the guide section for more details about supporting multiple different Python versions, including the ",
+        "start": 9861,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://pyo3.rs/main/free-threading",
+      "captured_at": "2026-09-30T12:00:05.022130+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- CPython 3.13 introduced the \"free-threaded\" build as an experimental mode where it was first added.\n- In Python 3.13, the free-threaded build triggers global synchronization events when the first background thread is started in order to mark certain objects as immortal.",
+      "original_snippet": "Calling into the CPython C API is only legal when an OS thread is explicitly attached to the interpreter runtime. In the GIL-enabled build, this happens when the GIL is acquired. In the free-threaded build there is no GIL, but the same C macros that release or acquire the GIL in the GIL-enabled build instead ask the interpreter to attach the thread to the Python runtime, and there can be many threads simultaneously attached. See PEP 703 for more background about how threads can be attached and detached from the interpreter runtime, in a manner analogous to releasing and acquiring the GIL in the GIL-enabled build. In the GIL-enabled build, PyO3 uses the Python<'py> type and the 'py lifetime to signify that the global interpreter lock is held",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "88f9af5e79ff3e642c5688b8b3bc7c8e7c86e785bfd6b53f66e331a93dee8cb0",
+      "input_content_basis": "full",
+      "retained_characters": 7157,
+      "extraction_characters": 14677
+     },
+     "dateBasis": null,
+     "originatorReview": {
+      "cue": "Since version 0.23, PyO3 supports building Rust extension modules for the free-threaded Python build and calling into free-threaded Python from Rust.",
+      "role": "originates",
+      "status": "reviewed",
+      "to_tier": "primary",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "PyO3",
+      "cue_verified": true,
+      "original_type": "analysis"
+     }
+    },
+    {
+     "id": "b3cd16d8-7cde-4120-b33b-d880def5b8ab",
+     "evidenceId": "ev-ca61da0f15d7",
+     "source": "python.plainenglish.io",
+     "url": "https://python.plainenglish.io/i-benchmarked-python-3-14s-free-threading-on-5-real-tasks-here-s-what-actually-happened-d7088b7e4fed",
+     "title": "I Benchmarked Python 3.14's Free-Threading on 5 Real ...",
+     "snippet": "Here's the thing nobody wants to headline: free-threaded Python is about 10–15% slower for single-threaded code. Down from 40% in 3.13's experimental build, ...",
+     "publishedDate": "2026-03-21T00:00:00",
+     "relevanceScore": 0.5,
+     "tier": "commentary",
+     "evidenceType": "analysis",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 2,
+     "corroboratingEvidenceIds": "ev-5ffaa5106d5b,ev-d4d0f4d40f33",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "snippet",
+     "textProvenance": null,
+     "dateBasis": "engine"
+    },
+    {
+     "id": "c883d53d-781e-4eab-8cac-d9932b07f537",
+     "evidenceId": "ev-060e65a8a251",
+     "source": "py-free-threading.github.io",
+     "url": "https://py-free-threading.github.io/",
+     "title": "Python Free-Threading Guide",
+     "snippet": "- CPython 3.13 shipped an experimental free-threaded build after the acceptance by the Python Steering Council of PEP 703 - Making the Global Interpreter Lock Optional in CPython.\n- The free-threaded build of CPython 3.13 is supported by a team at Quansight Labs and the Python runtime team at Meta working to convert libraries in the scientific Python and AI/ML stacks.",
+     "publishedDate": null,
+     "relevanceScore": 0.07228915662650602,
+     "tier": "reporting",
+     "evidenceType": "analysis",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "originator_review",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-f74c6bbb454641fe-0-900",
+        "end": 900,
+        "text": "Python Free-Threading Guide# Free-threaded CPython is here! Purpose of this site# This website serves as a centralized resource for Python package maintainers, as well as end users, interested in supporting or experimenting with free-threaded Python. It also tracks the compatibility status of packages that include native code here: It offers documentation and guidance for setting up a free-threaded Python development environment and getting code working under the free-threaded build. Lysandros Nikolaou and Nathan Goldbaum presented a talk at PyCon 2025 based on content covered by this guide. You can see a recording of the talk on YouTube. Status of Free-Threaded Python# After the acceptance by the Python Steering Council of PEP 703 - Making the Global Interpreter Lock Optional in CPython, CPython 3.13 shipped an experimental free-threaded build. With the acceptance of PEP 779 - Criteria ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-f74c6bbb454641fe-900-1798",
+        "end": 1798,
+        "text": "for supported status for free-threaded Python, the free-threaded interpreter is no longer considered experimental starting in Python 3.14, although it is not yet the default interpreter build. Work is underway across the ecosystem to update packages to support free-threaded Python alongside improvements to thread safety guarantees, testing, and documentation. Install free-threaded Python# The following sections describe how to install free-threaded Python, run it, and verify the GIL is disabled. Why is free-threaded Python exciting?# We've put together a few example multithreaded Python applications where free-threaded Python is substantially faster than the GIL-enabled build. Run your code on free-threaded Python# If you are interested in updating your code to work on free-threaded Python, your next steps depend on your needs and goals. To begin, select the option that best describes ",
+        "start": 900,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-f74c6bbb454641fe-1798-2696",
+        "end": 2696,
+        "text": "you: I am writing a Python script or application that uses Python libraries I don't maintain You should start experimenting with free-threaded Python once the libraries you depend on advertise support for free-threading. See the tracking table for more details about the status of free-threaded support in Python libraries. If your dependencies advertise free-threaded support, good news! If you do not use the threading module and do not plan to, then you're done and you can safely declare support for running your project on the free-threaded build. If you would like to use the threading module to improve the performance of your project, you should read the documentation of your dependencies and learn about their thread safety guarantees. This is particularly true of libraries that expose mutable objects, doubly so if you want to mutate a shared object from many threads. Pure Python code ",
+        "start": 1798,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-f74c6bbb454641fe-2696-3594",
+        "end": 3594,
+        "text": "can exhibit thread safety issues, so you may also want to look at the first section of the porting guide, particularly on the thread safety of pure Python code: I maintain a pure Python app or tool written in pure Python with no public Python API You should start experimenting with free-threaded Python once the libraries you depend on advertise support for free-threading. See the tracking table for more details about the status of free-threaded support in Python libraries. If your dependencies advertise free-threaded support, good news! If you do not use the threading module and do not plan to, then you're done and you can safely declare support for running your project on the free-threaded build. If you make use of the threading module internally and already have multithreaded tests, consider running your existing tests with a very short thread switch interval. This can elicit thread ",
+        "start": 2696,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-f74c6bbb454641fe-3594-4494",
+        "end": 4494,
+        "text": "safety issues on the GIL-enabled build. If you do not use threading or thread pools internally, your tool or app should behave identically under free-threading. If you would like to use the threading module to improve the performance of your project, you should read the documentation of your dependencies and learn about their thread safety guarantees. This is particularly true of libraries that expose mutable objects, doubly so if you want to mutate a shared object from many threads. Pure Python code can exhibit thread safety issues, so you may also want to look at the first section of the porting guide, particularly on the thread safety of pure Python code: I maintain a pure Python package with a public Python API Free-threading is implemented in CPython such that pure Python code is thread-safe, at least to the same extent as it is with the GIL enabled today. We use \"thread-safe\" here ",
+        "start": 3594,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-f74c6bbb454641fe-4494-5394",
+        "end": 5394,
+        "text": "to mean that CPython should not crash running multithreaded pure Python code, not necessarily that a multithreaded program will always produce deterministic results, even if the GIL-enabled build is deterministic. It is up to the author of a program, application, or library to ensure safe multithreaded usage when using the library in a supported manner. There are a few ways you can create thread safety issues in your own code. The most common ones are: using global state for configuration or other purposes, implementing a cache with a dict or other variable not meant for that purpose, or using functionality of a dependency that itself isn't thread-safe. You should also think about whether you would like to support multithreaded use of any mutable data structures exposed by your package. If your package does none of those things, you are very likely ready for free-threading already. What ",
+        "start": 4494,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-f74c6bbb454641fe-5394-6293",
+        "end": 6293,
+        "text": "gets trickier is testing whether your package is thread-safe. For that you'll need multi-threaded tests, and that can be more involved - see our guide to adding multithreaded test coverage to Python packages. I maintain a Python package with compiled extension modules As usual with extensions, dealing with native code will take some work but we hope that this guide will provide you with a toolkit to get things working. We suggest reading through the full porting guide, including the final section that focuses on considerations for native code. Frequently asked questions about errors# Advanced topics for package maintainers# - Setting up Continuous Integration - Debugging Thread Safety Issues - Validating Thread Safety with Thread Sanitizer - Multithreaded Profiling Further reading# We've collected additional resources on free-threaded Python and multithreaded programming here: News and ",
+        "start": 5394,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-f74c6bbb454641fe-7193-7366",
+        "end": 7366,
+        "text": "work with the free-threaded build of CPython 3.13. Additionally, that effort will look at libraries like PyO3 that are needed to interface with CPython from other languages.",
+        "start": 7193,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://py-free-threading.github.io/",
+      "captured_at": "2026-09-30T12:00:05.022678+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- CPython 3.13 shipped an experimental free-threaded build after the acceptance by the Python Steering Council of PEP 703 - Making the Global Interpreter Lock Optional in CPython.\n- The free-threaded build of CPython 3.13 is supported by a team at Quansight Labs and the Python runtime team at Meta working to convert libraries in the scientific Python and AI/ML stacks.",
+      "original_snippet": "Install free-threaded Python# The following sections describe how to install free-threaded Python, run it, and verify the GIL is disabled. Why is free-threaded Python exciting. # We've put together a few example multithreaded Python applications where free-threaded Python is substantially faster than the GIL-enabled build. Run your code on free-threaded Python# If you are interested in updating your code to work on free-threaded Python, your next steps depend on your needs and goals. To begin, select the option that best describes you: I am writing a Python script or application that uses Python libraries I don't maintain You should start experimenting with free-threaded Python once the libraries you depend on advertise support for free-threading",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "f74c6bbb454641fe4dc0e2ba43825e33b22e8c16e5054e9a89e7508ca8568953",
+      "input_content_basis": "full",
+      "retained_characters": 6466,
+      "extraction_characters": 7366
+     },
+     "dateBasis": null,
+     "originatorReview": {
+      "cue": "This website serves as a centralized resource for Python package maintainers, as well as end users, interested in supporting or experimenting with free-threaded Python. It also tracks the compatibility status of packages",
+      "role": "relays",
+      "status": "reviewed",
+      "to_tier": "reporting",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "Python Free-Threading Guide maintainers",
+      "cue_verified": true,
+      "original_type": "analysis"
+     }
+    },
+    {
+     "id": "08efa21e-9928-4e1d-a5ea-fbfa5a866d52",
+     "evidenceId": "ev-9780b1024364",
+     "source": "blog.miguelgrinberg.com",
+     "url": "https://blog.miguelgrinberg.com/post/python-3-14-is-here-how-fast-is-it",
+     "title": "Python 3.14 Is Here. How Fast Is It?",
+     "snippet": "- Starting with Python 3.13, the CPython interpreter comes in three flavors: standard, free-threading (FT) and just-in-time (JIT).\n- The free-threading interpreter disables the global interpreter lock (GIL).\n- In Python 3.13 the free-threading interpreter ran about 2.2x faster than the standard interpreter on the multi-threaded Fibonacci test.",
+     "publishedDate": "2025-10-08T00:00:00",
+     "relevanceScore": 0.18333333333333335,
+     "tier": "commentary",
+     "evidenceType": "analysis",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-149886ca8115,ev-1e96b3ee2876,ev-07c71309e8dd,ev-19fe23930728,ev-eb7ddfddf31d,ev-76d94d8bd6cd,ev-7c3f60387ae5",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-0ed40dabb0a0337b-1793-2693",
+        "end": 2693,
+        "text": "Testing Matrix Here is the test matrix that I've worked with, with five dimensions: - 6 Python versions, plus recent versions of Pypy, Node.js and Rust: - 3 Python interpreters - Standard - Just-In-Time (JIT): only for CPython 3.13+ - Free-threading (FT): only for CPython 3.13+ - 2 test scripts - fibo.py: calculates Fibonacci numbers, relying heavily on recursion - bubble.py: sorts a list of randomly generated numbers with the bubble sort algorithm, with a lot of iteration, but no recursion - 2 threading modes - Single-threaded - 4 threads running independent calculations - 2 computers - Framework laptop running Ubuntu Linux 24.04 (Intel Core i5 CPU) - Mac laptop running macOS Sequoia (M2 CPU) You may think that including Node.js and Rust in my benchmark is an odd choice. Maybe it is, but just the same, I ported the two Python test applications to JavaScript and Rust, so that I can have ",
+        "start": 1793,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-0ed40dabb0a0337b-5384-6284",
+        "end": 6284,
+        "text": "point at which Python versions moved from being \"very slow\" to \"not so slow\". One more detail that isn't related to Python 3.14 is that Pypy continues to blow my mind. In this test it was a hair faster that Node.js, and almost 5 times faster than 3.14. Impressive, although still quite far away from Rust, which as expected runs circles around everybody else. Just-In-Time and Free-Threading Variants Starting with Python 3.13, the CPython interpreter comes in three flavors: standard, free-threading (FT) and just-in-time (JIT). The free-threading interpreter disables the global interpreter lock (GIL), a change that promises to unlock great speed gains in multi-threaded applications. The JIT interpreter includes an on-the-fly compiler to native code, which should, in theory, help portions of code that run multiple times get faster by having them compiled to native code only once. The results ",
+        "start": 5384,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-0ed40dabb0a0337b-7183-8079",
+        "end": 8079,
+        "text": "already discovered last year that the interpreter was slow when running single-threaded code. In 3.14 this interpreter appears to still be slower than the standard interpreter, but the difference is much smaller, with free-threading running at just 91% of the speed of the standard interpreter. Benchmark #2: Bubble sort single-threaded The following results are for the bubble sort benchmark, sorting an array of 10,000 random numbers: |bubble 1 thread |Linux |macOS |vs. 3.14 |3.9 |3.77 |3.29 |0.60x |3.10 |4.01 |3.38 |0.57x |3.11 |2.48 |2.15 |0.91x |3.12 |2.69 |2.46 |0.82x |3.13 |2.82 |2.61 |0.78x |3.14 |2.18 |2.05 |-- |Pypy 3.11 |0.10 |0.14 |18.14x |Node 24 |0.43 |0.21 |6.64x |Rust 1.90 |0.04 |0.07 |36.15x This test shows a larger discrepancy between my Linux and macOS laptops, but the ratios between versions on each machine are more or less the same. The difference just suggests that ",
+        "start": 7183,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-0ed40dabb0a0337b-8079-8979",
+        "end": 8979,
+        "text": "Python on the Mac is able to run this test slightly faster. The 3.14 interpreter is the faster of the CPythons as in the Fibonacci test, but the difference here is smaller than in the previous benchmark, with Python 3.11 clocking in at just 91% of the speed of 3.14. This test also runs slower in 3.12 and 3.13 than in 3.11, an interesting oddity that I also observed in last year's benchmark. Pypy this time was 18 times faster than 3.14, and even 3 times faster than Node. I really need to spend some time evaluating Pypy, because it looks amazing. Just-In-Time and Free-Threading Variants Let's see how the 3.13 and 3.14 specialized interpreters fared on the bubble sort test. Here is the table and chart with the results: |bubble 1 thread |Linux |macOS |vs. 3.14 |3.13 |2.82 |2.61 |0.78x |3.13 JIT |2.59 |2.44 |0.84x |3.13 FT |4.13 |3.75 |0.54x |3.14 |2.18 |2.05 |-- |3.14 JIT |2.03 |2.32 |0.97x ",
+        "start": 8079,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-0ed40dabb0a0337b-8979-9870",
+        "end": 9870,
+        "text": "|3.14 FT |2.66 |2.28 |0.86x The JIT interpreter appears to be a little bit faster here, but only on the Linux version of Python. On the Mac it was a bit faster for 3.13, but slower for 3.14. The speed differences are also very small, so overall I'm feeling the JIT interpreter needs some more time to mature. It seems the code that I'm using is somehow not able to benefit much from JIT compilation. The free-threading interpreter also ran slower, but again the difference was much smaller in 3.14 than in 3.13, so this is consistent between the two benchmarks. At this point it does not seem like it would make sense to switch to the free-threading interpreter for regular workloads, but it could be an interesting option when the GIL is really getting in the way, which is only for multi-threaded with big CPU needs. Benchmark #3: Fibonacci multi-threaded This year I decided to introduce ",
+        "start": 8979,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-0ed40dabb0a0337b-9870-10765",
+        "end": 10765,
+        "text": "multi-threaded versions of the two test programs, mainly as an excuse to give the free-threading interpreter the chance to shine. What I did for the multi-threaded Fibonacci test is to start four threads running the same calculation of the 40th Fibonacci. The four threads ran independently of each other, and the two laptops that I'm using have more than four cores, so they should be able to parallelize this test nicely. The time measurement that I used is from the time I launched the first thread to the time all four threads ended. Here are the results of fibo.py running on 4 threads running on the standard interpreters: |fibo 4 threads |Linux |macOS |vs. 3.14 |3.9 |67.87 |57.51 |0.46x |3.10 |72.42 |61.57 |0.43x |3.11 |45.83 |36.98 |0.70x |3.12 |36.22 |34.13 |0.82x |3.13 |37.20 |33.53 |0.81x |3.14 |32.60 |24.96 |-- |Pypy 3.11 |7.49 |6.84 |4.02x Note that I did not run Node and Rust ",
+        "start": 9870,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-0ed40dabb0a0337b-10765-11663",
+        "end": 11663,
+        "text": "versions of the tests here, since this is a very specific test that only applies to Python's GIL. Of course these results do not tell us much. We can see again that my Mac seems a bit faster than my Linux machine, but aside from that things have more or less scaled linearly. For example, the single-threaded Fibonacci test ran in 7 seconds, and here it took 25 on the Mac and 32 on Linux, which is, give or take a 4x scale. This is expected because the GIL does not permit the Python code to parallelize. Let's see the detailed results on the 3.13 and 3.14 interpreters: |fibo 4 threads |Linux |macOS |vs. 3.14 |3.13 |37.20 |33.53 |0.81x |3.13 JIT |37.48 |33.36 |0.81x |3.13 FT |21.14 |15.47 |1.57x |3.14 |32.60 |24.96 |-- |3.14 JIT |32.58 |24.90 |1.00x |3.14 FT |10.80 |7.81 |3.09x And this is quite nice! Since we were not expecting anything significant for the JIT interpreter on this test, we ",
+        "start": 10765,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-0ed40dabb0a0337b-11663-12559",
+        "end": 12559,
+        "text": "can ignore those results. But the free-threading interpreter is showing us how removing the GIL can help with running multiple threads that are CPU hungry. In Python 3.13 the free-threading interpreter ran about 2.2x faster than the standard interpreter. In 3.14 the performance improvement is about 3.1x. This is an exciting result! Benchmark #4: Bubble sort multi-threaded To complete this benchmarking exercise, below you can see the results of the bubble sort test running on 4 threads. For this test I had each thread sort 10,000 random numbers. The four threads received copies of the same randomly generated array. First let's look at the standard interpreters: |bubble 4 threads |Linux |macOS |vs. 3.14 |3.9 |16.14 |12.58 |0.66x |3.10 |16.12 |12.95 |0.65x |3.11 |11.43 |7.89 |0.97x |3.12 |11.39 |9.01 |0.92x |3.13 |11.54 |9.78 |0.88x |3.14 |10.55 |8.27 |-- |Pypy 3.11 |0.54 |0.59 |16.65x ",
+        "start": 11663,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": "engine",
+        "representation": "supplied_string",
+        "supplied_value": "Oct 8, 2025"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://blog.miguelgrinberg.com/post/python-3-14-is-here-how-fast-is-it",
+      "captured_at": "2026-09-30T12:00:05.024865+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Starting with Python 3.13, the CPython interpreter comes in three flavors: standard, free-threading (FT) and just-in-time (JIT).\n- The free-threading interpreter disables the global interpreter lock (GIL).\n- In Python 3.13 the free-threading interpreter ran about 2.2x faster than the standard interpreter on the multi-threaded Fibonacci test.",
+      "original_snippet": "The free-threading interpreter also ran slower, but again the difference was much smaller in 3. 13, so this is consistent between the two benchmarks. At this point it does not seem like it would make sense to switch to the free-threading interpreter for regular workloads, but it could be an interesting option when the GIL is really getting in the way, which is only for multi-threaded with big CPU needs. Benchmark #3: Fibonacci multi-threaded This year I decided to introduce multi-threaded versions of the two test programs, mainly as an excuse to give the free-threading interpreter the chance to shine. What I did for the multi-threaded Fibonacci test is to start four threads running the same calculation of the 40th Fibonacci",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "0ed40dabb0a0337b219be28efac11bf33409f62ed246a21b7dec95f7e592aa3f",
+      "input_content_basis": "full",
+      "retained_characters": 7176,
+      "extraction_characters": 21373
+     },
+     "dateBasis": "engine"
+    },
+    {
+     "id": "ef55b369-9fcf-464e-bee2-934631ea02c7",
+     "evidenceId": "ev-1e96b3ee2876",
+     "source": "dev-discuss.pytorch.org",
+     "url": "https://dev-discuss.pytorch.org/t/dropping-python-3-13t-free-threaded-support-in-nightlies-and-in-the-future-pytorch-2-13-release/3386",
+     "title": "Dropping Python 3.13t (free-threaded) support in nightlies and in the future PyTorch 2.13 release",
+     "snippet": "- PyTorch is dropping CPython 3.13t (free-threaded / no-GIL) support in nightlies effective immediately.\n- The upstream manylinux project removed CPython 3.13t from its Docker images on 2026-05-07 because it was an experimental free-threaded build.\n- CPython 3.14t is now the stable, non-experimental free-threaded variant.",
+     "publishedDate": "2026-05-14T00:00:00",
+     "relevanceScore": 0.24838709677419357,
+     "tier": "primary",
+     "evidenceType": "official_statement",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-149886ca8115,ev-9780b1024364,ev-07c71309e8dd,ev-19fe23930728,ev-eb7ddfddf31d",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-353f17877ba1ae36-0-896",
+        "end": 896,
+        "text": "Hi all, We want to give the community a heads-up that PyTorch is dropping CPython 3.13t (free-threaded / no-GIL) support in nightlies effective immediately, and it will not be included in the upcoming PyTorch 2.13 release. Background The upstream pypa/manylinux project removed CPython 3.13t from its Docker images on 2026-05-07 (see pytorch/pytorch#182949 ([CD] Drop CPython 3.13t from binary build matrix (manylinux upstream removed it 2026-05-07) · Issue #182949 · pytorch/pytorch · GitHub)). The manylinux maintainers dropped 3.13t because it was an experimental free-threaded build, and CPython 3.14t is now the stable, non-experimental free-threaded variant. Because our manylinux-based wheel builds rely on /opt/python/cp313-cp313t/… from those upstream images, we can no longer produce 3.13t wheels for nightlies or for the 2.13 release. What this means - cp313t wheels will no longer be ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-353f17877ba1ae36-896-1709",
+        "end": 1709,
+        "text": "published in nightlies, and will not be published on PyPI or the PyTorch download index for the 2.13 release (CPU, CUDA, ROCm, XPU). - Users who need a free-threaded build should plan to move to CPython 3.14t, which we intend to support going forward. - Standard (GIL-enabled) CPython 3.13 wheels are not affected and will continue to be shipped as usual. Action items for downstream / users - If you are currently testing against torch on 3.13t (including against nightlies), please migrate your CI to 3.14t. - If you maintain a project that depends on PyTorch’s 3.13t wheels, plan accordingly for the 2.13 cut. Tracking issue: [CD] Drop CPython 3.13t from binary build matrix (manylinux upstream removed it 2026-05-07) · Issue #182949 · pytorch/pytorch · GitHub Please reply here with any questions or concerns.",
+        "start": 896,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-05-14"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://dev-discuss.pytorch.org/t/dropping-python-3-13t-free-threaded-support-in-nightlies-and-in-the-future-pytorch-2-13-release/3386",
+      "captured_at": "2026-09-30T12:00:05.024865+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- PyTorch is dropping CPython 3.13t (free-threaded / no-GIL) support in nightlies effective immediately.\n- The upstream manylinux project removed CPython 3.13t from its Docker images on 2026-05-07 because it was an experimental free-threaded build.\n- CPython 3.14t is now the stable, non-experimental free-threaded variant.",
+      "original_snippet": "What this means - cp313t wheels will no longer be published in nightlies, and will not be published on PyPI or the PyTorch download index for the 2. 13 release (CPU, CUDA, ROCm, XPU). - Users who need a free-threaded build should plan to move to CPython 3. 14t, which we intend to support going forward. - Standard (GIL-enabled) CPython 3",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "353f17877ba1ae36c75ac1c84e7469df7099077fe4c8a867ead2e1c6fabc494d",
+      "input_content_basis": "full",
+      "retained_characters": 1709,
+      "extraction_characters": 1709
+     },
+     "dateBasis": "page_metadata",
+     "originatorReview": {
+      "cue": "We want to give the community a heads-up that PyTorch is dropping CPython 3.13t (free-threaded / no-GIL) support in nightlies effective immediately, and it will not be included in the upcoming PyTorch 2.13 release.",
+      "role": "originates",
+      "status": "reviewed",
+      "to_tier": "primary",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "PyTorch",
+      "cue_verified": true,
+      "original_type": "official_statement"
+     }
+    },
+    {
+     "id": "ad27c397-6415-4b15-a45e-a858191557e9",
+     "evidenceId": "ev-90b5ae31a760",
+     "source": "astral.sh",
+     "url": "https://astral.sh/blog/python-3.14",
+     "title": "Python 3.14",
+     "snippet": "- As of Python 3.14, the free-threaded (or no-GIL) version of the Python interpreter is no longer considered experimental.\n- PEP 703 introduced a separate, optional build configuration for CPython with the GIL disabled in early 2023.\n- The experimental first phase of work on the free-threaded build occurred in the Python 3.13 and 3.14 development cycles.",
+     "publishedDate": "2025-10-07T00:00:00",
+     "relevanceScore": 0.4538961038961039,
+     "tier": "commentary",
+     "evidenceType": "analysis",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-eb7ddfddf31d,ev-7c3f60387ae5",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-e8c51d4d0ce277e4-0-891",
+        "end": 891,
+        "text": "Python 3.14, the next stable version of Python, is available now, along with new versions of Ruff and uv! First, upgrade to the latest version of uv: uv self update Then, install the latest Python version: uv python upgrade 3.14 You can start a Python 3.14 REPL with uvx: You should upgrade to the latest version of Ruff for Python 3.14 support: uv tool install ruff@latest There are a lot of exciting new features in Python 3.14 — we've picked a few major ones to talk about. Template strings # Template strings (t-strings) build upon the established f-string syntax to offer another means of interpolating values into strings. Unlike f-strings, which evaluate to a regular str at runtime, t-strings evaluate to the new string.templatelib.Template type: from string.templatelib import Template name = \"World\" f_string: str = f\"Hello {name}\" t_string: Template = t\"Hello {name}\" This allows ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-e8c51d4d0ce277e4-1789-2686",
+        "end": 2686,
+        "text": "t-strings, either implicitly or explicitly (with the + operator), but they cannot be mixed with other string or byte literals. Free-threaded Python # As of Python 3.14, the free-threaded (or no-GIL) version of the Python interpreter is no longer considered experimental. The global interpreter lock (GIL) limits multi-threaded concurrency in exchange for simplified safety guarantees. Consequently, CPU-bound Python code needs to use multi-processing or subinterpreters for performant concurrency, but these techniques have downsides, e.g., it's harder to share objects across workers. It's been a long-standing goal to enable ergonomic performance improvements by bypassing the GIL. However, multiple previous attempts have been waylaid by concerns about regressions in single-threaded performance and the complexity of rolling out the change in an ecosystem built around implicit multi-threaded ",
+        "start": 1789,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-e8c51d4d0ce277e4-2686-3544",
+        "end": 3544,
+        "text": "safety. PEP 703 introduced a separate, optional build configuration for CPython with the GIL disabled in early 2023, initiating phase one of a three-phase stabilization plan announced by the steering council. Following the success of the experimental first phase of work on the free-threaded build in the Python 3.13 and 3.14 development cycles, PEP 779 was accepted for Python 3.14, moving the project to phase two. This phase entails full, official support, but still maintains the optional status of the build. The steering council additionally outlined the criteria for moving to phase three, where the free-threaded build would become the default. Try out the free-threaded build of Python with uv by appending a t to the Python version: $ uvx [email protected] Downloading cpython-3.14.0+freethreaded-linux-x86_64-gnu (download) (119.0MiB) Downloading ",
+        "start": 2686,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-e8c51d4d0ce277e4-3544-4441",
+        "end": 4441,
+        "text": "cpython-3.14.0+freethreaded-linux-x86_64-gnu (download) Python 3.14.0 free-threading build (main, Oct 7 2025, 15:35:12) [Clang 20.1.4 ] on linux Type \"help\", \"copyright\", \"credits\" or \"license\" for more information. >>> There are a few limitations in the current version, including single-threaded performance degradation and memory usage increases (on the order of 10%). uv required explicit opt-in to use discovered Python 3.13 free-threaded interpreters. Now, uv will allow using Python 3.14+ free-threaded interpreters in virtual environments or on the PATH without additional opt-in. This does not apply to installing Python, in which the normal build remains the default. Give the free-threaded builds a try and report any issues you run into, especially for multi-threaded workflows, where performance should be improved! A performance boost for interpreters built with Clang # Python 3.14 ",
+        "start": 3544,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-e8c51d4d0ce277e4-4441-5339",
+        "end": 5339,
+        "text": "comes with a new type of interpreter which uses a tail call-based implementation to improve performance. Benchmarks suggest a 3-5% improvement on the pyperformance benchmark suite. The new interpreter is currently only supported when building Python with Clang 19+, which happens to be the compiler we're using for our distributions of Python in python-build-standalone. This means that uv users on common architectures should see an additional performance boost when using managed versions of Python 3.14. New syntax warnings in finally clauses # The usage of return, break, or continue in the finally clause of a try- except statement now causes a SyntaxWarning to be emitted: def foo(): try: 1 / 0 except ZeroDivisionError: print(\"Caught the exception!\") raise finally: return # SyntaxWarning: 'return' in a 'finally' block foo() Using one of these control-flow statements in the finally clause ",
+        "start": 4441,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-e8c51d4d0ce277e4-5339-6237",
+        "end": 6237,
+        "text": "prevents exceptions that appear to be re-raised in the except clauses from actually being re-raised. The above example exits successfully after printing Caught the exception!. return statements in except clauses will also be swallowed by any of these control-flow statements in a finally block: def bar(): try: 1 / 0 except: return float(\"inf\") finally: return 0 bar here returns 0 instead of inf from the except clause. Ruff already had a rule to catch cases like this, jump-statement-in-finally ( B012), but it is not currently enabled by default. You may want to consider enabling it in your projects, both because it can detect surprising behaviors on any version of Python, and to avoid encountering warnings on Python 3.14+. For more details, see PEP 765. typing.ByteString has been deprecated (again) # Both typing.ByteString and collections.abc.ByteString have been deprecated since Python ",
+        "start": 5339,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-e8c51d4d0ce277e4-6237-7131",
+        "end": 7131,
+        "text": "3.9 and were slated for removal in 3.14. However, the deprecation warnings weren't prominent enough to reduce their usage significantly across the ecosystem, and removal of the types has been delayed to Python 3.17. As noted in the documentation, the reason for the deprecation is that ByteString was originally intended to be an abstract base class (ABC), but it never had any methods and thus wasn't very useful. Since Python 3.12, the more useful collections.abc.Buffer ABC has been in the standard library and should be preferred. On earlier versions of Python, the typing_extensions.Buffer backport can be used instead, or a simple union of types like bytes | bytearray | memoryview. Like B012 above, Ruff already has a rule that flags both import and use of the ByteString type, the aptly-named byte-string-usage ( PYI057) rule. PYI057 is also not enabled by default, but you may want to ",
+        "start": 6237,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-e8c51d4d0ce277e4-7131-8031",
+        "end": 8031,
+        "text": "enable it now to prepare for the eventual removal of the ByteString type. REPL improvements # We love the Python REPL! It's a great way to test out Python semantics when working on our tooling. We're excited that Python 3.14 extends the excellent improvements to the REPL in Python 3.13 with new syntax highlighting and import autocompletion. The screencast below shows off these features, along with some more changes in 3.14, like the new functools.Placeholder and concurrent.futures.InterpreterPoolExecutor APIs. Screencast of new REPL features in Python 3.14 Python 3.9 is reaching end of life # The release of Python 3.14 coincides closely with the end of the five-year support window for Python 3.9, which was first released on October 5, 2020. Following a final release this month, Python 3.9 will no longer receieve security updates. As a result, Ruff v0.14 also increases the default Python ",
+        "start": 7131,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": "engine",
+        "representation": "supplied_string",
+        "supplied_value": "Oct 7, 2025"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://astral.sh/blog/python-3.14",
+      "captured_at": "2026-09-30T12:00:05.025959+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- As of Python 3.14, the free-threaded (or no-GIL) version of the Python interpreter is no longer considered experimental.\n- PEP 703 introduced a separate, optional build configuration for CPython with the GIL disabled in early 2023.\n- The experimental first phase of work on the free-threaded build occurred in the Python 3.13 and 3.14 development cycles.",
+      "original_snippet": "However, multiple previous attempts have been waylaid by concerns about regressions in single-threaded performance and the complexity of rolling out the change in an ecosystem built around implicit multi-threaded safety. PEP 703 introduced a separate, optional build configuration for CPython with the GIL disabled in early 2023, initiating phase one of a three-phase stabilization plan announced by the steering council. Following the success of the experimental first phase of work on the free-threaded build in the Python 3. 14 development cycles, PEP 779 was accepted for Python 3. 14, moving the project to phase two",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "e8c51d4d0ce277e42f066b86b0760d87a0d33bab200c6729e538e9ad055a854d",
+      "input_content_basis": "full",
+      "retained_characters": 7133,
+      "extraction_characters": 9059
+     },
+     "dateBasis": "engine"
+    },
+    {
+     "id": "ac1da3a0-f5cc-494a-9464-cca9b9893f3f",
+     "evidenceId": "ev-359caaf43ad5",
+     "source": "reddit.com",
+     "url": "https://www.reddit.com/r/programming/comments/1g0j1vo/disabling_gil_in_python_313/",
+     "title": "Reddit",
+     "snippet": "The largest impact is because the specializing adaptive interpreter (PEP 659) is disabled in the free-threaded build",
+     "publishedDate": null,
+     "relevanceScore": 0.0,
+     "tier": "commentary",
+     "evidenceType": "opinion",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "snippet",
+     "textProvenance": null,
+     "dateBasis": "engine"
+    },
+    {
+     "id": "ba181bfc-fb6c-45dc-aa99-4412d8fd78a2",
+     "evidenceId": "ev-5ffaa5106d5b",
+     "source": "python.org",
+     "url": "https://www.python.org/downloads/release/python-31313/",
+     "title": "Python Release Python 3.13.13",
+     "snippet": "- Python 3.13 features an experimental free-threaded build mode which disables the Global Interpreter Lock, allowing threads to run more concurrently.\n- The free-threaded build mode is available as an experimental feature in the Windows and macOS installers.\n- A modified version of mimalloc is included and is required for the free-threaded build mode.",
+     "publishedDate": null,
+     "relevanceScore": 0.03999999999999998,
+     "tier": "primary",
+     "evidenceType": "official_statement",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 2,
+     "corroboratingEvidenceIds": "ev-ca61da0f15d7,ev-d4d0f4d40f33,ev-7cd49eec5372",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-b5074a8a2a4eecc2-0-897",
+        "end": 897,
+        "text": "Python 3.13.13 Note: Python 3.13.13 has been superseded by Python 3.13.15. Release date: April 7, 2026 This is the thirteenth maintenance release of Python 3.13 Note: This is Python 3.13.13, a maintenance release for Python 3.13. Python 3.14 is now the latest feature release series of Python 3. Get the latest release of 3.14.x here. Python 3.13.13 is the lucky thirteenth maintenance release of 3.13, containing around 200 bugfixes, build improvements and documentation changes since 3.13.12. Major new features of the 3.13 series, compared to 3.12 Some of the new major new features and changes in Python 3.13 are: New features - A new and improved interactive interpreter, based on PyPy's, featuring multi-line editing and color support, as well as colorized exception tracebacks. - An experimental free-threaded build mode, which disables the Global Interpreter Lock, allowing threads to run ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-b5074a8a2a4eecc2-897-1797",
+        "end": 1797,
+        "text": "more concurrently. The build mode is available as an experimental feature in the Windows and macOS installers as well. - A preliminary, experimental JIT, providing the ground work for significant performance improvements. - The locals()builtin function (and its C equivalent) now has well-defined semantics when mutating the returned mapping, which allows debuggers to operate more consistently. - A modified version of mimalloc is now included, optional but enabled by default if supported by the platform, and required for the free-threaded build mode. - Docstrings now have their leading indentation stripped, reducing memory use and the size of .pyc files. (Most tools handling docstrings already strip leading indentation.) - The dbm module has a new dbm.sqlite3 backend that is used by default when creating new files. - The minimum supported macOS version was changed from 10.9 to 10.13 (High ",
+        "start": 897,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-b5074a8a2a4eecc2-2691-3588",
+        "end": 3588,
+        "text": "standard library modules. - C API removals and deprecations. (Some removals present in alpha 1 were reverted in alpha 2, as the removals were deemed too disruptive at this time.) - New deprecations, most of which are scheduled for removal from Python 3.15 or 3.16. For more details on the changes to Python 3.13, see What's new in Python 3.13. More resources - Online Documentation - PEP 719, 3.13 Release Schedule - Report bugs at https://github.com/python/cpython/issues. - Help fund Python directly (or via GitHub Sponsors), and support the Python community. Files macOS Windows Source release |Version |Operating system |Description |File size |Sigstore |SBOM |GPG |SHA-256 checksum |Gzipped source tarball |Source release |28.5 MB |.sigstore |SPDX |SIG | f9cde7b0e2ec8165 |XZ compressed source tarball |Source release |21.9 MB |.sigstore |SPDX |SIG | 2ab91ff401783ccc |macOS installer |macOS ",
+        "start": 2691,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-b5074a8a2a4eecc2-3588-4336",
+        "end": 4336,
+        "text": "|for macOS 10.13 and later |68.0 MB |.sigstore |SIG | a909cb655af5db67 |Windows installer (64-bit) |Windows |Recommended |27.8 MB |.sigstore |SPDX |SIG | 3c9c81d80f91c002 |Windows installer (32-bit) |Windows |26.5 MB |.sigstore |SPDX |SIG | 78d4c435a410662e |Windows installer (ARM64) |Windows |Experimental |27.2 MB |.sigstore |SPDX |SIG | 7925fc1d40dc7537 |Windows embeddable package (64-bit) |Windows |10.4 MB |.sigstore |SPDX |SIG | 8766a8775746235e |Windows embeddable package (32-bit) |Windows |9.3 MB |.sigstore |SPDX |SIG | f93abb82d239bdea |Windows embeddable package (ARM64) |Windows |9.9 MB |.sigstore |SPDX |SIG | 1230310118a6330c |Windows release manifest |Windows |Install with 'py install 3.13' |14.6 KB |.sigstore | 4033c343aaa889f7",
+        "start": 3588,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.python.org/downloads/release/python-31313/",
+      "captured_at": "2026-09-30T12:00:05.026471+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Python 3.13 features an experimental free-threaded build mode which disables the Global Interpreter Lock, allowing threads to run more concurrently.\n- The free-threaded build mode is available as an experimental feature in the Windows and macOS installers.\n- A modified version of mimalloc is included and is required for the free-threaded build mode.",
+      "original_snippet": "- An experimental free-threaded build mode, which disables the Global Interpreter Lock, allowing threads to run more concurrently",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "b5074a8a2a4eecc2772ae68a526b6d0a21e1277809e30617d0e003ec572b2d6d",
+      "input_content_basis": "full",
+      "retained_characters": 3442,
+      "extraction_characters": 4336
+     },
+     "dateBasis": null,
+     "originatorReview": {
+      "cue": "Python 3.13.13 is the lucky thirteenth maintenance release of 3.13, containing around 200 bugfixes, build improvements and documentation changes since 3.13.12.",
+      "role": "originates",
+      "status": "reviewed",
+      "to_tier": "primary",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "Python Software Foundation",
+      "cue_verified": true,
+      "original_type": "official_statement"
+     }
+    },
+    {
+     "id": "0e8b3394-8e0b-4187-afdf-c5e2d89bcf1d",
+     "evidenceId": "ev-f72b5bb3215e",
+     "source": "github.com",
+     "url": "https://github.com/PyAV-Org/PyAV/issues/1956",
+     "title": "What is needed to support the free-threaded build? · Issue #1956 · PyAV-Org/PyAV",
+     "snippet": "- Using the latest version of Cython, PyAV builds and passes all tests on free-threaded Python 3.13.5 on a Mac if the GIL is forced to be disabled.",
+     "publishedDate": "2025-07-16T00:00:00",
+     "relevanceScore": 0.24677419354838712,
+     "tier": "reporting",
+     "evidenceType": "official_statement",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-149886ca8115,ev-07c71309e8dd",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "originator_review",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-7a63c21205df5d24-0-896",
+        "end": 896,
+        "text": "- Notifications You must be signed in to change notification settings - Fork 453 - What is needed to support the free-threaded build? #1956 Description See also #1649 Using the latest version of Cython, PyAV builds and passes all tests on free-threaded Python 3.13.5 on my Mac if I force the GIL to be disabled. If I additionally run the tests many times in a per-test thread pool using pytest-run-parallel, I do see some failures in test_logging, but I think that's due to use of global logging state rather than real thread safety issues: Details=================================================== ERRORS ==================================================== ___________________________________ ERROR at call of test_threaded_captures ___________________________________ def test_threaded_captures() -> None: av.logging.set_level(av.logging.VERBOSE) with av.logging.Capture(local=True) as logs: ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7a63c21205df5d24-3542-4441",
+        "end": 4441,
+        "text": "---------------------------------------------- ERROR libav.test:test_logging.py:77 This is a test. ***************************************** pytest-run-parallel report ****************************************** All tests were run in parallel! 🎉 =========================================== short test summary info =========================================== PARALLEL FAILED tests/test_logging.py::test_threaded_captures - AssertionError: assert (32, 'test', 'main') in [] PARALLEL FAILED tests/test_logging.py::test_global_captures - AssertionError: assert (32, 'test', 'main') in [] PARALLEL FAILED tests/test_logging.py::test_repeats - AssertionError: assert [(32, 'test',...test', 'baz')] == [(32, 'test',...test', 'baz')] PARALLEL FAILED tests/test_logging.py::test_error - AssertionError: assert None == (16, 'test', 'This is a test.') ================================== 286 passed, 13 skipped, ",
+        "start": 3542,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7a63c21205df5d24-4441-5333",
+        "end": 5333,
+        "text": "4 errors in 7.62s ================================== It looks like both test_logging.py and test_timeout.py have tests that create Python threads, but I don't see anything like a parallel processing stress test using multiprocessing or threading. I also don't see any thread safety guarantees in the docs. What are the thread safety guarantees that you're interested in guaranteeing? Presumably it should be safe to simultaneously read from streams in multiple threads, but then is there any sort of protection from someone abusing threads to simultaneously read and mutate a libav stream? If not, is that also an issue on the GIL-enabled build? Ultimately I'd like to add support for the free-threaded build following the guidance in the Cython documentation: https://cython.readthedocs.io/en/latest/src/userguide/freethreading.html I'd also like to enable free-threaded wheel builds in the ",
+        "start": 4441,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2025-07-16"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://github.com/PyAV-Org/PyAV/issues/1956",
+      "captured_at": "2026-09-30T12:00:05.026471+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Using the latest version of Cython, PyAV builds and passes all tests on free-threaded Python 3.13.5 on a Mac if the GIL is forced to be disabled.",
+      "original_snippet": "#1956 Description See also #1649 Using the latest version of Cython, PyAV builds and passes all tests on free-threaded Python 3",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "7a63c21205df5d24fd32cba88cdd961aa1b4fe893632e2ba7083e7832a74bf5b",
+      "input_content_basis": "full",
+      "retained_characters": 2687,
+      "extraction_characters": 5360
+     },
+     "dateBasis": "page_metadata",
+     "originatorReview": {
+      "cue": "Using the latest version of Cython, PyAV builds and passes all tests on free-threaded Python 3.13.5 on my Mac if I force the GIL to be disabled.",
+      "role": "user_content",
+      "status": "reviewed",
+      "to_tier": "reporting",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "unknown",
+      "cue_verified": true,
+      "original_type": "official_statement"
+     }
+    },
+    {
+     "id": "f0b3bd70-afad-4780-93c0-586b5d32d1e5",
+     "evidenceId": "ev-d4d0f4d40f33",
+     "source": "reddit.com",
+     "url": "https://www.reddit.com/r/learnpython/comments/1sf5ict/freethreaded_python_is_here_but_checking_if_your/",
+     "title": "Reddit",
+     "snippet": "Free-threaded Python is here, but checking if your dependencies are ready is still fully manual",
+     "publishedDate": null,
+     "relevanceScore": 0.0,
+     "tier": "commentary",
+     "evidenceType": "opinion",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": 2,
+     "corroboratingEvidenceIds": "ev-ca61da0f15d7,ev-5ffaa5106d5b",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "snippet",
+     "textProvenance": null,
+     "dateBasis": "engine"
+    },
+    {
+     "id": "306a1d42-267d-426e-aad7-002ccd48ab44",
+     "evidenceId": "ev-19fe23930728",
+     "source": "py-free-threading.github.io",
+     "url": "https://py-free-threading.github.io/running-gil-disabled/",
+     "title": "Running Python with the GIL Disabled - Python Free-Threading Guide",
+     "snippet": "- The free-threaded Python executable will always have a python3.14t alias for Python 3.14.\n- For Python 3.13b1 or newer, verifying the CPython build with python -VV displays a message indicating an experimental free-threading build.\n- sys._is_gil_enabled() returns False on the free-threaded build before importing any packages, and is only available on Python 3.13 and newer.\n- To force Python to keep the GIL disabled, the PYTHON_GIL environment variable or the -X gil command line option can be used.\n- To check whether the interpreter is a free-threaded build, sysconfig.get_config_var(\"Py_GIL_DISABLED\") can be used within code.",
+     "publishedDate": "2024-07-10T00:00:00",
+     "relevanceScore": 0.29411764705882354,
+     "tier": "reporting",
+     "evidenceType": "official_statement",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-9780b1024364,ev-1e96b3ee2876,ev-eb7ddfddf31d",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "originator_review",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-a1f52c3124dbbb12-0-896",
+        "end": 896,
+        "text": "Running Python with the GIL Disabled# Info Most of the content on this page is also covered in the Python 3.13 release notes. Note The free-threaded Python executable will always have a python3.14t alias (for Python 3.14); whether python, python3 and/or python3.14 point at the free-threaded executable depends on the installation method used (see the install guide for more details). For example, the Python 3.14 Windows installer from python.org installs the free-threaded binary as python3.14t.exe (with a \"t\" suffix to indicate it is \"t\"hreaded), whereas the standard GIL-enabled Python binary is simply named python.exe (as usual). If you cannot find the free-threaded binary, that means the free-threaded option was not selected during installation. Check if the GIL is disabled# From the command line# You can verify if your build of CPython itself has the GIL disabled with the following ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-a1f52c3124dbbb12-896-1792",
+        "end": 1792,
+        "text": "incantation: python -VV If you are using Python 3.13b1 or newer, you should see a message like: Python 3.13.1 experimental free-threading build (main, Dec 10 2024, 14:07:41) [Clang 16.0.0 (clang-1600.0.26.4)] At runtime# To verify whether the GIL is disabled at runtime or not, you can use this in your code: import sys sys._is_gil_enabled() This command will return True on the free-threaded build when the GIL is re-enabled at runtime, and should return False before importing any packages. Note that sys._is_gil_enabled() is only available on Python 3.13 and newer; you will see an AttributeError on older Python versions. Force the GIL to be disabled# To force Python to keep the GIL disabled even after importing a module that does not support running without it, use the PYTHON_GIL environment variable or the -X gil command line option: # these commands are equivalent PYTHON_GIL=0 python ",
+        "start": 896,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-a1f52c3124dbbb12-1792-2109",
+        "end": 2109,
+        "text": "python -Xgil=0 Check if using a free-threaded build# To check whether the Python interpreter you're using is a free-threaded build, irrespective of whether the GIL was re-enabled at runtime or not, you can use this within your code: import sysconfig is_freethreaded = bool(sysconfig.get_config_var(\"Py_GIL_DISABLED\"))",
+        "start": 1792,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": "engine",
+        "representation": "supplied_string",
+        "supplied_value": "Jul 10, 2024"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://py-free-threading.github.io/running-gil-disabled/",
+      "captured_at": "2026-09-30T12:00:05.027038+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- The free-threaded Python executable will always have a python3.14t alias for Python 3.14.\n- For Python 3.13b1 or newer, verifying the CPython build with python -VV displays a message indicating an experimental free-threading build.\n- sys._is_gil_enabled() returns False on the free-threaded build before importing any packages, and is only available on Python 3.13 and newer.\n- To force Python to keep the GIL disabled, the PYTHON_GIL environment variable or the -X gil command line option can be used.\n- To check whether the interpreter is a free-threaded build, sysconfig.get_config_var(\"Py_GIL_DISABLED\") can be used within code.",
+      "original_snippet": "_is_gil_enabled() is only available on Python 3. 13 and newer; you will see an AttributeError on older Python versions. Force the GIL to be disabled# To force Python to keep the GIL disabled even after importing a module that does not support running without it, use the PYTHON_GIL environment variable or the -X gil command line option: # these commands are equivalent PYTHON_GIL=0 python python -Xgil=0 Check if using a free-threaded build# To check whether the Python interpreter you're using is a free-threaded build, irrespective of whether the GIL was re-enabled at runtime or not, you can use this within your code: import sysconfig is_freethreaded = bool(sysconfig. get_config_var(\"Py_GIL_DISABLED\"))",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "a1f52c3124dbbb12c644760142c46bbb853fd85cc43e6bd91917a50587b90a9e",
+      "input_content_basis": "full",
+      "retained_characters": 2109,
+      "extraction_characters": 2109
+     },
+     "dateBasis": "engine",
+     "originatorReview": {
+      "cue": "Most of the content on this page is also covered in the Python 3.13 release notes.",
+      "role": "relays",
+      "status": "reviewed",
+      "to_tier": "reporting",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "Python Software Foundation",
+      "cue_verified": true,
+      "original_type": "official_statement"
+     }
+    },
+    {
+     "id": "0722a789-68fe-452e-ad00-2357f6f2c6e2",
+     "evidenceId": "ev-e623edebcddd",
+     "source": "arxiv.org",
+     "url": "https://arxiv.org/abs/2603.04782",
+     "title": "Unlocking Python's Cores: Hardware Usage and Energy Implications of Removing the GIL",
+     "snippet": "- Starting with Python 3.13 an experimental build allows disabling the GIL.\n- The study compares GIL and free-threaded builds of Python 3.14.2.\n- For parallelizable workloads operating on independent data, the free-threaded build reduces execution time by up to 4 times.\n- Sequential workloads do not benefit from removing the GIL and instead show a 13-43% increase in energy consumption.\n- The no-GIL build shows a general increase in memory usage, more visible in virtual memory than in physical memory.\n- The increase in memory is primarily attributed to per-object locking, additional thread-safety mechanisms in the runtime, and the adoption of a new memory allocator.",
+     "publishedDate": null,
+     "relevanceScore": 0.44444444444444453,
+     "tier": "commentary",
+     "evidenceType": "opinion",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "arxiv_unvetted_demotion",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-152b0a22679e1bce-0-890",
+        "end": 890,
+        "text": "Computer Science > Distributed, Parallel, and Cluster Computing [Submitted on 5 Mar 2026] Title:Unlocking Python's Cores: Hardware Usage and Energy Implications of Removing the GILView PDF HTML (experimental) Abstract:Python's Global Interpreter Lock prevents execution on more than one CPU core at the same time, even when multiple threads are used. However, starting with Python 3.13 an experimental build allows disabling the GIL. While prior work has examined speedup implications of this disabling, the effects on energy consumption and hardware utilization have received less attention. This study measures execution time, CPU utilization, memory usage, and energy consumption using four workload categories: NumPy-based, sequential kernels, threaded numerical workloads, and threaded object workloads, comparing GIL and free-threaded builds of Python 3.14.2. The results highlight a ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-152b0a22679e1bce-890-1788",
+        "end": 1788,
+        "text": "trade-off. For parallelizable workloads operating on independent data, the free-threaded build reduces execution time by up to 4 times, with a proportional reduction in energy consumption, and effective multi-core utilization, at the cost of an increase in memory usage. In contrast, sequential workloads do not benefit from removing the GIL and instead show a 13-43% increase in energy consumption. Similarly, workloads where threads frequently access and modify the same objects show reduced improvements or even degradation due to lock contention. Across all workloads, energy consumption is proportional to execution time, indicating that disabling the GIL does not significantly affect power consumption, even when CPU utilization increases. When it comes to memory, the no-GIL build shows a general increase, more visible in virtual memory than in physical memory. This increase is primarily ",
+        "start": 890,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-152b0a22679e1bce-1788-2687",
+        "end": 2687,
+        "text": "attributed to per-object locking, additional thread-safety mechanisms in the runtime, and the adoption of a new memory allocator. These findings suggest that Python's no-GIL build is not a universal improvement. Developers should evaluate whether their workload can effectively benefit from parallel execution before adoption. Submission historyFrom: Jose Montoya [view email] [v1] Thu, 5 Mar 2026 04:01:30 UTC (166 KB) Full-text links: Access Paper: References & Citations Loading... Bibliographic and Citation Tools Bibliographic Explorer (What is the Explorer?) Connected Papers (What is Connected Papers?) Litmaps (What is Litmaps?) scite Smart Citations (What are Smart Citations?) Code, Data and Media Associated with this Article alphaXiv (What is alphaXiv?) CatalyzeX Code Finder for Papers (What is CatalyzeX?) DagsHub (What is DagsHub?) Gotit.pub (What is GotitPub?) Hugging Face (What is ",
+        "start": 1788,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-152b0a22679e1bce-2687-3465",
+        "end": 3465,
+        "text": "Huggingface?) ScienceCast (What is ScienceCast?) Demos Replicate (What is Replicate?) Hugging Face Spaces (What is Spaces?) TXYZ.AI (What is TXYZ.AI?) Recommenders and Search Tools Influence Flower (What are Influence Flowers?) CORE Recommender (What is CORE?) arXivLabs: experimental projects with community collaborators arXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website. Both individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them. Have an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.",
+        "start": 2687,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://arxiv.org/abs/2603.04782",
+      "captured_at": "2026-09-30T12:00:05.027038+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Starting with Python 3.13 an experimental build allows disabling the GIL.\n- The study compares GIL and free-threaded builds of Python 3.14.2.\n- For parallelizable workloads operating on independent data, the free-threaded build reduces execution time by up to 4 times.\n- Sequential workloads do not benefit from removing the GIL and instead show a 13-43% increase in energy consumption.\n- The no-GIL build shows a general increase in memory usage, more visible in virtual memory than in physical memory.\n- The increase in memory is primarily attributed to per-object locking, additional thread-safety mechanisms in the runtime, and the adoption of a new memory allocator.",
+      "original_snippet": "When it comes to memory, the no-GIL build shows a general increase, more visible in virtual memory than in physical memory. This increase is primarily attributed to per-object locking, additional thread-safety mechanisms in the runtime, and the adoption of a new memory allocator. These findings suggest that Python's no-GIL build is not a universal improvement. Developers should evaluate whether their workload can effectively benefit from parallel execution before adoption. Submission historyFrom: Jose Montoya [view email] [v1] Thu, 5 Mar 2026 04:01:30 UTC (166 KB) Full-text links: Access Paper: References & Citations Loading",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "152b0a22679e1bce855d3b022ba391f247aaeb2f15aacfae2d6ef924f11a1280",
+      "input_content_basis": "full",
+      "retained_characters": 3465,
+      "extraction_characters": 3465
+     },
+     "dateBasis": null
+    },
+    {
+     "id": "0727539f-ccc3-4ea3-8685-263b2432e338",
+     "evidenceId": "ev-eb7ddfddf31d",
+     "source": "opensourceforu.com",
+     "url": "https://www.opensourceforu.com/2026/02/what-developers-must-know-about-python-3-13-and-3-14/",
+     "title": "What Developers Must Know About Python 3.13 And 3.14 - Open Source For You",
+     "snippet": "- Python 3.13 introduces key experimental features including an early JIT compiler, a redesigned REPL, improved garbage collection, and the first free-threaded CPython build.\n- Python 3.13 introduces the experimental free-threaded (GIL-less) build, which allows multiple threads to execute Python bytecode concurrently.\n- Python 3.13 provides an optional build of CPython without the GIL.\n- Python 3.13 provides early testing support for parallel CPU-bound tasks.\n- Python 3.14 provides an official, production-ready free-threaded interpreter according to PEP 779, building on the experimental opt-in build from Python 3.13.",
+     "publishedDate": "2026-02-18T00:00:00",
+     "relevanceScore": 0.2740740740740741,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-149886ca8115,ev-81c426776b1d,ev-9780b1024364,ev-1e96b3ee2876,ev-90b5ae31a760,ev-07c71309e8dd,ev-19fe23930728,ev-7c3f60387ae5",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-9e1637d1a420e94c-0-896",
+        "end": 896,
+        "text": "Python is remarkable in the way it’s evolving with the times. Here’s a peek into the new features of Python 3.13 and 3.14, highlighting their real-world impact. Python’s continuous evolution over the last decade has been driven by a growing demand for higher performance, improved concurrency, and scalable execution in modern computing environments. As applications increasingly rely on data-intensive workloads, machine learning pipelines, cloud-native architectures, and parallel processing, Python must adapt to remain competitive. Python 3.13 and Python 3.14 mark some of the most significant milestones in this evolution, introducing foundational changes to the interpreter, runtime behaviour, and language design. Python 3.13 introduces key experimental features including an early JIT compiler, a redesigned REPL, improved garbage collection, and the first free-threaded CPython build to ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9e1637d1a420e94c-896-1790",
+        "end": 1790,
+        "text": "boost performance and developer productivity. Python 3.14 builds on these foundations, making several features production-ready with fully supported free-threading, new syntax improvements like template strings and deferred annotations, expanded standard library tools, and enhanced debugging. Together, these releases move Python towards a faster, more parallel, and modern runtime architecture. By examining the motivations behind each feature in these pivotal releases, comparing how Python evolved from 3.13 to 3.14, and assessing their practical implications, this article explains not only what is changing in Python but why those changes matter. Key advancements in Python 3.13 Python 3.13 represents a transformative step towards a faster and more modular interpreter, introducing several experimental features that redefine the language’s performance and concurrency model. While many ",
+        "start": 896,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9e1637d1a420e94c-1790-2689",
+        "end": 2689,
+        "text": "features arrived in preview or opt-in form, their inclusion signals Python’s long-term vision: reduced dependence on the Global Interpreter Lock (GIL), improved responsiveness, and a more modern, developer-friendly runtime. The most impactful enhancements introduced in Python 3.13 are listed here. Experimental free-threaded build (PEP 703) One of the most anticipated developments in Python 3.13 is the introduction of the experimental free-threaded (GIL-less) build, which allows multiple threads to execute Python bytecode concurrently. Traditionally, CPython has relied on the Global Interpreter Lock to maintain memory safety, but this constraint has significantly limited performance in multi-core environments. Python 3.13 provides: - An optional build of CPython without the GIL - Early testing support for parallel CPU-bound tasks - A foundation for fully adopting free-threaded execution ",
+        "start": 1790,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9e1637d1a420e94c-2689-3589",
+        "end": 3589,
+        "text": "in Python 3.14 and beyond Enhanced interactive REPL Python 3.13 introduces a redesigned Read-Eval-Print Loop (REPL) that enhances interactivity and modernises the programming experience. Key improvements include: - Better auto-completions and suggestions - Enhanced error recovery, making the REPL more forgiving - Multiline editing improvements inspired by IPython-like workflows - Internal optimisations for faster execution These updates improve usability for students, data analysts, and developers who rely on the REPL for testing, experimentation, and debugging. Introduction of the experimental JIT compiler Another experimental but highly influential feature is the Just-In-Time (JIT) compiler, which selectively compiles certain Python bytecode paths into optimised machine code. While still in its early stages, the JIT aims to: - Reduce execution overhead for frequently used code paths - ",
+        "start": 2689,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9e1637d1a420e94c-4486-5385",
+        "end": 5385,
+        "text": "connected evolutionary sequence: 3.13 introduced experimental foundations, while 3.14 solidified these into stable, production-ready capabilities. Let’s analyse how the feature set matured across the two releases. Syntax and language enhancements Python 3.14 introduces several syntax refinements not present or finalised in 3.13. The evolution has been summarised in Table 1. Table 1: Evolution of syntax and language features from Python 3.13 to Python 3.14 |Area |Python 3.13 |Python 3.14 |Type annotations |Still relied on quoting or from __future__ import annotations |Deferred evaluation (PEP 649) standardises late evaluation |Templating |No built-in template string mechanism |t-Strings (PEP 750) introduce safe, composable templates |Exception handling |Traditional multi-exception tuple syntax |**Simplified `A |Control-flow safety |No warnings for hidden errors in ‘finally’ block |Risky ",
+        "start": 4486,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9e1637d1a420e94c-5385-6282",
+        "end": 6282,
+        "text": "control-flow detection (PEP 765) Official free-threading and sub-interpreters: Python 3.14 is transformational because: - Developers can now write thread-parallel Python code without being bottlenecked by the GIL. - Combining free-threading + sub-interpreters enables a hybrid concurrency model similar to Java or Go. - Python’s historical reliance on multiprocessing is reduced, saving memory and process overhead. This marks one of the most significant concurrency upgrades in Python’s 30-year history (Table 2). Table 2: Evolution of concurrency model |Concurrency feature |Python 3.13 |Python 3.14 |Free-threaded interpreter |Experimental (opt-in build) |Official, production-ready (PEP 779) |Sub-interpreters |Internal CPython feature |Standard library support (PEP 734) |Thread scalability |Unpredictable |Near-linear scaling on CPU-bound workloads |Ecosystem readiness |Limited |Increasing ",
+        "start": 5385,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9e1637d1a420e94c-6282-7178",
+        "end": 7178,
+        "text": "support across libraries and frameworks Practical impact for developers Python 3.14 is recommended for immediate adoption if you work with CPU-bound workloads that benefit from real parallel execution; your environment is research, experimentation, or high-performance computing (HPC); and your codebase relies heavily on modern type-checking workflows. Adopt Python 3.14 with caution if you maintain legacy libraries that depend on low-level C extensions that may not yet support free-threading, and your production environment requires long-term stability (e.g., financial, embedded systems). Python 3.14 is not recommended if you rely on deprecated behaviours or unmaintained third-party frameworks, and your team cannot yet validate multi-threaded behaviour under real workloads. Impact of Python 3.14 on tools, frameworks and CI/CD Positive impact - CI pipelines become faster due to better ",
+        "start": 6282,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9e1637d1a420e94c-7178-8076",
+        "end": 8076,
+        "text": "interpreter startup time and improved GC performance. - Machine learning frameworks like PyTorch and TensorFlow can leverage multicore CPU scaling more effectively. - Web frameworks (FastAPI, Django, Flask) benefit indirectly through improved async and debugging tools. Potential breakages - Tools relying on introspection of annotations may need updates for deferred evaluation. - Extensions written in C using CPython’s old memory APIs may need GIL-related refactoring. - CI systems must test with both GIL and GIL-less runtimes if supporting multiple deployment environments. Python 3.13 and 3.14 mark a major shift in the language’s evolution, bringing faster performance, modern concurrency, and a better developer experience. Python 3.13 introduced experimental foundations such as early free-threading, JIT compilation, and REPL improvements, while Python 3.14 stabilised and expanded these ",
+        "start": 7178,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-02-18"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.opensourceforu.com/2026/02/what-developers-must-know-about-python-3-13-and-3-14/",
+      "captured_at": "2026-09-30T12:00:05.028047+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Python 3.13 introduces key experimental features including an early JIT compiler, a redesigned REPL, improved garbage collection, and the first free-threaded CPython build.\n- Python 3.13 introduces the experimental free-threaded (GIL-less) build, which allows multiple threads to execute Python bytecode concurrently.\n- Python 3.13 provides an optional build of CPython without the GIL.\n- Python 3.13 provides early testing support for parallel CPU-bound tasks.\n- Python 3.14 provides an official, production-ready free-threaded interpreter according to PEP 779, building on the experimental opt-in build from Python 3.13.",
+      "original_snippet": "While many features arrived in preview or opt-in form, their inclusion signals Python’s long-term vision: reduced dependence on the Global Interpreter Lock (GIL), improved responsiveness, and a more modern, developer-friendly runtime. The most impactful enhancements introduced in Python 3. Experimental free-threaded build (PEP 703) One of the most anticipated developments in Python 3. 13 is the introduction of the experimental free-threaded (GIL-less) build, which allows multiple threads to execute Python bytecode concurrently. Traditionally, CPython has relied on the Global Interpreter Lock to maintain memory safety, but this constraint has significantly limited performance in multi-core environments",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "9e1637d1a420e94ceb7298210649fab5423007373a8ef39162de39aecb73ea8a",
+      "input_content_basis": "full",
+      "retained_characters": 7179,
+      "extraction_characters": 8514
+     },
+     "dateBasis": "page_metadata"
+    }
+   ]
+  }
+ ],
+ "createdAt": "2026-09-30T11:59:27.459862",
+ "completedAt": "2026-09-30T12:00:42.164063",
+ "currentStage": null,
+ "progress": null,
+ "progressMessage": null,
+ "reportIdentity": {
+  "basis": "evidence_snapshot_v1",
+  "contentHash": "7ca4fd4248945e3267d33cad8f10cbd52083d9b050fba560cdb200bc05419734",
+  "revisionId": null,
+  "status": "unretained"
+ }
+}

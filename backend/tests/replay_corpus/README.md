@@ -25,7 +25,11 @@
 > record once after it. **End-of-day pass state: `117 ok / 4 warn / 10 fail` + 3
 > drift (82CF and 5647 at random; 018F re-keyed, owed).**
 >
-> ## ✅ CURRENT PASS STATE (2026-09-29): **`139 ok / 8 warn / 11 fail / 5 unexercised` + known drift on 5647 and 82CF**
+> ## ✅ CURRENT PASS STATE (2026-09-30): **`158 ok / 13 warn / 12 fail / 5 unexercised` + known drift on 82CF** (93DD drifts in `--all` only; replays 14/1/2 alone)
+>
+> **The originator review is ON by default** (`ENABLE_ORIGINATOR_REVIEW`, gemini-3.7-flash; design `audit/2026-09-30_classify_originator_design.md` §20–21). Its calls, and the mapping calls its tier changes re-key, were patched into 7 cassettes with one `--record-missing` pass (~$0.07); a pure replay then matched it claim for claim. **5647 now replays** (19/5/1: its drifting requests were recorded in the same pass), which is why the totals rose; compare claim by claim, not by total. The only flag-caused change is A3E8's `tier_reporting` counter (4 → 9, primaries the review lowered); its golden value was moved to 9 with a dated note. Every other claim is identical to the flag-off run. The flag-off bench on these cassettes still gives the previous state (125/7/10/5 + 5647/82CF/93DD drift in `--all`).
+>
+> ## (previous) PASS STATE (2026-09-29): **`139 ok / 8 warn / 11 fail / 5 unexercised` + known drift on 5647 and 82CF**
 >
 > **The relationship review is ON by default** (supports only, gemini-3.7-flash). Its calls were patched into 8 cassettes with `--record-missing`. **B4A3 and 93DD needed a SECOND patch pass**: the review's demotions trigger coverage recovery, and recovery's order-sensitive prompts converge only on the second pass. Both then replayed identically twice.
 > - **The only change from the review-off baseline (140/7/11/5):** B4A3 goes from 18/2/0 to 17/3/0. `tier_commentary` falls from 11±5 to 4, because recovery reshapes its pool.

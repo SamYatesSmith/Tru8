@@ -1,0 +1,1605 @@
+[
+ {
+  "id": "h000",
+  "url": "http://rpmfind.net/linux/RPM/opensuse/16.0/x86_64/sqlite3-3.50.4-160000.1.2.x86_64.html",
+  "host": "rpmfind.net",
+  "title": "sqlite3-3.50.4-160000.1.2.x86_64 RPM",
+  "text": "|Index |index by Group |index by Distribution |index by Vendor |index by creation date |index by Name |Mirrors |Help |Search |Name: sqlite3 |Distribution: SUSE Linux 16 |Version: 3.50.4 |Vendor: SUSE LLC <https://www.suse.com/> |Release: 160000.1.2 |Build date: Mon Aug 11 18:04:48 2025 |Group: Productivity/Databases/Servers |Build host: reproducible |Size: 1919976 |Source RPM: sqlite3-3.50.4-160000.1.2.src.rpm |Packager: https://www.suse.com/ |Url: https://www.sqlite.org/ |Summary: Embeddable SQL Database Engine SQLite is a C library that implements an embeddable SQL database engine. Programs that link with the SQLite library can have SQL database access without running a separate RDBMS process. SQLite is not a client library used to connect to a big database server. SQLite is a server and the SQLite library reads and writes directly to and from the database files on disk. SQLite can be "
+ },
+ {
+  "id": "h001",
+  "url": "https://about.ebsco.com/sites/default/files/acquiadam-assets/UK-Ireland-Points-of-View-Reference-Centre-Topic-Brexit-UK.pdf",
+  "host": "about.ebsco.com",
+  "title": "[PDF] Brexit and the UK: Overview - EBSCO Information Services (p. 1)",
+  "text": "The split result, along with difficulties negotiating a ‘divorce\ndeal’ favourable enough that Parliament would support it, has\ncaused significant division among the UK population.  At 11pm\non 31 January 2020, the UK officially left the EU and entered a Prime Minister Boris Johnson signs the Brexit t..."
+ },
+ {
+  "id": "h002",
+  "url": "https://aitinkerers.org/technologies/sqlite-wal",
+  "host": "aitinkerers.org",
+  "title": "SQLite WAL Projects",
+  "text": "Technology SQLite WAL SQLite Write-Ahead Logging (WAL) enables concurrent readers and writers by shifting database updates to a separate log file. WAL mode transforms SQLite from a single-user bottleneck into a high-concurrency engine. By writing changes to a separate -wal file instead of the main database (rollback journal), readers no longer block writers: a writer appends to the log while readers access the original file simultaneously. This architecture delivers faster commit performance by requiring only one disk seek and improves throughput for high-traffic applications like edge servers or local caches. Note that WAL requires persistent shared memory (the -shm file) and works best on local filesystems rather than network drives.https://www.sqlite.org/wal.html Recent Talks & Demos Showing 1-0 of 0"
+ },
+ {
+  "id": "h003",
+  "url": "https://albertaev.ca/ev-ice-emissions-cost-comparison/",
+  "host": "albertaev.ca",
+  "title": "EV/ICE Emissions & Cost Comparison - Electric Vehicle ...",
+  "text": "For Alberta: The pie chart is a real-time representation of Alberta’s power generation sources, sourced from the Alberta Electric System Operator (AESO) Current Supply & Demand API. The tool calculates grid carbon intensity by weighting each generation source’s share by its emission factor, then compares EV and ICE vehicle emissions."
+ },
+ {
+  "id": "h004",
+  "url": "https://anaconda.org/conda-forge/sqlite",
+  "host": "anaconda.org",
+  "title": "sqlite - conda-forge - Anaconda.org",
+  "text": "SQLite is a self-contained, high-reliability, embedded, full-featured, public-domain, SQL database engine.It. Last supported version: 3.22.0 Home http://www. ..."
+ },
+ {
+  "id": "h005",
+  "url": "https://asgh.org/articles/2014-venus-greenhouse.pdf",
+  "host": "asgh.org",
+  "title": "[PDF] The Hottest Planet in the Solar System (p. 1)",
+  "text": "Space Place partner’s article May 2014\nThe Hottest Planet in the Solar System\nBy Dr.  Ethan Siegel\nWhen you think about the four rocky planets in our Solar System—Mercury, Venus,\nEarth and Mars—you probably think about them in that exact order: sorted by their\ndistance from the Sun"
+ },
+ {
+  "id": "h006",
+  "url": "https://blog.ucs.org/dave-reichmuth/how-much-cleaner-is-your-ev-than-a-gasoline-car/",
+  "host": "blog.ucs.org",
+  "title": "How Much Cleaner is Your EV Than a Gasoline Car?",
+  "text": "There are many changes happening with EV policy in the US right now, with the vast majority at the federal level aimed at undercutting support and slowing the transition away from gasoline to electricity to power our vehicles. While there is tremendous uncertainty with federal policy and regulation, the benefits of EVs to reducing climate-changing emissions are clear. Earlier this year we released our latest update on the global warming emissions from recharging EVs in the US and we found that driving the average electric vehicle produces global warming emissions equal to a gasoline car with 100 mile per gallon efficiency. While emissions from using an EV depend on where in the US you recharge (due to different sources of electricity generation), 97 percent of the country lives where driving the average EV is better on climate-changing emissions than the most efficient gasoline vehicle. "
+ },
+ {
+  "id": "h007",
+  "url": "https://books.core-econ.org/insights/economics-of-inflation-and-hyperinflation/07-hyperinflation.html",
+  "host": "books.core-econ.org",
+  "title": "7 Hyperinflation",
+  "text": "The plan was a success. In August, monthly inflation was below 2%; in 1995 the annual inflation rate was 22%, the lowest it had been in 20 years. Inflation continued to decline over the following years and it has rarely exceeded 10% since. After multiple failed stabilization plans, the Real Plan worked because of the combination of its different elements. The fiscal and monetary tightening were necessary because the economy had to be close to the supply-side equilibrium to avoid continuing wage–price spirals"
+ },
+ {
+  "id": "h008",
+  "url": "https://borelly.net/cb/docs/sqlite-3.7.2/releaselog/3_7_0_1.html",
+  "host": "borelly.net",
+  "title": "SQLite Release 3.7.0.1 On 2010 August 04 (3.7.0.1)",
+  "text": "*** DRAFT *** SQLite Release 3.7.0.1 On 2010 August 04 (3.7.0.1) Changes associated with this release include the following: - Fix a potential database corruption bug that can occur if version 3.7.0 and version 3.6.23.1 alternately write to the same database file. Ticket [51ae9cad317a1] - Fix a performance regression related to the query planner enhancements of version 3.7.0. A complete list of SQLite releases in a single page is also available. A detailed history of every check-in is available at http://www.sqlite.org/src/timeline. *** DRAFT ***"
+ },
+ {
+  "id": "h009",
+  "url": "https://brainchemistrylabs.org/news-blog",
+  "host": "brainchemistrylabs.org",
+  "title": "News Blog — Brain Chemistry Labs The Institute for EthnoMedicine",
+  "text": "“Faster diagnoses will allow for earlier treatment, which will improve patient outcomes,” says Sandra Banack, lead author of the study. discovery of a molecule ..."
+ },
+ {
+  "id": "h010",
+  "url": "https://brexitfactbase.com/14-transition-period-negotiations/transition-period/",
+  "host": "brexitfactbase.com",
+  "title": "Transition period - Brexit FactBase",
+  "text": "Status of UK The transition period began on 1 February 2020, when the UK was no longer an EU Member State, and would run to 31 December 2020."
+ },
+ {
+  "id": "h011",
+  "url": "https://brexitlegal.ie/wp-content/uploads/2020/09/CBP-7960.pdf",
+  "host": "brexitlegal.ie",
+  "title": "[PDF] events leading to the UK's exit from the European Union (p. 3)",
+  "text": "This is the legislation that will implement\nthe withdrawal agreement negotiated by the UK and the EU. \nAt 11pm on 31 January 2020, the UK left the European Union and\nentered a transition period that is due to run until the end of the year."
+ },
+ {
+  "id": "h012",
+  "url": "https://calculatorlib.com/inflation-calculator",
+  "host": "calculatorlib.com",
+  "title": "Inflation Calculator – Calculate Value Change Over Time - CalculatorLib",
+  "text": "What is an Inflation Calculator? An inflation calculator is a financial tool that helps you understand how the purchasing power of money changes over time due to inflation. It allows you to compare the value of money between different years, showing how much more or less your money is worth as prices rise. When to Use an Inflation Calculator An inflation calculator is useful in several scenarios: - Planning for retirement by estimating how much your savings will be worth in the future - Evaluating the real return on investments after accounting for inflation - Comparing historical prices and wages to their current equivalent values How to Calculate Inflation To calculate the future value of money affected by inflation, the following formula is used: FV = PV × (1 + r)n Where: - FV = Future Value - PV = Present Value (or starting value) - r = Annual inflation rate (as a decimal) - n = "
+ },
+ {
+  "id": "h013",
+  "url": "https://cambridgecurrencies.com/next-bank-of-england-interest-rate-decision/",
+  "host": "cambridgecurrencies.com",
+  "title": "Bank of England Base Rate: Held 3.75%, Next 17 September",
+  "text": "Last updated: 30 July 2026. Bank of England Interest Rate Decision Today: What the BoE Did on 30 July 2026 The Bank of England held Bank Rate at 3.75% on 30 July 2026, where it has stood since late 2025. The Monetary Policy Committee (MPC) voted 6–3 to hold, alongside a new Monetary Policy Report. The three dissenters — Megan Greene, Catherine Mann and Huw Pill — each preferred a 0.25-point rise to 4.00%. That is one more hawkish dissent than June’s 7–2 and two more than April’s 8–1: the minority pushing for higher rates has grown at three meetings running. The committee framed the hold as a pause rather than a stop, judging that a loose labour market and the higher rates households and businesses already face “will act to reduce inflation over time.” When Is the Next Bank of England Interest Rate Decision? The next Bank of England interest rate decision is on Thursday 17 September "
+ },
+ {
+  "id": "h014",
+  "url": "https://cde.news/brexit-customs-department-announces-the-customs-procedure-to-be-followed-during-the-transition-period/",
+  "host": "cde.news",
+  "title": "Brexit – Customs Department announces the Customs procedure ...",
+  "text": "The UK will enter a period, known as ‘the transition’, until 31st December 2020. Although the UK will cease to be an EU member, the trading relationship during this period will remain the same and it will continue to follow the EU’s rules."
+ },
+ {
+  "id": "h015",
+  "url": "https://centralbank.watch/bank-of-england/",
+  "host": "centralbank.watch",
+  "title": "BoE Watch Tool | BoE Rate Probability & MPC Odds 2026",
+  "text": "The BoE watch tool — market-implied BoE rate probability for every MPC meeting, recalculated daily Bank of England Analysis's next policy meeting is scheduled for 17 September 2026. The current market-implied probability of no change is 91%. The Bank of England's (BoE) Monetary Policy Committee (MPC) meets eight times per year to set the Bank Rate. Rate change probabilities are calculated based on GBP short term interest rate curve, as far as available. Missing data points are estimated using a Joint Least-Squares Bootstrap. These probabilities are cumulative relative to today, not independent bets placed fresh at each meeting: a given meeting's hike probability is the chance the rate is higher than today's level by that meeting date, and it already includes any move priced in for earlier meetings. A higher probability at a later meeting therefore reflects the accumulation of moves "
+ },
+ {
+  "id": "h016",
+  "url": "https://cleanenergy.org/news/ten-ways-evs-are-better-than-ever-better-than-gas/",
+  "host": "cleanenergy.org",
+  "title": "Ten Ways EVs are Better Than Ever, Better Than Gas - Southern Alliance for Clean Energy (SACE)",
+  "text": "This article is part of a series exploring the ABCs of EVs: Affordable, Better, Convenient. Meet an EV driver: Jayne Higher Driver Satisfaction Take a drive in an electric vehicle, and you’ll see why 96% of current EV owners plan on sticking with electric for their next purchase or lease. A recent survey by JD Power found that satisfaction has hit an all-time high, citing improvements in battery technology, charging infrastructure, and overall vehicle performance. In addition to being cleaner and safer than gas cars, EVs offer significant long-term savings through lower fuel and maintenance costs. Jayne, who has driven a Nissan Leaf, Chevy Bolt, and Tesla Model Y over the years, elaborates on her own gratification driving electric, “I’ll never go back to an ICE vehicle. The overall driving experience is smooth, convenient, and seamless. And I’m not contributing to global climate change. "
+ },
+ {
+  "id": "h017",
+  "url": "https://cloud.tencent.com/developer/section/1420456",
+  "host": "cloud.tencent.com",
+  "title": "Write-Ahead Logging (Write-Ahead Logging) - Sqlite 中文开发手册",
+  "text": "The default method by which SQLite implements atomic commit and rollback is a rollback journal"
+ },
+ {
+  "id": "h018",
+  "url": "https://coddy.tech/docs/sqlite/pragma-settings",
+  "host": "coddy.tech",
+  "title": "Runnable SQLite Docs: PRAGMA Settings - Coddy Tech",
+  "text": "The Production Baseline If you only remember five PRAGMAs, remember these: That's a sensible default for almost any application using SQLite as its primary store. Each one is worth understanding individually - the rest of this page walks through them. journal_mode = WAL The journal mode controls how SQLite makes writes durable. The default, DELETE, uses a rollback journal: writers block readers and readers block writers. Fine for a CLI tool, painful for a web app"
+ },
+ {
+  "id": "h019",
+  "url": "https://coddy.tech/docs/sqlite/wal-mode-and-concurrency",
+  "host": "coddy.tech",
+  "title": "Runnable SQLite Docs: WAL & Concurrency - Coddy Tech",
+  "text": "The Default Mode and Its Limits By default, SQLite uses a rollback journal. When you write, SQLite copies the original pages into a -journal file, modifies the main database, and deletes the journal on commit. If the process crashes mid-write, the journal is replayed in reverse to undo the partial change. It's simple and safe, but it has one painful property: writers and readers fight for the same file. While a writer holds the database lock, no reader can start a new transaction. While readers are active, the writer waits. On a busy app - a web server with a few concurrent requests, say - you'll see SQLITE_BUSY errors faster than you'd like. WAL mode changes that. What WAL Actually Does Write-ahead logging flips the model around. Instead of modifying the main database file in place, the writer appends committed pages to a separate file with a -wal suffix. Readers keep reading the main "
+ },
+ {
+  "id": "h020",
+  "url": "https://community.chocolatey.org/packages/SQLite",
+  "host": "community.chocolatey.org",
+  "title": "SQLite 3.53.4 - community chocolatey",
+  "text": "SQLite 3.23.1, 10815, Wednesday, April 11, 2018, Approved. SQLite 3.23.0, 2547, Monday, April 2, 2018, Approved. SQLite 3.22.0, 7873, Tuesday, January 23, 2018 ..."
+ },
+ {
+  "id": "h021",
+  "url": "https://dbdb.io/db/dqlite",
+  "host": "dbdb.io",
+  "title": "Dqlite",
+  "text": "Devices such as IoT or Edge nodes are appropriate use-cases for it. There is currently a Go library go-dqlite available to demonstrate binding with the Dqlite's C code and serve as a fully functional client written in Go. [02][04] Checkpoints[05][06] Similar to SQLite, Dqlite performs checkpointing automatically when the length of the Write-Ahead-Logging (WAL) file reaches a threshold size. (The default value in the Dqlite setting is 1000 pages). The leader will delay the checkpoint operation if"
+ },
+ {
+  "id": "h022",
+  "url": "https://de.liveexchanges.com/central-bank-calendar",
+  "host": "de.liveexchanges.com",
+  "title": "Central Bank Meeting Calendar 2026 — Fed, ECB & BoE Rate Decisions",
+  "text": "Central Bank Meeting Calendar 2026 Upcoming rate decisions from the Federal Reserve (Fed), the European Central Bank (ECB) and the Bank of England (BoE) — the meetings that move the dollar, euro, pound, gold and global markets. Dates, times and current policy rates, with a live countdown. Next rate decisions |Bank |Date |Countdown |Fed |Wed, 16 Sep 2026 · 14:00 ET |— |BoE |Thu, 17 Sep 2026 · 12:00 UK |— |BoJ |Fri, 18 Sep 2026 · 12:00 JST |— |Fed |Wed, 28 Oct 2026 · 14:00 ET |— |ECB |Thu, 29 Oct 2026 · 14:15 CET |— |BoJ |Fri, 30 Oct 2026 · 12:00 JST |— |BoE |Thu, 5 Nov 2026 · 12:00 UK |— |Fed |Wed, 9 Dec 2026 · 14:00 ET |— |BoE |Thu, 17 Dec 2026 · 12:00 UK |— |ECB |Thu, 17 Dec 2026 · 14:15 CET |— Banks & current rates Fed — Federal Reserve Fed Funds Target Range: 3.50%–3.75% ECB — European Central Bank Deposit Facility Rate: 2.25% BoE — Bank of England Bank Rate: 3.75% BoJ — Bank of "
+ },
+ {
+  "id": "h023",
+  "url": "https://decentdb.org/architecture/wal/",
+  "host": "decentdb.org",
+  "title": "WAL & Recovery - DecentDB Documentation",
+  "text": "(Later) CHECKPOINT └─ Copy committed pages to main DB └─ Append CHECKPOINT frame └─ Truncate WAL if safe Page Modification¶ When a page is modified: - Apply changes to the cached page or higher-level runtime state - Buffer either a full-page frame or a page-delta frame - On commit, write the buffered frames and commit marker to the WAL - Sync according to the configured WalSyncMode Commit Durability¶ FULL Mode (Default): Guarantees data is on disk before commit returns. NORMAL Mode: Reduced sync"
+ },
+ {
+  "id": "h024",
+  "url": "https://deepwiki.com/sqlite/sqlite/3.4-write-ahead-logging-(wal)",
+  "host": "deepwiki.com",
+  "title": "Write-Ahead Logging (WAL) | sqlite/sqlite | DeepWiki",
+  "text": "This page documents the WAL (Write-Ahead Logging) subsystem in SQLite, covering the on-disk WAL file format, the shared-memory WAL index (the -shm file), read and write transaction protocols, checkpoint operations, and the locking scheme used to coordinate concurrent access. WAL mode is one of two journaling modes in SQLite. The other mode — rollback journaling — is described in 3.3 Transaction Management The pager layer that calls into this subsystem is described in 3.2 Page Cache and Pager The VFS layer used for shared memory and file I/O is described in 3.5 Virtual File System (VFS) and 3.6 File Locking The entire WAL implementation lives in src/wal.c and its public interface in src/wal.h In WAL mode ( PRAGMA journal_mode=WAL), database changes are not written directly to the database file. Instead, modified pages are appended to a separate WAL file (named <database>.db-wal). The "
+ },
+ {
+  "id": "h025",
+  "url": "https://dev.to/lovestaco/unlocking-and-journaling-in-sqlite-2a26",
+  "host": "dev.to",
+  "title": "Unlocking and Journaling in SQLite - DEV Community",
+  "text": "The Rollback Journal For each database file, SQLite maintains one rollback journal (except for in-memory databases). Key properties: - One write-transaction at a time - Journal created at the start of a write-transaction - Journal deleted (or truncated) when the transaction completes The rollback journal stores only undo information, never redo data. Transient vs Retained Journals By default, SQLite uses transient journaling: - journal file created per transaction - deleted on commit or rollback"
+ },
+ {
+  "id": "h026",
+  "url": "https://doc.dovecot.org/main/core/config/sql/sqlite.html",
+  "host": "doc.dovecot.org",
+  "title": "SQLite | Dovecot CE",
+  "text": "sqlite_busy_timeout |Default 1s |Value |time (milliseconds) |Changes |Advanced Setting; this should not normally be changed. Time to wait for a locked sqlite database to become available before giving up with an SQLITE_BUSY error. Even in write-ahead logging mode (see sqlite_journal_mode) only one writer runs at a time, so concurrent writers may need to wait. Increase this on slow storage where writes contend."
+ },
+ {
+  "id": "h027",
+  "url": "https://docs.flutter.dev/release/release-notes/release-notes-3.22.0",
+  "host": "docs.flutter.dev",
+  "title": "Flutter 3.22.0 release notes",
+  "text": "Release notes for Flutter 3.22.0. Store key-value data on disk Read and write files Persist data with SQLite Firebase. This page has release notes for 3.22.0. ..."
+ },
+ {
+  "id": "h028",
+  "url": "https://docs.rs/sqlite-rwc",
+  "host": "docs.rs",
+  "title": "sqlite_rwc - Rust",
+  "text": "Crate sqlite_ rwc Expand description §Sqlite Reader Writer Concurrency (RWC) This crate presents an opinionated approach on how to interact with a sqlite database to maximize the reader writer concurrency. §Setup Sqlite only supports on write operation at any given time. However, in WAL mode multiple readers can operate on the database without blocking the writer and vice versa. To leverage this, the ConnectionPool maintains a list of read only connections and one write connection. This allows multiple readers to access the database and we enforce exclusive access to the writer connection. While Sqlite does have internal mechanisms to enforce exclusive write access, they are a bit limited and mostly rely on an sleep-retry loop. By enforcing exclusive access to the writer at this level, we can have more predictable writer access behaviors and we only have to deal with SQLITE_BUSY errors "
+ },
+ {
+  "id": "h029",
+  "url": "https://documentation.xojo.com/topics/databases/supported_engines/sqlite/write-ahead_logging.html",
+  "host": "documentation.xojo.com",
+  "title": "Write-Ahead logging — Xojo documentation",
+  "text": "Write-Ahead logging To make SQLite even faster you can enable a feature called Write-Ahead Logging (aka WAL). Normally when you update your SQLite Database within a transaction, the original data is copied to a separate rollback file. The new data is written directly to the DB file. This results in two disk writes for every DB change. When you COMMIT, the rollback file is removed. Should you ROLLBACK, then the data is restored from the rollback file. WAL can be faster because it reverses this. With WAL each change to the SQLite Database is written to a separate \"write-ahead logging file\" (which typically ends in \"-wal\"). This results in just a single disk write. Additionally, because of the separate files, an app with multiple threads is able to read from the DB while it is being written to. And vice versa. This is an especially nice benefit for web apps that need a DB, but do not "
+ },
+ {
+  "id": "h030",
+  "url": "https://doi.org/10.1161/circ.152.suppl_3.4369118",
+  "host": "doi.org",
+  "title": "Results from the SCORE-Clinical ASCVD Study (Semaglutide ...",
+  "text": "Background: In the SELECT trial, semaglutide 2.4 mg significantly reduced the risk of major adverse cardiovascular events (MACE) in patients with established ..."
+ },
+ {
+  "id": "h031",
+  "url": "https://dx.doi.org/10.1001/JAMACARDIO.2025.4824",
+  "host": "dx.doi.org",
+  "title": "Semaglutide and Hospitalizations in Patients With Obesity and ...",
+  "text": "The SELECT (Semaglutide Effects on Cardiovascular Outcomes in People With Overweight or Obesity) randomized clinical trial extended these clinical benefits ..."
+ },
+ {
+  "id": "h032",
+  "url": "https://eco3min.fr/en/us-inflation-is-not-linear/",
+  "host": "eco3min.fr",
+  "title": "The Inflation Tax: 113 Years of US CPI Data (1913–2026)",
+  "text": "5% |1921, 1930–1933, 1938 - The “Moderate” regime (2–4% YoY) is the most common single state, representing 32. 0% of all observations — suggesting that mild inflation above the current 2% target has historically been the normal condition, not the exception. - “Crisis” inflation (above 10%) has occurred in 8. 8% of months — nearly one in eleven. Every instance was associated with a specific identifiable shock: wartime mobilization, the removal of price controls, or an oil price surge"
+ },
+ {
+  "id": "h033",
+  "url": "https://elib.dlr.de/224732/",
+  "host": "elib.dlr.de",
+  "title": "electronic library - EARPA Position Paper - Non Exhaust Particle Emissions - Gaps and Research Needs",
+  "text": "Samaras, Zissis and Dimaratos, Athanasios and Andersson, Jon and Edwards, Simon and Beckers, Camiel and Chacon Mateos, Miriam and Heckert, Florian and Epple, Fabius and Reijrink, Nina and Garcia, Juan Jesus and Ruiz, Pedro Trechera and Munoz, Ines (2026) EARPA Position Paper - Non Exhaust Particle Emissions - Gaps and Research Needs. [Other] | PDF 294kB Abstract Non-Exhaust Emissions (NEE)—mainly from brakes, tires, and road wear—have become the dominant source of transport-related particulate matter (PM) pollution as exhaust emissions decline. Today, NEE account for over 90% of road transport PM₁₀ and 80% of PM₂.₅. While electrification reduces tailpipe emissions, Battery Electric Vehicles (BEVs) may increase tire and brake wear due to their higher weight, partly offsetting environmental gains. New regulations under Euro 7 will introduce the world’s first brake emission limits for "
+ },
+ {
+  "id": "h034",
+  "url": "https://esahubble.org/wordbank/james-webb-space-telescope/",
+  "host": "esahubble.org",
+  "title": "James Webb Space Telescope",
+  "text": "These visuals feature artist impressions. James Webb Space Telescope The James Webb Space Telescope will be the next great space science observatory, designed to answer outstanding questions about the Universe and to make breakthrough discoveries in all fields of astronomy. Launched in December 2021 on an Ariane 5 rocket from Europe’s Spaceport in French Guiana, Webb is designed and built to offer scientists the capabilities needed to push the frontiers of knowledge in many areas of astronomy. This includes research on our own Solar System, the formation of stars and planets (including planets outside our Solar System — exoplanets), and on how galaxies are formed and evolve, in ways never before possible. The James Webb Space Telescope is an international project led by NASA in partnership with ESA and the Canadian Space Agency. In addition to providing the Ariane 5 rocket and launch "
+ },
+ {
+  "id": "h035",
+  "url": "https://esawebb.org/about/general/mirrors/",
+  "host": "esawebb.org",
+  "title": "Mirrors",
+  "text": "Webb’s Mirrors The James Webb Space Telescope uses two mirrors to perform science operations. The telescope’s primary mirror is made of 18 hexagonal-shaped mirror segments, each 1.32 metres in diameter and weighing approximately 20 kilograms. The total diameter of Webb’s primary mirror spans 6.5 metres, which is so large that it has to be carefully folded into the rocket’s fairing for launch. Each of the telescope's mirrors is covered in a microscopically thin layer of gold, which optimises them for reflecting infrared light – the primary wavelength of light this telescope will observe. The telescope also hosts a convex secondary mirror that is roughly 0.74 metres in diameter. This is the second surface the light from the cosmos hits on its route into the telescope."
+ },
+ {
+  "id": "h036",
+  "url": "https://esawebb.org/images/weic2201a/",
+  "host": "esawebb.org",
+  "title": "Webb in the Northrop Grumman cleanroom",
+  "text": "About the Object |Category: |Spacecraft Webb in the Northrop Grumman cleanroom Spring has arrived, the flowers are blooming and so have the mirrors of NASA's James Webb Space Telescope. These three pictures help visually show how Webb’s iconic 21 foot 4-inch (6.5 meter) primary mirror has been built to fold to a much smaller size for takeoff. Read more about Webb's recently successful mirror deployment test: go.nasa.gov/2Rq09P0Credit: NASA/Chris Gunn About the Image |Id: |weic2201a |Release date: |8 January 2022, 18:00 |Related releases: |weic2201 |Size: |4000 x 2667 px Image Formats Fullsize Original 30.6 MB Large JPEG 2.8 MB Publication TIFF 4K 17.4 MB Publication JPEG 2.8 MB Screensize JPEG 283.6 KB"
+ },
+ {
+  "id": "h037",
+  "url": "https://evonmedics.com/our-science/",
+  "host": "evonmedics.com",
+  "title": "Our Science - EvonMedics, Inc.",
+  "text": "Randomized, controlled clinical trial. A randomized trial, in the people COAT is built for. in adults living with early-stage Alzheimer's disease or aMCI,"
+ },
+ {
+  "id": "h038",
+  "url": "https://fiscallab.org/inflation/the-price-level/",
+  "host": "fiscallab.org",
+  "title": "The Price Level - Fiscal Lab on Capitol Hill",
+  "text": "6% more, the price index rises to 105. A reduction in inflation is called disinflation. A decrease in inflation just means that prices are growing more slowly, not that they have come down. When the price level falls, that’s called deflation. Which Data Series Measures the Price Level"
+ },
+ {
+  "id": "h039",
+  "url": "https://formats.jarhalab.com/formats/sqlite-wal",
+  "host": "formats.jarhalab.com",
+  "title": "SQLite WAL .sqlite-wal Format | File Formats",
+  "text": "sqlite-wal · application/octet-stream Quick answer What is a SQLite WAL file. Copy the main DB with -wal and -shm unless you checkpointed first; prefer WAL for local concurrency, rollback journal for simple single-file shipping. Reviewed by Jaroslav Havelka · Last updated August 21, 2026 Where SQLite WAL fits A SQLite -wal file is the write-ahead log companion created when a database runs in WAL journal mode. It can hold committed changes that are not yet checkpointed into the main database file"
+ },
+ {
+  "id": "h040",
+  "url": "https://forum.nim-lang.org/t/8843",
+  "host": "forum.nim-lang.org",
+  "title": "Nim forum",
+  "text": "The New Version Numbering System (After 2015-10-14) All SQLite releases starting with 3"
+ },
+ {
+  "id": "h041",
+  "url": "https://forum.xojo.com/t/sqlite-wal-mode-bug/74189",
+  "host": "forum.xojo.com",
+  "title": "SQLite WAL Mode Bug?",
+  "text": "After creating a new SQLite database in code and then setting WriteAheadLogging to true, I do some work in Xojo that includes reading and writing to the database using transactions. After running and closing the application multiple times, when I look at my database folder there is only the one database file that I named authservice.db. There are no -shm or -wal files in the directory. Besides using WriteAheadLogging = True, I have also tried executing “PRAGMA journal_mode = WAL;” immediately after connecting. If I connect to the same Xojo created database with the SQLite command line tool, and do anything including just running .schema to list the database schema and then .quit, my database folder then contains: So I am wondering if this is a bug with Xojo SQLiteDatabase WriteAheadLogging. Whether I enabled logging with the property or with the Pragma command, the -shm and -wal files "
+ },
+ {
+  "id": "h042",
+  "url": "https://github.com/Agoric/agoric-sdk/issues/7069",
+  "host": "github.com",
+  "title": "remove the explicit wal_checkpoint(FULL) · Issue #7069 · Agoric/agoric-sdk",
+  "text": "- Notifications You must be signed in to change notification settings - Fork 255 - remove the explicit wal_checkpoint(FULL) #7069 Description What is the Problem Being Solved? The current swingstore DB code uses WAL mode, with synchronous=FULL: agoric-sdk/packages/swing-store/src/swingStore.js Lines 203 to 204 in 40dc287 and then during commit(), it does both a DB COMMIT and a wal_checkpoint(FULL): agoric-sdk/packages/swing-store/src/swingStore.js Lines 517 to 529 in 40dc287 When SQLite is in WAL mode, it records new changes in the separate .wal file, and then periodically does a \"checkpoint\" to merge these changes back into the main .sqlite file. Read performance is slightly degraded if the WAL file gets too large (readers must look in two places to make sure they're seeing all potential writes), and that only gets fixed by the checkpoint operation. By default, SQLite performs a "
+ },
+ {
+  "id": "h043",
+  "url": "https://github.com/Dicklesworthstone/frankensqlite/blob/main/README.md",
+  "host": "github.com",
+  "title": "frankensqlite/README.md at main - GitHub",
+  "text": "FrankenSQLite supports rollback journal mode for reading databases not in WAL mode. is the legacy crash-recovery mechanism that predates WAL. WAL (switch to ..."
+ },
+ {
+  "id": "h044",
+  "url": "https://github.com/Lab271/sqlite-rs/issues/36",
+  "host": "github.com",
+  "title": "feat: V1 step 6 — WAL frame reading (read-only recovery ...",
+  "text": "Scope A database with an uncheckpointed -wal file is incomplete without it — WAL reading is a Tier 0 read feature, not durability:"
+ },
+ {
+  "id": "h045",
+  "url": "https://github.com/alpacax/alpamon/issues/410",
+  "host": "github.com",
+  "title": "Enable WAL journal mode for the local SQLite database #410",
+  "text": "Background The DSN in pkg/db/client.go:23-25 only sets the foreign_keys pragma. Measured on the actual driver, the current journal_mode is the default delete (rollback journal). busy_timeout needs ..."
+ },
+ {
+  "id": "h046",
+  "url": "https://github.com/cashubtc/nutshell/issues/907",
+  "host": "github.com",
+  "title": "SQLite: enable WAL mode and busy_timeout for concurrent write ...",
+  "text": "- - Notifications You must be signed in to change notification settings - Fork 177 - SQLite: enable WAL mode and busy_timeout for concurrent write performance #907 Description Summary When running Nutshell with SQLite under any meaningful concurrent load, the mint becomes unresponsive due to database lock contention. The default SQLite journal mode ( delete) serializes all writes and readers block on writers. Combined with the NullPool connection strategy, this causes failed to acquire database lock errors to cascade until the async event loop deadlocks entirely. Two standard SQLite PRAGMAs fix this: PRAGMA journal_mode=WAL— allows concurrent reads during writes PRAGMA busy_timeout=5000— waits for locks at the driver level instead of failing immediately Problem Under concurrent requests (even moderate — a few per second), store_mint_quote and other write paths fail with: Exception: "
+ },
+ {
+  "id": "h047",
+  "url": "https://github.com/dotnet/efcore/issues/36513",
+  "host": "github.com",
+  "title": "With Sqlite what is the default journal mode for ms ef core sqlite and we need guidance on setting journal mode · Issue #36513 · dotnet/efcore",
+  "text": "- Notifications You must be signed in to change notification settings - Fork 3.4k - With Sqlite what is the default journal mode for ms ef core sqlite and we need guidance on setting journal mode #36513 Description Question I have seen in multiple searches that the default journal mode for sqlite is DELETE. However when we run, and do not set the journal mode, a wal file is getting created, so I assume the database goes into WAL mode by default. Am I wrong on this? I have also seen the journal mode stays set across the process, and also that it must be set each time the database is opened. Which one is true. We enable pooling by default, so I am having an issue determining when to set the journal mode. If the context is part of pooling does this code work for setting and keeping the journal mode set on a created context: if ( !context.JournalModeSet ) { var mode = \"OFF\"; if ( "
+ },
+ {
+  "id": "h048",
+  "url": "https://github.com/facebook/osquery/issues/5225",
+  "host": "github.com",
+  "title": "SQLite DBs with Journal Mode WAL are incompatible with ATC parser · Issue #5225 · osquery/osquery",
+  "text": "- - Notifications You must be signed in to change notification settings - Fork 2.6k - SQLite DBs with Journal Mode WAL are incompatible with ATC parser #5225 Description Bug report When attempting to build ATC configuration blocks for several SQLite databases I continued to encounter Error Code 14 at time of query. An example of the output can be seen below: osquery> select * from cloud_sync_google_drive; I0913 14:44:39.450301 2340193152 virtual_sqlite_table.cpp:97] Could not prepare database at path: \"/Users/fritz/Library/Application Support/Google/Drive/user_default/sync_config.db\" W0913 14:44:39.450348 2340193152 auto_constructed_tables.cpp:37] Error Code: 14 Could not generate data: Could not prepare database Some tables worked without any difficulty while others would produce this error. I was able to determine that the key difference between these tables was the Journal Mode. "
+ },
+ {
+  "id": "h049",
+  "url": "https://github.com/openclaw/openclaw/issues/36035",
+  "host": "github.com",
+  "title": "Memory SQLite should use WAL journal mode by default #36035",
+  "text": "WAL mode: - Is crash-safe (survives SIGTERM/SIGKILL mid-write) - Allows concurrent reads during writes - Is the recommended mode for applications that restart frequently // After opening the database connection: db. pragma('journal_mode = WAL'); Workaround sqlite3 ~/. sqlite \"PRAGMA journal_mode=WAL;\" But this resets if the DB is recreated (e. , after openclaw memory index on a corrupted DB). Environment - OpenClaw 2026"
+ },
+ {
+  "id": "h050",
+  "url": "https://global.morningstar.com/en-nd/economy/key-interest-rate-decision-dates-2026",
+  "host": "global.morningstar.com",
+  "title": "The Key Interest Rate Decision Dates for 2026 | Morningstar Nordics",
+  "text": "Bank of England Current policy rate: 3.75% Feb. Current policy rate: 3.50%-3.75% Bank of England Cuts UK Interest Rates to 3.75% Collage"
+ },
+ {
+  "id": "h051",
+  "url": "https://goglobal.com.ua/storage/files/doc/proftexi/posibnik-dlia-ucnia-2701-compressed.pdf",
+  "host": "goglobal.com.ua",
+  "title": "[PDF] STUDENT'S BOOK",
+  "text": "Tailored for VET Learners and Teachers. Healthy and unhealthy food Structure. You have got a silver bracelet. Listen to the audio to check your answers."
+ },
+ {
+  "id": "h052",
+  "url": "https://groups.google.com/g/sqlite_users/c/FPL_KGDk6rQ",
+  "host": "groups.google.com",
+  "title": "[sqlite] WAL questions",
+  "text": "regarding PRAGMA journal_mode; Should =WAL affects only current session, or all following sessions until =DELETE performed? As long as I see it keeps the state, I concluded it from the following facts - prior versions of sqlite refuse to accept the db (as the doc says), - shm, wal files exists - 18, 19 offset numbers are 2. But at the same time PRAGMA journal_mode; reported \"wal\" when wal was changed (it's ok) and \"delete\" after reopening the db (for me it is unexpected behavior). I used sqlite-snapshot-201007060929.zip - About vfs. Is it ok to implement version 2 of the interfaces and supply it to older versions? So if the structures contain iVersion=2, will all prior versions of sqlite3 accept it? Thanks, Max, maxerist.net _______________________________________________ sqlite-users mailing list sqlite...@sqlite.org http://sqlite.org:8080/cgi-bin/mailman/listinfo/sqlite-users "
+ },
+ {
+  "id": "h053",
+  "url": "https://groups.google.com/g/sqlite_users/c/be2mwGecdpU",
+  "host": "groups.google.com",
+  "title": "[sqlite] Please beta-test SQLite 3.7.0",
+  "text": "SQLite version 3.7.0 will feature the addition of a write-ahead log (WAL) capability for transaction control. See http://www.sqlite.org/draft/wal.html for additional information. WAL should increase performance and concurrency in many situations. Version 3.7.0 also has other changes, including a new feature that automatically creates transient indices to improve performance for some complex joins, and other performance enhancements. Version 3.7.0 has been long in the making. We've worked on it for months. We have checked in nearly 600 separate change-sets since 3.6.23.1. About 7.5% of the source code in version 3.7.0 is new. Version 3.7.0 is currently passing all of our extensive internal tests. We have verified it using our 41-point pre-release checklist (which takes several days to work through). And version 3.7.0 is currently in use running the www.sqlite.org website (in WAL mode). "
+ },
+ {
+  "id": "h054",
+  "url": "https://henry-moore.org/audio-descriptions/serafina-min-pass-away-2025/",
+  "host": "henry-moore.org",
+  "title": "Serafina Min, 'Pass Away' 2025 | Henry Moore Institute",
+  "text": "memory or recollection: the metal that they're made from, which is bell bronze, 80% copper, 20% tin. The edge of a memory. This is how you shape a creature ..."
+ },
+ {
+  "id": "h055",
+  "url": "https://jpbs.hapres.com/htmls/JPBS_1766_Detail.html",
+  "host": "jpbs.hapres.com",
+  "title": "Creatine Supplementation: More Is Likely Better for Brain Bioenergetics, Health and Function",
+  "text": "Location: Home >> Detail TOTAL VIEWS This work is licensed under aCreative Commons Attribution 4.0 International License J Psychiatry Brain Sci. 2025;10(4):e250006. https://doi.org/10.20900/jpbs.20250006 1 Department of Psychiatry, University of Ottawa, Ottawa, ON K1N 6N5, Canada 2 Faculty of Kinesiology and Health Studies, University of Regina, Regina, SK S4S 0A2, Canada * Correspondence: Nicholas Fabiano This article belongs to the Virtual Special Issue \"JPBS 10th Anniversary Special Issue\" Creatine monohydrate (CrM) is one of the most well-researched and effective ergogenic supplements. Given the constant energy supply required by the brain, there has been a paradigm shift from CrM for skeletal muscle benefits to potentially improving brain bioenergetics, health and function. Accumulating research indicates that CrM is capable of increasing brain creatine stores which may help "
+ },
+ {
+  "id": "h056",
+  "url": "https://lab-clint.org/Published/2026_3.pdf",
+  "host": "lab-clint.org",
+  "title": "[PDF] Transcranial Photobiomodulation for Neuromodulation of Brain ...",
+  "text": "Transcranial photobiomodulation improves cognitive performance in young healthy adults: a systematic review and meta-analysis."
+ },
+ {
+  "id": "h057",
+  "url": "https://lists.opensuse.org/archives/list/factory@lists.opensuse.org/latest?count=200&page=3",
+  "host": "lists.opensuse.org",
+  "title": "openSUSE Factory",
+  "text": "... version 3.51.3: * Fix the WAL-reset database corruption bug: https://sqlite.org/wal.html#walresetbug * Other minor bug fixes. ==== systemsettings6 ==== Version ..."
+ },
+ {
+  "id": "h058",
+  "url": "https://litestream.io/v0.3/tips/",
+  "host": "litestream.io",
+  "title": "Tips & Caveats - Litestream",
+  "text": "Litestream only works with the SQLite WAL journaling mode. This is the recommended mode for most applications as it generally performs better and allows for ..."
+ },
+ {
+  "id": "h059",
+  "url": "https://marshmallow.readthedocs.io/_/downloads/en/stable/pdf/",
+  "host": "marshmallow.readthedocs.io",
+  "title": "[PDF] Release 4.3.1 Author name not set - Marshmallow",
+  "text": "This guide will walk you through the basics of creating schemas for serializing and deserializing data. read, write, admin.']}"
+ },
+ {
+  "id": "h060",
+  "url": "https://mediacenteratypon.nejmgroup-production.org/NEJMoa2307563.pdf",
+  "host": "mediacenteratypon.nejmgroup-production.org",
+  "title": "[PDF] Semaglutide and Cardiovascular Outcomes in Obesity without ... (p. 2)",
+  "text": "2% among patients with overweight\nor obesity who did not have diabetes. 18 In the Intervention and Management\nSemaglutide Effects on Cardiovascular Outcomes Patients were randomly assigned, with the use of\nin People with Overweight or Obesity (SELECT) a centralized system in a double-blind manner\ntr..."
+ },
+ {
+  "id": "h061",
+  "url": "https://medtechnews.uk/research-reports/creatine-supplementation-a-comprehensive-review-of-cognitive-and-neurological-implications/",
+  "host": "medtechnews.uk",
+  "title": "Creatine Supplementation: A Comprehensive Review of Cognitive and Neurological Implications",
+  "text": "- Personalized medicine: The response to creatine supplementation may vary depending on individual factors such as age, genetics, and disease severity. Future research should focus on identifying biomarkers that can predict who will benefit most from creatine supplementation. - Long-term effects: More research is needed to determine the long-term effects of creatine supplementation on cognitive and neurological health, particularly in the context of aging and neurodegenerative disorders. - Combination therapies: Creatine may synergize with other therapeutic interventions, such as exercise, cognitive training, and medications. Future research should explore the potential benefits of combining creatine with other treatments for neurological disorders"
+ },
+ {
+  "id": "h062",
+  "url": "https://newsroom.clevelandclinic.org/2023/11/11/international-clinical-trial-finds-that-semaglutide-reduced-cardiovascular-events-by-20-in-adults-with-overweight-or-obesity-who-dont-have-diabetes",
+  "host": "newsroom.clevelandclinic.org",
+  "title": "International Clinical Trial Finds that Semaglutide Reduced Cardiovascular Events by 20% in Adults with Overweight or Obesity Who Don’t Have Diabetes",
+  "text": "SELECT trial presented by Cleveland Clinic physician at the American Heart Association’s Scientific Sessions 2023 Content is property of Cleveland Clinic and for news media use only. Findings from a multi-center, international clinical trial reported by a Cleveland Clinic physician show that semaglutide reduced cardiovascular events by 20% in adults with overweight or obesity and established cardiovascular disease who don’t have diabetes. Semaglutide is primarily prescribed for adults with type 2 diabetes but is also approved for chronic weight management in adults with obesity or overweight and have at least one other health issue. In the trial, patients treated with semaglutide lost an average of 9.4% of their body weight and experienced improvements in other risk factors for cardiovascular disease. Results from the “SELECT – Semaglutide and Cardiovascular Outcomes in Patients with "
+ },
+ {
+  "id": "h063",
+  "url": "https://newsroom.heart.org/news/major-cvd-event-risk-cut-by-20-in-adults-without-diabetes-with-overweight-or-obesity",
+  "host": "newsroom.heart.org",
+  "title": "Major CVD event risk cut by 20% in adults without diabetes, with overweight or obesity",
+  "text": "Research Highlights: - In a large, international clinical trial, people with obesity or overweight but not diabetes taking semaglutide for more than 3 years had a 20% lower risk of heart attack, stroke or death due to cardiovascular disease and lost an average of 9.4% of their body weight. Semaglutide is a GLP-1 medication primarily prescribed for people with Type 2 diabetes. It is also FDA-approved for weight loss in people with obesity. - The double-blind, randomized trial enrolled more than 17,500 adults in 41 countries with overweight or obesity and who had previously experienced a heart attack, stroke and/or had peripheral artery disease but who did not have either Type 1 or Type 2 diabetes. - According to the researchers, the results of the SELECT trial are the first time that any medication or lifestyle therapy has been proven to reduce cardiovascular events in adults with "
+ },
+ {
+  "id": "h064",
+  "url": "https://nhsjs.com/2022/a-comparison-of-the-environmental-consequences-in-the-production-and-disposal-phases-of-lithium-ion-batteries-and-gasoline/",
+  "host": "nhsjs.com",
+  "title": "A Comparison of the Environmental Consequences in the Production and Disposal Phases of Lithium-Ion Batteries and Gasoline - NHSJS",
+  "text": "Audrey Wen, Min-seung Kang, James Truncer Abstract Gasoline is recognized as an unsustainable energy source, and multiple industries now use lithium-ion battery alternatives to meet society’s demands for a shift away from nonrenewable sources. Lithium-ion battery powered products produce zero emissions and no toxic fumes, so they are deemed more eco-friendly than their gas counterparts. Yet, such a conclusion disregards the other environmental costs present in the earlier and later stages of the battery life cycle. The process of mining lithium and cobalt for lithium-ion batteries and the difficulties of recycling such materials should be taken into account just as the process of extracting gasoline from crude oil and the pollution from exhaust gases are. This study provides a comparison of lithium-ion batteries and gasoline as energy sources in the production and disposal phases from "
+ },
+ {
+  "id": "h065",
+  "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+  "host": "nms.go.ug",
+  "title": "[PDF] Uganda Clinical Guidelines 2023 - National Medical Stores",
+  "text": "The Uganda Clinical Guide- lines manual helps to achieve these standards by presenting updated, practical, and useful information on the diagnosis and ..."
+ },
+ {
+  "id": "h066",
+  "url": "https://orbitalradar.com/satellites/james-webb",
+  "host": "orbitalradar.com",
+  "title": "James Webb Space Telescope (JWST) — Location & Facts | Orbital Radar",
+  "text": "Overview The James Webb Space Telescope (JWST) is a joint NASA/ESA/CSA infrared space observatory launched on 25 December 2021 aboard an Ariane 5 rocket. It orbits the Sun-Earth L2 Lagrange point, approximately 1.5 million km from Earth, where it can keep its sunshield permanently oriented between itself and the Sun/Earth/Moon, maintaining the extreme cold required for infrared observations. Key Facts |Launch |25 December 2021 (Ariane 5 ECA) |Location |Sun-Earth L2 Lagrange point (~1.5 million km from Earth) |Primary Mirror |6.5 m diameter (18 gold-coated beryllium segments) |Sunshield |22 m × 12 m (tennis court-sized) |Operating Temperature |~40 K (–233°C) on the cold side |Instruments |NIRCam, NIRSpec, MIRI, FGS/NIRISS |Wavelength Range |0.6–28.5 μm (near- to mid-infrared) |Design Life |5–10 years (fuel budget supports 20+ years) |Cost |~$10 billion USD Key Discoveries JWST has "
+ },
+ {
+  "id": "h067",
+  "url": "https://planet4589.org/space/misc/webb/time.html",
+  "host": "planet4589.org",
+  "title": "James Webb Space Telescope - Launch Timeline",
+  "text": "|Time since launch |Planned time |Time |Event |Altitude |L+(dd:hh:mm[:ss]) |UTC |(km) |Actual |[Prelaunch] |Actual |-0:00:00:07 |2021 Dec 25 1220:00 |Vulcain 2 engine ignition |0 |+0:00:00:00 |2021 Dec 25 1220:07 |Launch |0 |0:00:02:21 |2021 Dec 25 1222:28 |EAP solid boosters shutdown and separation |72 |0:00:03:26 |2021 Dec 25 1223:33 |Ariane fairing halves separation |126 |0:00:08:41? |2021 Dec 25 1228:48 |Ariane EPC core stage shutdown |0:00:08:47 |2021 Dec 25 1228:54 |Ariane EPC core stage separation |229 |0:00:08:51 |2021 Dec 25 1228:58 |Ariane ESC-D engine start |229 |0:00:24:51 |2021 Dec 25 1244:58 |Ariane ESC-D engine cutoff |928 |0:00:27:07 |2021 Dec 25 1247:14 |Ariane ESC-D stage separates from JWST |1391 |0:00:28:16? |[L+ 33 min] |2021 Dec 25 1248:23? |JWST deploy solar array |2600 |0:00:29? |2021 Dec 25 1249? |Ariane ESC-D stage performs EOLM (End of Life Manuever) "
+ },
+ {
+  "id": "h068",
+  "url": "https://portal.research.lu.se/en/publications/swedens-excess-mortality-in-20202022-and-reporting-in-the-media",
+  "host": "portal.research.lu.se",
+  "title": "Sweden’s excess mortality in 2020–2022 and reporting in the media",
+  "text": "Abstract Aim: The aim was to scrutinize the report in March 2023 that Sweden’s excess mortality was lowest in 2020–2022 compared with other European Union and Nordic countries, a report that received great national and international attention. Study design: Comparison of excess mortality in Sweden and Norway. Methods: Excess mortality for 2020–2022 was calculated for Sweden and Norway, the country with per-capita excess mortality closest to Sweden’s, compared with the average mortality for 2017–2019 in the respective country, following the definitions by Statistics Sweden reported in a daily newspaper. Results: Excess mortality is a measure with low misclassification compared with other pandemic outcome measures. Following the definitions, total excess mortality for the years 2020–2022 was 11,897 individuals in Sweden and 6089 in Norway. However, the distributions of excess mortality "
+ },
+ {
+  "id": "h069",
+  "url": "https://prediqt.in/event/boe-rate-cut-at-september-17-2026-mpc-meeting",
+  "host": "prediqt.in",
+  "title": "BoE rate cut at September 17, 2026 MPC meeting? Predictions & Odds | Prediction Market",
+  "text": "View real-time odds for \"BoE rate cut at September 17, 2026 MPC meeting?\" as of Sep 10, 2026 and trade on Prediction Market"
+ },
+ {
+  "id": "h070",
+  "url": "https://rateprobability.com/boe",
+  "host": "rateprobability.com",
+  "title": "BoE rate cut odds & hike probabilities by meeting",
+  "text": "See odds for the Bank of England's next MPC meeting — OIS market-implied Bank Rate pricing by meeting, plus the full 12-month rate path. Updated throughout the trading day."
+ },
+ {
+  "id": "h071",
+  "url": "https://remotephcmanuals.com.au/download/resources/manuals/CARPA_8th_ed_V1.03.pdf",
+  "host": "remotephcmanuals.com.au",
+  "title": "[PDF] CARPA Standard Treatment Manual",
+  "text": "The eighth edition of the CARPA Standard Treatment Manual has been produced as part of the suite of Remote Primary Health Care Manuals, intended for use by ..."
+ },
+ {
+  "id": "h072",
+  "url": "https://robinhood.com/us/en/prediction-markets/economics/events/bank-of-england-rate-decision-in-september-sep-17-2026/",
+  "host": "robinhood.com",
+  "title": "September 17, 2026: Bank of England rate decision in September Prediction Market",
+  "text": "Bank of England rate decision in September Maintain current rate97¢ Hike 1-25bps4¢ Cut 1-25bps1¢ LIVE 1D 1W MAX Select a contract Maintain current rate 97¢ Hike 1-25bps 4¢ Cut 1-25bps 1¢ Cut more than 25bps 1¢ Hike more than 25bps 1¢ Timeline Trading hours24 hours a day, except Thursday 3AM-5AM ET Event daySeptember 17, 2026 Contract resolvesDetermines the outcome of the contract PayoutUsually within 1 hour of event resolution About Bank of England rate decision in September The market resolves based on the official policy rate decision announced by the central bank. For central banks with multiple policy rates, only changes to the primary policy rate count. If the meeting is cancelled or delayed past the expiration date, markets for \"No change\" resolve to Yes and all others resolve to No. Emergency rate changes between scheduled meetings do not affect resolution of contracts tied to "
+ },
+ {
+  "id": "h073",
+  "url": "https://rqlite.io/docs/guides/backup/",
+  "host": "rqlite.io",
+  "title": "Backup and Restore - rqlite",
+  "text": "By default the backup copy returned by rqlite is in WAL mode. ... The shell supports either format automatically. ~ $ sqlite3 mydb.sqlite SQLite version 3.22.0 ..."
+ },
+ {
+  "id": "h074",
+  "url": "https://rqlite.io/docs/guides/direct-access/",
+  "host": "rqlite.io",
+  "title": "Directly accessing SQLite - rqlite",
+  "text": "Doing so may block rqlite’s access to the SQLite database. Why are these guidelines important. A SQLite client, even if it wrote no data to the database, may checkpoint the WAL when closing its connection. Checkpointing the WAL will alter the state of the database and will break rqlite. It’s also important to note that while direct reads in production are a known use case, they have not been extensively tested"
+ },
+ {
+  "id": "h075",
+  "url": "https://rsdjournal.org/rsd/article/view/50322",
+  "host": "rsdjournal.org",
+  "title": "The use of creatine as a neuroprotective agent in Alzheimer's disease",
+  "text": "The use of creatine as a neuroprotective agent in Alzheimer’s disease DOI:https://doi.org/10.33448/rsd-v14i12.50322 Keywords:Creatine, Neuroprotection, Alzheimer’s disease, Brain bioenergetics, Nutritional supplementation. Abstract Alzheimer’s disease is a progressive neurodegenerative condition marked by cognitive decline, synaptic loss, and biochemical disturbances associated with beta-amyloid deposition, tau aggregation, and mitochondrial dysfunction. This study aimed to examine, through a narrative literature review, the biochemical mechanisms underlying the use of creatine as an adjunct intervention in the management of Alzheimer’s disease, as well as to evaluate the existing clinical evidence, its methodological limitations, and future research directions. The methodology involved a structured search in the PubMed, SciELO, and ScienceDirect databases for articles published between "
+ },
+ {
+  "id": "h076",
+  "url": "https://rtais.wto.org/UI/CRShowRTAIDCard.aspx?rtaid=109",
+  "host": "rtais.wto.org",
+  "title": "WTO | Regional trade agreements",
+  "text": "The United Kingdom was a Member State of the European Union until 31 January 2020."
+ },
+ {
+  "id": "h077",
+  "url": "https://rtais.wto.org/UI/PublicShowMemberRTAIDCard.aspx?rtaid=386",
+  "host": "rtais.wto.org",
+  "title": "WTO | Regional trade agreements",
+  "text": "The United Kingdom was a Member State of the European Union until 31 January 2020."
+ },
+ {
+  "id": "h078",
+  "url": "https://saylordotorg.github.io/text_principles-of-economics-v2.0/s23-02-price-level-changes.html",
+  "host": "saylordotorg.github.io",
+  "title": "Price-Level Changes",
+  "text": "Concern about changes in the price level has always dominated economic discussion. With inflation in the United States generally averaging only between 2% and 3% each year since 1990, it may seem surprising how much attention the behavior of the price level still commands. Yet inflation was a concern in 2004 when there was fear that the rising price of oil could trigger higher prices in other areas. Just the year before, when inflation fell below 2%, there was talk about the risk of deflation. That did not happen; prices continued rising. Inflation rose substantially in the first half of 2008, renewing fears about subsequent further increases. And 2010 brought renewed concern of possible deflation. Just what are inflation and deflation? How are they measured? And most important, why do we care? These are some of the questions we will explore in this section. InflationAn increase in the "
+ },
+ {
+  "id": "h079",
+  "url": "https://sci.esa.int/web/jwst/",
+  "host": "sci.esa.int",
+  "title": "Mission Home - JWST - Science Portal",
+  "text": "ESA Science & Technology - JWST Fact Sheet News News ESA welcomes Webb in French Guiana for launch on Ariane 5 The James Webb Space Telescope has arrived safely at Pariacabo harbour in French Guiana. ESA in close collaboration with NASA will now prepare this once in a generation mission for its launch on Ariane 5 from Europe's Spaceport this December. Targeted launch date for Webb: 18 December 2021 ESA, NASA and Arianespace have jointly defined 18 December 2021 as the target launch date for Ariane 5 flight VA256. This third Ariane 5 launch of 2021 will fly the James Webb Space Telescope to space from Europe's Spaceport in French Guiana. Webb passes key launch clearance review The international James Webb Space Telescope has passed the final mission analysis review for its launch on an Ariane 5 rocket from Europe's Spaceport in French Guiana. Selection of the first James Webb Space "
+ },
+ {
+  "id": "h080",
+  "url": "https://sci.esa.int/web/jwst/-/45759-fact-sheet",
+  "host": "sci.esa.int",
+  "title": "Fact Sheet - JWST - Science Portal",
+  "text": "Fact Sheet | | ESA, NASA and the Canadian Space Agency (CSA) have collaborated since 1996 on the definition of a successor to the Hubble Space Telescope (HST). The James Webb Space Telescope (JWST) is a general-purpose observatory with a large aperture telescope optimised for infrared observations and a suite of state-of-the-art astronomical instruments capable of addressing many outstanding issues in astronomy. Mission Objectives JWST's investigations will cover questions such as: What did the early Universe look like? When did the first stars and galaxies emerge? How did the first galaxies evolve over time? What can we learn about dark matter and dark energy? How and where do stars form? What determines how many of them form and their individual masses? How do stars die and how does their death impact the surrounding medium? Where and how do planetary systems form and evolve? Mission "
+ },
+ {
+  "id": "h081",
+  "url": "https://sci.esa.int/web/venus-express/-/46816-surface-warmth-on-a-volcano-on-venus",
+  "host": "sci.esa.int",
+  "title": "Surface warmth on a volcano on Venus - Venus Express - Science Portal",
+  "text": "Surface warmth on a volcano on Venus This figure shows the volcanic peak Idunn Mons (at 46 degrees south latitude, 214.5 degrees east longitude) in the Imdr Regio area of Venus. The topographic backbone derives from data obtained by NASA's Magellan spacecraft, with a vertical exaggeration of 30 times. Radar data (in brown) from Magellan has been draped on top of the topographic data. Bright areas are rough or have steep slopes. Dark areas are smooth. The coloured overlay shows the heat patterns derived from surface brightness data collected by the Visible and InfraRed Thermal Imaging Spectrometer, aboard the European Space Agency's Venus Express spacecraft. Temperature variations due to topography were removed. The brightness signals the composition of the minerals that have been changed due to lava flow. Red-orange is the warmest area and purple is the coolest. The warmest area is "
+ },
+ {
+  "id": "h082",
+  "url": "https://sci.esa.int/web/venus-express/-/58085-what-lies-beneath-venus-surface-revealed-through-the-clouds",
+  "host": "sci.esa.int",
+  "title": "What lies beneath: Venus' surface revealed through the clouds - Venus Express - Science Portal",
+  "text": "What lies beneath: Venus' surface revealed through the clouds 18 July 2016Using observations from ESA's Venus Express satellite, scientists have shown for the first time how weather patterns seen in Venus' thick cloud layers are directly linked to the topography of the surface below. Rather than acting as a barrier to our observations, Venus' clouds may offer insight into what lies beneath. Venus is famously hot, due to an extreme greenhouse effect which heats its surface to temperatures as high as 450 degrees Celsius. The climate at the surface is oppressive; as well as being hot, the surface environment is dimly lit, due to a thick blanket of cloud which completely envelops the planet. Ground-level winds are slow, pushing their way across the planet at painstaking speeds of about 1 metre per second – no faster than a gentle stroll. However, that is not what we see when we observe our "
+ },
+ {
+  "id": "h083",
+  "url": "https://smartasset.com/investing/inflation-calculator",
+  "host": "smartasset.com",
+  "title": "Inflation Calculator (2026): Calculate U.S. Inflation by Year",
+  "text": "Average Inflation Rate: Cumulative Inflation Rate: Value Over Time A projected inflation rate of 2.50% was used to calculate values from 2027 to 2056. About This Calculator SmartAsset's inflation calculator helps you understand how the purchasing power of your money changes over time, including historical changes and future projections. Inflation metrics help you measure the changing purchasing power of a dollar over time, as the same $100 bill today won't buy you the same amount of goods and services 10 years from now. This can help you track the effective value of your savings, investment and debt over time, and decide on your risk tolerance and investment tools accordingly. You can track historical inflation figures all the way back to 1914, or project future inflation based on historical precedents or your own assumptions. Assumptions CPI-U: The average Consumer Price Index - Urban "
+ },
+ {
+  "id": "h084",
+  "url": "https://sqldocs.org/sqlite-write-ahead-logging/",
+  "host": "sqldocs.org",
+  "title": "SQLite WAL: Write-Ahead Logging Explained - SQL Docs",
+  "text": "SQLite is one of the most widely used database engines in the world. Its lightweight, fast, self-contained, and serverless nature makes it perfect for embedded use cases. But as your application grows, you may run into performance bottlenecks with SQLite’s default rollback journal mode for crash recovery. This is where Write-Ahead Logging (WAL) comes in. WAL mode significantly improves SQLite’s write performance by up to 2x or more than rollback journal mode. It also improves read performance in high-concurrency scenarios. In this comprehensive guide, you’ll learn what WAL is, how it works, when to use it, and how to configure WAL mode in SQLite through practical examples. Also read: The SQLite Handbook: A Start-to-Finish Resource for Learning and Using SQLite What is SQLite Write-Ahead Logging (WAL)? SQLite WAL is a crash-recovery mechanism that provides atomicity and durability "
+ },
+ {
+  "id": "h085",
+  "url": "https://sqlite-users.sqlite.narkive.com/Jv2nDJjm/sqlite-wal-file-size-increase",
+  "host": "sqlite-users.sqlite.narkive.com",
+  "title": "[sqlite] WAL file size increase",
+  "text": "Dear SQL Developers / Users, I haven't found the solution for WAL file increase issue. Below is the summary of my issue. The email thread is added for additional information as asked by Simon. I am using Sqlite3 in our project. My database has journal_mode set to WAL and has one writer & multiple readers. During normal mode of operation, only writing process is accessing database and there is no active reader connection I have observed that when I don’t have any primary key in the database table then WAL auto_checkpoint doesn’t work and WAL file keeps growing without any bound. At one point, it consumes all the available memory in the system. I have tried different approaches to fix this issue like setting up SQLITE_DEFAULT_JOURNAL_SIZE_LIMIT = 0, setting SQLITE_DEFAULT_WAL_AUTOCHECKPOINT = 100 etc. but nothing worked. I have confirmed in my code that auto_checkpoint is not disabled. I "
+ },
+ {
+  "id": "h086",
+  "url": "https://sqlite.org/c3ref/wal_autocheckpoint.html",
+  "host": "sqlite.org",
+  "title": "Configure an auto-checkpoint",
+  "text": "int sqlite3_wal_autocheckpoint(sqlite3 *db, int N); The sqlite3_wal_autocheckpoint(D,N) is a wrapper around sqlite3_wal_hook() that causes any database on database connection D to automatically checkpoint after committing a transaction if there are N or more frames in the write-ahead log file. Passing zero or a negative value as the N parameter disables automatic checkpoints entirely. The callback registered by this function replaces any existing callback registered using sqlite3_wal_hook(). Likewise, registering a callback using sqlite3_wal_hook() disables the automatic checkpoint mechanism configured by this function. The wal_autocheckpoint pragma can be used to invoke this interface from SQL. Checkpoints initiated by this mechanism are PASSIVE. Every new database connection defaults to having the auto-checkpoint enabled with a threshold of 1000 or SQLITE_DEFAULT_WAL_AUTOCHECKPOINT "
+ },
+ {
+  "id": "h087",
+  "url": "https://sqlite.org/capi3ref.html",
+  "host": "sqlite.org",
+  "title": "C/C++ Interface For SQLite Version 3",
+  "text": "The iVersion value started out as 1 in SQLite version 3.5.0 on 2007-09-04, then increased to 2 with SQLite version 3.7.0 on 2010-07-21, and then increased to 3 ..."
+ },
+ {
+  "id": "h088",
+  "url": "https://sqlite.org/chronology.html",
+  "host": "sqlite.org",
+  "title": "History Of SQLite Releases",
+  "text": "2010-12-07 · 3.7.4 · 2010-10-08 · 3.7.3 · 2010-08-24 · 3.7.2 · 2010-08-23 · 3.7.1 · 2010-08-04 · 3.7.0.1 · 2010-07-21 · 3.7.0 · 2010-03-26 · 3.6.23.1 · 2010-03- ..."
+ },
+ {
+  "id": "h089",
+  "url": "https://sqlite.org/forum/forumpost/185369591b0e4e1d?t=c&unf",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: Is it possible to make -shm/-wal files permanent?",
+  "text": "I have a process that has only read only access to the database filesystem. It works fine and able to make select queries with a concurrent writer running on the same machine, but when the writer closes the database and delete those files a reader fails to continue. Correct me if I wrong, is this way of operation normal? If so, is it possible to make those files permanent so the reader will continue to read database even when writer is closed? (2) By Richard Hipp (drh) on 2022-01-09 19:43:50 in reply to 1 [link] SQLite version 3.22.0 (2018-01-22) and later should be able to read a read-only WAL-mode database that does not have -wal and -shm files present. What version of SQLite are you using that is giving trouble? (3) By anonymous on 2022-01-09 20:00:48 in reply to 2 [link] I am using 3.34.1. It is a python binding, I am opening it in a read only mode "
+ },
+ {
+  "id": "h090",
+  "url": "https://sqlite.org/forum/forumpost/3fec19a873?t=h",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: Exclusive write-only lock? (Allow only one process read-write, and multiple read-only)",
+  "text": "Exclusive write-only lock? (Allow only one process read-write, and multiple read-only) (1) By Galicarnax (galicarnax) on 2020-09-10 09:57:12 [link] [source] I've read about sqlite3 locks, and from what I understood it seems impossible to achieve what I want... Nevertheless, I'll ask here, just in case. Is it possible to make it such that an sqlite database (either with rollback journal or in WAL-mode) might be opened only by one process that can modify it, but still allow other processes open it in read-only mode? If I set exclusive lock, once the writer process makes a change, it will block all other processess even from reading. I want a behavior where all processes, except a single one (say, the first one which opens the database), are not allowed to write but allowed to read. (2) By Gunter Hick (gunter_hick) on 2020-09-10 11:07:43 in reply to 1 [link] [source] SQLite does not care "
+ },
+ {
+  "id": "h091",
+  "url": "https://sqlite.org/forum/forumpost/4350638e78869137?t=c&unf",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: ”database is locked”: detecting deadlock vs. busy timeout?",
+  "text": "So you do not bother retrieving the singleton result which is the journal mode. > Opening the live database file with the CLI tool and running \"pragma journal_mode;\" returns \"wal\". So you have something else that already has a write in progress against the database file on some other connection somewhere and you are being told that SQLite is BUSY deqaling with that at the current time, please try your write operation later, after the current lock holder has reelinquised its lock. (12) By anonymous on 2023-06-21 19:31:03 in reply to 11 [link] > So you do not bother retrieving the singleton result which is the journal mode. Perhaps in the future I'll add that to the log"
+ },
+ {
+  "id": "h092",
+  "url": "https://sqlite.org/forum/forumpost/4977b5b804e0cd0d?t=c&unf",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: Need help with read only access to database",
+  "text": "Need help with read only access to database (1) By crispo on 2021-07-14 11:44:47 [link] Hi, I need to create a database that can only be updated by the database owner, but allow all other users read privilege on the data. Setup: * linux OS * the database is created using sudo to a service account called svc_merc_cdr_prod * database file and containing directory path set up with chmod 644, eg -rw-r--r-- 1 svc_merc_cdr_prod svc_merc_cdr_prod 427008 Jul 9 11:08 /opt/bigcdr/nlp/db/prd/control/cdr_control.db I can access this database as the service account and perform updates, eg from a linux terminal: sudo -u svc_merc_cdr_prod sqlite3 /opt/bigcdr/nlp/db/prd/control/cdr_control.db My issue is that no other user can access this. eg if i run without sudo i'm able to open the sqlite tool but cannot view tables or open the database file?? ~$ sqlite3 /opt/bigcdr/nlp/db/prd/control/cdr_control.db "
+ },
+ {
+  "id": "h093",
+  "url": "https://sqlite.org/forum/forumpost/7d292adea1?t=c&unf",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: Growing WAL-File",
+  "text": "I'm using sqlite with WAL in my logging system. Currently the WAL-File is about 100GB and it continues growing. There is no open transaction, but i have a lot of prepared statements (to improve speed). Is there a way to limit the max. size of the WAL-File? (2) By Kees Nuyt (knu) on 2021-04-06 15:52:15 in reply to 1 [link] You can **checkpoint** the WAL with [PRAGMA wal_checkpoint()][1]. There is even a PRAGMA to [automatically checkpoint][2] the WAL. Use that PRAGMA just after you open the connection, or call the equivalent sqlite3_API . Make sure to preiodically `COMMIT` or `ROLLBACK` any open transactions. [1]: https://www.sqlite.org/pragma.html#pragma_wal_checkpoint [2]: https://www.sqlite.org/pragma.html#pragma_wal_autocheckpoint (3) By Heribert (derhexer) on 2021-04-06 15:59:02 in reply to 2 [link] What happens if i do not use any transaction? In my case, I don't need transactions "
+ },
+ {
+  "id": "h094",
+  "url": "https://sqlite.org/forum/forumpost/94c40d994adfb697?t=c&unf",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: wal checkpointing very slow",
+  "text": "> In WAL mode, until you reach a checkpoint, SQLite doesn't update the database. All changes are logged in the WAL file. When a checkpoint is processed, SQLite has to go through the log of changes, figure out which ones haven't been obsoleted by later changes, and make appropriate changes to the database file. Then it can start again with a new blank WAL file. Partially correct. When write-ahead logging is in effect, pages changed by each transaction are written to the write-ahead log. This means that even though a \"transaction\" may only affect one itty bitty row, it may impact multiple database pages (the page(s) containing the data and any pages containing btree or index data related to the table). This means that a \"small update to one row\" may result in \"a shitload of changed pages\". Each shitload is a separate set of changes (transaction). So a \"whole bunch of small transactions\" "
+ },
+ {
+  "id": "h095",
+  "url": "https://sqlite.org/forum/forumpost/c4dbf6ca17",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: Using WAL mode with multiple processes",
+  "text": "Using WAL mode with multiple processes (1.1) By Simon Willison (simonw) on 2020-08-09 20:59:01 edited from 1.0 [source] The documentation at https://www.sqlite.org/wal.html says that you can start WAL mode using: PRAGMA journal_mode=WAL; If I have multiple processes running against the same file - one process that is just reading it, another one (or more) that are writing to it, how should I use this pragma? If I've run it once in a process, will the other processes automatically pick it up? Do I need to run the pragma before the other processes open their connections to the database file? Does it even matter which process first executes the PRAGMA? If my read-only process executes it, will it affect any other processes that attempt to write to that file? (2) By Kees Nuyt (knu) on 2020-08-10 01:43:19 in reply to 1.1 [link] [source] The text for PRAGMA journal_mode=wal says: The WAL "
+ },
+ {
+  "id": "h096",
+  "url": "https://sqlite.org/forum/forumpost/f558bf42df073e10",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: WAL journal file-size keeps on growing...",
+  "text": "WAL journal file-size keeps on growing... (1) By PazO (JohnSmith) on 2020-11-10 14:30:07 [link] [source] In my application I am using configuration of WAL-journal with synchronous set to NORMAL. While running my unit-test application that put stress on sqlite, writing data from various threads, I found that the journal file-size keeps on growing forever. Only when my unit-test terminates and all connections are closed - only then the journal file is removed. At this point its size is ~2GB. I read that using pragma journal_size_limit I can limit the size of the journal file. I tried to use it but it had no effect. I am calling it right after the connection was opened: PRAGMA journal_size_limit=1000 Later when running the command PRAGMA journal_size_limit (with no parameters) I can see that the value was set, as 1000 is returned, however, the file keeps on growing until my program exits. "
+ },
+ {
+  "id": "h097",
+  "url": "https://sqlite.org/forum/forumpost/fbf619fc79",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: Is it possible to make -shm/-wal files permanent?",
+  "text": "Is it possible to make -shm/-wal files permanent? (1) By anonymous on 2022-01-09 17:30:13 [link] [source] I have a process that has only read only access to the database filesystem. It works fine and able to make select queries with a concurrent writer running on the same machine, but when the writer closes the database and delete those files a reader fails to continue. Correct me if I wrong, is this way of operation normal? If so, is it possible to make those files permanent so the reader will continue to read database even when writer is closed? (2) By Richard Hipp (drh) on 2022-01-09 19:43:50 in reply to 1 [link] [source] SQLite version 3.22.0 (2018-01-22) and later should be able to read a read-only WAL-mode database that does not have -wal and -shm files present. What version of SQLite are you using that is giving trouble? (3) By anonymous on 2022-01-09 20:00:48 in reply to 2 "
+ },
+ {
+  "id": "h098",
+  "url": "https://sqlite.org/forum/info/030179b7ca7b4177",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: Is write permission required for read-only connections on a WAL database?",
+  "text": "Is write permission required for read-only connections on a WAL database? (1.2) By Gwendal Roué (groue) on 2020-05-05 16:23:46 edited from 1.1 [link] [source] Hello, I can't quite figure out, reading https://www.sqlite.org/wal.html, if the sentence below implies that readers must have write permission on some database file or directory: A long-running read transaction can prevent a checkpointer from making progress Surely the only communication channel between readers and writers is the file system, isn't it? To ask the same question in another way, can a unix user with only read permission on a database and its directory open a read-only connection on a WAL database and still expect to be able to be granted with snapshot isolation even if there are concurrent writers? Thank you very much for your answer, Gwendal Roué (2) By Warren Young (wyoung) on 2020-05-05 17:42:36 in reply to 1.2 "
+ },
+ {
+  "id": "h099",
+  "url": "https://sqlite.org/forum/info/50a4bfdb294333eec1ba4749661934521af19e6fc0790a6189696607f67c2b54?t=h",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: How to open a WAL-enabled db file with the WASM build",
+  "text": "Basically a version of WAL without shared memory that allows multiple connections from the same OS process. (20) By franztesca on 2023-12-11 17:33:11 in reply to 2 [link] [source] Opening again this discussion. Reading the WAL documentation, I see Beginning in SQLite version 3. 4 (2010-12-07), WAL databases can be created, read, and written even if shared memory is unavailable as long as the locking_mode is set to EXCLUSIVE before the first attempted access. In other words, a process can interact with a WAL database without using shared memory if that process is guaranteed to be the only process accessing the database"
+ },
+ {
+  "id": "h100",
+  "url": "https://sqlite.org/forum/info/54e791a519a225de",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: WAL journal file-size keeps on growing...",
+  "text": "WAL journal file-size keeps on growing... (1) By PazO (JohnSmith) on 2020-11-10 14:30:07 [link] [source] In my application I am using configuration of WAL-journal with synchronous set to NORMAL. While running my unit-test application that put stress on sqlite, writing data from various threads, I found that the journal file-size keeps on growing forever. Only when my unit-test terminates and all connections are closed - only then the journal file is removed. At this point its size is ~2GB. I read that using pragma journal_size_limit I can limit the size of the journal file. I tried to use it but it had no effect. I am calling it right after the connection was opened: PRAGMA journal_size_limit=1000 Later when running the command PRAGMA journal_size_limit (with no parameters) I can see that the value was set, as 1000 is returned, however, the file keeps on growing until my program exits. "
+ },
+ {
+  "id": "h101",
+  "url": "https://sqlite.org/forum/info/6a562df53960ed0b9ce336f64be16102a0847fcac707fef527ce85d856bd5c51",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: [ENOTABUG] Bug report: default journal_mode seems to delete journal without checking status",
+  "text": "[ENOTABUG] Bug report: default journal_mode seems to delete journal without checking status (1.3) By Gravis on 2022-11-11 23:03:12 edited from 1.2 [link] [source] Platform: Linux (Debian) Sqlite version: 3.39.4 From what I have deduced, the default journal_mode (DELETE?) will delete the journal while it's still needed if the status is SQLITE_BUSY (perhaps other's as well). When in synchronous mode (default), sqlite3_step() periodically results in SQLITE_BUSY (even if file is stored on a RAM filesystem (tried both tmpfs and ramfs)). The default journal_mode then it will return SQLITE_CANTOPEN, presumably being busy delays the read resulting in the file being read after being deleted. At this point, even if you call sqlite3_step() again, it will continue to return SQLITE_CANTOPEN. It's plausible that this is merely a bug in the unix vfs backend. EDIT: Turns out I was assuming that "
+ },
+ {
+  "id": "h102",
+  "url": "https://sqlite.org/forum/info/6a66501e4df030ae",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: PRAGMA wal_checkpoint(RESTART) unexpectedly returning SQLITE_BUSY immediately",
+  "text": "PRAGMA wal_checkpoint(RESTART) unexpectedly returning SQLITE_BUSY immediately (1) By David Crawshaw (crawshaw) on 2021-09-26 19:33:00 [link] [source] Hello, I have a busy, very concurrent SQLite database: 36 connections open from the same process, about 1000 writes per second. As is apparently expected, the WAL file is growing without bound. To counter this, I am attempting to deliberately insert a periodic \"stop-the-world\" style event by calling: PRAGMA wal_checkpoint(RESTART); As I understand it, this will grab an exclusive lock, invoking the busy handler. All of these connections are configured with a busy_timeout of 10 seconds. But the PRAGMA wal_checkpoint(RESTART) returns busy within a microsecond. Similarly, sqlite3_wal_checkpoint_v2 returns SQLITE_BUSY within a microsecond. Am I misunderstanding the documentation of sqlite3_wal_checkpoint? Thank you, David (2) By anonymous on "
+ },
+ {
+  "id": "h103",
+  "url": "https://sqlite.org/forum/info/6f595f12db2e993d90b5faea9ec46bdbc6770373f8c587aa72836181a63039ba",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: Avoiding SQLITE_BUSY between a producer process (db writing) and consumer process (db reading)",
+  "text": "Avoiding SQLITE_BUSY between a producer process (db writing) and consumer process (db reading) (1) By Dennis (DennisDoesEverything) on 2022-09-26 22:31:21 [link] [source] I'm using SQLite as a sort of \"structured logging\" tool. I have a Program Under Test, written in C++, that logs tracing information and a Test Driver program, written in C#, which accesses this logging database to determine if the program under test is working correctly. I'm running into problems where during this producer-consumer process, either side may start to get a SQLITE_BUSY (5) return code, which neither application currently handles well. (The C function for translating return codes says the message is, \"the database is locked,\" however the actual code is 5 not 6.) I haven't tried adding a SQLITE_BUSY handler yet - one problem is I'm not sure it's even possible to do so from the C# side, or if the library I'm "
+ },
+ {
+  "id": "h104",
+  "url": "https://sqlite.org/forum/info/a188951b80292831794256a5c29f20f64f718d98ed0218bf44b51dd5907f1c39",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: WAL File Grows Past Auto Checkpoint Limit",
+  "text": "WAL File Grows Past Auto Checkpoint Limit (1) By Alan (abarr6) on 2022-06-04 12:41:56 [link] [source] I just wanted to check some behaviour regarding the WAL file size / auto checkpointing. I think its user error at this point, but just wanted to check my mental model. I have a \"SELECT MAX()\" prepared statement which the following get called on: - sqlite3_step() - sqlite3_column_int() I then proceed to run more prepared statements to modify the table I just read from, i.e.: - BEGIN - INSERT - COMMIT Its only after this explicit transaction when all the prepared statements are actually being reset. Is it expected in this case that the WAL file size would continue to grow past the default 1000 page autocheckpoint limit (given enough repetitions of the explicit transaction)? Performing either of the following before the INSERT transaction will keep the WAL file around the desired 4 MB / "
+ },
+ {
+  "id": "h105",
+  "url": "https://sqlite.org/forum/info/a1d2263150d6cfc3a367088ee847aa592d0a26f7cdcd5af38e92edcbf47c3c9d",
+  "host": "sqlite.org",
+  "title": "SQLite User Forum: In WAL Mode, between read-only users happend ’SQLITE_BUSY’",
+  "text": "In WAL Mode, between read-only users happend 'SQLITE_BUSY' (1) By bottle9 on 2022-09-06 00:37:46 [source] There are different threads A and B, For the same SQLite db, each new sqlite handle is created and SELECT Query is performed. The above actions are performed at exactly the same time. https://www.sqlite.org/threadsafe.html According to the above information, unless there is a separate setting, it is basically a serialized environment, and it seems that there should be no problem in multi-threading between read-only users. Is SQLITE_BUSY due to Mutex? Then, even when SQLite is opened with Read-Only, should I always control it with busy_timeout? https://www.sqlite.org/c3ref/busy_timeout.html /// For Example std::string strFilePath = \".../sqlite_db.db\"; /// Process: sqlite3 * pSQLite = nullptr; sqlite_open_v2(strFilePath.c_str(), &pSQLite, SQLITE_OPEN_READONLY, NULL); const wchar_t * "
+ },
+ {
+  "id": "h106",
+  "url": "https://sqlite.org/hctree/doc/wal2/doc/wal2.md",
+  "host": "sqlite.org",
+  "title": "hctree: Wal2 Mode Notes - sqlite.org",
+  "text": "In wal mode, the wal-hook (callback registered using sqlite3_wal_hook ()) is invoked after a transaction is committed with the total number of pages in the wal file as an argument. In wal2 mode, the argument is either the total number of uncheckpointed pages in both wal files, or - if the \"other\" wal file is empty or already checkpointed - 0."
+ },
+ {
+  "id": "h107",
+  "url": "https://sqlite.org/lockingv3.html",
+  "host": "sqlite.org",
+  "title": "File Locking And Concurrency In SQLite Version 3",
+  "text": "This document was originally created in early 2004 when SQLite version 2 was still in widespread use and was written to introduce the new concepts of SQLite version 3 to readers who were already familiar with SQLite version 2. But these days, most readers of this document have probably never seen SQLite version 2 and are only familiar with SQLite version 3. Nevertheless, this document continues to serve as an authoritative reference to how database file locking works in SQLite version 3. The document only describes locking for the older rollback-mode transaction mechanism. Locking for the newer write-ahead log or WAL mode is described separately. SQLite Version 3.0.0 introduced a new locking and journaling mechanism designed to improve concurrency over SQLite version 2 and to reduce the writer starvation problem. The new mechanism also allows atomic commits of transactions involving "
+ },
+ {
+  "id": "h108",
+  "url": "https://sqlite.org/news.html",
+  "host": "sqlite.org",
+  "title": "Recent News - SQLite",
+  "text": "A psychological milestone: The performance benchmark that the SQLite developers have used for many years has for the first time dropped below 1 billion CPU cycles (measured using cachegrind) when run in WAL mode"
+ },
+ {
+  "id": "h109",
+  "url": "https://sqlite.org/oldnews.html",
+  "host": "sqlite.org",
+  "title": "SQLite Older News",
+  "text": "1 is a patch release to fix a bug in the new filesize-in-header feature of the SQLite file format that could cause database corruption if the same database file is written alternately with version 3. A performance regression was also fixed in this release. 0 is a major release of SQLite that features a new transaction control mechanism using a write-ahead log or WAL. The traditional rollback-journal is still used as the default so there should be no visible change for legacy programs. But newer programs can take advantage of improved performance and concurrency by enabling the WAL journaling mode"
+ },
+ {
+  "id": "h110",
+  "url": "https://sqlite.org/pragma.html",
+  "host": "sqlite.org",
+  "title": "Pragma statements supported by SQLite",
+  "text": "Instead, SQLite reuses the existing file for subsequent WAL entries since overwriting is faster than appending. The journal_size_limit pragma may be used to limit the size of rollback-journal and WAL files left in the file-system after transactions or checkpoints. Each time a transaction is committed or a WAL file resets, SQLite compares the size of the rollback journal file or WAL file left in the file-system to the size limit set by this pragma and if the journal or WAL file is larger it is truncated to the limit. The second form of the pragma listed above is used to set a new limit in bytes for the specified database. A negative number implies no limit"
+ },
+ {
+  "id": "h111",
+  "url": "https://sqlite.org/releaselog/3_22_0.html",
+  "host": "sqlite.org",
+  "title": "SQLite Release 3.22.0 On 2018-01-22",
+  "text": "Small. Fast. Reliable. Choose any three. SQLite Release 3.22.0 On 2018-01-22 - The output of sqlite3_trace_v2() now shows each individual SQL statement run within a trigger. - Add the ability to read from WAL mode databases even if the application lacks write permission on the database and its containing directory, as long as the -shm and -wal files exist in that directory. - Added the rtreecheck() scalar SQL function to the R-Tree extension. - Added the sqlite3_vtab_nochange() and sqlite3_value_nochange() interfaces to help virtual table implementations optimize UPDATE operations. - Added the sqlite3_vtab_collation() interface. - Added support for the \"^\" initial token syntax in FTS5. - New extensions: - The Zipfile virtual table can read and write a ZIP Archive. - Added the fsdir(PATH) table-valued function to the fileio.c extension, for listing the files in a directory. - The "
+ },
+ {
+  "id": "h112",
+  "url": "https://sqlite.org/releaselog/3_7_0.html",
+  "host": "sqlite.org",
+  "title": "SQLite Release 3.7.0 On 2010-07-21",
+  "text": "Small. Fast. Reliable. Choose any three. SQLite Release 3.7.0 On 2010-07-21 - Added support for write-ahead logging. - Query planner enhancement - automatic transient indices are created when doing so reduces the estimated query time. - Query planner enhancement - the ORDER BY becomes a no-op if the query also contains a GROUP BY clause that forces the correct output order. - Add the SQLITE_DBSTATUS_CACHE_USED verb for sqlite3_db_status(). - The logical database size is now stored in the database header so that bytes can be appended to the end of the database file without corrupting it and so that SQLite will work correctly on systems that lack support for ftruncate(). A complete list of SQLite releases in a single page and a chronology are both also available. A detailed history of every check-in is available at SQLite version control site."
+ },
+ {
+  "id": "h113",
+  "url": "https://sqlite.org/rescode.html",
+  "host": "sqlite.org",
+  "title": "Result and Error Codes",
+  "text": "Process B will need to wait for process A to finish its transaction before starting a new transaction. The sqlite3_busy_timeout() and sqlite3_busy_handler() interfaces and the busy_timeout pragma are available to process B to help it deal with SQLITE_BUSY errors. An SQLITE_BUSY error can occur at any point in a transaction: when the transaction is first started, during any write or update operations, or when the transaction commits. To avoid encountering SQLITE_BUSY errors in the middle of a transaction, the application can use BEGIN IMMEDIATE instead of just BEGIN to start a transaction. The BEGIN IMMEDIATE command might itself return SQLITE_BUSY, but if it succeeds, then SQLite guarantees that no subsequent operations on the same database through the next COMMIT will return SQLITE_BUSY"
+ },
+ {
+  "id": "h114",
+  "url": "https://sqlite.org/search?q=constraint&i=8",
+  "host": "sqlite.org",
+  "title": "Search SQLite Documentation",
+  "text": "| The Advantages Of Flexible Typing (flextypegood.html) 4.3. Rigid type enforcement prevents data pollution Some people contend that if you have rigorous constraints on the schema, and especially strict enforcement of column datatypes, this will help prevent incorrect data from being added to the database. This is not true. It is true that type ... | C/C++ Interface For SQLite Version 3 (old) (capi3.html) ... SQLITE_SCHEMA 17 /* The database schema changed */ #define SQLITE_TOOBIG 18 /* Too much data for one row of a table */ #define SQLITE_CONSTRAINT 19 /* Abort due to contraint violation */ #define SQLITE_MISMATCH 20 /* Data type mismatch */ #define SQLITE_MISUSE 21 /* Library used incorrectly */ #define SQLITE_NOLFS ... | SQLite Changes From Version 3.4.2 To 3.5.0 (34to35.html) ... The constraint was that the same database connection could not be used in two separate threads at once. "
+ },
+ {
+  "id": "h115",
+  "url": "https://sqlite.org/wal.html",
+  "host": "sqlite.org",
+  "title": "Write-Ahead Logging - SQLite",
+  "text": "Moving the WAL file transactions back into the database is called a \"checkpoint\". Another way to think about the difference between rollback and write-ahead log is that in the rollback-journal approach, there are two primitive operations, reading and writing, whereas with a write-ahead log there are now three primitive operations: reading, writing, and checkpointing. By default, SQLite does a checkpoint automatically when the WAL file reaches a threshold size of 1000 pages. (The SQLITE_DEFAULT_W"
+ },
+ {
+  "id": "h116",
+  "url": "https://stoozemax.com/tools/base-rate",
+  "host": "stoozemax.com",
+  "title": "Bank of England Base Rate History | StoozeMax",
+  "text": "Track the current BoE base rate and see how it affects your savings, stoozing, and regular saver strategies. Current Bank of England Base Rate Effective since 10 September 2026 Approx. savings rate: 3.50% (estimated, base rate minus ~0.25%) |Date |Rate |Change |10 Sept 2026 |3.75% |No change |9 Sept 2026 |3.75% |No change |8 Sept 2026 |3.75% |No change |7 Sept 2026 |3.75% |No change |6 Sept 2026 |3.75% |No change The Bank of England base rate is the benchmark interest rate that influences what savings accounts, mortgages, and loans charge across the UK. When the base rate rises, savings account rates typically follow — making stoozing and regular saver strategies more profitable. Stoozing: Higher base rates mean better savings account returns, so the gap between your 0% credit card borrowing cost and your savings interest widens. This directly increases your stoozing profit. Regular "
+ },
+ {
+  "id": "h117",
+  "url": "https://svnlliurexnet.gva.es/leia/mods-backports/trunk/sqlite3/www/changes.html",
+  "host": "svnlliurexnet.gva.es",
+  "title": "Release History Of SQLite",
+  "text": "1 alternately write to the same database file. Ticket [51ae9cad317a1] - Fix a performance regression related to the query planner enhancements of version 3. 0) - Added support for write-ahead logging. - Query planner enhancement - automatic transient indices are created when doing so reduces the estimated query time. - Query planner enhancement - the ORDER BY becomes a no-op if the query also contains a GROUP BY clause that forces the correct output order"
+ },
+ {
+  "id": "h118",
+  "url": "https://swiftpackageindex.com/liuliu/dflat",
+  "host": "swiftpackageindex.com",
+  "title": "Dflat - Swift Package Index",
+  "text": "Schema upgrades require no write-access to the underlying database (strict read-only is possible with SQLite 3.22 and above)."
+ },
+ {
+  "id": "h119",
+  "url": "https://synapse.patsnap.com/blog/novo-nordisk-unveils-wegovy%C2%AE-cardiac-outcomes-at-aha-meeting-and-in-nejm",
+  "host": "synapse.patsnap.com",
+  "title": "Novo Nordisk unveils Wegovy® cardiac outcomes at AHA meeting and in NEJM",
+  "text": "Novo Nordisk has revealed the main findings from the SELECT trial, a significant phase 3 cardiovascular outcomes examination scrutinizing the impact of semaglutide 2.4 mg (Wegovy®), administered on a weekly basis, in adults with pre-existing cardiovascular illnesses and either overweight or obesity without concurrent diabetes. The presentation took place at the American Heart Association’s annual Scientific Sessions based in Philadelphia. Alongside the presentation, the results were also concurrently published in the New England Journal of Medicine. 👇Please click on the image below to directly access the latest data (R&D Status | Core Patent | Clinical Trial | Approval status in Global countries) of this drug. Initial topline results indicated a significant 20% reduction in MACE risk with the use of semaglutide 2.4 mg over a five-year duration compared to a placebo. The studies revealed "
+ },
+ {
+  "id": "h120",
+  "url": "https://system.data.sqlite.org/home/doc/4deb290d232e5850/Doc/Extra/Core/pragma.html",
+  "host": "system.data.sqlite.org",
+  "title": "Pragma statements supported by SQLite",
+  "text": "wal_checkpoint(FULL); PRAGMA schema. wal_checkpoint(RESTART); PRAGMA schema. wal_checkpoint(TRUNCATE); If the write-ahead log is enabled (via the journal_mode pragma), this pragma causes a checkpoint operation to run on database database, or on all attached databases if database is omitted. If write-ahead log mode is disabled, this pragma is a harmless no-op. Invoking this pragma without an argument is equivalent to calling the sqlite3_wal_checkpoint() C interface"
+ },
+ {
+  "id": "h121",
+  "url": "https://system.data.sqlite.org/home/doc/b2c5c6e2a0b7bb27/System.Data.SQLite/SQLiteConvert.cs",
+  "host": "system.data.sqlite.org",
+  "title": "System.Data.SQLite: Documentation",
+  "text": "Memory = 4, /// <summary> /// SQLite uses a write-ahead log instead of a rollback journal to implement transactions. The WAL journaling mode is persistent; /// after being set it stays in effect across multiple database connections and after closing and reopening the database. A database"
+ },
+ {
+  "id": "h122",
+  "url": "https://taxsummaries.pwc.com/gibraltar",
+  "host": "taxsummaries.pwc.com",
+  "title": "Gibraltar - Overview - Worldwide Tax Summaries Online",
+  "text": "The subsequent transition period ended on 31 December 2020. On 14 July 2026, the United Kingdom and the EU concluded a Schengen and Customs Treaty, establishing the framework for Gibraltar's future relationship with the EU and Spain."
+ },
+ {
+  "id": "h123",
+  "url": "https://theicct.org/pr-electric-cars-getting-cleaner-faster/",
+  "host": "theicct.org",
+  "title": "Electric cars are the cleanest—and getting cleaner faster than expected - International Council on Clean Transportation",
+  "text": "Life-cycle greenhouse gas emissions from passenger cars in the European Union: A 2025 update and key factors to consider Press release Electric cars are the cleanest—and getting cleaner faster than expected A new study by the International Council on Clean Transportation (ICCT) estimates that battery electric cars sold today in Europe emit nearly 4 times less greenhouse gases over their lifetime than gasoline cars. Berlin, 9 July — Europe’s electricity mix is getting cleaner, and with it, the climate advantage of electric cars is growing. According to new ICCT research, battery electric cars sold today produce 73% less life-cycle greenhouse gas emissions than their gasoline counterparts — even when factoring in production. That’s a 24% improvement over our 2021 estimates. In contrast, other powertrains, including hybrids and plug-in hybrids, show only marginal or no progress in reducing "
+ },
+ {
+  "id": "h124",
+  "url": "https://theicct.org/publication/a-global-comparison-of-the-life-cycle-greenhouse-gas-emissions-of-combustion-engine-and-electric-passenger-cars/",
+  "host": "theicct.org",
+  "title": "A global comparison of the life-cycle greenhouse gas emissions of combustion engine and electric passenger cars - International Council on Clean Transportation",
+  "text": "Decarbonizing road transport by 2050: Zero-emission pathways for passenger vehicles White paper A global comparison of the life-cycle greenhouse gas emissions of combustion engine and electric passenger cars This wide-ranging life-cycle assessment (LCA) examines the greenhouse gas (GHG) emissions of passenger cars, including SUVs. Performed separately and in depth for Europe, the United States, China, and India, the analysis captures the differences among those markets, which are home to about 70% of global new passenger car sales. It considers present and projected future GHG emissions attributable to every stage in the life cycles of both vehicles and fuels, from extracting and processing raw materials through refining and manufacture to operation and eventual recycling or disposal. In addition to its global scope, the study is methodologically comprehensive in considering all "
+ },
+ {
+  "id": "h125",
+  "url": "https://theicct.org/publication/effects-of-battery-manufacturing-on-electric-vehicle-life-cycle-greenhouse-gas-emissions/",
+  "host": "theicct.org",
+  "title": "Effects of battery manufacturing on electric vehicle life-cycle greenhouse gas emissions - International Council on Clean Transportation",
+  "text": "Integrating electric vehicles within U.S. and European efficiency regulations Briefing Effects of battery manufacturing on electric vehicle life-cycle greenhouse gas emissions This briefing reviews recent research regarding greenhouse gas emissions from the manufacturing of lithium-ion batteries for electric vehicles. We analyze this research in the overall context of life-cycle emissions of electric cars as compared to conventional internal combustion vehicles in Europe. Finally, we discuss the primary drivers of battery manufacturing emissions and how these emissions could be further mitigated in the future. Electric cars are much cleaner than internal combustion engine cars over their lifetime. We find that a typical electric car today produces just half of the greenhouse gas emissions of an average European passenger car. Furthermore, an electric car using average European "
+ },
+ {
+  "id": "h126",
+  "url": "https://theicct.org/publication/electric-cars-life-cycle-analysis-emissions-europe-jul25/",
+  "host": "theicct.org",
+  "title": "Life-cycle greenhouse gas emissions from passenger cars in the European Union: A 2025 update and key factors to consider - International Council on Clean Transportation",
+  "text": "A global comparison of the life-cycle greenhouse gas emissions of combustion engine and electric passenger cars Report Life-cycle greenhouse gas emissions from passenger cars in the European Union: A 2025 update and key factors to consider This report is a life-cycle assessment (LCA) of the global warming potential of passenger cars sold in the European Union (EU). It compares sales-weighted average medium segment gasoline, diesel, and natural gas internal combustion engine vehicles (ICEVs), hybrid electric vehicles (HEVs), plug-in hybrid electric vehicles (PHEVs), battery electric vehicles (BEVs), and hydrogen fuel cell electric vehicles (FCEVs). The analysis covers the greenhouse gas (GHG) emissions from vehicle and battery production and recycling, fuel and electricity production, fuel consumption, and maintenance. This analysis is an update of ICCT’s previous vehicle LCAs. Key "
+ },
+ {
+  "id": "h127",
+  "url": "https://theicct.org/publication/ev-transition-check-2026/",
+  "host": "theicct.org",
+  "title": "EV Transition Check 2026: Measuring progress toward zero ...",
+  "text": "Our EV Transition Check assesses the progress of Europe’s road transport toward zero emissions. This second edition widens the scope to include trucks and buses in addition to passenger cars. With its broad range of data and analysis, the EV Transition Check provides a comprehensive snapshot of ..."
+ },
+ {
+  "id": "h128",
+  "url": "https://theicct.org/why-evs-are-already-much-greener-than-combustion-engine-vehicles-jul25/",
+  "host": "theicct.org",
+  "title": "Why electric vehicles are already much greener than combustion engine vehicles - International Council on Clean Transportation",
+  "text": "Blog Why electric vehicles are already much greener than combustion engine vehicles The research is clear: In major markets that make up 70% of global new passenger car sales, today’s battery electric vehicles (BEVs) are associated with far fewer greenhouse gas (GHG) emissions than internal combustion engine vehicles (ICEVs) over their lifetimes. More than that, ICEV tailpipe emissions during their operation can exceed the full life-cycle emissions of a BEV, from initial manufacturing to operation to end-of-life. As there are narratives out there—some recent—that may confuse things, allow me to guide you through the climate benefits one at a time. Let’s start with some numbers for the U.S. market. Figure 1, from our paper from last year, shows the estimated life-cycle GHG emissions for a representative ICEV and BEV sport utility vehicle (SUV) built in 2024 (left panel) and in 2030 "
+ },
+ {
+  "id": "h129",
+  "url": "https://tr.liveexchanges.com/central-bank-calendar",
+  "host": "tr.liveexchanges.com",
+  "title": "Central Bank Meeting Calendar 2026 — Fed, ECB & BoE Rate Decisions",
+  "text": "Central Bank Meeting Calendar 2026 Upcoming rate decisions from the Federal Reserve (Fed), the European Central Bank (ECB) and the Bank of England (BoE) — the meetings that move the dollar, euro, pound, gold and global markets. Dates, times and current policy rates, with a live countdown. Next rate decisions |Bank |Date |Countdown |ECB |Thu, 10 Sep 2026 · 14:15 CET |— |Fed |Wed, 16 Sep 2026 · 14:00 ET |— |BoE |Thu, 17 Sep 2026 · 12:00 UK |— |BoJ |Fri, 18 Sep 2026 · 12:00 JST |— |Fed |Wed, 28 Oct 2026 · 14:00 ET |— |ECB |Thu, 29 Oct 2026 · 14:15 CET |— |BoJ |Fri, 30 Oct 2026 · 12:00 JST |— |BoE |Thu, 5 Nov 2026 · 12:00 UK |— |Fed |Wed, 9 Dec 2026 · 14:00 ET |— |BoE |Thu, 17 Dec 2026 · 12:00 UK |— Banks & current rates Fed — Federal Reserve Fed Funds Target Range: 3.50%–3.75% ECB — European Central Bank Deposit Facility Rate: 2.25% BoE — Bank of England Bank Rate: 3.75% BoJ — Bank of "
+ },
+ {
+  "id": "h130",
+  "url": "https://turso.tech/blog/turso-0.6.0",
+  "host": "turso.tech",
+  "title": "Turso v0.6.0",
+  "text": "Note that currently only WAL journal mode is supported for multiprocess access, which means BEGIN CONCURRENT is not supported with multi-process right now."
+ },
+ {
+  "id": "h131",
+  "url": "https://uk.practicallaw.thomsonreuters.com/Glossary/UKPracticalLaw/I6c7870abec1111e698dc8b09b4f043e0",
+  "host": "uk.practicallaw.thomsonreuters.com",
+  "title": "Brexit - Practical Law",
+  "text": "UK's withdrawal from the European Union (EU) on 31 January 2020 ( exit day) 51.9% of votes were to leave the EU."
+ },
+ {
+  "id": "h132",
+  "url": "https://uk.practicallaw.thomsonreuters.com/Glossary/UKPracticalLaw/Ia99c342f4a4b11eaadfea82903531a62",
+  "host": "uk.practicallaw.thomsonreuters.com",
+  "title": "UK-EU transition period - Practical Law",
+  "text": "UK-EU transition period ... The standstill period which started when the UK left the EU on exit day and ended at 11.00 pm (UK time) on 31 December 2020."
+ },
+ {
+  "id": "h133",
+  "url": "https://uk.practicallaw.thomsonreuters.com/w-023-9796?transitionType=Default&contextData=(sc.Default)",
+  "host": "uk.practicallaw.thomsonreuters.com",
+  "title": "UK-EU transition period - Practical Law",
+  "text": "The standstill period which started when the UK left the EU on exit day and ended at 11.00 pm (UK time) on 31 December 2020. 31 December 2020 at 11.00 pm ( ..."
+ },
+ {
+  "id": "h134",
+  "url": "https://usafacts.org/answers/what-is-the-current-inflation-rate/country/united-states/",
+  "host": "usafacts.org",
+  "title": "What is the current inflation rate in the US? | USAFacts",
+  "text": "What is the current inflation rate in the US? Refreshed monthly The inflation rate was 3.4%, as of July 2026. Inflation refers to the rise in prices of goods and services over time, which reduces the purchasing power of the dollar. The inflation rate is the percentage that describes how quickly these prices are rising. While several government datasets track price changes, the Consumer Price Index (CPI) represents about 90% of the US population. The CPI measures inflation by tracking the price fluctuations of a “basket of goods and services” over time, providing a clear picture of how inflation affects everyday living expenses. 3.4% headline inflation rate, all items (July 2025 to July 2026) 2.5% core inflation rate, excluding food and energy (July 2025 to July 2026) The CPI tracks two measures of inflation: headline and core. Headline inflation tracks specific subsets of consumer "
+ },
+ {
+  "id": "h135",
+  "url": "https://vuink.com/post/fdyvgr-d-dbet/wal-d-dhtml%23walresetbug",
+  "host": "vuink.com",
+  "title": "Write-Ahead Logging - vuink.com",
+  "text": "The default method by which SQLite implements atomic commit and rollback is a rollback journal. Beginning with version 3. 0 (2010-07-21), a new \"Write-Ahead Log\" option (hereafter referred to as \"WAL\") is available. The traditional rollback journal works by writing a copy of the original unchanged database content into a separate rollback journal file and then writing changes directly into the database file. In the event of a crash or ROLLBACK, the original content contained in the rollback jour"
+ },
+ {
+  "id": "h136",
+  "url": "https://welltestingjournal.com/index.php/WT/article/view/323",
+  "host": "welltestingjournal.com",
+  "title": "A Lifecycle Analysis Approach to Electric Vehicle Carbon Footprint Assessment | Well Testing Journal",
+  "text": "A Lifecycle Analysis Approach to Electric Vehicle Carbon Footprint Assessment Keywords:Electric vehicles, lifecycle analysis, environmental impact, greenhouse gas emissions Abstract Since more and more people are buying electric cars (EVs) as a means to combat global warming, it is critical to assess their true impact on the environment. approach to determine the cumulative carbon dioxide emissions from electric vehicles (EVs) during their whole lifecycle, beginning with production and ending with disposal. This research delves into the emissions from electric vehicles, covering all aspect of their lifecycle, from raw material extraction to end-of-life treatment. factors to think about, such as the lifetime of the vehicle, the power supply for charging, and the manufacturing process of the batteries. Despite electric vehicles' frequently substantial reductions in carbon emissions "
+ },
+ {
+  "id": "h137",
+  "url": "https://www.acc.org/latest-in-cardiology/articles/2023/08/10/14/29/select-semaglutide-reduces-risk-of-mace-in-adults-with-overweight-or-obesity",
+  "host": "www.acc.org",
+  "title": "SELECT: Semaglutide Reduces Risk of MACE in Adults With Overweight or Obesity - American College of Cardiology",
+  "text": "SELECT: Semaglutide Reduces Risk of MACE in Adults With Overweight or Obesity Subcutaneous once-weekly semaglutide 2.4 mg, a GLP1 receptor agonist, was associated with a statistically significant 20% reduction in major adverse cardiovascular events (MACE) compared with placebo, according to top line results from the randomized, double-blind SELECT trial reported in an Aug. 8 press release. SELECT included 17,604 patients (aged ≥45 years, BMI ≥27 kg/m2) from 41 countries who were overweight or obese with established cardiovascular disease and no history of diabetes. By randomizing participants to a treatment or placebo group, researchers evaluated the efficacy of semaglutide 2.4 mg as an adjunct to standard of care for prevention of MACE. The study’s primary endpoint was the composite outcome of the first occurrence of MACE defined as cardiovascular death, nonfatal myocardial infarction "
+ },
+ {
+  "id": "h138",
+  "url": "https://www.acc.org/latest-in-cardiology/clinical-trials/2023/11/09/15/04/select",
+  "host": "www.acc.org",
+  "title": "Semaglutide Effects on Cardiovascular Outcomes in People With Overweight or Obesity - American College of Cardiology",
+  "text": "Semaglutide Effects on Cardiovascular Outcomes in People With Overweight or Obesity - SELECT Contribution To Literature: Highlighted text has been updated as of September 12, 2024. The SELECT trial showed that in patients with overweight or obesity and established CVD but without diabetes, once-weekly subcutaneous semaglutide was associated with a decreased risk of MACE comprised of CV death, nonfatal MI, and stroke compared with placebo. Description: The goal of the trial was to determine the association of subcutaneous semaglutide, a glucagon-like peptide-1 receptor agonist (GLP-1 RA), with cardiovascular (CV) events in a secondary prevention cohort of patients with overweight or obesity and prior CV disease (CVD) without diabetes mellitus (DM). Study Design - Randomized - International multicenter - Double-blind - Placebo-controlled Patients with overweight or obesity (body mass "
+ },
+ {
+  "id": "h139",
+  "url": "https://www.acc.org/latest-in-cardiology/journal-scans/2026/01/13/15/23/semaglutide-associated-with-reduced-hospital-admissions",
+  "host": "www.acc.org",
+  "title": "Semaglutide Associated With Reduced Hospital Admissions, Length of Stay; More on GLP1-RAs - American College of Cardiology",
+  "text": "Semaglutide Associated With Reduced Hospital Admissions, Length of Stay; More on GLP1-RAs Semaglutide in patients with established cardiovascular disease who are overweight or obese without diabetes was associated with a reduced rate of hospital admissions and shorter length of stay, according to an exploratory analysis of the SELECT trial recently published in JAMA Cardiology. Stephen J. Nicholls, MBBS, PhD, FACC, et al., included 17,604 patients (median age 61; 28% female; median BMI 32) from 804 centers across the globe randomized to either 2.4 mg of subcutaneous semaglutide weekly or placebo. The study period was from October 2018 through March 2021, and the primary outcome was hospital admissions and days in hospital. The total number of hospitalizations for any indication over a median follow-up period of 42 months was lower in the treatment group vs. placebo group (18.3 vs. 20.4 "
+ },
+ {
+  "id": "h140",
+  "url": "https://www.aeronomie.be/en/encyclopedia/venus-very-high-temperatures-day-and-night",
+  "host": "www.aeronomie.be",
+  "title": "Venus, very high temperatures day and night",
+  "text": "The temperature at the surface of Venus is very high (737 K=474 °C) and hardly varies from the sunlit side to the night side. The temperature of the ground is close to 460 °C. The temperature profile between 0 and 100 kilometres is noticeably different from that of the Earth (see illustration). In the case of the Earth, one sees a temperature inversion at about 12 kilometres altitude, where the temperature starts to rise with altitude, attaining a maximum at 45 kilometres (the zone of positive thermal gradient defines the stratosphere). This temperature is due to: - the Sun’s proximity - the clouds on Venus that reflect a large part of the incident light back into space, such that the net energy flux at the surface of Venus is less than that received on the Earth More details about \"Temperature and greenhouse effect on planet Venus\""
+ },
+ {
+  "id": "h141",
+  "url": "https://www.afrasiabank.com/en/treasury/daily-market-patrol/2026/market-patrol-10-september-2026/",
+  "host": "www.afrasiabank.com",
+  "title": "Market Patrol 10 September 2026 - AfrAsia Bank Mauritius",
+  "text": "We cannot direct the wind, but we can adjust the sails. USD - AUD - 35.62 - 0.7496 - BWP - 3.53 - 0.0743 - CAD - 35.82 - 1.3266 - CNY - 7.47 - 6.3614 - DKK - 7.73 - 6.1475 - EUR - 55.31 - 1.1639 - HKD - 6.28 - 7.5669 - INR - 0.52 - 90.8952 - JPY - 30.98 - 153.3893 - KES - 37.94 - 125.2504 - NZD - 28.89 - 0.6080 - NOK - 5.32 - 8.9323 - SGD - 38.70 - 1.2279 - ZAR - 3.12 - 15.2308 - SEK - 5.14 - 9.2451 - CHF - 58.75 - 1.2363 - GBP - 64.43 - 1.3559 - USD - 47.52 - 1.0000 - AED - 13.34 - 3.5622 EUR/USD The euro edged higher at $1.1640 ahead of the ECB policy meeting this afternoon, with attention centered on Lagarde’s guidance on future monetary policy. GBP/USD The Pound Sterling moved a little higher at $1.3560 as the currency continued to benefit from expectations that the Bank of England may need to tighten policy if energy-driven inflation persists. USD/JPY The Japanese yen was steady at "
+ },
+ {
+  "id": "h142",
+  "url": "https://www.alzdiscovery.org/uploads/cognitive_vitality_media/Creatine_%28supplement%29_.pdf",
+  "host": "www.alzdiscovery.org",
+  "title": "[PDF] Creatine - Alzheimer's Drug Discovery Foundation (p. 5)",
+  "text": "Imaging studies typically assess phosphocreatine or total\ncreatine levels.  In healthy young adults, supplementation with 20 grams of creatine per day (5 g 4x/day)\nfor four weeks led to an increase of total brain creatine levels by 8. 7% based on magnetic resonance\nspectroscopy (MRS) imaging when av..."
+ },
+ {
+  "id": "h143",
+  "url": "https://www.baesystems.com/en-us/product/webb-space-telescope",
+  "host": "www.baesystems.com",
+  "title": "James Webb Space Telescope - BAE Systems",
+  "text": "), the primary mirror is comprised of 18 hexagonal mirror segments, each approximately 1"
+ },
+ {
+  "id": "h144",
+  "url": "https://www.bankofcanada.ca/2025/10/difference-between-price-level-and-inflation/",
+  "host": "www.bankofcanada.ca",
+  "title": "The difference between the price level and inflation - Bank of Canada",
+  "text": "Price levels are a measure of the average cost of goods and services in the economy at a particular point in time. Inflation measures the rate of change in prices over a specific period. Why we measure both the price level and inflation The price level and inflation are closely related concepts, but they are not the same thing. In Canada, both the price level and inflation are measured using the consumer price index, or CPI. Statistics Canada publishes the CPI to track the prices of a virtual shopping basket of goods and services. This basket represents the typical purchases that most Canadian households make, including food, shelter, clothing, haircuts and other common goods and services. Every month, the CPI calculates the total price of this basket. - The result of the calculation is the price level—the average price of goods and services throughout the economy that month. - "
+ },
+ {
+  "id": "h145",
+  "url": "https://www.bluegamma.io/central-banks/central-bank-interest-rate-forecasts/the-bank-of-england-interest-rate-forecast",
+  "host": "www.bluegamma.io",
+  "title": "Bank of England Interest Rate Forecast: Next Meeting Probabilities",
+  "text": "Bank of England Interest Rate Forecast Market-implied probabilities for the next MPC meeting and the Bank Rate path ahead, derived from SONIA overnight index swaps and updated daily. As of , overnight index swap pricing implies a 80% probability the Bank of England holds at the MPC meeting, with a market-implied move of +5 bp from the current Bank Rate of 3.75%. |Date |Implied Bank Rate |Implied change vs today |4.00% |+25 bps |4.50% |+75 bps |4.75% |+100 bps |4.75% |+100 bps |4.75% |+100 bps |4.75% |+100 bps |4.75% |+100 bps |5.00% |+125 bps |5.25% |+150 bps |5.25% |+150 bps |5.50% |+175 bps |5.50% |+175 bps Implied rates are derived from SONIA overnight index swap forwards. They reflect market pricing, not a BlueGamma view, and are refreshed daily. Market-implied Bank Rate path Beyond the next meeting The full SONIA forward curve - Daily SONIA forward curves, full horizon - Excel "
+ },
+ {
+  "id": "h146",
+  "url": "https://www.britannica.com/topic/Brexit",
+  "host": "www.britannica.com",
+  "title": "Brexit | Meaning, Referendum, Date, & Consequences - Britannica",
+  "text": "In a referendum on June 23, 2016, 52% of British voters chose to leave the EU, and the United Kingdom formally left the European Union on January 31, 2020."
+ },
+ {
+  "id": "h147",
+  "url": "https://www.cardionerds.com/cardsjc-semaglutide-and-cardiovascular-outcomes-in-obesity-without-diabetes-select-trial/",
+  "host": "www.cardionerds.com",
+  "title": "SELECT Trial",
+  "text": "CardioNerds Journal Club is a monthly forum for CardioNerds to discuss and breakdown recent publications on twitter and are produced with a corresponding infographic and detailed blog post. For more information, check out the CardioNerds Journal Club Page. This Journal Club focuses on the SELECT Trial Table of contents for the The SELECT Trial summary: Semaglutide and Cardiovascular Outcomes in Obesity without Diabetes A. Michael Lincoff, M.D., Kirstine Brown‑Frandsen, M.D., Helen M. Colhoun, M.D., John Deanfield, M.D., Scott S. Emerson, M.D., Ph.D., Sille Esbjerg, M.Sc., Søren Hardt‑Lindberg, M.D., Ph.D., G. Kees Hovingh, M.D., Ph.D., Steven E. Kahn, M.B., Ch.B., Robert F. Kushner, M.D., Ildiko Lingvay, M.D., M.P.H., Tugce K. Oral, M.D., Marie M. Michelsen, M.D., Ph.D., Jorge Plutzky, M.D., Christoffer W. Tornøe, Ph.D., and Donna H. Ryan, M.D., for the SELECT Trial Investigators* "
+ },
+ {
+  "id": "h148",
+  "url": "https://www.citizensinformation.ie/en/government-in-ireland/ireland-and-the-uk/what-is-brexit/",
+  "host": "www.citizensinformation.ie",
+  "title": "Background to Brexit - Citizens Information",
+  "text": "During the transition period, the UK was treated as if it was still a member of the EU. The transition period ended on 31 December 2020. This meant that during ..."
+ },
+ {
+  "id": "h149",
+  "url": "https://www.ck12.org/flexi/earth-science/Inner-vs.-Outer-Planets/what-is-the-average-temperature-of-each-planet/",
+  "host": "www.ck12.org",
+  "title": "What is the average temperature of each planet? | CK-12 Foundation",
+  "text": "Here are the average temperatures for each planet in our solar system: 1. Mercury: 332 degrees Fahrenheit (167 degrees Celsius) 2. Venus: 864 degrees ..."
+ },
+ {
+  "id": "h150",
+  "url": "https://www.cleiss.fr/brexit/index_en.html",
+  "host": "www.cleiss.fr",
+  "title": "Brexit and social protection",
+  "text": "Questions about Brexit? The United Kingdom officially left the European Union on January 31, 2020, following the parties' ratification of the withdrawal agreement. This agreement sets forth a transition period ending on December 31, 2020, during which the United Kingdom will continue to apply EU law, including social security system coordination rules, but will no longer be involved in drawing up any new European laws. This dossier has been put together to inform you on the ongoing negotiations between the United Kingdom and the European authorities, which will have an impact on the social protection entitlements of citizens who move from one country to another. Mechanisms have been set up between the States to ensure continuity of social security entitlements for people who move from one country to another. However, this is not harmonization as each State keeps its own social security "
+ },
+ {
+  "id": "h151",
+  "url": "https://www.clevelandfed.org/center-for-inflation-research/inflation-explained-your-guide-to-inflation-basics/how-is-inflation-measured",
+  "host": "www.clevelandfed.org",
+  "title": "How is Inflation Measured?",
+  "text": "- Share How is Inflation Measured? Measuring inflation begins with collecting the prices of a large number of goods and services. In the case of households, government statistical agencies create a “basket” of goods and services that reflects the items consumed by households. The basket does not contain every good or service but is meant to be a good representation of both the types of items and the quantities of items that households typically consume. Agencies use the basket to construct a price index. First, they determine the current value of the basket by calculating how much the basket would cost at today’s prices (multiplying each item’s quantity by its price today and summing up). Next, they determine the value of the basket by calculating how much the basket would cost in a reference (or base) period (multiplying each item’s quantity by its base-period price). The price index "
+ },
+ {
+  "id": "h152",
+  "url": "https://www.clevelandfed.org/collections/video/2025/video-20250829-different-between-price-level-and-inflation",
+  "host": "www.clevelandfed.org",
+  "title": "Cleveland Fed 101: What’s the difference between price level and inflation?",
+  "text": "Cleveland Fed 101: What’s the difference between price level and inflation? Key takeaways - Price level refers to the overall or average cost of goods and services in the economy at a particular period of time, also known as the general cost of living. - Inflation measures the rate of growth of price level over a particular span of time and is closely observed by the Federal Reserve as part of its price stability mandate. Video summary Research Analyst Caroline Stafford explains the difference between price level and inflation, and why the Federal Reserve pays attention to them. Full transcript Speaker 1: Hey, Fed fans. Welcome back to Cleveland Fed 101, where we provide basic definitions and explanations of Cleveland Fed work. Today we're talking about price level versus inflation. What's the difference? What is their relationship and how does the Federal Reserve figure into this "
+ },
+ {
+  "id": "h153",
+  "url": "https://www.cureus.com/articles/500321-evaluating-the-cardiovascular-benefits-of-innovator-semaglutide-24-mg-recombinant-dna-r-dna-in-patients-with-overweight-or-obesity-a-critical-review-of-current-evidence",
+  "host": "www.cureus.com",
+  "title": "Evaluating the Cardiovascular Benefits of Innovator Semaglutide 2.4 mg (Recombinant DNA (r-DNA)) in Patients With Overweight or Obesity: A Critical Review of Current Evidence",
+  "text": "SELECT trial established semaglutide 2.4 mg as the first anti-obesity medication to reduce major adverse CV events (MACE) in people with obesity"
+ },
+ {
+  "id": "h154",
+  "url": "https://www.dnb.nl/en/the-euro-and-europe/inflation/falling-inflation-yet-rising-prices-how-does-that-work/",
+  "host": "www.dnb.nl",
+  "title": "Falling inflation, yet rising prices: how does that work?",
+  "text": "Falling inflation, yet rising prices: how does that work? Inflation is going down, but prices keep going up. How is that possible? You might think lower inflation means everything gets cheaper. That’s not true. Inflation and price levels are two very different things. Inflation, deflation and prices explained The word “price” simply means what something costs. \"Inflation\" measures how much prices have changed compared to an earlier point in time, expressed as a percentage. So inflation is not about the price level itself; it is about the average increase or decrease in prices across a country. When inflation falls, it doesn’t mean prices are dropping. It just means they are rising more slowly. Prices only fall when inflation for a product or service is negative: below 0%. That is called deflation. Why deflation is harmful for the economy, you will read later in this article. Take the "
+ },
+ {
+  "id": "h155",
+  "url": "https://www.docwirenews.com/post/select-trial-semaglutide-reduces-cardiovascular-events-independent-of-weight-loss",
+  "host": "www.docwirenews.com",
+  "title": "SELECT Trial Analysis Shows Semaglutide’s Heart Benefits Extend Beyond Weight Loss | Docwire News",
+  "text": "Semaglutide’s cardiovascular benefits in adults with overweight or obesity appear largely independent of weight loss, according to a prespecified analysis of the phase 3 SELECT trial published in The Lancet. “In the SELECT trial, in patients with obesity (BMI ≥27 kg/m2) and established cardiovascular disease but not diabetes, semaglutide resulted in a 20% reduction in major adverse cardiovascular events (MACE), while in the STEP-HFpEF trial, among patients with obesity (BMI ≥30 kg/m2 and heart failure with preserved ejection fraction but not diabetes), semaglutide improved heart failure symptoms and physical function,” explained the study authors. “Despite these findings, the relationship between baseline adiposity measures, semaglutide-induced weight loss patterns, and cardiovascular outcomes remained undefined.” To address this, the investigators conducted a prespecified analysis of "
+ },
+ {
+  "id": "h156",
+  "url": "https://www.dovepress.com/application-of-photostimulation-therapy-in-cognitive-function-of-alzhe-peer-reviewed-fulltext-article-CIA",
+  "host": "www.dovepress.com",
+  "title": "Application of photostimulation therapy in cognitive function of Alzhe",
+  "text": "Conclusion: Photostimulation therapy has shown promising potential in cognitive function intervention for Alzheimer's disease patients, but current evidence is ..."
+ },
+ {
+  "id": "h157",
+  "url": "https://www.drupal.org/node/2769027",
+  "host": "www.drupal.org",
+  "title": "SQLite enables Write-Ahead Log journal (WAL) by default",
+  "text": "The 2026 Drupal Business Survey is open. Your response will help shape the future of the Drupal business ecosystem. By daffie on Change record status: Published (View all published change records) Project: Introduced in branch: 8.2.x Introduced in version: 8.2 Issue links: Description: SQLite will enable Write-Ahead Log journal by default. We are now enabling WAL by default because we have raised the minimum supported version of SQLite to 3.7.11 (was 3.6.8). Support for WAL on SQLite is available from version 3.7.0. Some advantages of Write-Ahead Logging (WAL) are: - WAL is significantly faster in most scenarios. - WAL provides more concurrency as readers do not block writers and a writer does not block readers. Reading and writing can proceed concurrently. - Disk I/O operations tends to be more sequential using WAL. - WAL uses many fewer fsync() operations and is thus less vulnerable "
+ },
+ {
+  "id": "h158",
+  "url": "https://www.ebsco.com/research-starters/astronomy-and-astrophysics/venuss-atmosphere",
+  "host": "www.ebsco.com",
+  "title": "Venus's atmosphere | Astronomy and Astrophysics | Research Starters | EBSCOhost",
+  "text": "RESEARCH STARTER Venus's atmosphere Venus's atmosphere is primarily composed of carbon dioxide, with traces of nitrogen and sulfur dioxide, creating an extremely dense and inhospitable environment. The thick cloud cover, primarily made of sulfuric acid, reflects about 80% of sunlight, contributing to a stark greenhouse effect that raises surface temperatures to around 740 K (approximately 467 °C or 872 °F). The atmospheric pressure at the surface is about 91 times that of Earth, making it one of the most extreme environments in the Solar System. Due to its slow retrograde rotation, which takes 243 Earth days, atmospheric winds can reach speeds over 300 kilometers per hour at higher altitudes. The temperature and pressure conditions lead to unique weather phenomena, such as a stable atmospheric circulation pattern where gases rise near the equator and descend at the poles. Despite being "
+ },
+ {
+  "id": "h159",
+  "url": "https://www.efta.int/media-resources/news/covid-19-excess-mortality-selected-european-countries",
+  "host": "www.efta.int",
+  "title": "COVID-19: Excess Mortality in Selected European Countries - EFTA.int",
+  "text": "Sweden is an interesting case because the country never introduced a formal lockdown. Excess mortality peaked at 49.2 percent and remained high ..."
+ },
+ {
+  "id": "h160",
+  "url": "https://www.emerald.com/jabes/article/doi/10.1108/JABES-01-2026-0033/1392608/Electric-vehicles-and-carbon-emission-intensity",
+  "host": "www.emerald.com",
+  "title": "Electric vehicles and carbon emission intensity: cross ...",
+  "text": "Purpose. The present study aims to investigate whether electric vehicle (EV) penetration reduces carbon emissions across 32 major electronic vehicle (EV)-adopting economies between 2010 and 2023. The study evaluates the relationship between EV diffusion and carbon emission intensity (CEI) while accounting for economic development, energy consumption (EC), the share of renewable electricity and ..."
+ },
+ {
+  "id": "h161",
+  "url": "https://www.eoportal.org/satellite-missions/jwst",
+  "host": "www.eoportal.org",
+  "title": "JWST (James Webb Space Telescope) - eoPortal",
+  "text": "JWST (James Webb Space Telescope) Non-EO The James Webb Space Telescope (JWST), launched in December 2021, is a cutting-edge observatory designed to explore the universe in infrared wavelengths, offering unprecedented insights into the early universe, exoplanets, stellar evolution, and cosmic phenomena. JWST operates from the second Lagrange point (L2) and features a large, 6.5-meter mirror and advanced instruments to observe distant galaxies, star formation, and planetary systems with unmatched sensitivity and resolution. Quick facts Overview |Mission type |Non-EO |Launch date |25 Dec 2021 JWST (James Webb Space Telescope)Overview Launch Mission Status Observatory Sensor Complement Spacecraft Bus and Sunshield Spinoff Technologies References JWST is an orbiting optical observatory and a key element in NASA's Origins Program, optimized for observations in the infrared region of the "
+ },
+ {
+  "id": "h162",
+  "url": "https://www.esa.int/Science_Exploration/Space_Science/Venus_Express/The_unexpected_temperature_profile_of_Venus_s_atmosphere",
+  "host": "www.esa.int",
+  "title": "The unexpected temperature profile of Venus’s atmosphere",
+  "text": "The unexpected temperature profile of Venus’s atmosphere Venus has a rich and complicated atmosphere - the densest of all the rocky planets – which is the key to understanding the planet itself. Venus Express, designed to perform an extensive investigation of the atmosphere, has revealed surprising details about its temperature structure. Venus has thick clouds of sulphuric acid that extend between altitudes of 40 to 60 km. Above this, the region between 60 to 100 km is known as the mesosphere, and is a transition region between the lower winds, which whip the cloud tops around the planet in four days, and the circulation of the upper atmosphere, which is driven by the influx of solar radiation. Having absorbed solar radiation, the hot upper atmosphere rises still further, circulating to the night side of the planet where it cools and sinks back to the level of the cloud tops. Jean-Loup "
+ },
+ {
+  "id": "h163",
+  "url": "https://www.euromomo.eu/graphs-and-maps",
+  "host": "www.euromomo.eu",
+  "title": "Graphs and maps",
+  "text": "Graphs and maps Last updated on Print These graphs were generated in week 2026-36 with data from 27 participating countries: Austria, Belgium, Cyprus, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Ireland, Israel, Italy, Latvia, Luxembourg, Malta, Netherlands, Norway, Portugal, Slovenia, Spain, Sweden, Switzerland, UK (England), UK (Northern Ireland), UK (Scotland), and UK (Wales). Pooled number of deaths by age group Graphs showing the pooled weekly total number of deaths in the data-providing EuroMOMO partner countries and subnational regions, all ages and by age groups. * Any use of this data in graphs or papers should cite \"EuroMOMO (euromomo.eu) 2026\". Filters applied to the graph will be applied to the downloaded data as well. Excess mortality Graphs showing the weekly excess deaths (deviation in mortality from the expected level) in the data-providing EuroMOMO "
+ },
+ {
+  "id": "h164",
+  "url": "https://www.fca.org.uk/firms/eu-withdrawal-transition-period",
+  "host": "www.fca.org.uk",
+  "title": "The end of the EU withdrawal transition period",
+  "text": "The UK left the EU on 31 January 2020 with a Withdrawal Agreement. It entered a transition period, which operated until 31 December 2020. On 24 December 2020, the EU and the UK agreed on the terms of the UK-EU Trade and Cooperation Agreement. The UK has approved the agreement and it came into effect provisionally at 11pm on 31 December 2020, pending the EU taking the necessary steps to fully approve it. Find out what this means for the FCA, firms and consumers. What this means for the FCA We worked hard to ensure that we and the UK financial services sector were prepared for the end of the transition period. We will continue to provide firms and consumers with the information they need now that the UK is no longer part of the EU. We will continue to engage closely with the UK government and other UK regulators. We will also continue to work with the European Supervisory Authorities, "
+ },
+ {
+  "id": "h165",
+  "url": "https://www.federalreserveeducation.org/resources/lessons/lesson--inflation-rate-is-falling.pdf",
+  "host": "www.federalreserveeducation.org",
+  "title": "[PDF] Classroom Activity: The Inflation Rate Is Falling but Prices Are Not (p. 4)",
+  "text": "Classroom Activity: The Inflation Rate Is Falling but Prices Are Not\n• Notice 2009, when the price level did not increase.  Review the graphs and determine why\nthis might have occurred"
+ },
+ {
+  "id": "h166",
+  "url": "https://www.forecasts.org/inflation.htm",
+  "host": "www.forecasts.org",
+  "title": "U.S. Inflation Rate Forecast",
+  "text": "The Financial Forecast Center™ Independent financial and economic forecasts since 1997 Below is a detailed forecast of the U.S. inflation rate by month. This forecast is based on prior values of the consumer price index along with other factors such as commodity prices, money supply and interest rates. |Month |Date |Forecast Value |Avg Error |0 |Jul 2026 |3.36 |±0.00 |1 |Aug 2026 |3.37 |±0.082 |2 |Sep 2026 |3.16 |±0.10 |3 |Oct 2026 |2.94 |±0.12 |4 |Nov 2026 |2.72 |±0.13 |5 |Dec 2026 |2.56 |±0.14 |6 |Jan 2027 |2.45 |±0.14 |7 |Feb 2027 |2.40 |±0.15 |8 |Mar 2027 |1.73 |±0.15 Get the Rest of the Story with the 5 Year Forecast! A long range forecast for the U.S. Inflation Rate and similar economic series is available by subscription. Click here for more information on FFC's long range forecasts or to subscribe. |September 09, 2026 |Indicator |Value |S&P 500 |7636.36 |U.S. GDP Growth, YoY % "
+ },
+ {
+  "id": "h167",
+  "url": "https://www.freshports.org/databases/sqlite3",
+  "host": "www.freshports.org",
+  "title": "sqlite3 - SQL database engine in a C library - FreshPorts",
+  "text": "Update to 3.22.0 Changelog: https://www.sqlite.org/releaselog/3_22_0.html Port changes: * Added the OFFSET option for the new sqlite_offset() function * Added ..."
+ },
+ {
+  "id": "h168",
+  "url": "https://www.gavinpublishers.com/article/view/covid19-policy-handling-the-case-of-sweden-lessons-in-effective-policymaking",
+  "host": "www.gavinpublishers.com",
+  "title": "COVID-19 Policy Handling – The Case of Sweden: Lessons in Effective Policymaking",
+  "text": "By the end of 2022, data from Eurostat and other sources allowed a cumulative comparison of excess mortality across Europe’s pandemic experience. The results of this comparison confounded many experts. Sweden had the lowest cumulative excess mortality increase in Europe for 2020–2022 (Figure 1). According to figures compiled by Statistics Sweden and reported to Eurostat, Sweden’s total mortality in those three pandemic years was only about 4. 4% higher than in the immediately preceding years (adjusted for population size)"
+ },
+ {
+  "id": "h169",
+  "url": "https://www.gssiweb.org/sports-science-exchange/article/the-safety-and-efficacy-of-creatine-monohydrate-supplementation-what-we-have-learned-from-the-past-25-years-of-research",
+  "host": "www.gssiweb.org",
+  "title": "Safety And Efficacy Of Creatine Monohydrate Supplementation - Gatorade Sports Science Institute",
+  "text": "THE SAFETY AND EFFICACY OF CREATINE MONOHYDRATE SUPPLEMENTATION: WHAT WE HAVE LEARNED FROM THE PAST 25 YEARS OF RESEARCH Published December 2018 Author Eric S. Rawson, Ph.D., FACSM Topics KEY POINTS - Many studies have demonstrated that the ingestion of ~20 g/d of creatine monohydrate for 5 d is effective at maximally increasing muscle creatine. The ingestion of 3-5 g/d for about 4 wk appears to be equally as effective, but there are fewer data. Increased muscle creatine levels can be maintained with low-dose supplementation (3-5 g/d), dietary sources (most meats contain about 0.7 g/6 oz serving) or a combination. - If muscle creatine and phosphocreatine are increased by creatine monohydrate supplementation, the performance of brief (< 30 s), intense exercise can be improved, especially if there are repeated bouts. Creatine supplements most consistently improve the performance of "
+ },
+ {
+  "id": "h170",
+  "url": "https://www.healthdata.org/research-analysis/library/excess-mortality-denmark-finland-norway-and-sweden-during-covid-19",
+  "host": "www.healthdata.org",
+  "title": "Excess mortality in Denmark, Finland, Norway and Sweden during the COVID-19 pandemic 2020-2022",
+  "text": "Abstract Background The Nordic countries represent a unique case study for the COVID-19 pandemic due to socioeconomic and cultural similarities, high-quality comparable administrative register data and notable differences in mitigation policies during the pandemic. We aimed to compare weekly excess mortality in the Nordic countries across the three full pandemic years 2020–2022. Methods Using data on weekly all-cause mortality from official administrative registers in Denmark, Finland, Norway and Sweden, we employed time series regression models to assess mortality developments within each pandemic year, with the period 2010–2019 used as reference period. We then compared excess mortality across the countries in 2020–2022, taking differences in population size and age- and sex-distribution into account. Results were age- and sex-standardized to the Danish population of 2020. Robustness "
+ },
+ {
+  "id": "h171",
+  "url": "https://www.iea.org/data-and-statistics/charts/comparative-life-cycle-greenhouse-gas-emissions-of-a-mid-size-bev-and-ice-vehicle",
+  "host": "www.iea.org",
+  "title": "Comparative life-cycle greenhouse gas emissions of a mid-size BEV and ICE vehicle – Charts – Data & Statistics - IEA",
+  "text": "Cite chart IEA (2021), Comparative life-cycle greenhouse gas emissions of a mid-size BEV and ICE vehicle, IEA, Paris https://www.iea.org/data-and-statistics/charts/comparative-life-cycle-greenhouse-gas-emissions-of-a-mid-size-bev-and-ice-vehicle, Licence: CC BY 4.0"
+ },
+ {
+  "id": "h172",
+  "url": "https://www.iea.org/data-and-statistics/data-tools/ev-life-cycle-assessment-calculator",
+  "host": "www.iea.org",
+  "title": "EV Life Cycle Assessment Calculator – Data Tools - IEA",
+  "text": "A typical medium car with a petrol (gasoline) engine and driven 42 km per day will be responsible for life-cycle emissions of 54.1 t of CO2-eq ..."
+ },
+ {
+  "id": "h173",
+  "url": "https://www.iea.org/reports/global-ev-outlook-2024/outlook-for-emissions-reductions",
+  "host": "www.iea.org",
+  "title": "Outlook for emissions reductions – Global EV Outlook 2024 – Analysis - IEA",
+  "text": "Cite report IEA (2024), Global EV Outlook 2024, IEA, Paris https://www.iea.org/reports/global-ev-outlook-2024, Licence: CC BY 4.0 Report options Outlook for emissions reductions Well-to-wheel greenhouse gas emissions Government electrification ambitions would avoid 2 Gt CO2 in 2035 on a well-to-wheels basis Road transport electrification at the global scale is expected to unlock substantial emission reductions in the coming decades. While it will be important to keep in check any additional emissions coming from electricity generation for EVs, these emissions will be more than outweighed by the emissions reductions resulting from a switch to electric. In the STEPS, the emissions avoided by using EVs rather than ICE equivalents (alongside continued improvements to ICE fuel economy) reach over 2 Gt of CO2 equivalent (CO2-eq) in 2035. Additional emissions from electricity generation for "
+ },
+ {
+  "id": "h174",
+  "url": "https://www.instituteforgovernment.org.uk/article/explainer/brexit-transition-period",
+  "host": "www.instituteforgovernment.org.uk",
+  "title": "Brexit transition period | Institute for Government",
+  "text": "Brexit transition period The Brexit transition is the period in which the UK is no longer a member of the EU but remains a member of the single market and customs union. What is the Brexit transition period? The Brexit transition is the period agreed in the UK–EU Withdrawal Agreement in which the UK is no longer a member of the EU but remains a member of the single market and customs union. During that time, it will continue to be subject to EU rules. The transition period started immediately after the UK left the EU on 31 January 2020. The UK government does not use the term transition: instead it prefers to refer to this period as an “implementation period”. Why does the UK need a transition period? The EU said it will not negotiate details of new arrangements with the UK until it ceased to be an EU member. The transition period is designed to provide time for that new relationship to "
+ },
+ {
+  "id": "h175",
+  "url": "https://www.instituteforgovernment.org.uk/explainer/uk-and-european-union",
+  "host": "www.instituteforgovernment.org.uk",
+  "title": "The UK and the European Union | Institute for Government",
+  "text": "The UK and the European Union What is the UK’s current relationship with the EU? The UK stopped being a member of the EU on 31 January 2020. It then entered a transition phase (outside the political institutions, but still inside the single market and customs union) until 11.00pm on 31 December 2020. Since then its relationship has been government by the Withdrawal Agreement, 19 https://commission.europa.eu/strategy-and-policy/relations-united-kingdom/eu-uk-withdrawal-agreement_en approved by parliament in January 2020 (but some aspects on trade between Great Britain and Northern Ireland were modified in 2023 by the Windsor Framework 20 https://www.gov.uk/government/publications/the-windsor-framework negotiated by Rishi Sunak) and the Trade and Cooperation Agreement (TCA) negotiated by Boris Johnson’s government. The TCA is a deep free trade agreement which provides for (generally) "
+ },
+ {
+  "id": "h176",
+  "url": "https://www.ipharmapharmacy.com/semaglutide-heart-health-select-trial/",
+  "host": "www.ipharmapharmacy.com",
+  "title": "Semaglutide and Heart Health: The SELECT Trial Results",
+  "text": "In 17,604 adults aged 45 and older with overweight or obesity and established cardiovascular disease but no diabetes, semaglutide 2.4 mg weekly reduced major adverse cardiovascular events from 8.0% to 6.5% over roughly 40 months."
+ },
+ {
+  "id": "h177",
+  "url": "https://www.jacc.org/doi/10.1016/j.jacc.2024.11.008",
+  "host": "www.jacc.org",
+  "title": "Semaglutide Improves Cardiovascular Outcomes in Patients With ...",
+  "text": "Semaglutide consistently reduced all cardiovascular outcomes in these patients. In the SELECT (Semaglutide Effects on Cardiovascular Outcomes in ..."
+ },
+ {
+  "id": "h178",
+  "url": "https://www.jmir.org/2026/1/e83955",
+  "host": "www.jmir.org",
+  "title": "Digital Engagement and Cognitive Function Among Older Adults in ...",
+  "text": "This study aimed to analyze the relationships between digital engagement and cognitive function among older adults in China through a moderated mediation model"
+ },
+ {
+  "id": "h179",
+  "url": "https://www.jnutritionalphysiol.org/article/S3050-6247(26)00003-3/fulltext",
+  "host": "www.jnutritionalphysiol.org",
+  "title": "Creatine supplementation and brain health: Methodological ...",
+  "text": "Although creatine supplementation holds promising translational value for supporting brain health and cognitive function, the current body of literature is ..."
+ },
+ {
+  "id": "h180",
+  "url": "https://www.labxchange.org/library/items/lb:LabXchange:c5704853:html:1",
+  "host": "www.labxchange.org",
+  "title": "James Webb Space Telescope Mission Timeline",
+  "text": "James Webb Space Telescope Mission Timeline Trace the history of the James Webb Space Telescope's development, from its conceptualization in 1989 to its groundbreaking launch in 2021! Topics - engineering - space science - Webb design - space telescopes - astronomy - infrared astronomy - celestial observation - space exploration - Webb project history - Webb launch - Webb's first images - cosmic history - space technology - James Webb Space Telescope - JWST - Webb Misson"
+ },
+ {
+  "id": "h181",
+  "url": "https://www.lamoncloa.gob.es/lang/en/brexit/aboutbrexit/paginas/index.aspx",
+  "host": "www.lamoncloa.gob.es",
+  "title": "What is Brexit?",
+  "text": "What is the Trade and Cooperation Agreement? The Trade and Cooperation Agreement is a long and complex text with content that can be divided into four main sections: the first on free trade, eliminating quotas and customs duties between the UK and the EU, establishing a title on the Level Playing Field - conditions for fair competition - one of the greatest demands of the EU during the negotiations. The second section establishes a framework for economic, social, environmental and fishing cooperation, which contains provisions aimed at ensuring energy connectivity and on transport, together with coordination in areas related to social security. The third section regulates an association on internal security based on such existing mechanisms as Europol and Eurojust and including provisions on the handover of detainees, the fight against money laundering and the financing of terrorism. "
+ },
+ {
+  "id": "h182",
+  "url": "https://www.lexisnexis.com/en-gb/legal/guidance/brexit-timeline-transition-archived",
+  "host": "www.lexisnexis.com",
+  "title": "Brexit Transition 2020: UK‑EU Withdrawal Agreement ... - LexisNexis",
+  "text": "On 31 January 2020, the UK's withdrawal took legal effect. The transition period ended on 31 December 2020. This Practice Note sets out the ..."
+ },
+ {
+  "id": "h183",
+  "url": "https://www.lumafield.com/scan-of-the-month/2026-world-cup",
+  "host": "www.lumafield.com",
+  "title": "Inside the 2026 World Cup: CT Scanning the Ball, Boots & GPS",
+  "text": "We CT scanned the adidas Trionda, Nike Mercurial Superfly 11 Elite, and STATSports GPS tracker to reveal the hidden tech powering the 2026 World Cup."
+ },
+ {
+  "id": "h184",
+  "url": "https://www.medlink.com/articles/wilson-disease",
+  "host": "www.medlink.com",
+  "title": "Wilson disease | MedLink Neurology",
+  "text": "Wilson disease from ATP7B mutation causes toxic copper buildup, leading to liver damage, dysarthria, dystonia, tremor, parkinsonism and ..."
+ },
+ {
+  "id": "h185",
+  "url": "https://www.moneysupermarket.com/mortgages/",
+  "host": "www.moneysupermarket.com",
+  "title": "Compare our best mortgage deals - September 2026 | MoneySuperMarket",
+  "text": "The base rate or &#x27;Bank Rate&#x27; is the official interest rate set by the Bank of England that guides banks and lenders. The base rate is currently 3.75%, following a hold on 18 June 2026."
+ },
+ {
+  "id": "h186",
+  "url": "https://www.mortgageonefinance.co.uk/santander-mortgage-rates",
+  "host": "www.mortgageonefinance.co.uk",
+  "title": "Santander Mortgage Rates | Checked Sept 2026 — Mortgage One",
+  "text": "Santander Mortgage Rates: Full table, 7% follow-on Rate and Switch Deals 9 September 2026 This page tracks Santander's residential mortgage rates in one dated table with the fee-free alternatives beside them, the product transfer pricing existing customers actually get, the income multiples that decide who Santander lends to, and the 98% first-time buyer product nobody else in the big six offers. Every figure was checked against Santander's published rate tables on 9 September 2026 and is refreshed when Santander reprices. Mortgage One is a whole of market mortgage adviser weighing Santander's new business and switch pricing against the rest of the market. If your Santander deal ends within the next four months, the product transfer window is open and the offer is worth pricing against the market before you accept it: call 01202 155992 or contact Mortgage One. Santander mortgage rates "
+ },
+ {
+  "id": "h187",
+  "url": "https://www.nao.org.uk/reports/the-uk-border-preparedness-for-the-end-of-the-transition-period/",
+  "host": "www.nao.org.uk",
+  "title": "The UK border: preparedness for the end of the transition period - NAO report",
+  "text": "Background to the report The transition period is due to end on 31 December 2020, at which point the UK will cease to be part of the EU single market and customs union. From 1 January 2021 there will be changes in how the UK trades with the EU and in the customs, safety and regulatory checks required at the UK-EU border. The EU will also begin treating the UK as a third country and implement full controls on goods passing between the UK and the EU. The UK is in the process of negotiating its future relationship with the EU, including seeking to reach a free trade agreement (FTA). Unlike for previous deadlines, regardless of the outcome of the negotiations there will be significant change at the border from 31 December.Jump to downloads Since the UK’s decision to leave the EU in 2016, the National Audit Office has reported four times on the management of the UK border, focusing primarily "
+ },
+ {
+  "id": "h188",
+  "url": "https://www.nationalacademies.org/read/26402/chapter/15",
+  "host": "www.nationalacademies.org",
+  "title": "Read \"Current Methods for Life-Cycle Analyses of Low-Carbon Transportation Fuels in the United States\" at NAP.edu",
+  "text": "edu/wp-content/uploads/sites/633/2021/03/UIC-Marginal-EV-HOF-Analysis-DRAFT-3_22_2021_UPDATE. pdf (accessed February 4, 2022). Cleaner Cars from Cradle to Grave: How Electric Cars Beat Gasoline Cars on Lifetime Global Warming Emissions. Union of Concerned Scientists. Air quality impacts of electrifying vehicles and equipment across the United States"
+ },
+ {
+  "id": "h189",
+  "url": "https://www.nice.org.uk/news/articles/semaglutide-injection-to-help-prevent-heart-attacks-and-strokes",
+  "host": "www.nice.org.uk",
+  "title": "Injection for more than a million people to help prevent heart attacks and strokes recommended",
+  "text": "Injection for more than a million people to help prevent heart attacks and strokes recommended People who have had a heart attack, stroke, or serious circulation problem in their legs, and who also carry excess weight, can now be offered a weekly injection to help protect them from a further life-threatening event, NICE has said. Although semaglutide (Wegovy) is widely known as a weight loss treatment, today’s recommendation is specifically about preventing heart attacks and strokes. The injection is an additional treatment, which will be offered on top of the medicines people are already taking such as statins, and alongside a reduced-calorie diet and increased physical activity for those at high risk of another serious event. Evidence from a clinical trial shows the injection reduces the risk of a heart attack, stroke, or cardiovascular death. Importantly, this benefit was seen early "
+ },
+ {
+  "id": "h190",
+  "url": "https://www.novomedlink.com/obesity/products/treatments/wegovy/efficacy-safety/reduce-mace-risk.html",
+  "host": "www.novomedlink.com",
+  "title": "Wegovy® (semaglutide) and CV Risk Reduction | Wegovy®",
+  "text": "Actor portrayals. Efficacy & Safety Proven to help prevent life-threatening CV events Actor portrayals. SELECT CVOT Study SELECT, a landmark study: The largest CVOT ever completed for patients with established CVD and obesity1-3 MACE risk reduction was evaluated on top of CV standard of care1* Patient population 17,604 patients without diabetes 17,061 (~97%) completed the trial1,2† Patient enrollment: October 2018-March 2021 It took Novo Nordisk 4.5 years to conduct this trial Key Inclusion Criteria Adults: ≥45 years BMI: ≥27 kg/m2 Established CVD: • Prior MI • Prior stroke • PAD Treatment arms1,2 Event-driven superiority trial: 1,225 accrued events Median duration of follow-up: 41.8 months Primary composite end point Time from randomized to first occurrence of MACE1,2 Assessed regardless of change in weight What could life-saving outcomes mean for your patients? CV standard-of-care "
+ },
+ {
+  "id": "h191",
+  "url": "https://www.novonordiskmedical.com/select-trial.html",
+  "host": "www.novonordiskmedical.com",
+  "title": "SELECT Cardiovascular Trial Information | Novo Nordisk Medical",
+  "text": "The double-blinded SELECT cardiovascular outcomes trial compared subcutaneous once-weekly semaglutide 2.4 mg with placebo as an adjunct to standard of care for prevention of major adverse cardiovascular (MACE) events over a period of up to 5 years. Read more about its background, methodology, results, and more. Find more information Speak to a medical representative If you are a healthcare provider from the United States, click below to request information directly from the Novo Nordisk Medical Information department. If you are a patient, please visit here to contact us, or call 1-800-727-6500. Search the Medical Information Database Novo Nordisk Medical is a resource for U.S. Healthcare Professionals to learn more about disease states investigated by Novo Nordisk and our related products."
+ },
+ {
+  "id": "h192",
+  "url": "https://www.oreilly.com/library/view/using-sqlite/9781449394592/re185.html",
+  "host": "www.oreilly.com",
+  "title": "journal_mode - Using SQLite [Book]",
+  "text": "journal_mode — Control the creation and cleanup of journal files · The journal_mode pragma gets or sets the journal mode. The journal mode controls how the journal file is stored and processed"
+ },
+ {
+  "id": "h193",
+  "url": "https://www.pas.va/en/publications/scripta-varia/sv155pas/rieke.html",
+  "host": "www.pas.va",
+  "title": "A Brief History of the James Webb Space Telescope",
+  "text": "DOI: 10.65398/VMRP3611 Abstract: JWST’s early history is described with a focus on how the mission and its capabilities were shaped. Introduction The James Webb Space Telescope (JWST) grew out of a confluence of technology, other NASA missions, and astronomical discoveries that made a large, infrared telescope an imperative. Three strands – astronomical discoveries, development of a mission architecture including optics for a large telescope, and infrared detector development – wove together to make JWST a required mission for the astronomical community and to make JWST feasible. Gardner et al. 2023 also present an overview of JWST’s history while here we concentrate on the early history which shaped the mission and its capabilities. Wright et al. 2023 give more background on the genesis of MIRI. Doyon et al. 2023 provide more detail on the history of NIRISS. Jakobsen et al. 2022 "
+ },
+ {
+  "id": "h194",
+  "url": "https://www.pgpf.org/article/what-is-inflation-and-why-does-it-matter/",
+  "host": "www.pgpf.org",
+  "title": "What Is Inflation and Why Does It Matter?",
+  "text": "Inflation affects many facets of the economy, from individual purchasing power to interest on the national debt. In recent years, Americans experienced inflation firsthand: pent-up demand, supply-chain issues, government spending, and the war in Ukraine pushed the annual rate of consumer prices to peak at 9.1 percent in June 2022 — the highest rate in 40 years. Since then, actions by the Federal Reserve have helped to control the nation’s rising prices and inflation fell to 2.4 percent year over year in January 2026. Inflation is one of the most closely watched, and politically potent, economic indicators in the country, shaping decisions made by policymakers, businesses, and households alike. Understanding what drives it is essential to understanding how macroeconomic forces shape everyday life. What Is Inflation and How Is It Measured? According the Federal Reserve Board, inflation is "
+ },
+ {
+  "id": "h195",
+  "url": "https://www.planetary.org/space-missions/james-webb-space-telescope",
+  "host": "www.planetary.org",
+  "title": "James Webb Space Telescope, the world's new great space observatory",
+  "text": "James Webb Space Telescope, the world's new great space observatory Highlights - NASA’s James Webb Space Telescope, JWST, is a multipurpose observatory launched in December 2021. - JWST is helping us understand the Cosmos, study whether other planets could support life, and learn about the early history of galaxies. - Like Hubble, JWST is expected to revolutionize our view of the Universe. Why We Need JWST Science is all about standing on the shoulders of giants, and that’s certainly the case for JWST. The observatory builds upon three decades of discoveries by the Hubble Space Telescope, which launched in 1990 and has revolutionized our understanding of the Cosmos. Earth’s atmosphere distorts our view of distant celestial objects and blocks certain wavelengths of light, including slices of infrared that human eyes cannot see. Infrared-capable space telescopes can determine the "
+ },
+ {
+  "id": "h196",
+  "url": "https://www.planetary.org/worlds/venus",
+  "host": "www.planetary.org",
+  "title": "Venus, Earth's twin sister",
+  "text": "Venus, Earth's twin sister Highlights - Venus hosts brutal conditions today, but the planet may have once been more hospitable to life. - The surface of Venus features searing temperatures and crushing pressures. - Understanding the history of Venus could help reveal how common planets like Earth are. What is Venus like? Standing on the surface of Venus would be worse than standing inside a literal oven. With average surface temperatures of 470 degrees Celsius (878 degrees Fahrenheit) — hot enough to melt lead — Venus has the hottest surface of any planet in the Solar System. And beyond the sweltering heat, Venus has an atmosphere so dense that the pressure on its surface would be strong enough to crumple a nuclear submarine. Above the surface, clouds of sulfuric acid hang overhead. Why explore Venus? We explore Venus to search for life and better understand how hospitable planets "
+ },
+ {
+  "id": "h197",
+  "url": "https://www.plthealth.com/product-catalog/nutricog",
+  "host": "www.plthealth.com",
+  "title": "PLT Health Nutricog",
+  "text": "Users of Nutricog showed a 1.4x improvement in Immediate Recall, a 2.3x improvement in Delayed Recall and a 2.1x improvement in Recognition Memory over baseline ..."
+ },
+ {
+  "id": "h198",
+  "url": "https://www.prnewswire.com/news-releases/novo-nordisks-wegovy-cuts-risk-of-heart-attack-stroke-or-death-by-57-compared-to-tirzepatide-in-real-world-study-of-people-with-obesity-and-cardiovascular-disease-302542590.html",
+  "host": "www.prnewswire.com",
+  "title": "Novo Nordisk's Wegovy® cuts risk of heart attack, stroke or death by 57% compared to tirzepatide in real-world study of people with obesity and cardiovascular disease",
+  "text": "News provided byNOVO NORDISK INC. Aug 31, 2025, 03:00 ET - Compared with tirzepatide, Wegovy® (semaglutide) 2.4 mg showed a significant 57% greater reduction in the risk of heart attack, stroke or death from any cause, in people with overweight or obesity and cardiovascular disease (CVD) while on treatment1 - Similarly, the study showed a significant 29% reduction in the risk for heart attack, stroke and death from any cause in the Wegovy® users compared with tirzepatide users in all treated people, regardless of any gaps in their treatment1 - The findings support growing evidence that the established CV benefit seen with Wegovy® is specific to the semaglutide molecule and therefore cannot be generalized to the GLP-1 or GIP/GLP-1-receptor agonist classes1 PLAINSBORO, N.J., Aug. 31, 2025 /PRNewswire/ -- Novo Nordisk today presented data from the STEER real-world study of evidence "
+ },
+ {
+  "id": "h199",
+  "url": "https://www.sofrrate.com/global-rates",
+  "host": "www.sofrrate.com",
+  "title": "Global Policy Rates and 10-Year Yields",
+  "text": "Global Policy Rates and 10-Year Yields Compare central bank policy rates, 10-year government yields, and the spread between them across major global markets. |Market |Policy rate |10-year yield |Steepness (10y-Policy) United States USD |3.63% Sep 4, 2026Last 90 days (-1 bps) |4.77% Sep 3, 2026Last 90 days (+41 bps) |1.14% Sep 3, 2026Last 90 days (+42 bps) Euro area EUR |2.25% Sep 8, 2026Last 90 days (+25 bps) |3.39% Sep 7, 2026Last 90 days (+26 bps) |1.14% Sep 7, 2026Last 90 days (+1 bps) United Kingdom GBP |3.75% Sep 7, 2026Last 90 days (0 bps) |5.07% Sep 4, 2026Last 90 days (+7 bps) |1.32% Sep 4, 2026Last 90 days (+7 bps) Switzerland CHF |0.00% Sep 8, 2026Last 90 days (0 bps) |0.47% Sep 8, 2026Last 90 days (+4 bps) |0.47% Sep 8, 2026Last 90 days (+4 bps) Japan JPY |0.98% Sep 7, 2026Last 90 days (+25 bps) |2.94% Sep 7, 2026Last 90 days (+46 bps) |1.96% Sep 7, 2026Last 90 days (+21 bps) "
+ },
+ {
+  "id": "h200",
+  "url": "https://www.spiedigitallibrary.org/conference-proceedings-of-spie/11813/118130U/High-speed-interferometry-for-James-Webb-Space-Telescope-testing/10.1117/12.2570872.full",
+  "host": "www.spiedigitallibrary.org",
+  "title": "High-speed interferometry for James Webb Space Telescope testing",
+  "text": "5 meter diameter, segmented, lightweight primary mirror and lightweight carbon fiber composite structure"
+ },
+ {
+  "id": "h201",
+  "url": "https://www.spiedigitallibrary.org/journals/Journal-of-Astronomical-Telescopes-Instruments-and-Systems/volume-11/issue-03/030901/Genesis-of-the-James-Webb-Space-Telescope-architecture--the/10.1117/1.JATIS.11.3.030901.full",
+  "host": "www.spiedigitallibrary.org",
+  "title": "Genesis of the James Webb Space Telescope architecture",
+  "text": "The primary mirror had a 3-m hexagonal center core surrounded by six panels folded upward for launch, an overall diameter of 7 m upon deployment"
+ },
+ {
+  "id": "h202",
+  "url": "https://www.sqlite.org/changes.html",
+  "host": "www.sqlite.org",
+  "title": "Release History Of SQLite",
+  "text": "1 alternately write to the same database file. Ticket [51ae9cad317a1] - Fix a performance regression related to the query planner enhancements of version 3. 0) - Added support for write-ahead logging. - Query planner enhancement - automatic transient indices are created when doing so reduces the estimated query time. - Query planner enhancement - the ORDER BY becomes a no-op if the query also contains a GROUP BY clause that forces the correct output order"
+ },
+ {
+  "id": "h203",
+  "url": "https://www.sqlite.org/draft/capi3ref.html",
+  "host": "www.sqlite.org",
+  "title": "C/C++ Interface For SQLite Version 3",
+  "text": "The return value is a copy of the third parameter from the previous call, if any, or 0. The sqlite3_wal_autocheckpoint() interface and the wal_autocheckpoint pragma both invoke sqlite3_wal_hook() and will overwrite any prior sqlite3_wal_hook() settings. If a write-ahead log callback is set using this function then sqlite3_wal_checkpoint_v2() or PRAGMA wal_checkpoint should be invoked periodically to keep the write-ahead log file from growing without bound. Passing a NULL pointer for the callback"
+ },
+ {
+  "id": "h204",
+  "url": "https://www.sqlite.org/draft/chronology.html",
+  "host": "www.sqlite.org",
+  "title": "History Of SQLite Releases",
+  "text": "2010-10-08 · 3.7.3 · 2010-08-24 · 3.7.2 · 2010-08-23 · 3.7.1 · 2010-08-04 · 3.7.0.1 · 2010-07-21 · 3.7.0 · 2010-03-26 · 3.6.23.1 · 2010-03-09 · 3.6.23 · 2010-01 ..."
+ },
+ {
+  "id": "h205",
+  "url": "https://www.sqlite.org/fileformat.html",
+  "host": "www.sqlite.org",
+  "title": "Database File Format",
+  "text": "This document describes and defines the on-disk database file format used by all releases of SQLite since version 3.0.0 (2004-06-18). The complete state of an SQLite database is usually contained in a single file on disk called the \"main database file\". During a transaction, SQLite stores additional information in a second file called the \"rollback journal\", or if SQLite is in WAL mode, a write-ahead log file. If the application or host computer crashes before the transaction completes, then the rollback journal or write-ahead log contains information needed to restore the main database file to a consistent state. When a rollback journal or write-ahead log contains information necessary for recovering the state of the database, they are called a \"hot journal\" or \"hot WAL file\". Hot journals and WAL files are only a factor during error recovery scenarios and so are uncommon, but they are "
+ },
+ {
+  "id": "h206",
+  "url": "https://www.sqlite.org/formatchng.html",
+  "host": "www.sqlite.org",
+  "title": "File Format Changes in SQLite",
+  "text": "The underlying file format for SQLite databases does not change in incompatible ways. There are literally trillions of SQLite database files in circulation and the SQLite developers are committing to supporting those files for decades into the future. Prior to SQLite version 3.0.0 (2004-06-18), the file format did sometimes change from one release to the next. But since that time, the file format has been fully backwards compatible. By \"backwards compatible\" we mean that newer versions of SQLite can always read and write database files created by older versions of SQLite. It is often also the case that SQLite is \"forwards compatible\", that older versions of SQLite can read and write database files created by newer versions of SQLite. But there are sometimes forward compatibility breaks. Sometimes new features are added to the file format. For example, WAL mode was added in version 3.7.0 "
+ },
+ {
+  "id": "h207",
+  "url": "https://www.sqlite.org/howtocorrupt.html",
+  "host": "www.sqlite.org",
+  "title": "How To Corrupt An SQLite Database File",
+  "text": "However, SQLite in WAL mode is far more forgiving of out-of-order writes than in the default rollback journal modes"
+ },
+ {
+  "id": "h208",
+  "url": "https://www.sqlite.org/wal.html",
+  "host": "www.sqlite.org",
+  "title": "Write-Ahead Logging",
+  "text": "The default method by which SQLite implements atomic commit and rollback is a rollback journal. Beginning with version 3.7.0 (2010-07-21), a new \"Write-Ahead Log\" option (hereafter referred to as \"WAL\") is available. There are advantages and disadvantages to using WAL instead of a rollback journal. Advantages include: But there are also disadvantages: The traditional rollback journal works by writing a copy of the original unchanged database content into a separate rollback journal file and then writing changes directly into the database file. In the event of a crash or ROLLBACK, the original content contained in the rollback journal is played back into the database file to revert the database file to its original state. The COMMIT occurs when the rollback journal is deleted. The WAL approach inverts this. The original content is preserved in the database file and the changes are "
+ },
+ {
+  "id": "h209",
+  "url": "https://www.sqlite.org/walformat.html",
+  "host": "www.sqlite.org",
+  "title": "WAL-mode File Format",
+  "text": "This document describes low-level details on how WAL mode is implemented on unix and windows. The separate file format description provides details on the structure of a database file and of the write-head log file used in WAL mode. But details of the locking protocol and of the format of the WAL-index are deliberately omitted since those details are left to discretion of individual VFS implementations. This document fills in those missing details for the unix and windows VFSes. For completeness, some of the higher level formatting information contains in the file format document and elsewhere is replicated here, when it pertains to WAL mode processing. When in active use, the state of a WAL mode database is described by three separate files: The format of the main database file is as described in the file format document. The file format version numbers at offsets 18 and 19 into the "
+ },
+ {
+  "id": "h210",
+  "url": "https://www.sqliteforum.com/p/checkpoint-algorithms-and-wal-performance",
+  "host": "www.sqliteforum.com",
+  "title": "Checkpoint Algorithms and WAL Performance Tuning - SQLite Forum",
+  "text": "By default: PRAGMA wal_autocheckpoint = 1000; This means: SQLite triggers a checkpoint after roughly 1000 WAL pages accumulate"
+ },
+ {
+  "id": "h211",
+  "url": "https://www.stlouisfed.org/open-vault/2023/august/explaining-inflation-disinflation-deflation",
+  "host": "www.stlouisfed.org",
+  "title": "Inflation, Disinflation and Deflation: What Do They All Mean?",
+  "text": "Inflation, Disinflation and Deflation: What Do They All Mean? You have likely heard about rising prices or inflation in the news or daily conversation. But what about “disinflation” or “deflation”? Those lesser-known terms describe different aspects of changes in prices. Let’s start with base definitions. - Inflation is a sustained increase in the price level of goods and services. - Disinflation is a decrease in the rate of inflation. - Deflation is a sustained decrease in the price level of goods and services. Inflation, disinflation and deflation refer to increasing or decreasing average price levels of the economy. They usually are calculated as the percentage change in a given price level over a certain period of time—for example, the percentage change from a year earlier. While some prices may deviate from the overall trend, we focus on the aggregate trend for the purposes of this "
+ },
+ {
+  "id": "h212",
+  "url": "https://www.stlouisfed.org/open-vault/2025/july/differences-prices-inflation-explained",
+  "host": "www.stlouisfed.org",
+  "title": "The Differences between Prices and Inflation Explained",
+  "text": "The Differences between Prices and Inflation Explained In recent years, people have seen higher prices for all kinds of items, including groceries. Overall, the U.S. economy has experienced higher inflation than at any other point in the past several decades. The percentage change from a year ago in the price index for personal consumption expenditures (PCE)—one measure of inflation—was 7.2% in June 2022. That annual rate has since fallen and was at 2.3% in May 2025. That’s a big decrease, and the inflation rate is closer to the Federal Reserve’s 2% target. But products and services can still seem expensive to consumers. If inflation is lower than it was a few years ago, why are prices still higher than before? The answer lies in understanding the differences between individual prices, an overall price level and inflation. This blog post explains those differences. It also addresses "
+ },
+ {
+  "id": "h213",
+  "url": "https://www.stlouisfed.org/publications/page-one-economics/2024/03/01/the-inflation-rate-is-falling-but-prices-are-not",
+  "host": "www.stlouisfed.org",
+  "title": "The Inflation Rate Is Falling, but Prices Are Not",
+  "text": "The Inflation Rate Is Falling, but Prices Are Not Has this scenario ever happened to you? You’re in the grocery store reaching for a gallon of milk, and you notice that the price has increased since the last time you bought some. But you also recently read in the news that the inflation rate has fallen from 8% to 4%. How can that be? This article will explain why a falling inflation rate does not mean falling prices. Inflation Is an Increase in an Economy’s Price Level Inflation is an increase in the price level, or average level of prices, of goods and services. The price level can either increase or decrease. When an economy’s price level increases, we call it inflation; when it decreases, we call it deflation. The figure below displays the average level of prices in the United States over the past five decades, as measured by the consumer price index (CPI)—that is, a market basket of "
+ },
+ {
+  "id": "h214",
+  "url": "https://www.stockcram.com/tools/calculators/inflation-return-calculator",
+  "host": "www.stockcram.com",
+  "title": "Free Inflation-Adjusted Return Calculator | StockCram",
+  "text": "Inflation-Adjusted Return Calculator See how inflation impacts your real investment returns. Enter your nominal return and inflation rate to calculate your real return using the Fisher equation. Compare nominal vs inflation-adjusted growth and understand purchasing power erosion over time with a year-by-year breakdown. Updated Educational purposes only. This calculator provides estimates based on constant return and inflation assumptions. Actual inflation and returns vary year to year. Past performance does not indicate future results. This is not financial advice. Educational purposes only. These calculators illustrate concepts and do not constitute investment advice. Read our disclaimerStockCram is not a broker-dealer, investment adviser, or financial institution. All content is for educational and informational purposes only and should not be construed as personalized investment "
+ },
+ {
+  "id": "h215",
+  "url": "https://www.switchportmapper.com/revision_history.htm",
+  "host": "www.switchportmapper.com",
+  "title": "Revision History of the Managed Switch Port Mapping Tool",
+  "text": "-Updated dates to 2018 -Updated SQLite to version 3.22.0 -Updated MAC address/Manufacturer database. . 2.42 January 22, 2015 -Fixed problem where if history ..."
+ },
+ {
+  "id": "h216",
+  "url": "https://www.teledyne.com/digital-imaging-space-science-monthly/the-james-webb-space-telescope",
+  "host": "www.teledyne.com",
+  "title": "The James Webb Space Telescope",
+  "text": "February 2024 Artist depiction of the James Webb Space Telescope. (NASA / Northrop Grumman) Humankind's greatest space science facility The James Webb Space Telescope (JWST) is NASA’s flagship astronomy and astrophysics mission that was launched on December 25, 2021 and placed into a halo orbit at Lagrange Point 2 (L2), 1.5 million km from Earth (see figure and animation below). The launch on an Ariane 5 rocket, provided by the European Space Agency, was extremely precise. The end of life for many space missions is due to depletion of thruster fuel. The accuracy of launch saved so much of JWST’s hydrazine thruster fuel that JWST has enough fuel to operate for more than 25 years, much longer than the minimum 5-year design lifetime. Teledyne The James Webb Space Telescope is in a halo orbit about L2, 1.5 million km from Earth. JWST will be the premier space astronomy observatory for the "
+ },
+ {
+  "id": "h217",
+  "url": "https://www.transportenvironment.org/articles/how-clean-are-electric-cars",
+  "host": "www.transportenvironment.org",
+  "title": "How clean are electric cars?",
+  "text": "How clean are electric cars? How much CO2 can electric cars really save compared to diesel and petrol cars? To answer this question we have developed a tool that compiles all the most up-to-date data on CO2 emissions linked to the use of an electric, diesel or petrol car. We have taken into account all possible criteria such as the amount of CO2 emitted when electricity is produced or fuel is burnt, as well as the carbon impact of resource extraction for batteries or of building a power plant. We have found out that electric cars in Europe emit, on average, more than 3 times less CO2 than equivalent petrol cars. Lead expert In the worst case scenario, an electric car with a battery produced in China and driven in Poland still emits 37% less CO2 than petrol. And in the best case scenario, an electric car with a battery produced in Sweden and driven in Sweden can emit 83% less than "
+ },
+ {
+  "id": "h218",
+  "url": "https://www.transportenvironment.org/topics/cars/are-electric-cars-cleaner",
+  "host": "www.transportenvironment.org",
+  "title": "Are electric cars cleaner?",
+  "text": "3x less Electric cars in Europe emit, on average, more than 3 times less CO2 than equivalent petrol cars. Are electric cars cleaner? Compare the lifetime CO2 emissions of an electric car with a petrol car, a diesel car or another electric car. 83% In the best case scenario, an electric car with a battery produced in Sweden and driven in Sweden can emit 83% less than an equivalent petrol car. Download documents More information Analysis of lifecycle emissions Lifecycle emission analysis covers the amount of CO2 emitted during the use phase when electricity is produced or fuel is burned, as well as during the production phase with the carbon impact of resource extraction for batteries and manufacturing of the vehicle. We find out that electric cars in Europe emit, on average, more than 3 times less CO2 than equivalent petrol cars. In the worst case scenario, an electric car with a battery "
+ },
+ {
+  "id": "h219",
+  "url": "https://www.trialx.com/clinical-trials/listings/256312/select-life-a-research-study/",
+  "host": "www.trialx.com",
+  "title": "SELECT-LIFE: A Research Study Looking at Long-term Effects of Semaglutide in People Who Took Part in the SELECT Cardiovascular Outcomes Trial | Clinical Research Trial Listing ( Overweight | Obesity ) ( NCT04972721 )",
+  "text": "Overview Participants are being asked to participate in SELECT-LIFE study because participants take part in the SELECT trial. SELECT-LIFE study is a survey-based study that will start when the SELECT trial ends. SELECT-LIFE looks at the long-term effects of participants taking part in the SELECT trial including the trial medicine participants have been taking. When the SELECT trial ends, participants will no longer get the medicine participants got in the study, even if participants decide to take part in the SELECT-LIFE study. Participants will not get any specific treatment or medicine as part of the SELECT-LIFE study, and participants will be treated as participants normally would by their own doctor. The SELECT-LIFE study will last for up to 10 years after SELECT trial ends, and participants will be asked to fill in a questionnaire about their health every 6 months. Eligibility "
+ },
+ {
+  "id": "h220",
+  "url": "https://www.ucs.org/resources/cleaner-cars-cradle-grave",
+  "host": "www.ucs.org",
+  "title": "Cleaner Cars from Cradle to Grave",
+  "text": "Since we first published our State of Charge report in 2012, the environmental benefits of electric vehicles (EVs) have continued to grow. Driving the average EV is responsible for fewer global warming emissions than the average new gasoline car everywhere in the US—a fact attributable to more efficient EVs and an increasingly clean electricity grid. Read our latest report, \"Driving Cleaner\",and latest analysis \"Are Electric Vehicles Really Better for the Climate? Yes. Here’s Why,\" for more information. What are the global warming emissions of electric cars on a life cycle basis—from the manufacturing of the vehicle’s body and battery to its ultimate disposal and reuse? To answer this, the Union of Concerned Scientists undertook a comprehensive, two-year review of the climate emissions from vehicle production, operation, and disposal. We found that battery electric cars generate half "
+ },
+ {
+  "id": "h221",
+  "url": "https://www.vantagemarkets.com/en-za/academy/high-impact-economic-events-in-september-2026/",
+  "host": "www.vantagemarkets.com",
+  "title": "High-Impact Economic Events: September 2026 Trading Calendar",
+  "text": "Additionally, this is followed by PPI on 10 September and CPI on 11 September. The FOMC announces on 16 September. The Bank of England follows on 17 September, and the Bank of Japan on 18 September. SARB follows on 23 September. All times below are in SAST"
+ },
+ {
+  "id": "h222",
+  "url": "https://www.vldb.org/pvldb/vol11/p513-park.pdf",
+  "host": "www.vldb.org",
+  "title": "[PDF] SQL Statement Logging for Making SQLite Truly Lite (p. 7)",
+  "text": "Note that al-\nSSL-checkpoint and WAL-checkpoint.  SSL-checkpoint is\nthoughSQLite/SSLtakesthesteal policyfromtheperspec-\ntriggered when the current transaction successfully com-\ntiveof bufferreplacement and thussome dirty pages would\nmits and, at the same time, either the amount of logs in\nbe replace..."
+ },
+ {
+  "id": "h223",
+  "url": "https://www.volkswagen.co.uk/en/electric-and-hybrid/living-electric/discover-electric/the-carbon-footprint-of-electric-cars.html",
+  "host": "www.volkswagen.co.uk",
+  "title": "Electric Car Carbon Footprint | CO2 Emissions |Volkswagen UK",
+  "text": "Are electric cars better for the environment? The carbon footprint of EVs in 2026 A carbon footprint that’s forever shrinking The most obvious benefit of all-electric cars is that they produce zero exhaust particulates and CO2 when driving. Not only that, but they also have a better carbon footprint over their lifetime than combustion vehicles. Do electric cars have a lower carbon footprint than petrol cars? All-electric cars don’t emit greenhouse gases that are harmful to the climate when driving. This means that in the short and long term, they help combat climate change and improve the air quality of life in towns and cities. For many drivers, this is the best reason for switching to an electric car. But CO2-free driving is just one side of the coin. Even before a combustion or electric vehicle hits the road, waste materials and greenhouse gases are generated during production, "
+ },
+ {
+  "id": "h224",
+  "url": "https://www.wikijournalclub.org/wiki/SELECT",
+  "host": "www.wikijournalclub.org",
+  "title": "SELECT - Wiki Journal Club",
+  "text": "SELECT PubMed • Full text • PDF • ClinicalTrials.gov Clinical Question Among adults with ASCVD and BMI ≥27 kg/m2 but no diabetes, does use of the GLP-1 agonist semaglutide lower risk of CV mortality, nonfatal MI, or nonfatal stroke when compared with placebo? Bottom Line Among adults with ASCVD and BMI ≥27 kg/m2 but no diabetes, semaglutide (a GLP-1 agonist) lowers risk of CV mortality, nonfatal MI, or nonfatal stroke when compared with placebo. Major Points GLP-1 agonists were originally developed for management of diabetes but were later shown to drive weight loss among individuals with obesity (see STEP 1, 2021). Persons with diabetes are at greater risk for CVD events, and the 2016 SUSTAIN-6 trial found the GLP-1 agonist semaglutide to be associated with lower risk of CVD events among adults with T2DM with high CVD risk when compared with placebo. Whether semaglutide similarly "
+ },
+ {
+  "id": "h225",
+  "url": "https://www2.sqlite.org/matrix/matrix_dwal_autocheckpoint.html",
+  "host": "www2.sqlite.org",
+  "title": "SQLite Requirement Matrix: wal_autocheckpoint.html",
+  "text": "R-38128-34102-03228-01716-42650-19152-18652-04810 tcl slt th3 src The sqlite3_wal_autocheckpoint(D,N) is a wrapper around sqlite3_wal_hook() that causes any database on database connection D to automatically checkpoint after committing a transaction if there are N or more frames in the write-ahead log file. /* IMP: R-38128-34102 */ # EVIDENCE-OF: R-38128-34102 The sqlite3_wal_autocheckpoint(D,N) is a # wrapper around sqlite3_wal_hook() that causes any database on database # connection D to automatically checkpoint after committing a # transaction if there are N or more frames in the write-ahead log file. R-26993-43540-10992-37102-45404-55683-60247-30594 tcl slt th3 src Passing zero or a negative value as the nFrame parameter disables automatic checkpoints entirely. /* IMP: R-26993-43540 */ # EVIDENCE-OF: R-26993-43540 Passing zero or a negative value as the # nFrame parameter disables "
+ },
+ {
+  "id": "h226",
+  "url": "https://www2.sqlite.org/matrix/news.html",
+  "host": "www2.sqlite.org",
+  "title": "Recent SQLite News",
+  "text": "Version 3.41.0 is a routine enhancement release. Version 3.40.1 is a patch release that fixes some obscure problems in version 3.40.0. The problems fixed have no impact on most applications. Upgrading is only necessary if you encounter problems. The two most important fixes are these: Fix the safe command-line option on the CLI so that it correctly disallows functions with side-effects. This is a bug in the CLI — not a bug in the SQLite library — and it only affects the --safe command-line option, making that option less than fully \"safe\". As the number of systems that use the --safe command-line option in the CLI is approximately zero, this is not considered an important bug. However, a third-party wrote a CVE against it which caused considerable angst among maintainers, so it seems good to get the fix into circulation sooner rather than wait on the next major release. The optional "
+ },
+ {
+  "id": "h227",
+  "url": "https://www3.sqlite.org/matrix/wal.html",
+  "host": "www3.sqlite.org",
+  "title": "Write-Ahead Logging",
+  "text": "The default method by which SQLite implements atomic commit and rollback is a rollback journal. Beginning with version 3.7.0 (2010-07-21), a new \"Write-Ahead Log\" option (hereafter referred to as \"WAL\") is available. There are advantages and disadvantages to using WAL instead of a rollback journal. Advantages include: But there are also disadvantages: The traditional rollback journal works by writing a copy of the original unchanged database content into a separate rollback journal file and then writing changes directly into the database file. In the event of a crash or ROLLBACK, the original content contained in the rollback journal is played back into the database file to revert the database file to its original state. The COMMIT occurs when the rollback journal is deleted. The WAL approach inverts this. The original content is preserved in the database file and the changes are "
+ },
+ {
+  "id": "h228",
+  "url": "https://www3.sqlite.org/wal.html",
+  "host": "www3.sqlite.org",
+  "title": "Write-Ahead Logging",
+  "text": "The default method by which SQLite implements atomic commit and rollback is a rollback journal. Beginning with version 3.7.0 (2010-07-21), a new \"Write-Ahead Log\" option (hereafter referred to as \"WAL\") is available. There are advantages and disadvantages to using WAL instead of a rollback journal. Advantages include: But there are also disadvantages: The traditional rollback journal works by writing a copy of the original unchanged database content into a separate rollback journal file and then writing changes directly into the database file. In the event of a crash or ROLLBACK, the original content contained in the rollback journal is played back into the database file to revert the database file to its original state. The COMMIT occurs when the rollback journal is deleted. The WAL approach inverts this. The original content is preserved in the database file and the changes are "
+ }
+]

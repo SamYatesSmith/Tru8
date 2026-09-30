@@ -2088,6 +2088,7 @@ async def run_pipeline_phase2(
     # =========================================================================
     # Stage 4.5 + 4.6: Classification + Distillation (run concurrently)
     # =========================================================================
+    from app.services.originator_review import copy_page_opening
     from app.services.text_provenance import (
         capture_text_provenance,
         finalize_distilled_payload,
@@ -2095,6 +2096,7 @@ async def run_pipeline_phase2(
 
     for claim in selected_claims:
         for item in (evidence or {}).get(str(claim.get("position", 0)), []):
+            copy_page_opening(item)
             capture_text_provenance(
                 item,
                 claim.get("text", ""),
@@ -2265,6 +2267,11 @@ async def run_pipeline_phase2(
         elapsed = (datetime.now(timezone.utc) - classify_distil_start).total_seconds()
         if _run_classify:
             stage_timings["classify"] = task_timings.get("classify", elapsed)
+            review_stats = getattr(
+                _stage_components.get("classifier"), "originator_review_stats", None
+            )
+            if review_stats and "seconds" in review_stats:
+                stage_timings["originator_review"] = review_stats["seconds"]
         if _run_distil:
             stage_timings["distil"] = task_timings.get("distil", elapsed)
 
@@ -2656,7 +2663,12 @@ async def run_pipeline_phase2(
                     from app.pipeline.evidence_classifier import EvidenceClassifier
 
                     classifier = EvidenceClassifier()
-                    new_evidence = await classifier.classify_batch(new_evidence)
+                    # No originator review inside Phase A's budget: a timeout
+                    # here cancels the claim's whole recovery pool, and these
+                    # items carry no page text (design §4.1).
+                    new_evidence = await classifier.classify_batch(
+                        new_evidence, review_originators=False
+                    )
                     for ev in new_evidence:
                         ev["receipt_status"] = "classified"
                     logger.info(

@@ -94,12 +94,14 @@ async def research_claim(claim: dict, element_ids: list[str], progress):
     )
     if not candidates:
         return cm, []
+    from app.services.originator_review import copy_page_opening
     from app.services.text_provenance import (
         capture_text_provenance,
         finalize_distilled_payload,
     )
 
     for candidate in candidates:
+        copy_page_opening(candidate)
         capture_text_provenance(candidate, claim["text"], cm["elements"])
     # Retriever-local IDs can repeat an original run's IDs. Resolve collisions
     # before mapping, without changing any existing references.

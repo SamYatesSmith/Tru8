@@ -3,7 +3,7 @@
   "captured_at": "2026-09-10T15:27:57.058228+00:00",
   "captured_with": "cc6fbd9",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py.",
+  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-09-09: counters re-captured after the full corpus re-record; hard_invariants and tolerance-0 pins RESTORED from the 2026-09-03 golden (the --update-golden capture had dropped them). Pins that fail on this recording are attributed in README. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by tmp/restore-curated-goldens.py. | 2026-09-10: counters re-captured after the full corpus re-record (decomposition specificity rule re-keyed every cassette); hard_invariants, notes and tolerances restored from the committed golden by backend/scripts/restore_curated_goldens.py. | 2026-09-30: tier_reporting 4 -> 9 when the originator review went on by default (ENABLE_ORIGINATOR_REVIEW): it lowers model-judged primaries that relay others' information to reporting. Measured flag-on replay; audit/2026-09-30_classify_originator_design.md §20-21.",
   "hard_invariants": {
     "must_have_url_substrings": [],
     "must_not_have_url_substrings": [],
@@ -51,7 +51,7 @@
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 4,
+      "value": 9,
       "tolerance": 4
     },
     "tier_primary": {

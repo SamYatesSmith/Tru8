@@ -1,0 +1,223 @@
+{
+ "date": "2026-09-30",
+ "result": "Revised by the founder the same day: 27 strong agree, 1 likely disagree (#28), 2 to inspect (#17, #30). Pass (<=3).",
+ "note_17": "boundary case: originating an analysis/model vs the underlying raw data",
+ "items": [
+  {
+   "sheet": 1,
+   "id": "h182",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 2,
+   "id": "h030",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 3,
+   "id": "h142",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 4,
+   "id": "h141",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 5,
+   "id": "h028",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 6,
+   "id": "h220",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 7,
+   "id": "h109",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 8,
+   "id": "h184",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 9,
+   "id": "h078",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 10,
+   "id": "h196",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 11,
+   "id": "h069",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 12,
+   "id": "h106",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 13,
+   "id": "h060",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 14,
+   "id": "h058",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 15,
+   "id": "h147",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 16,
+   "id": "h213",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 17,
+   "id": "h217",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true,
+   "inspect": true
+  },
+  {
+   "sheet": 18,
+   "id": "h043",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 19,
+   "id": "h094",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true,
+   "inspect": true
+  },
+  {
+   "sheet": 20,
+   "id": "h018",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 21,
+   "id": "h020",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 22,
+   "id": "h057",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true,
+   "inspect": true
+  },
+  {
+   "sheet": 23,
+   "id": "h007",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 24,
+   "id": "h029",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 25,
+   "id": "h072",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 26,
+   "id": "h194",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 27,
+   "id": "h222",
+   "v1_label": "originator",
+   "founder_label": "originator",
+   "agree": true
+  },
+  {
+   "sheet": 28,
+   "id": "h042",
+   "v1_label": "not_originator",
+   "founder_label": "originator",
+   "agree": false,
+   "confidence": "likely"
+  },
+  {
+   "sheet": 29,
+   "id": "h221",
+   "v1_label": "not_originator",
+   "founder_label": "not_originator",
+   "agree": true
+  },
+  {
+   "sheet": 30,
+   "id": "h064",
+   "v1_label": "unclear",
+   "founder_label": "unclear",
+   "agree": true,
+   "inspect": true
+  }
+ ],
+ "inspect_note": "#17: T&E originates the analysis/tool, not the emissions data. #19/#22: depends on whether the author is project-affiliated / an original maintainer statement. #28: depends on who authored the issue. #30: excerpt does not show original analysis; keep unclear."
+}

@@ -1,0 +1,26 @@
+[
+ {
+  "case": "n01_japan_population",
+  "check_id": "bc141140-bc7f-4686-ab47-b2e39908d11c",
+  "status": "completed",
+  "seconds": 55,
+  "cost_usd": 0.050691,
+  "llm_usd": 0.044691
+ },
+ {
+  "case": "n02_sea_level",
+  "check_id": "90752b7e-ef5e-4524-bc24-007dc4c30877",
+  "status": "completed",
+  "seconds": 64,
+  "cost_usd": 0.067129,
+  "llm_usd": 0.057129
+ },
+ {
+  "case": "n03_statins",
+  "check_id": "ab719083-e030-40ef-bf0a-daae8cc653ce",
+  "status": "completed",
+  "seconds": 53,
+  "cost_usd": 0.073306,
+  "llm_usd": 0.060306
+ }
+]

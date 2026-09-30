@@ -1,0 +1,299 @@
+[
+ {
+  "url": "https://www.stat.go.jp/english/data/jinsui/2024np/index.html",
+  "host": "www.stat.go.jp",
+  "title": "Statistics Bureau Home Page/Population Estimates/Current Population Estimates as of October 1, 2024",
+  "text": "Main contents start here Current Population Estimates as of October 1, 2024 is \"Portal Site of Official Statistics of Japan\" (external site) where you can browse statistics tables and database. Population Pyramid Summary of the Results - Current Population Estimates as of October 1, 2024 Population for Japan [Total Population] - The total population was 123,802 thousand, a decrease of 550 thousand compared with the previous year. The rate of decrease was 0.44 percent. The total population decreased for the fourteenth year in a row. - The male population was 60,233 thousand, a decrease of 260 thousand (0.43 percent), while the female population was 63,569 thousand, a decrease of 290 thousand (0.45 percent). - The natural change of the male population was negative for the twentieth year in a row, and that of the female population was negative for the sixteenth year in a row. - The migration change of the Japanese population was negative for the first time in two years, and that of the foreign population was positive for the three years in a row. [Population by Age Group] - The population under 15 years old was 13,830 thousand (11.2 percent of the total population). - The population a",
+  "input_kind": "page_opening",
+  "records": [
+   "n01_japan_population"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "path": "main",
+  "id": "n000"
+ },
+ {
+  "url": "https://www.e-stat.go.jp/en/stat-search/files?page=1&layout=datalist&lid=000001457290",
+  "host": "www.e-stat.go.jp",
+  "title": "Population Estimates Annual Report Yearly 2024 | File | Browse Statistics | Portal Site of Official Statistics of Japan",
+  "text": "- Japan Filtered by: File Population Estimates Population Estimates Yearly 2024 - Annual Report Back to Statistics list (Clear all) The target item is a required choice. List of datasets Back to survey results Copy URL CopiedView in list form |Statistics name |Population Estimates |Detail |Dataset category0 |Population Estimates |Dataset category1 |Annual Report |Frequency |Yearly |Survey date |2024 - Table number - Statistical table - Survey date - Update date - View / Download - Table number 1 - Population by Age (Single Years), Sex and Sex ratio - Total population, Japanese population, October 1, 2024Survey date 2024Update date 2025-04-14 - Table number 2 - Population by Age (Five-Year Groups) and Sex, Monthly Estimates - Total population, Japanese population, the First Day, Each MonthSurvey date 2024Update date 2025-04-14 - Table number 3 - Population and Percentage distribution by Age (Five-Year Groups) and Sex - Total population, October 1, Each YearSurvey date 2024Update date 2025-04-14 - Prefectures - Table number 4 - Population by Sex and Sex ratio for Prefectures - Total population, Japanese population, October 1, 2024Survey date 2024Update date 2025-04-14 - Table number ",
+  "input_kind": "page_opening",
+  "records": [
+   "n01_japan_population"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "path": "main",
+  "id": "n001"
+ },
+ {
+  "url": "https://www.climate.us/news-features/understanding-climate/climate-change-global-sea-level",
+  "host": "www.climate.us",
+  "title": "Climate change: global sea level",
+  "text": "Climate change: global sea level This page was last updated on Climate.gov in February 2025. Climate.us updates began in June 2026. Global mean sea level has risen at least 8–9 inches (21–24 centimeters) since 1880. The rising water level is mostly due to a combination of melt water from glaciers and ice sheets and thermal expansion of seawater as it warms. In 2024, global mean sea level was 105.8 millimeters (4.17 inches) above 1993 levels, making it the highest annual average in the satellite record (1993-present). In some ocean basins, sea level has risen as much as 6-8 inches (15-20 centimeters) since the start of the satellite record. Regional differences exist because of natural variability in the strength of winds and ocean currents, which influence how much and where the deeper layers of the ocean store heat. The global mean water level in the ocean rose by 0.14 inches (3.6 millimeters) per year from 2006–2015, which was 2.5 times the average rate of 0.06 inches (1.4 millimeters) per year throughout most of the twentieth century. By the end of the century, global mean sea level is likely to rise at least one foot (0.3 meters) above 2000 levels, even if greenhouse gas emissi",
+  "input_kind": "page_opening",
+  "records": [
+   "n02_sea_level"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "path": "main",
+  "id": "n002"
+ },
+ {
+  "url": "https://www.un.org/sites/un2.un.org/files/slr_technical_brief_26_aug_2024.pdf",
+  "host": "www.un.org",
+  "title": "in a warming world: (p. 3)",
+  "text": "",
+  "input_kind": "snippet",
+  "records": [
+   "n02_sea_level"
+  ],
+  "overlap": false,
+  "stored_type": "official_statement",
+  "path": "main",
+  "id": "n003"
+ },
+ {
+  "url": "https://climate.copernicus.eu/climate-indicators/sea-level",
+  "host": "climate.copernicus.eu",
+  "title": "Sea level",
+  "text": "Change in mean sea level is an essential indicator of our evolving climate, as it reflects both the thermal expansion of the ocean in response to its warming and the increase in ocean mass due to the melting of ice sheets and glaciers[1]. Long-term and interannual variations in sea level are observed by satellite altimetry at both global and regional scales. In coastal areas, sea level variations are superimposed on the local vertical land motion (either subsidence [R2] or uplift) and threaten ecosystems and communities. Long-term sea level rise is expected to aggravate coastal erosion, coastal flooding, and saltwater intrusion into coastal aquifers[2][R3]. Globe European regional seas Further reading - Notes [1] An overview of the change in sea level in a warming climate can be found in IPCC (2021). [2] Naturally-occurring underground freshwater reservoirs. [3] 90% of the values fall within the shaded area. [4] Corrections/adjustements were applied to account for: 1) the effect of the glacial isostatic adjustment (the ongoing movement of land, in response to the melting of historical ice sheets), 2) the wet tropospheric correction drift of Jason-3, 3) the Topex-A1 relative drift w",
+  "input_kind": "page_opening",
+  "records": [
+   "n02_sea_level"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "path": "main",
+  "id": "n004"
+ },
+ {
+  "url": "https://www.aviso.altimetry.fr/en/data/products/ocean-indicators-products/mean-sea-level.html",
+  "host": "www.aviso.altimetry.fr",
+  "title": "Mean Sea Level",
+  "text": "This release of the AVISO GMSL indicators includes several important changes regarding input data and processing software. For a detailed description of these changes and their impact, please refer to the release note, the data processing and geophysical corrections documentation, and in particular the technical note. Mean Sea Level As global warming progresses, one direct response of the climate system is rising sea levels. This increase is caused by two main factors: the thermal expansion of seawater due to ocean heat absorption and the addition of meltwater from land-based ice sheets and glaciers. Satellite altimetry provides precise monitoring of sea level rise, helping scientists understand climate change and its socioeconomic impacts. As a result, the Global Mean Sea Level (GMSL) has become a crucial indicator of climate change. Continuous altimetry observations, spanning from 1993 to the present, have established the GMSL rise as a key climate indicator. On the one hand, the global ocean absorbs over 90% of the excess heat accumulated in the climate system due to rising atmospheric greenhouse gas concentrations. Consequently, ocean temperatures rise, causing seawater to expa",
+  "input_kind": "page_opening",
+  "records": [
+   "n02_sea_level"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "path": "main",
+  "id": "n005"
+ },
+ {
+  "url": "https://www.cttcollaboration.org/",
+  "host": "www.cttcollaboration.org",
+  "title": "CTT Collaboration",
+  "text": "",
+  "input_kind": "snippet",
+  "records": [
+   "n03_statins"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "path": "main",
+  "id": "n006"
+ },
+ {
+  "url": "https://www.cttcollaboration.org/findings/people-at-low-risk-of-major-vascular-events",
+  "host": "www.cttcollaboration.org",
+  "title": "People at low risk of major vascular events — CTT Collaboration",
+  "text": "",
+  "input_kind": "snippet",
+  "records": [
+   "n03_statins"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "path": "main",
+  "id": "n007"
+ },
+ {
+  "url": "https://www.lipid.org/resource/the-use-of-statins-to-reduce-cardiovascular-risk-in-the-elderly/",
+  "host": "www.lipid.org",
+  "title": "Statins to Reduce CV Risk in the Elderly | NLA",
+  "text": "Introduction Human population studies have identified a number of major risk factors for the development of atherosclerotic cardiovascular disease (ASCVD). Of these, age is one of the more powerful. Another is the plasma concentration of low-density lipoprotein cholesterol (LDL-C). There is compelling and consistent evidence from clinical outcome trials that reducing the level of LDL-C with statins reduces the risk of having an ASCVD event. However, since most of the population studies and intervention trials have involved middleaged rather than elderly people, the question arises: How does LDL-C impact ASCVD in the elderly? In contrast to the robust and consistent positive relationship between LDL-C concentration and ASCVD in middleaged people, the relationship of LDL-C to ASCVD risk in older people is weaker1 and, in some studies, non-existent. While it is likely that the relationship between LDL-C and ASCVD in the elderly is weakened by the impact of age as a risk factor, the inconsistencies have raised a degree of doubt regarding the importance of targeting LDL-C in the elderly. However, in contrast to inconsistent results involving elderly people in observational population st",
+  "input_kind": "page_opening",
+  "records": [
+   "n03_statins"
+  ],
+  "overlap": false,
+  "stored_type": "academic",
+  "path": "main",
+  "id": "n008"
+ },
+ {
+  "url": "https://www.uptodate.com/contents/management-of-low-density-lipoprotein-cholesterol-ldl-c-in-the-secondary-prevention-of-cardiovascular-disease/print",
+  "host": "www.uptodate.com",
+  "title": "UpToDate",
+  "text": "",
+  "input_kind": "snippet",
+  "records": [
+   "n03_statins"
+  ],
+  "overlap": false,
+  "stored_type": "analysis",
+  "path": "main",
+  "id": "n009"
+ },
+ {
+  "url": "http://www.uptodate.com/contents/statins-actions-side-effects-and-administration/abstract/92,93",
+  "host": "www.uptodate.com",
+  "title": "UpToDate",
+  "text": "",
+  "input_kind": "snippet",
+  "records": [
+   "n03_statins"
+  ],
+  "overlap": false,
+  "stored_type": "analysis",
+  "path": "main",
+  "id": "n010"
+ },
+ {
+  "url": "https://artificialintelligenceact.eu/implementation-timeline/",
+  "host": "artificialintelligenceact.eu",
+  "title": "Implementation Timeline | EU Artificial Intelligence Act",
+  "text": "🔔 Alert: Huge hiring round at the EU AI Office; 40 new posts (tech, legal, ops, and more) dedicated to enforcing the AI Act | Express interest by 8 Sept, Midday CET Implementation Timeline This page lists all of the key dates you need to be aware of relating to the implementation of the EU AI Act. Related resources Tasks and Responbilities For a summary of all tasks and responsibilities assigned to the AI Office or Member States by the EU AI Act, see our blog posts and infographics on the topic. Historic Timeline For a timeline of all key events in the AI Act’s history so far, see our Historic Timeline of the AI Act. EU AI Act Newsletter If you want to be notified about significant updates to the Act and its implementation,",
+  "input_kind": "page_opening",
+  "records": [
+   "n04_eu_ai_act"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "id": "n011"
+ },
+ {
+  "url": "https://artificialintelligenceact.eu/the-act/",
+  "host": "artificialintelligenceact.eu",
+  "title": "The Act Texts | EU Artificial Intelligence Act",
+  "text": "🔔 Alert: Huge hiring round at the EU AI Office; 40 new posts (tech, legal, ops, and more) dedicated to enforcing the AI Act | Express interest by 8 Sept, Midday CET The Act Texts Official Journal (2024) The EU AI Act was published in the Official Journal (OJ) of the European Union on 12 July 2024. This is the final version of the text to be enforced. There are a few different ways that you can view the AI Act text: AI Act Explorer Browse the full text of the AI Act with our easy-to-use AI Act Explorer, available in multiple languages. Summary of the AI Act The complete AI Act is hundreds of pages long. See our concise summary of the whole document, written for those who wish to get up to speed quickly. Alternatively, you can view the full text of the Act on the web, as a HTML document, or as a PDF by using the official European Union web portal ‘EUR LEX’. These webpages for the Artificial Intelligence Act (Regulation (EU) 2024/1689), Official Journal version of 13 June 2024 are linked below. Please select your language: Bulgarianбългарски език CroatianHrvatski CzechČeský Jazyk DanishDansk DutchNederlands EstonianEesti FinnishSuomi FrenchFrançais GermanDeutsch GreekΕλληνικά Hungaria",
+  "input_kind": "page_opening",
+  "records": [
+   "n04_eu_ai_act"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "id": "n012"
+ },
+ {
+  "url": "https://docs.python.org/3/howto/free-threading-python.html",
+  "host": "docs.python.org",
+  "title": "Python support for free threading",
+  "text": "Python support for free threading¶ Starting with the 3.13 release, CPython has support for a build of Python called free threading where the global interpreter lock (GIL) is disabled. Free-threaded execution allows for full utilization of the available processing power by running threads in parallel on available CPU cores. While not all software will benefit from this automatically, programs designed with threading in mind will run faster on multi-core hardware. Some third-party packages, in particular ones with an extension module, may not be ready for use in a free-threaded build, and will re-enable the GIL. This document describes the implications of free threading for Python code. See C API Extension Support for Free Threading for information on how to write C extensions that support the free-threaded build. See also PEP 703 – Making the Global Interpreter Lock Optional in CPython for an overall description of free-threaded Python. Installation¶ Starting with Python 3.13, the official macOS and Windows installers optionally support installing free-threaded Python binaries. The installers are available at https://www.python.org/downloads/. For information on other platforms, see",
+  "input_kind": "page_opening",
+  "records": [
+   "n05_python_gil"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "id": "n013"
+ },
+ {
+  "url": "https://docs.python.org/3/whatsnew/3.14.html",
+  "host": "docs.python.org",
+  "title": "What’s new in Python 3.14",
+  "text": "What’s new in Python 3.14¶ - Editors: Adam Turner and Hugo van Kemenade This article explains the new features in Python 3.14, compared to 3.13. Python 3.14 was released on 7 October 2025. For full details, see the changelog. See also PEP 745 – Python 3.14 release schedule Summary – Release highlights¶ Python 3.14 is the latest stable release of the Python programming language, with a mix of changes to the language, the implementation, and the standard library. The biggest changes include template string literals, deferred evaluation of annotations, and support for subinterpreters in the standard library. The library changes include significantly improved capabilities for introspection in asyncio, support for Zstandard via a new compression.zstd module, syntax highlighting in the REPL, as well as the usual deprecations and removals, and improvements in user-friendliness and correctness. This article doesn’t attempt to provide a complete specification of all new features, but instead gives a convenient overview. For full details refer to the documentation, such as the Library Reference and Language Reference. To understand the complete implementation and design rationale for a chang",
+  "input_kind": "page_opening",
+  "records": [
+   "n05_python_gil"
+  ],
+  "overlap": false,
+  "stored_type": "official_statement",
+  "id": "n014"
+ },
+ {
+  "url": "https://docs.python.org/3/whatsnew/3.13.html",
+  "host": "docs.python.org",
+  "title": "What’s New In Python 3.13",
+  "text": "What’s New In Python 3.13¶ - Editors: Adam Turner and Thomas Wouters This article explains the new features in Python 3.13, compared to 3.12. Python 3.13 was released on October 7, 2024. For full details, see the changelog. See also PEP 719 – Python 3.13 Release Schedule Summary – Release Highlights¶ Python 3.13 is a stable release of the Python programming language, with a mix of changes to the language, the implementation and the standard library. The biggest changes include a new interactive interpreter, experimental support for running in a free-threaded mode (PEP 703), and a Just-In-Time compiler (PEP 744). Error messages continue to improve, with tracebacks now highlighted in color by default. The locals() builtin now has defined semantics for changing the returned mapping, and type parameters now support default values. The library changes contain removal of deprecated APIs and modules, as well as the usual improvements in user-friendliness and correctness. Several legacy standard library modules have now been removed following their deprecation in Python 3.11 (PEP 594). This article doesn’t attempt to provide a complete specification of all new features, but instead gives a",
+  "input_kind": "page_opening",
+  "records": [
+   "n05_python_gil"
+  ],
+  "overlap": false,
+  "stored_type": "official_statement",
+  "id": "n015"
+ },
+ {
+  "url": "https://codspeed.io/blog/state-of-python-3-13-performance-free-threading",
+  "host": "codspeed.io",
+  "title": "State of Python 3.13 Performance: Free-Threading",
+  "text": "State of Python 3.13 Performance: Free-Threading CPython 3.13 was released two weeks ago and this release is the most performance-oriented in some time. After a quick read of the release notes, a few things stand out for the impact they can have on the performance: - CPython can now run in free-threaded mode, with the global interpreter lock (GIL) disabled - a brand new just-in-time (JIT) compiler has been added - CPython now bundles the mimallocallocator out of the box Let's focus on the free-threaded mode in this article to see how to leverage this change and how it can impact the performance of Python applications by measuring performance with CodSpeed. ⏭️ The JIT and mimallocperformance will be covered in the next post. Stay tuned! Free-threaded CPython Free-threading is an experimental feature in Python 3.13 that allows CPython to run without the Global Interpreter Lock (GIL). The GIL is a mutex preventing multiple threads from executing Python bytecode simultaneously. This design choice has simplified CPython's memory management and made the C API easier to work with. However, it has also been one of the most significant barriers to utilizing modern multi-core processors effe",
+  "input_kind": "page_opening",
+  "records": [
+   "n05_python_gil"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "id": "n016"
+ },
+ {
+  "url": "https://py-free-threading.github.io/",
+  "host": "py-free-threading.github.io",
+  "title": "Python Free-Threading Guide",
+  "text": "Python Free-Threading Guide# Free-threaded CPython is here! Purpose of this site# This website serves as a centralized resource for Python package maintainers, as well as end users, interested in supporting or experimenting with free-threaded Python. It also tracks the compatibility status of packages that include native code here: It offers documentation and guidance for setting up a free-threaded Python development environment and getting code working under the free-threaded build. Lysandros Nikolaou and Nathan Goldbaum presented a talk at PyCon 2025 based on content covered by this guide. You can see a recording of the talk on YouTube. Status of Free-Threaded Python# After the acceptance by the Python Steering Council of PEP 703 - Making the Global Interpreter Lock Optional in CPython, CPython 3.13 shipped an experimental free-threaded build. With the acceptance of PEP 779 - Criteria for supported status for free-threaded Python, the free-threaded interpreter is no longer considered experimental starting in Python 3.14, although it is not yet the default interpreter build. Work is underway across the ecosystem to update packages to support free-threaded Python alongside improvem",
+  "input_kind": "page_opening",
+  "records": [
+   "n05_python_gil"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "id": "n017"
+ },
+ {
+  "url": "https://github.com/sgl-project/sglang/issues/22889",
+  "host": "github.com",
+  "title": "[Feature] Free-Threaded Python (3.14t / nogil) Support for SGLang · Issue #22889 · sgl-project/sglang",
+  "text": "- Notifications You must be signed in to change notification settings - Fork 9.2k - [Feature] Free-Threaded Python (3.14t / nogil) Support for SGLang #22889 Description Motivation CPython 3.13 introduced an experimental free-threaded build (PEP 703) that removes the Global Interpreter Lock (GIL). CPython 3.14t is the first release where this build is stable enough for production use, and the ecosystem of packages with free-threading wheels is growing rapidly. vLLM has demonstrated (vllm-project/vllm#28762) that a large-scale CUDA-accelerated serving framework can run under a free-threaded interpreter. SGLang shares a similar dependency footprint and architecture. Enabling free-threaded support would unlock true CPU-level parallelism in the Python layer — benefiting the tokenizer manager, scheduler, HTTP server, disaggregation controller, and other asyncio + thread-pool components that today serialize behind the GIL. This RFC tracks the dependency readiness, identifies the internal code changes needed, and proposes a phased plan to make uv pip install sglang work out of the box in a clean Python 3.14t environment on Linux x86-64 (CPU and CUDA). Background |Term |Meaning |3.14t |The ",
+  "input_kind": "page_opening",
+  "records": [
+   "n05_python_gil"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "id": "n018"
+ },
+ {
+  "url": "https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html",
+  "host": "doc.rust-lang.org",
+  "title": "References and Borrowing - The Rust Programming Language",
+  "text": "References and Borrowing The issue with the tuple code in Listing 4-5 is that we have to return the String to the calling function so that we can still use the String after the call to calculate_length, because the String was moved into calculate_length. Instead, we can provide a reference to the String value. A reference is like a pointer in that it’s an address we can follow to access the data stored at that address; that data is owned by some other variable. Unlike a pointer, a reference is guaranteed to point to a valid value of a particular type for the life of that reference. Here is how you would define and use a calculate_length function that has a reference to an object as a parameter instead of taking ownership of the value: First, notice that all the tuple code in the variable declaration and the function return value is gone. Second, note that we pass &s1 into calculate_length and, in its definition, we take &String rather than String. These ampersands represent references, and they allow you to refer to some value without taking ownership of it. Figure 4-6 depicts this concept. Note: The opposite of referencing by using & is dereferencing, which is accomplished with th",
+  "input_kind": "page_opening",
+  "records": [
+   "n06_rust_races"
+  ],
+  "overlap": false,
+  "stored_type": "analysis",
+  "id": "n019"
+ },
+ {
+  "url": "https://doc.rust-lang.org/nomicon/races.html",
+  "host": "doc.rust-lang.org",
+  "title": "Races - The Rustonomicon",
+  "text": "Data Races and Race Conditions Safe Rust guarantees an absence of data races, which are defined as: - two or more threads concurrently accessing a location of memory - one or more of them is a write - one or more of them is unsynchronized A data race has Undefined Behavior, and is therefore impossible to perform in Safe Rust. Data races are prevented mostly through Rust’s ownership system alone: it’s impossible to alias a mutable reference, so it’s impossible to perform a data race. Interior mutability makes this more complicated, which is largely why we have the Send and Sync traits (see the next section for more on this). However Rust does not prevent general race conditions. This is mathematically impossible in situations where you do not control the scheduler, which is true for the normal OS environment. If you do control preemption, it can be possible to prevent general races - this technique is used by frameworks such as RTIC. However, actually having control over scheduling is a very uncommon case. For this reason, it is considered “safe” for Rust to get deadlocked or do something nonsensical with incorrect synchronization: this is known as a general race condition or resour",
+  "input_kind": "page_opening",
+  "records": [
+   "n06_rust_races"
+  ],
+  "overlap": false,
+  "stored_type": "analysis",
+  "id": "n020"
+ },
+ {
+  "url": "https://phw.nhs.wales/reports/measles-surveillance-and-epidemiology/",
+  "host": "phw.nhs.wales",
+  "title": "Measles surveillance and epidemiology - Public Health Wales",
+  "text": "Measles surveillance and epidemiology - Surveillance Epidemiology Measles has been notifiable in England and Wales since 1940, and notifications varied between 160,000 and 800,000 cases per year, the peaks occurring in two-year cycles. Before the introduction of measles vaccination in 1968, around 100 children a year in England and Wales died from the disease. Measles notifications fell from 1968 until by the late 1980s, annual notifications had fallen to between just 50,000 and 100,000. Following the introduction of MMR vaccine in October 1988 and the achievement of coverage levels in excess of 90%, notifications of measles fell progressively to the lowest levels since records began and the spread of measles was effectively halted by the mid-1990s. However, 2006 saw an increase in the number of confirmed cases in the UK as whole and the first reported death from measles in the UK for 14 years. This increase continued throughout the following years, during 2012 there were 2,030 cases of confirmed measles in England and Wales with 118 in Wales. Between November 2012 and July 2013, a large outbreak of measles occurred in Wales. The outbreak was centred around the Swansea area, but af",
+  "input_kind": "page_opening",
+  "records": [
+   "n07_measles_england"
+  ],
+  "overlap": false,
+  "stored_type": "data",
+  "id": "n021"
+ }
+]

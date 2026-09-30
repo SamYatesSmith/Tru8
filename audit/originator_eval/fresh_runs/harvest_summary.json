@@ -1,0 +1,49 @@
+{
+ "claims": [
+  {
+   "case": "n04_eu_ai_act",
+   "check_id": "5a22cd69-f5b5-4e56-b5f6-2e61d103de46",
+   "status": "halted_after_classify",
+   "seconds": 36,
+   "new_candidates": 2,
+   "gemini_usd": 0.00858,
+   "serper_requests": 5
+  },
+  {
+   "case": "n05_python_gil",
+   "check_id": "e401194d-026c-41a3-b87a-0e9432a3c8eb",
+   "status": "halted_after_classify",
+   "seconds": 30,
+   "new_candidates": 6,
+   "gemini_usd": 0.01052,
+   "serper_requests": 6
+  },
+  {
+   "case": "n06_rust_races",
+   "check_id": "f2024a58-82fb-4d7b-a74a-bbcd8c72633c",
+   "status": "halted_after_classify",
+   "seconds": 27,
+   "new_candidates": 2,
+   "gemini_usd": 0.01046,
+   "serper_requests": 10
+  },
+  {
+   "case": "n07_measles_england",
+   "check_id": "9d9bc77a-b065-4c9a-ba99-e3c426266eae",
+   "status": "halted_after_classify",
+   "seconds": 25,
+   "new_candidates": 1,
+   "gemini_usd": 0.01067,
+   "serper_requests": 7
+  }
+ ],
+ "usage_by_model": {
+  "gemini-3.5-flash-lite": {
+   "input": 49775,
+   "output": 10122,
+   "thinking": 0
+  }
+ },
+ "gemini_usd": 0.0402,
+ "serper_requests": 28
+}

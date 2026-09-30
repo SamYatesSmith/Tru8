@@ -49,6 +49,15 @@ def compute_pipeline_fingerprint() -> str:
         config["structured_extraction_contract"] = "v1"
     if getattr(settings, "ENABLE_RELATIONSHIP_REVIEW", False):
         config["relationship_review_contract"] = "v1"
+    # `is True`: the model name joins the payload, so a truthy stand-in for
+    # the flag must not pull a non-string model into it.
+    if getattr(settings, "ENABLE_ORIGINATOR_REVIEW", False) is True:
+        from app.services.originator_review import CONTRACT
+
+        config["originator_review_contract"] = CONTRACT
+        config["originator_review_model"] = (
+            settings.ORIGINATOR_REVIEW_MODEL or settings.GOOGLE_LLM_MODEL
+        )
     return hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()[:12]
 
 

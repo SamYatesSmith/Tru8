@@ -1,0 +1,1147 @@
+[
+ {
+  "id": "h000",
+  "label": "not_originator",
+  "why": "Third-party RPM index page re-displaying SUSE's package metadata for SQLite."
+ },
+ {
+  "id": "h001",
+  "label": "not_originator",
+  "why": "EBSCO reference overview summarising Brexit events produced by others."
+ },
+ {
+  "id": "h002",
+  "label": "not_originator",
+  "why": "Aggregator explainer of SQLite WAL, a technology it does not make."
+ },
+ {
+  "id": "h003",
+  "label": "not_originator",
+  "why": "Calculator tool re-displaying AESO grid data and standard emission factors."
+ },
+ {
+  "id": "h004",
+  "label": "not_originator",
+  "why": "Third-party conda-forge packaging page for SQLite."
+ },
+ {
+  "id": "h005",
+  "label": "not_originator",
+  "why": "Popular-science explainer article about Venus hosted by a third party."
+ },
+ {
+  "id": "h006",
+  "label": "originator",
+  "why": "UCS presents findings from its own released analysis of EV emissions."
+ },
+ {
+  "id": "h007",
+  "label": "not_originator",
+  "why": "Textbook chapter explaining the history of Brazilian hyperinflation."
+ },
+ {
+  "id": "h008",
+  "label": "not_originator",
+  "why": "Third-party mirror of SQLite's release-log documentation."
+ },
+ {
+  "id": "h009",
+  "label": "originator",
+  "why": "The lab's own news blog quoting its lead author on its own study."
+ },
+ {
+  "id": "h010",
+  "label": "not_originator",
+  "why": "Explainer site summarising the Brexit transition period."
+ },
+ {
+  "id": "h011",
+  "label": "not_originator",
+  "why": "Copy of a parliamentary library briefing that summarises Brexit events and legislation."
+ },
+ {
+  "id": "h012",
+  "label": "not_originator",
+  "why": "Generic inflation calculator and explainer."
+ },
+ {
+  "id": "h013",
+  "label": "not_originator",
+  "why": "Currency firm reporting the Bank of England's rate decision."
+ },
+ {
+  "id": "h014",
+  "label": "not_originator",
+  "why": "News site reporting a customs department's announcement."
+ },
+ {
+  "id": "h015",
+  "label": "originator",
+  "why": "Publishes its own model-derived market-implied rate probabilities."
+ },
+ {
+  "id": "h016",
+  "label": "not_originator",
+  "why": "Advocacy explainer citing a JD Power survey and others' figures."
+ },
+ {
+  "id": "h017",
+  "label": "not_originator",
+  "why": "Chinese third-party copy of SQLite's WAL documentation."
+ },
+ {
+  "id": "h018",
+  "label": "not_originator",
+  "why": "Third-party tutorial on SQLite PRAGMA settings."
+ },
+ {
+  "id": "h019",
+  "label": "not_originator",
+  "why": "Third-party tutorial on SQLite WAL mode."
+ },
+ {
+  "id": "h020",
+  "label": "not_originator",
+  "why": "Community Chocolatey packaging page for SQLite."
+ },
+ {
+  "id": "h021",
+  "label": "not_originator",
+  "why": "Database encyclopedia entry describing Dqlite."
+ },
+ {
+  "id": "h022",
+  "label": "not_originator",
+  "why": "Calendar re-displaying central banks' meeting dates and rates."
+ },
+ {
+  "id": "h023",
+  "label": "originator",
+  "why": "DecentDB's own documentation of its own WAL implementation."
+ },
+ {
+  "id": "h024",
+  "label": "not_originator",
+  "why": "AI-generated third-party wiki explaining SQLite's source code."
+ },
+ {
+  "id": "h025",
+  "label": "not_originator",
+  "why": "Community blog post explaining SQLite journaling."
+ },
+ {
+  "id": "h026",
+  "label": "originator",
+  "why": "Dovecot documents its own SQLite configuration settings."
+ },
+ {
+  "id": "h027",
+  "label": "originator",
+  "why": "Flutter's own release notes for its own product."
+ },
+ {
+  "id": "h028",
+  "label": "originator",
+  "why": "The crate authors' own documentation of their own library."
+ },
+ {
+  "id": "h029",
+  "label": "not_originator",
+  "why": "Mainly a generic explainer of SQLite's WAL feature, which Xojo does not make."
+ },
+ {
+  "id": "h030",
+  "label": "originator",
+  "why": "Research abstract reporting results of the authors' own study."
+ },
+ {
+  "id": "h031",
+  "label": "originator",
+  "why": "Journal research article reporting an analysis of trial data by its authors."
+ },
+ {
+  "id": "h032",
+  "label": "originator",
+  "why": "Presents its own computed regime statistics built from 113 years of CPI data."
+ },
+ {
+  "id": "h033",
+  "label": "not_originator",
+  "why": "Position paper reviewing existing evidence on non-exhaust emissions."
+ },
+ {
+  "id": "h034",
+  "label": "originator",
+  "why": "ESA describing a mission in which it is a partner."
+ },
+ {
+  "id": "h035",
+  "label": "originator",
+  "why": "ESA/Webb describing its own mission's hardware."
+ },
+ {
+  "id": "h036",
+  "label": "originator",
+  "why": "ESA/Webb image release for its own partner mission."
+ },
+ {
+  "id": "h037",
+  "label": "originator",
+  "why": "Company describing its own randomised clinical trial."
+ },
+ {
+  "id": "h038",
+  "label": "not_originator",
+  "why": "Educational explainer on the price level."
+ },
+ {
+  "id": "h039",
+  "label": "not_originator",
+  "why": "Third-party file-format reference explaining SQLite WAL files."
+ },
+ {
+  "id": "h040",
+  "label": "not_originator",
+  "why": "Forum post by a user relaying SQLite's version-numbering scheme."
+ },
+ {
+  "id": "h041",
+  "label": "not_originator",
+  "why": "User on a forum asking about a possible bug; not a maintainer speaking."
+ },
+ {
+  "id": "h042",
+  "label": "originator",
+  "why": "Project team issue describing a proposed change to its own code."
+ },
+ {
+  "id": "h043",
+  "label": "originator",
+  "why": "Project README documenting its own software."
+ },
+ {
+  "id": "h044",
+  "label": "originator",
+  "why": "Project's own roadmap issue scoping a feature of its own code."
+ },
+ {
+  "id": "h045",
+  "label": "unclear",
+  "why": "Issue about the project's own code, but the text does not show whether a maintainer or outsider wrote it."
+ },
+ {
+  "id": "h046",
+  "label": "unclear",
+  "why": "Issue proposing a fix, but the speaker's relation to the project is not shown."
+ },
+ {
+  "id": "h047",
+  "label": "not_originator",
+  "why": "User question on an issue tracker, not a maintainer statement."
+ },
+ {
+  "id": "h048",
+  "label": "not_originator",
+  "why": "Bug report by a user, not a maintainer."
+ },
+ {
+  "id": "h049",
+  "label": "unclear",
+  "why": "Feature request with a workaround; cannot tell whether the author is a maintainer."
+ },
+ {
+  "id": "h050",
+  "label": "not_originator",
+  "why": "Financial outlet listing central banks' rate decisions."
+ },
+ {
+  "id": "h051",
+  "label": "not_originator",
+  "why": "Language textbook page."
+ },
+ {
+  "id": "h052",
+  "label": "not_originator",
+  "why": "Mailing-list question from a user, not a SQLite developer."
+ },
+ {
+  "id": "h053",
+  "label": "originator",
+  "why": "SQLite developers announcing their own 3.7.0 release on their mailing list."
+ },
+ {
+  "id": "h054",
+  "label": "unclear",
+  "why": "Audio description of an artwork; too little to tell whose information it is."
+ },
+ {
+  "id": "h055",
+  "label": "not_originator",
+  "why": "Review article synthesising others' creatine research."
+ },
+ {
+  "id": "h056",
+  "label": "unclear",
+  "why": "Only a reference title is visible; cannot tell what the document presents."
+ },
+ {
+  "id": "h057",
+  "label": "not_originator",
+  "why": "Mailing-list digest relaying upstream SQLite changelog items."
+ },
+ {
+  "id": "h058",
+  "label": "originator",
+  "why": "Litestream's own documentation of its own product."
+ },
+ {
+  "id": "h059",
+  "label": "originator",
+  "why": "Marshmallow's own project documentation."
+ },
+ {
+  "id": "h060",
+  "label": "originator",
+  "why": "Copy of the original SELECT trial paper."
+ },
+ {
+  "id": "h061",
+  "label": "not_originator",
+  "why": "Review write-up of others' research on creatine."
+ },
+ {
+  "id": "h062",
+  "label": "originator",
+  "why": "Institution's press release on a trial led by its own physician."
+ },
+ {
+  "id": "h063",
+  "label": "not_originator",
+  "why": "AHA news release summarising a trial it did not run."
+ },
+ {
+  "id": "h064",
+  "label": "unclear",
+  "why": "Student paper calling itself a study, but unclear whether it produces new data or reviews literature."
+ },
+ {
+  "id": "h065",
+  "label": "originator",
+  "why": "Copy of the Ugandan official national clinical guidelines."
+ },
+ {
+  "id": "h066",
+  "label": "not_originator",
+  "why": "Profile page re-displaying JWST facts."
+ },
+ {
+  "id": "h067",
+  "label": "originator",
+  "why": "Compiler's own dataset of the JWST launch timeline."
+ },
+ {
+  "id": "h068",
+  "label": "originator",
+  "why": "University record of its researchers' own study."
+ },
+ {
+  "id": "h069",
+  "label": "originator",
+  "why": "Prediction market showing its own traded odds."
+ },
+ {
+  "id": "h070",
+  "label": "originator",
+  "why": "Publishes its own market-implied rate probabilities computed from OIS pricing."
+ },
+ {
+  "id": "h071",
+  "label": "originator",
+  "why": "Publisher's own standard treatment manual."
+ },
+ {
+  "id": "h072",
+  "label": "originator",
+  "why": "Robinhood's own prediction-market contract prices."
+ },
+ {
+  "id": "h073",
+  "label": "originator",
+  "why": "rqlite's own documentation."
+ },
+ {
+  "id": "h074",
+  "label": "originator",
+  "why": "rqlite's own documentation."
+ },
+ {
+  "id": "h075",
+  "label": "not_originator",
+  "why": "Narrative literature review."
+ },
+ {
+  "id": "h076",
+  "label": "originator",
+  "why": "WTO's own regional trade agreement database record."
+ },
+ {
+  "id": "h077",
+  "label": "originator",
+  "why": "WTO's own regional trade agreement database record."
+ },
+ {
+  "id": "h078",
+  "label": "not_originator",
+  "why": "Textbook section explaining price-level changes."
+ },
+ {
+  "id": "h079",
+  "label": "originator",
+  "why": "ESA's own mission portal for JWST."
+ },
+ {
+  "id": "h080",
+  "label": "originator",
+  "why": "ESA fact sheet on a mission it co-runs."
+ },
+ {
+  "id": "h081",
+  "label": "originator",
+  "why": "ESA presenting data from its own Venus Express spacecraft."
+ },
+ {
+  "id": "h082",
+  "label": "originator",
+  "why": "ESA reporting science from its own Venus Express mission."
+ },
+ {
+  "id": "h083",
+  "label": "not_originator",
+  "why": "Calculator re-displaying CPI figures."
+ },
+ {
+  "id": "h084",
+  "label": "not_originator",
+  "why": "Third-party guide explaining SQLite WAL."
+ },
+ {
+  "id": "h085",
+  "label": "not_originator",
+  "why": "Mirror of a user's mailing-list question."
+ },
+ {
+  "id": "h086",
+  "label": "originator",
+  "why": "SQLite's own API documentation."
+ },
+ {
+  "id": "h087",
+  "label": "originator",
+  "why": "SQLite's own API documentation."
+ },
+ {
+  "id": "h088",
+  "label": "originator",
+  "why": "SQLite's own release history."
+ },
+ {
+  "id": "h089",
+  "label": "originator",
+  "why": "Thread where SQLite's lead developer answers about SQLite's own behaviour."
+ },
+ {
+  "id": "h090",
+  "label": "not_originator",
+  "why": "Forum thread of user question and community reply, not maintainers."
+ },
+ {
+  "id": "h091",
+  "label": "unclear",
+  "why": "Forum replies whose speakers are not identified as maintainers or outsiders."
+ },
+ {
+  "id": "h092",
+  "label": "not_originator",
+  "why": "User asking for help on the forum."
+ },
+ {
+  "id": "h093",
+  "label": "not_originator",
+  "why": "User question with a community member's reply."
+ },
+ {
+  "id": "h094",
+  "label": "unclear",
+  "why": "Forum reply whose author is not shown."
+ },
+ {
+  "id": "h095",
+  "label": "not_originator",
+  "why": "User question answered by a community member."
+ },
+ {
+  "id": "h096",
+  "label": "not_originator",
+  "why": "User report of WAL growth on the forum."
+ },
+ {
+  "id": "h097",
+  "label": "originator",
+  "why": "Thread where SQLite's lead developer answers about SQLite's own behaviour."
+ },
+ {
+  "id": "h098",
+  "label": "not_originator",
+  "why": "User question answered by a community member."
+ },
+ {
+  "id": "h099",
+  "label": "unclear",
+  "why": "Forum thread fragment; the visible speaker is a user, the earlier speaker is unidentified."
+ },
+ {
+  "id": "h100",
+  "label": "not_originator",
+  "why": "User report of WAL growth on the forum."
+ },
+ {
+  "id": "h101",
+  "label": "not_originator",
+  "why": "User bug report marked not-a-bug."
+ },
+ {
+  "id": "h102",
+  "label": "not_originator",
+  "why": "User question on the forum."
+ },
+ {
+  "id": "h103",
+  "label": "not_originator",
+  "why": "User question on the forum."
+ },
+ {
+  "id": "h104",
+  "label": "not_originator",
+  "why": "User question on the forum."
+ },
+ {
+  "id": "h105",
+  "label": "not_originator",
+  "why": "User question on the forum."
+ },
+ {
+  "id": "h106",
+  "label": "originator",
+  "why": "SQLite's own design notes for wal2 mode."
+ },
+ {
+  "id": "h107",
+  "label": "originator",
+  "why": "SQLite's own documentation."
+ },
+ {
+  "id": "h108",
+  "label": "originator",
+  "why": "SQLite's own news page."
+ },
+ {
+  "id": "h109",
+  "label": "originator",
+  "why": "SQLite's own news page."
+ },
+ {
+  "id": "h110",
+  "label": "originator",
+  "why": "SQLite's own documentation."
+ },
+ {
+  "id": "h111",
+  "label": "originator",
+  "why": "SQLite's own release log."
+ },
+ {
+  "id": "h112",
+  "label": "originator",
+  "why": "SQLite's own release log."
+ },
+ {
+  "id": "h113",
+  "label": "originator",
+  "why": "SQLite's own documentation."
+ },
+ {
+  "id": "h114",
+  "label": "originator",
+  "why": "Search results over SQLite's own documentation."
+ },
+ {
+  "id": "h115",
+  "label": "originator",
+  "why": "SQLite's own documentation."
+ },
+ {
+  "id": "h116",
+  "label": "not_originator",
+  "why": "Tool re-displaying the Bank of England base rate."
+ },
+ {
+  "id": "h117",
+  "label": "not_originator",
+  "why": "Third-party repository copy of SQLite's release history."
+ },
+ {
+  "id": "h118",
+  "label": "not_originator",
+  "why": "Package index re-displaying a project's README."
+ },
+ {
+  "id": "h119",
+  "label": "not_originator",
+  "why": "Blog summarising Novo Nordisk's trial results."
+ },
+ {
+  "id": "h120",
+  "label": "originator",
+  "why": "SQLite team's System.Data.SQLite hosting its own documentation."
+ },
+ {
+  "id": "h121",
+  "label": "originator",
+  "why": "System.Data.SQLite's own source documentation."
+ },
+ {
+  "id": "h122",
+  "label": "not_originator",
+  "why": "Tax summary passing on Brexit facts."
+ },
+ {
+  "id": "h123",
+  "label": "originator",
+  "why": "ICCT press release on its own new study."
+ },
+ {
+  "id": "h124",
+  "label": "originator",
+  "why": "ICCT's own life-cycle assessment white paper."
+ },
+ {
+  "id": "h125",
+  "label": "originator",
+  "why": "ICCT's own analysis briefing with its own findings."
+ },
+ {
+  "id": "h126",
+  "label": "originator",
+  "why": "ICCT's own LCA report."
+ },
+ {
+  "id": "h127",
+  "label": "originator",
+  "why": "ICCT's own assessment report."
+ },
+ {
+  "id": "h128",
+  "label": "originator",
+  "why": "ICCT blog explaining its own research findings."
+ },
+ {
+  "id": "h129",
+  "label": "not_originator",
+  "why": "Calendar re-displaying central banks' meeting dates."
+ },
+ {
+  "id": "h130",
+  "label": "originator",
+  "why": "Turso's own release notes."
+ },
+ {
+  "id": "h131",
+  "label": "not_originator",
+  "why": "Legal glossary entry."
+ },
+ {
+  "id": "h132",
+  "label": "not_originator",
+  "why": "Legal glossary entry."
+ },
+ {
+  "id": "h133",
+  "label": "not_originator",
+  "why": "Legal glossary entry."
+ },
+ {
+  "id": "h134",
+  "label": "not_originator",
+  "why": "Re-displays BLS CPI figures with explanation."
+ },
+ {
+  "id": "h135",
+  "label": "not_originator",
+  "why": "Third-party copy of SQLite's WAL page."
+ },
+ {
+  "id": "h136",
+  "label": "originator",
+  "why": "Journal article presenting its own lifecycle assessment."
+ },
+ {
+  "id": "h137",
+  "label": "not_originator",
+  "why": "ACC summary of the SELECT trial's results."
+ },
+ {
+  "id": "h138",
+  "label": "not_originator",
+  "why": "ACC trial summary of SELECT."
+ },
+ {
+  "id": "h139",
+  "label": "not_originator",
+  "why": "ACC journal scan summarising a published analysis."
+ },
+ {
+  "id": "h140",
+  "label": "not_originator",
+  "why": "Encyclopedia entry on Venus temperatures."
+ },
+ {
+  "id": "h141",
+  "label": "not_originator",
+  "why": "Daily market commentary relaying market moves."
+ },
+ {
+  "id": "h142",
+  "label": "not_originator",
+  "why": "Foundation report reviewing others' creatine studies."
+ },
+ {
+  "id": "h143",
+  "label": "originator",
+  "why": "BAE Systems describing its own work on the Webb telescope."
+ },
+ {
+  "id": "h144",
+  "label": "not_originator",
+  "why": "Bank of Canada explainer on price level vs inflation."
+ },
+ {
+  "id": "h145",
+  "label": "originator",
+  "why": "Publishes its own OIS-derived implied rate path."
+ },
+ {
+  "id": "h146",
+  "label": "not_originator",
+  "why": "Encyclopedia entry on Brexit."
+ },
+ {
+  "id": "h147",
+  "label": "not_originator",
+  "why": "Journal club summary of the SELECT trial."
+ },
+ {
+  "id": "h148",
+  "label": "not_originator",
+  "why": "Citizen information explainer on Brexit."
+ },
+ {
+  "id": "h149",
+  "label": "not_originator",
+  "why": "Educational Q&A listing planetary temperatures."
+ },
+ {
+  "id": "h150",
+  "label": "not_originator",
+  "why": "Explainer dossier on Brexit and social protection."
+ },
+ {
+  "id": "h151",
+  "label": "not_originator",
+  "why": "Cleveland Fed explainer on measuring inflation."
+ },
+ {
+  "id": "h152",
+  "label": "not_originator",
+  "why": "Cleveland Fed explainer video on price level vs inflation."
+ },
+ {
+  "id": "h153",
+  "label": "not_originator",
+  "why": "Critical review of existing evidence."
+ },
+ {
+  "id": "h154",
+  "label": "not_originator",
+  "why": "DNB explainer on inflation and prices."
+ },
+ {
+  "id": "h155",
+  "label": "not_originator",
+  "why": "News write-up of a published SELECT analysis."
+ },
+ {
+  "id": "h156",
+  "label": "not_originator",
+  "why": "Review article on photostimulation therapy evidence."
+ },
+ {
+  "id": "h157",
+  "label": "originator",
+  "why": "Drupal change record describing its own decision to enable WAL."
+ },
+ {
+  "id": "h158",
+  "label": "not_originator",
+  "why": "Reference encyclopedia entry on Venus's atmosphere."
+ },
+ {
+  "id": "h159",
+  "label": "not_originator",
+  "why": "EFTA news item relaying excess mortality figures."
+ },
+ {
+  "id": "h160",
+  "label": "originator",
+  "why": "Journal article presenting the authors' own empirical analysis."
+ },
+ {
+  "id": "h161",
+  "label": "not_originator",
+  "why": "Mission profile compiled from others' information."
+ },
+ {
+  "id": "h162",
+  "label": "originator",
+  "why": "ESA reporting results from its own Venus Express mission."
+ },
+ {
+  "id": "h163",
+  "label": "originator",
+  "why": "EuroMOMO's own pooled excess mortality estimates."
+ },
+ {
+  "id": "h164",
+  "label": "originator",
+  "why": "FCA statement about its own position and actions at the end of transition."
+ },
+ {
+  "id": "h165",
+  "label": "not_originator",
+  "why": "Classroom activity teaching about inflation."
+ },
+ {
+  "id": "h166",
+  "label": "originator",
+  "why": "Its own inflation forecasts."
+ },
+ {
+  "id": "h167",
+  "label": "not_originator",
+  "why": "Ports index relaying SQLite's changelog."
+ },
+ {
+  "id": "h168",
+  "label": "not_originator",
+  "why": "Article discussing Sweden's excess mortality using others' data."
+ },
+ {
+  "id": "h169",
+  "label": "not_originator",
+  "why": "Review of 25 years of creatine research."
+ },
+ {
+  "id": "h170",
+  "label": "originator",
+  "why": "Record of a study computing its own excess mortality estimates."
+ },
+ {
+  "id": "h171",
+  "label": "originator",
+  "why": "IEA's own chart of its life-cycle analysis."
+ },
+ {
+  "id": "h172",
+  "label": "originator",
+  "why": "IEA's own life-cycle assessment calculator."
+ },
+ {
+  "id": "h173",
+  "label": "originator",
+  "why": "IEA's own outlook projections."
+ },
+ {
+  "id": "h174",
+  "label": "not_originator",
+  "why": "Institute for Government explainer."
+ },
+ {
+  "id": "h175",
+  "label": "not_originator",
+  "why": "Institute for Government explainer."
+ },
+ {
+  "id": "h176",
+  "label": "not_originator",
+  "why": "Pharmacy summary of the SELECT trial."
+ },
+ {
+  "id": "h177",
+  "label": "originator",
+  "why": "Journal article reporting an analysis of trial data."
+ },
+ {
+  "id": "h178",
+  "label": "originator",
+  "why": "Research article with its own analysis."
+ },
+ {
+  "id": "h179",
+  "label": "not_originator",
+  "why": "Review of methodological issues in the literature."
+ },
+ {
+  "id": "h180",
+  "label": "not_originator",
+  "why": "Educational timeline of JWST history."
+ },
+ {
+  "id": "h181",
+  "label": "not_originator",
+  "why": "Explainer of the Trade and Cooperation Agreement."
+ },
+ {
+  "id": "h182",
+  "label": "not_originator",
+  "why": "Legal practice note summarising Brexit timeline."
+ },
+ {
+  "id": "h183",
+  "label": "originator",
+  "why": "Lumafield's own CT scans of products."
+ },
+ {
+  "id": "h184",
+  "label": "not_originator",
+  "why": "Clinical reference article on Wilson disease."
+ },
+ {
+  "id": "h185",
+  "label": "not_originator",
+  "why": "Comparison site relaying the base rate."
+ },
+ {
+  "id": "h186",
+  "label": "not_originator",
+  "why": "Adviser site re-displaying Santander's rates."
+ },
+ {
+  "id": "h187",
+  "label": "originator",
+  "why": "NAO's own audit report."
+ },
+ {
+  "id": "h188",
+  "label": "not_originator",
+  "why": "Reference list citing others' work."
+ },
+ {
+  "id": "h189",
+  "label": "originator",
+  "why": "NICE announcing its own recommendation."
+ },
+ {
+  "id": "h190",
+  "label": "originator",
+  "why": "Novo Nordisk presenting its own SELECT trial."
+ },
+ {
+  "id": "h191",
+  "label": "originator",
+  "why": "Novo Nordisk's own information on its SELECT trial."
+ },
+ {
+  "id": "h192",
+  "label": "not_originator",
+  "why": "Book reference entry explaining a SQLite pragma."
+ },
+ {
+  "id": "h193",
+  "label": "not_originator",
+  "why": "Historical account summarising JWST's development."
+ },
+ {
+  "id": "h194",
+  "label": "not_originator",
+  "why": "Explainer on inflation using others' figures."
+ },
+ {
+  "id": "h195",
+  "label": "not_originator",
+  "why": "Planetary Society explainer on JWST."
+ },
+ {
+  "id": "h196",
+  "label": "not_originator",
+  "why": "Planetary Society explainer on Venus."
+ },
+ {
+  "id": "h197",
+  "label": "originator",
+  "why": "Company presenting results for its own product."
+ },
+ {
+  "id": "h198",
+  "label": "originator",
+  "why": "Novo Nordisk press release on its own study."
+ },
+ {
+  "id": "h199",
+  "label": "not_originator",
+  "why": "Re-displays central bank rates and yields."
+ },
+ {
+  "id": "h200",
+  "label": "originator",
+  "why": "Conference paper on the authors' own JWST testing work."
+ },
+ {
+  "id": "h201",
+  "label": "not_originator",
+  "why": "Historical review of JWST architecture."
+ },
+ {
+  "id": "h202",
+  "label": "originator",
+  "why": "SQLite's own release history."
+ },
+ {
+  "id": "h203",
+  "label": "originator",
+  "why": "SQLite's own API documentation."
+ },
+ {
+  "id": "h204",
+  "label": "originator",
+  "why": "SQLite's own release chronology."
+ },
+ {
+  "id": "h205",
+  "label": "originator",
+  "why": "SQLite's own file format documentation."
+ },
+ {
+  "id": "h206",
+  "label": "originator",
+  "why": "SQLite's own documentation."
+ },
+ {
+  "id": "h207",
+  "label": "originator",
+  "why": "SQLite's own documentation."
+ },
+ {
+  "id": "h208",
+  "label": "originator",
+  "why": "SQLite's own documentation."
+ },
+ {
+  "id": "h209",
+  "label": "originator",
+  "why": "SQLite's own documentation."
+ },
+ {
+  "id": "h210",
+  "label": "not_originator",
+  "why": "Third-party newsletter explaining SQLite checkpoints."
+ },
+ {
+  "id": "h211",
+  "label": "not_originator",
+  "why": "St. Louis Fed explainer."
+ },
+ {
+  "id": "h212",
+  "label": "not_originator",
+  "why": "St. Louis Fed explainer."
+ },
+ {
+  "id": "h213",
+  "label": "not_originator",
+  "why": "St. Louis Fed explainer."
+ },
+ {
+  "id": "h214",
+  "label": "not_originator",
+  "why": "Generic calculator."
+ },
+ {
+  "id": "h215",
+  "label": "originator",
+  "why": "Vendor's own revision history of its product."
+ },
+ {
+  "id": "h216",
+  "label": "not_originator",
+  "why": "Article describing JWST, a NASA mission."
+ },
+ {
+  "id": "h217",
+  "label": "originator",
+  "why": "T&E presents results of its own analysis tool."
+ },
+ {
+  "id": "h218",
+  "label": "originator",
+  "why": "T&E presents results of its own lifecycle analysis."
+ },
+ {
+  "id": "h219",
+  "label": "not_originator",
+  "why": "Trial listing site re-displaying a registry entry."
+ },
+ {
+  "id": "h220",
+  "label": "originator",
+  "why": "UCS presents its own review and findings."
+ },
+ {
+  "id": "h221",
+  "label": "not_originator",
+  "why": "Calendar listing others' scheduled events."
+ },
+ {
+  "id": "h222",
+  "label": "originator",
+  "why": "Research paper presenting the authors' own system."
+ },
+ {
+  "id": "h223",
+  "label": "not_originator",
+  "why": "Carmaker explainer on EV carbon footprints generally."
+ },
+ {
+  "id": "h224",
+  "label": "not_originator",
+  "why": "Wiki journal club summary of SELECT."
+ },
+ {
+  "id": "h225",
+  "label": "originator",
+  "why": "SQLite's own requirements matrix."
+ },
+ {
+  "id": "h226",
+  "label": "originator",
+  "why": "SQLite's own news page."
+ },
+ {
+  "id": "h227",
+  "label": "originator",
+  "why": "SQLite's own documentation."
+ },
+ {
+  "id": "h228",
+  "label": "originator",
+  "why": "SQLite's own documentation."
+ }
+]

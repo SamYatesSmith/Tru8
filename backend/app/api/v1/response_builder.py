@@ -100,8 +100,15 @@ def _convert_element(elem: dict) -> dict:
     return result
 
 
-def _serialize_evidence(ev, include_factcheck_detail: bool = False) -> dict:
-    """Serialize an Evidence model instance to camelCase API dict."""
+def _serialize_evidence(
+    ev,
+    include_factcheck_detail: bool = False,
+    include_originator_review: bool = False,
+) -> dict:
+    """Serialize an Evidence model instance to camelCase API dict.
+
+    ``include_originator_review``: the owner/agent payload carries the
+    originator review's receipt (model free text: never on the public page)."""
     result = {
         "id": ev.id,
         "evidenceId": ev.evidence_id,
@@ -128,6 +135,10 @@ def _serialize_evidence(ev, include_factcheck_detail: bool = False) -> dict:
         # Date provenance (F2): page_metadata|engine|url_inferred_suspect|api_adapter
         "dateBasis": ev.date_basis,
     }
+    if include_originator_review:
+        metadata = ev.api_metadata if isinstance(ev.api_metadata, dict) else {}
+        if metadata.get("originator_review"):
+            result["originatorReview"] = metadata["originator_review"]
     # #14: surface publisher + rating ONLY for a fact-check confirmed to be
     # about THIS claim (parsed successfully AND above the relevance threshold).
     # Prevents attributing a publisher's verdict on a different claim to ours.
@@ -360,7 +371,10 @@ async def _load_claims_data(check_id: str, session: AsyncSession, snapshot_check
                 "sourceTitle": claim.source_title,
                 "sourceUrl": claim.source_url,
                 "sourcesReviewedCount": raw_counts_by_position.get(claim.position, 0),
-                "evidence": [_serialize_evidence(ev) for ev in evidence],
+                "evidence": [
+                    _serialize_evidence(ev, include_originator_review=True)
+                    for ev in evidence
+                ],
             }
         )
     if snapshot_check is not None:

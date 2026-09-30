@@ -15,6 +15,7 @@ Canonical doc: audit/pipeline-issues/fireside_discussion.md
 import json
 import logging
 import re
+import time
 from urllib.parse import urlparse
 from collections import Counter
 from typing import Any, Dict, List, Optional, Tuple
@@ -22,6 +23,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import httpx
 
 from app.core.config import settings
+from app.services import originator_review
 from app.services.google_ai import call_google_ai, call_google_ai_with_usage
 
 logger = logging.getLogger(__name__)
@@ -863,6 +865,13 @@ def _apply_quality_floor(evidence: Dict[str, Any]) -> Optional[str]:
     return _apply_primary_cap(evidence)
 
 
+def _drop_page_openings(evidence_items: List[Dict[str, Any]]) -> None:
+    """Pop the originator review's transient page opening. It is copied only
+    for classification and must not ride on into caches or later stages."""
+    for item in evidence_items:
+        item.pop(originator_review.PAGE_OPENING_KEY, None)
+
+
 # ── Evidence Classifier ───────────────────────────────────────────────────
 
 
@@ -879,13 +888,17 @@ class EvidenceClassifier:
         self.timeout = 45
         self.snippet_length = 300
         self._token_usage = {"input_tokens": 0, "output_tokens": 0}
+        # Last originator review's counts and wall time (runner: stage_timings).
+        self.originator_review_stats: Optional[Dict[str, Any]] = None
 
     def get_token_usage(self) -> Dict[str, int]:
         """Return accumulated token usage across all LLM calls."""
         return self._token_usage
 
     async def classify_batch(
-        self, evidence_items: List[Dict[str, Any]]
+        self,
+        evidence_items: List[Dict[str, Any]],
+        review_originators: bool = True,
     ) -> List[Dict[str, Any]]:
         """Classify evidence items with tier and evidence_type.
 
@@ -896,6 +909,10 @@ class EvidenceClassifier:
         Args:
             evidence_items: List of evidence dicts, each with at least
                 title, url/source, and snippet/text fields.
+            review_originators: False where the originator review must not
+                run (coverage recovery's Phase A budget); its candidates get a
+                `not_reviewed` receipt instead. Only read when the review is
+                enabled.
 
         Returns:
             The same list with 'tier' and 'evidence_type' added to each item.
@@ -924,6 +941,7 @@ class EvidenceClassifier:
                 "[EVIDENCE_CLASSIFIER] All %d items already classified, skipping",
                 len(evidence_items),
             )
+            _drop_page_openings(evidence_items)
             return evidence_items
 
         logger.info(
@@ -1032,6 +1050,26 @@ class EvidenceClassifier:
 
         tracker_host_capped = _apply_tracker_host_cap(evidence_items)
         quality_floor_count += tracker_host_capped
+
+        # Originator review (class D): last, so it sees only what would
+        # otherwise ship as primary; scoped to the items classified here.
+        if originator_review.enabled():
+            classified_here = [evidence_items[i] for i in needs_classification]
+            started = time.monotonic()
+            if review_originators:
+                stats = await originator_review.review_originators(
+                    classified_here, self._call_originator_review
+                )
+            else:
+                stats = {
+                    "not_reviewed": originator_review.mark_not_reviewed(
+                        classified_here, "recovery_budget"
+                    )
+                }
+            stats["seconds"] = round(time.monotonic() - started, 3)
+            self.originator_review_stats = stats
+            logger.info("[ORIGINATOR REVIEW] %s", stats)
+        _drop_page_openings(evidence_items)
 
         # Log summary
         tier_counts = Counter(item.get("tier", "unknown") for item in evidence_items)
@@ -1221,6 +1259,35 @@ class EvidenceClassifier:
                     "thinking_tokens", 0
                 ) + usage.get("thinking_tokens", 0)
 
+    async def _call_originator_review(self, prompt: str) -> Optional[Dict[str, Any]]:
+        """The originator review's model call: Google first (its own model,
+        structured output), OpenAI fallback. Returns parsed JSON or None."""
+        model = getattr(settings, "ORIGINATOR_REVIEW_MODEL", "") or self.google_model
+        if self.google_ai_api_key:
+            try:
+                parsed, usage = await call_google_ai_with_usage(
+                    prompt,
+                    temperature=0,
+                    max_tokens=originator_review.MAX_OUTPUT_TOKENS,
+                    timeout=originator_review.timeout_s(),
+                    model=model,
+                    response_schema=originator_review.RESPONSE_SCHEMA,
+                )
+                if parsed is not None:
+                    self._accumulate(usage)
+                    return parsed
+            except Exception as e:
+                logger.warning("[ORIGINATOR REVIEW] Google call failed: %s", e)
+        if self.openai_api_key:
+            try:
+                parsed, usage = await self._call_openai(prompt, system="")
+                if parsed is not None:
+                    self._accumulate(usage)
+                    return parsed
+            except Exception as e:
+                logger.warning("[ORIGINATOR REVIEW] OpenAI call failed: %s", e)
+        return None
+
     async def _call_google(self, user_prompt: str) -> tuple:
         """Classify via Google Gemini API."""
         full_prompt = f"{_prompts()[0]}\n\n{user_prompt}"
@@ -1232,8 +1299,16 @@ class EvidenceClassifier:
             model=self.google_model,
         )
 
-    async def _call_openai(self, user_prompt: str) -> tuple:
-        """Classify via OpenAI API."""
+    async def _call_openai(
+        self, user_prompt: str, system: Optional[str] = None
+    ) -> tuple:
+        """Classify via OpenAI API. ``system`` defaults to the classifier's
+        own system prompt; the originator review passes its own (empty, its
+        instructions are in the user prompt)."""
+        system_prompt = _prompts()[0] if system is None else system
+        messages = [{"role": "user", "content": user_prompt}]
+        if system_prompt:
+            messages.insert(0, {"role": "system", "content": system_prompt})
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 "https://api.openai.com/v1/chat/completions",
@@ -1243,16 +1318,7 @@ class EvidenceClassifier:
                 },
                 json={
                     "model": self.model,
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": _prompts()[0],
-                        },
-                        {
-                            "role": "user",
-                            "content": user_prompt,
-                        },
-                    ],
+                    "messages": messages,
                     "max_tokens": 4000,
                     "temperature": 0.1,
                     "response_format": {"type": "json_object"},

@@ -1,0 +1,217 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "contract": "v2",
+ "items": 15,
+ "runs": 1,
+ "cost_usd": 0.0035,
+ "score": {
+  "run1": {
+   "originators_lowered": "0/2",
+   "non_originators_lowered": "4/13",
+   "unclear_rate": "0/15",
+   "invalid_or_failed": "1/15",
+   "must_survive_lowered": [],
+   "by_input_kind": {
+    "start0_window": "0/1 orig, 2/5 non",
+    "original_snippet": "0/0 orig, 0/1 non",
+    "stored_snippet": "0/1 orig, 2/7 non"
+   },
+   "per_record_orig_lowered_non_lowered": {
+    "t01_brexit": "0/0 orig, 1/4 non",
+    "t07_sqlite_busy": "0/0 orig, 1/1 non",
+    "t08_ev": "0/1 orig, 1/1 non",
+    "t09_sqlite_url": "0/0 orig, 0/3 non",
+    "t10_lantern": "0/1 orig, 0/0 non",
+    "t11_inflation": "0/0 orig, 0/2 non",
+    "t12_venus_image": "0/0 orig, 0/1 non",
+    "t14_bankrate_375": "0/0 orig, 1/1 non"
+   },
+   "overlap_lowered": "0/0"
+  }
+ },
+ "receipts": [
+  {
+   "h000": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "data",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "originates",
+    "originator": "SUSE LLC",
+    "cue": "Vendor: SUSE LLC <https://www.suse.com/>",
+    "cue_verified": true
+   },
+   "h001": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "analysis",
+    "input_kind": "snippet",
+    "status": "invalid",
+    "role": "relays",
+    "originator": "unknown",
+    "cue": "",
+    "cue_verified": false,
+    "invalid_reason": "cue_not_verified"
+   },
+   "h002": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "reporting",
+    "original_type": "data",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "relays",
+    "originator": "SQLite",
+    "cue": "SQLite Write-Ahead Logging (WAL) enables concurrent readers and writers by shifting database updates to a separate log file.",
+    "cue_verified": true
+   },
+   "h003": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "reporting",
+    "original_type": "data",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "relays",
+    "originator": "Alberta Electric System Operator (AESO)",
+    "cue": "sourced from the Alberta Electric System Operator (AESO) Current Supply & Demand API.",
+    "cue_verified": true
+   },
+   "h004": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "data",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "originates",
+    "originator": "conda-forge",
+    "cue": "SQLite is a self-contained, high-reliability, embedded, full-featured, public-domain, SQL database engine.",
+    "cue_verified": true
+   },
+   "h005": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "analysis",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "hosts_original",
+    "originator": "Dr. Ethan Siegel",
+    "cue": "By Dr.  Ethan Siegel\nWhen you think about the four rocky planets in our Solar System",
+    "cue_verified": true
+   },
+   "h006": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "data",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "originates",
+    "originator": "Union of Concerned Scientists",
+    "cue": "Earlier this year we released our latest update on the global warming emissions from recharging EVs in the US",
+    "cue_verified": true
+   },
+   "h007": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "academic",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "originates",
+    "originator": "CORE Econ",
+    "cue": "The plan was a success. In August, monthly inflation was below 2%; in 1995 the annual inflation rate was 22%",
+    "cue_verified": true
+   },
+   "h008": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "official_statement",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "hosts_original",
+    "originator": "SQLite",
+    "cue": "SQLite Release 3.7.0.1 On 2010 August 04 (3.7.0.1) Changes associated with this release include the following:",
+    "cue_verified": true
+   },
+   "h009": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "official_statement",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "originates",
+    "originator": "Brain Chemistry Labs The Institute for EthnoMedicine",
+    "cue": "“Faster diagnoses will allow for earlier treatment, which will improve patient outcomes,” says Sandra Banack, lead author of the study.",
+    "cue_verified": true
+   },
+   "h010": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "data",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "originates",
+    "originator": "Brexit FactBase",
+    "cue": "The transition period began on 1 February 2020, when the UK was no longer an EU Member State, and would run to 31 December 2020.",
+    "cue_verified": true
+   },
+   "h011": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "official_statement",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "hosts_original",
+    "originator": "House of Commons Library",
+    "cue": "",
+    "cue_verified": false
+   },
+   "h012": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "primary",
+    "original_type": "data",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "originates",
+    "originator": "CalculatorLib",
+    "cue": "An inflation calculator is a financial tool that helps you understand how the purchasing power of money changes over time due to inflation.",
+    "cue_verified": true
+   },
+   "h013": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "reporting",
+    "original_type": "data",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "relays",
+    "originator": "Bank of England",
+    "cue": "The Bank of England held Bank Rate at 3.75% on 30 July 2026, where it has stood since late 2025. The Monetary Policy Committee (MPC) voted 6–3 to hold",
+    "cue_verified": true
+   },
+   "h014": {
+    "contract": "v2",
+    "from_tier": "primary",
+    "to_tier": "reporting",
+    "original_type": "official_statement",
+    "input_kind": "snippet",
+    "status": "reviewed",
+    "role": "relays",
+    "originator": "Customs Department",
+    "cue": "The UK will enter a period, known as ‘the transition’, until 31st December 2020.",
+    "cue_verified": true
+   }
+  }
+ ]
+}

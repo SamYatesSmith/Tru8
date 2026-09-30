@@ -853,6 +853,26 @@ class Settings(BaseSettings):
         40, env="RELATIONSHIP_REVIEW_CALL_TIMEOUT_S"
     )
 
+    # Originator review (A− H4 class D, 2026-09-30). A lower-only second look
+    # at items PRIMARY on the classifier model's verdict alone: a page that
+    # relays someone else's information (explainer, calculator, profile quoting
+    # forecasts) or is user content becomes reporting, only on a verbatim cue.
+    # ON 2026-09-30 (founder): held-out eval on 3.7-flash lowered 0/66 genuine
+    # originators and ~80% of non-originators on never-read pages; two local
+    # live checks passed. Design: audit/2026-09-30_classify_originator_design.md.
+    # ROLLBACK: ENABLE_ORIGINATOR_REVIEW=False (Railway env, no redeploy needed).
+    ENABLE_ORIGINATOR_REVIEW: bool = Field(True, env="ENABLE_ORIGINATOR_REVIEW")
+    # Its own model: on the held-out eval (2026-09-30) the classifier's
+    # 3.5-flash-lite flipped 12% of answers between identical runs; 3.7-flash
+    # flipped 2.9%. Empty = the classifier's model (GOOGLE_LLM_MODEL).
+    ORIGINATOR_REVIEW_MODEL: str = Field(
+        "gemini-3.7-flash", env="ORIGINATOR_REVIEW_MODEL"
+    )
+    # Per call. 15 s lost a 15-item call on 3.7-flash (eval 3, 2026-09-30); 40 s
+    # is the relationship review's value on the same model. Calls run
+    # concurrently, and stats["call_seconds"] records each one for resizing.
+    ORIGINATOR_REVIEW_TIMEOUT_S: int = Field(40, env="ORIGINATOR_REVIEW_TIMEOUT_S")
+
     # Same-study scope gate (2026-09-09, Track Q — Astra finding 10). Hosts of
     # ONE study (shared DOI / PubMed id / PMC id) count once per side of an
     # element: the highest-tier, earliest host keeps its direction, the others

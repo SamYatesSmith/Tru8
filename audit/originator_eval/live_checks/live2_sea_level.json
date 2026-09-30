@@ -1,0 +1,2118 @@
+{
+ "id": "b76825fc-1e10-4323-b2c3-88c3463cce62",
+ "inputType": "text",
+ "inputContent": {
+  "content": "Global mean sea level rose by about 10 cm between 1993 and 2023.",
+  "url": null,
+  "file_path": null
+ },
+ "inputUrl": null,
+ "status": "completed",
+ "creditsUsed": 0,
+ "processingTimeMs": 76322,
+ "errorMessage": null,
+ "entryMode": "focused",
+ "selectedClaimsCount": 1,
+ "articleDomain": "Climate",
+ "articleSecondaryDomains": [
+  "Science"
+ ],
+ "articleJurisdiction": "Global",
+ "articleClassificationSource": "llm_primary",
+ "userQuery": null,
+ "queryResponse": null,
+ "queryConfidence": null,
+ "querySources": null,
+ "queryRelatedClaims": null,
+ "claims": [
+  {
+   "id": "b01efa11-f862-4ade-b5f8-a7a6de49e06a",
+   "text": "Global mean sea level rose by about 10 cm between 1993 and 2023",
+   "position": 0,
+   "claimMap": {
+    "claimId": "0",
+    "elements": [
+     {
+      "basis": {
+       "evidence_count": 5,
+       "tier_breakdown": {
+        "primary": 5
+       },
+       "state_derivation": {
+        "caveat": "Rate of rise is not uniform over the 30-year period and has accelerated in the last two decades.",
+        "llm_state": "supported",
+        "rule_applied": "all_supports",
+        "context_count": 0,
+        "supports_count": 5,
+        "challenges_count": 0,
+        "weighted_supports": 15,
+        "weighted_challenges": 0
+       },
+       "support_structure": {
+        "count": 5,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 5,
+         "reporting": 0,
+         "commentary": 0
+        },
+        "distinct_domains": 4
+       },
+       "challenge_structure": {
+        "count": 0,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 0,
+         "reporting": 0,
+         "commentary": 0
+        },
+        "distinct_domains": 0
+       },
+       "relationship_breakdown": {
+        "supports": 5
+       },
+       "content_basis_breakdown": {
+        "full": 2,
+        "distilled": 3
+       },
+       "classification_breakdown": {
+        "llm": 5
+       }
+      },
+      "state": "supported",
+      "elementId": "e1",
+      "description": "Global mean sea level increased over the period from 1993 to 2023.",
+      "scopeReach": "global",
+      "uncertainty": "Rate of rise is not uniform over the 30-year period and has accelerated in the last two decades.",
+      "evidenceRefs": [
+       {
+        "reasoning": "Satellite altimetry data shows continuous sea level change and rising annual rates of sea level rise since 1993.",
+        "evidenceId": "ev-25d0e813b83a",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Multi-satellite observations confirm a steady rise in global mean sea level over the 1993-2023 period.",
+        "evidenceId": "ev-44d0aa038de9",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Data from international satellites demonstrates an upward trajectory in global mean sea level between 1993 and 2023.",
+        "evidenceId": "ev-2de7548cb0b0",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Satellite observation records show consistent increase in global mean sea level spanning 1993 to 2023.",
+        "evidenceId": "ev-775375ae30ea",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "The study provides academic evidence confirming that global mean sea level increased over the period from 1993 to 2023, referencing a global average rate of 3.3 mm/yr.",
+        "evidenceId": "ev-0ac30a0da21f",
+        "relationship": "supports"
+       }
+      ]
+     },
+     {
+      "basis": {
+       "evidence_count": 8,
+       "tier_breakdown": {
+        "primary": 5,
+        "reporting": 2,
+        "commentary": 1
+       },
+       "state_derivation": {
+        "caveat": "Some evidence has different or unestablished applicability to this element and is retained as context; see the relationship explanations.",
+        "rule_applied": "all_supports",
+        "context_count": 1,
+        "supports_count": 7,
+        "challenges_count": 0,
+        "weighted_supports": 17,
+        "weighted_challenges": 0
+       },
+       "support_structure": {
+        "count": 7,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 4,
+         "reporting": 2,
+         "commentary": 1
+        },
+        "distinct_domains": 7
+       },
+       "relationship_scope": {
+        "scoped": [
+         {
+          "quote": "- Sea level rise in coastal areas of South Africa, such as Cape Town (6.3 mm/yr), is almost double the global average (3.3 mm/yr).",
+          "status": "scoped",
+          "block_id": "mapping-text",
+          "decision": "unknown",
+          "dimension": "result",
+          "reasoning": "The source mentions an annual global average rate of 3.3 mm/yr in the context of regional South African sea level trends, but does not state or evaluate the total cumulative global mean sea level rise magnitude of approximately 10 cm between 1993 and 2023.",
+          "element_id": "e2",
+          "excerpt_id": "line-1",
+          "claim_scope": "global mean sea level rise magnitude between 1993 and 2023 was approximately 10 cm",
+          "evidence_id": "ev-0ac30a0da21f",
+          "quote_basis": "selected_exact_excerpt",
+          "input_sha256": "5215c212c8e0949d635ff7fdbb296e65fb23f3978ddbe8e8886ff8c75f923158",
+          "original_ref": {
+           "reasoning": "The study cites a global average sea level rise rate of 3.3 mm/yr over the 1993-2023 timeframe, which mathematically aligns with a magnitude of approximately 10 cm over those 30 years.",
+           "evidence_id": "ev-0ac30a0da21f",
+           "relationship": "supports"
+          },
+          "source_scope": "global average sea level rise rate of 3.3 mm/yr compared with South African coastal trends",
+          "content_basis": "distilled",
+          "original_uncertainty": "Measurements vary slightly between 10.1 cm (101.4 mm) and 11.1 cm (111 mm) depending on the baseline dataset and end-of-year cutoffs."
+         }
+        ],
+        "scoped_count": 1
+       },
+       "challenge_structure": {
+        "count": 0,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 0,
+         "reporting": 0,
+         "commentary": 0
+        },
+        "distinct_domains": 0
+       },
+       "relationship_breakdown": {
+        "context": 1,
+        "supports": 7
+       },
+       "content_basis_breakdown": {
+        "distilled": 8
+       },
+       "classification_breakdown": {
+        "llm": 6,
+        "shortlink_cap": 1,
+        "originator_review": 1
+       }
+      },
+      "state": "supported",
+      "elementId": "e2",
+      "description": "The magnitude of the global mean sea level rise between 1993 and 2023 was approximately 10 cm.",
+      "scopeReach": "global",
+      "uncertainty": "Some evidence has different or unestablished applicability to this element and is retained as context; see the relationship explanations.",
+      "evidenceRefs": [
+       {
+        "reasoning": "Explicitly states that global sea level rose around 10 cm in the 30-year period between 1993 and 2023.",
+        "evidenceId": "ev-bb7765324e28",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Reports that 2023 global mean sea level was 101.4 mm (~10.1 cm) above 1993 levels.",
+        "evidenceId": "ev-63931f1ea4ce",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "States that sea levels rose by 4 inches (~10.16 cm) during the 30 years from 1993 to 2023.",
+        "evidenceId": "ev-48b43ac2d981",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Reports total sea level rise from 1993 to 2023 was 11.1 cm, closely matching the approximate 10 cm figure.",
+        "evidenceId": "ev-4790dd0d4409",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Academic study records an increase of 111 mm (~11.1 cm) in global mean sea level from 1993 through the end of 2023.",
+        "evidenceId": "ev-a81134bc06fd",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Confirms global mean sea level has risen by approximately 11 cm since February 1993.",
+        "evidenceId": "ev-f126721d061d",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Reports that sea levels rose 105.8 mm (~10.6 cm) above 1993 levels by 2024 with a 3.5 mm/year rate from 1993-2023.",
+        "evidenceId": "ev-e30889be473c",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Context: applicability to this element is unestablished. The source mentions an annual global average rate of 3.3 mm/yr in the context of regional South African sea level trends, but does not state or evaluate the total cumulative global mean sea level rise magnitude of approximately 10 cm between 1993 and 2023.",
+        "evidenceId": "ev-0ac30a0da21f",
+        "relationship": "context"
+       }
+      ]
+     }
+    ],
+    "metadata": {
+     "subjects": [],
+     "claimText": "Global mean sea level rose by about 10 cm between 1993 and 2023",
+     "queryPlan": {
+      "queries": [
+       "global mean sea level rise 1993 to 2023",
+       "global sea level change NOAA NASA 1993 2023",
+       "global mean sea level rise 1993 to 2023 site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+       "global mean sea level increase 1993 2023 IPCC report",
+       "did global sea level rise between 1993 and 2023",
+       "global mean sea level rose 10 cm 1993 2023",
+       "how much did global sea level rise 1993 to 2023 centimeters"
+      ],
+      "freshness": [
+       "none",
+       "none",
+       "none",
+       "none",
+       "none",
+       "none",
+       "none"
+      ],
+      "element_ids": [
+       "c0",
+       "c0",
+       "c0",
+       "e1",
+       "e1",
+       "e2",
+       "e2"
+      ]
+     },
+     "completedAt": "2026-09-30T12:01:58.733814+00:00",
+     "jurisdiction": "Global",
+     "scopeReview": {
+      "calls": [
+       {
+        "pairs": 6,
+        "status": "ok",
+        "seconds": 24.75
+       },
+       {
+        "pairs": 6,
+        "status": "ok",
+        "seconds": 16.5
+       },
+       {
+        "pairs": 1,
+        "status": "ok",
+        "seconds": 8.609000000000378
+       }
+      ],
+      "pairs": [
+       {
+        "quote": "The plot shows global change in sea level since 1993, as observed by satellite altimeters. The black line tracks the measurements, while the blue line shows how much uncertainty is associated with these measurements. Note: The data shown in the plot does not include the glacial isostatic adjustment (GIA). Why do we care? Global mean sea level is an important climate indicator, providing information on how the ocean is warming and how much land ice is melting. Global sea levels have been rising for decades in response to a warming climate.",
+        "status": "compatible",
+        "block_id": "p-64c84be8728f81ac-0-897",
+        "dimension": "result",
+        "reasoning": "The source reports that global sea levels have been rising across the satellite observation record from 1993 through 2023 (referenced as the 30-year record), directly supporting the element assertion.",
+        "element_id": "e1",
+        "claim_scope": "Global mean sea level change from 1993 to 2023",
+        "evidence_id": "ev-25d0e813b83a",
+        "input_sha256": "fb412c7bd1dc51ae3948f2f6c137d57b69183285cbee6cf66aba72f9f6e0827d",
+        "source_scope": "Global mean sea level rise across the 30-year satellite record since 1993",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "In just the last 30 years (1993 - 2023), that same amount of rise, around 10 cm, happened again.",
+        "status": "compatible",
+        "block_id": "p-c3bb4d4cb5c695cd-897-1791",
+        "dimension": "result",
+        "reasoning": "The text directly states that global sea level rose around 10 cm in the 30-year period from 1993 to 2023, exactly matching the claimed magnitude, period, and population.",
+        "element_id": "e2",
+        "claim_scope": "Magnitude of global mean sea level rise between 1993 and 2023 was approximately 10 cm",
+        "evidence_id": "ev-bb7765324e28",
+        "input_sha256": "1f3a1446142750cd6818cc3b6d28e7d441913cc76232a40989f0922438606780",
+        "source_scope": "Global sea level rise of around 10 cm between 1993 and 2023",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites.",
+        "status": "compatible",
+        "block_id": "p-faa327a08d38beb2-0-895",
+        "dimension": "result",
+        "reasoning": "The source explicitly states that global mean sea level rose over the period from 1993 to 2023 based on satellite observations, directly supporting the assertion.",
+        "element_id": "e1",
+        "claim_scope": "Global mean sea level increase from 1993 to 2023",
+        "evidence_id": "ev-44d0aa038de9",
+        "input_sha256": "c43dfb6b893ddaac1f010dd1fae3315ae953f7a00cbfa5ab708c13e6bb627a54",
+        "source_scope": "Rise in global mean sea level from 1993 to 2023 based on satellite data",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "In 2023, global mean sea level was 101.4 millimeters (3.99 inches) above 1993 levels, making it the highest annual average in the satellite record (1993-present).",
+        "status": "compatible",
+        "block_id": "p-ba2f3c005ac85ece-0-888",
+        "dimension": "result",
+        "reasoning": "A rise of 101.4 millimeters corresponds directly to approximately 10.14 cm (about 10 cm) between 1993 and 2023, directly supporting the asserted magnitude over the exact timeframe.",
+        "element_id": "e2",
+        "claim_scope": "Magnitude of global mean sea level rise between 1993 and 2023 was approximately 10 cm",
+        "evidence_id": "ev-63931f1ea4ce",
+        "input_sha256": "019425990bbc86e2fb7afcaa7f18e89cd669bc681f43fe36c56a493bd6312b35",
+        "source_scope": "Global mean sea level in 2023 was 101.4 mm (3.99 inches) above 1993 levels",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites.",
+        "status": "compatible",
+        "block_id": "p-e9145876c0a0de4d-0-281",
+        "dimension": "result",
+        "reasoning": "The text directly documents the rise in global mean sea level from 1993 to 2023 measured by satellite data, matching all aspects of the element.",
+        "element_id": "e1",
+        "claim_scope": "Global mean sea level increase from 1993 to 2023",
+        "evidence_id": "ev-2de7548cb0b0",
+        "input_sha256": "e9145876c0a0de4df06dae3a74aa6d6e8c725d598e5db9dc44e383d0529bee7c",
+        "source_scope": "Rise in global mean sea level from 1993 to 2023 based on satellite data",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "The trend accelerated in the 30 years between 1993 and 2023 as sea levels rose another 4 inches.",
+        "status": "compatible",
+        "block_id": "p-3299b76db149bdce-898-1797",
+        "dimension": "result",
+        "reasoning": "A rise of 4 inches equals approximately 10.16 cm (~10 cm) between 1993 and 2023, supporting the asserted magnitude and time period.",
+        "element_id": "e2",
+        "claim_scope": "Magnitude of global mean sea level rise between 1993 and 2023 was approximately 10 cm",
+        "evidence_id": "ev-48b43ac2d981",
+        "input_sha256": "47a3ac2f5a215a85f1e7fd53faeb3830df638cc47b082d27fea535f614c532f5",
+        "source_scope": "Global sea levels rose 4 inches between 1993 and 2023",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites.",
+        "status": "compatible",
+        "block_id": "mapping-text",
+        "dimension": "result",
+        "reasoning": "The source directly affirms that there was a rise in global mean sea level over the entire 19",
+        "element_id": "e1",
+        "claim_scope": "Global mean sea level increased over the period from 1993 to 2023",
+        "evidence_id": "ev-775375ae30ea",
+        "input_sha256": "33eb75c2724d33ab0333b6f657186b64be8944e6d44e7f6f3a78e80f6977a769",
+        "source_scope": "Rise in global mean sea level from 1993 to 2023",
+        "content_basis": "full"
+       },
+       {
+        "status": "invalid",
+        "element_id": "e2",
+        "evidence_id": "ev-4790dd0d4409",
+        "invalid_reason": "not_returned"
+       },
+       {
+        "status": "invalid",
+        "element_id": "e1",
+        "evidence_id": "ev-0ac30a0da21f",
+        "invalid_reason": "not_returned"
+       },
+       {
+        "status": "invalid",
+        "element_id": "e2",
+        "evidence_id": "ev-a81134bc06fd",
+        "invalid_reason": "not_returned"
+       },
+       {
+        "status": "invalid",
+        "element_id": "e2",
+        "evidence_id": "ev-f126721d061d",
+        "invalid_reason": "not_returned"
+       },
+       {
+        "status": "invalid",
+        "element_id": "e2",
+        "evidence_id": "ev-e30889be473c",
+        "invalid_reason": "not_returned"
+       },
+       {
+        "quote": "- Sea level rise in coastal areas of South Africa, such as Cape Town (6.3 mm/yr), is almost double the global average (3.3 mm/yr).",
+        "status": "scoped",
+        "block_id": "mapping-text",
+        "decision": "unknown",
+        "dimension": "result",
+        "reasoning": "The source mentions an annual global average rate of 3.3 mm/yr in the context of regional South African sea level trends, but does not state or evaluate the total cumulative global mean sea level rise magnitude of approximately 10 cm between 1993 and 2023.",
+        "element_id": "e2",
+        "excerpt_id": "line-1",
+        "claim_scope": "global mean sea level rise magnitude between 1993 and 2023 was approximately 10 cm",
+        "evidence_id": "ev-0ac30a0da21f",
+        "quote_basis": "selected_exact_excerpt",
+        "input_sha256": "5215c212c8e0949d635ff7fdbb296e65fb23f3978ddbe8e8886ff8c75f923158",
+        "original_ref": {
+         "reasoning": "The study cites a global average sea level rise rate of 3.3 mm/yr over the 1993-2023 timeframe, which mathematically aligns with a magnitude of approximately 10 cm over those 30 years.",
+         "evidence_id": "ev-0ac30a0da21f",
+         "relationship": "supports"
+        },
+        "source_scope": "global average sea level rise rate of 3.3 mm/yr compared with South African coastal trends",
+        "content_basis": "distilled",
+        "original_uncertainty": "Measurements vary slightly between 10.1 cm (101.4 mm) and 11.1 cm (111 mm) depending on the baseline dataset and end-of-year cutoffs."
+       }
+      ],
+      "method": "model_scope_review_not_entailment_proof",
+      "status": "needs_review",
+      "version": 3,
+      "assessed_pairs": 8,
+      "selected_pairs": 13,
+      "candidate_pairs": 13,
+      "uninspected_pairs": 5
+     },
+     "elementCount": 2,
+     "mappingModel": "gemini-3.7-flash",
+     "subjectKinds": {},
+     "decompositionModel": "gemini-3.5-flash-lite",
+     "sourceConcentration": {
+      "basis": "mapped_documents_by_domain",
+      "domains": [
+       {
+        "domain": "sealevel.nasa.gov",
+        "documents": 3
+       },
+       {
+        "domain": "nature.com",
+        "documents": 2
+       },
+       {
+        "domain": "aviso.altimetry.fr",
+        "documents": 1
+       },
+       {
+        "domain": "climate.us",
+        "documents": 1
+       },
+       {
+        "domain": "earthdata.nasa.gov",
+        "documents": 1
+       },
+       {
+        "domain": "go.nature.com",
+        "documents": 1
+       },
+       {
+        "domain": "oerproject.com",
+        "documents": 1
+       },
+       {
+        "domain": "sealevel.jpl.nasa.gov",
+        "documents": 1
+       },
+       {
+        "domain": "svs.gsfc.nasa.gov",
+        "documents": 1
+       }
+      ],
+      "independence": "not_established",
+      "mapped_documents": 12
+     }
+    },
+    "claimType": "empirical",
+    "orientation": "Of 2 elements examined, retrieved evidence predominantly supports all 2.",
+    "normalisedClaim": "Global mean sea level rose by about 10 cm between 1993 and 2023.",
+    "orientationBasis": {
+     "total_elements": 2,
+     "state_distribution": {
+      "disputed": 0,
+      "supported": 2,
+      "contextual": 0,
+      "unresolved": 0
+     }
+    }
+   },
+   "claimType": "empirical",
+   "isSelected": true,
+   "significanceRank": 1,
+   "subjectContext": "global sea level rise",
+   "keyEntities": [
+    {
+     "text": "10 cm",
+     "type": "AMOUNT"
+    },
+    {
+     "text": "1993 and 2023",
+     "type": "DATE"
+    },
+    {
+     "text": "sea level",
+     "type": "OTHER"
+    }
+   ],
+   "sourceTitle": null,
+   "sourceUrl": null,
+   "sourcesReviewedCount": 28,
+   "evidence": [
+    {
+     "id": "3c3f774f-1d6e-431b-8ab4-e129ca703b73",
+     "evidenceId": "ev-e30889be473c",
+     "source": "climate.us",
+     "url": "https://www.climate.us/news-features/understanding-climate/climate-change-global-sea-level",
+     "title": "Climate change: global sea level",
+     "snippet": "- Global mean sea level has risen at least 8–9 inches (21–24 centimeters) since 1880.\n- In 2024, global mean sea level was 105.8 millimeters (4.17 inches) above 1993 levels.\n- Researchers estimated that the linear trend in average annual sea level rise from 1960-2023 was just over 2 millimeters per year.\n- Rates increased to nearly 3.5 millimeters per year from 1993-2023.",
+     "publishedDate": "2026-06-16T00:00:00",
+     "relevanceScore": 0.4819672131147541,
+     "tier": "reporting",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-63931f1ea4ce",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "originator_review",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-4079fbe90b3f9aaf-0-895",
+        "end": 895,
+        "text": "Climate change: global sea level This page was last updated on Climate.gov in February 2025. Climate.us updates began in June 2026. Global mean sea level has risen at least 8–9 inches (21–24 centimeters) since 1880. The rising water level is mostly due to a combination of melt water from glaciers and ice sheets and thermal expansion of seawater as it warms. In 2024, global mean sea level was 105.8 millimeters (4.17 inches) above 1993 levels, making it the highest annual average in the satellite record (1993-present). In some ocean basins, sea level has risen as much as 6-8 inches (15-20 centimeters) since the start of the satellite record. Regional differences exist because of natural variability in the strength of winds and ocean currents, which influence how much and where the deeper layers of the ocean store heat. The global mean water level in the ocean rose by 0.14 inches (3.6 ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-4079fbe90b3f9aaf-895-1790",
+        "end": 1790,
+        "text": "millimeters) per year from 2006–2015, which was 2.5 times the average rate of 0.06 inches (1.4 millimeters) per year throughout most of the twentieth century. By the end of the century, global mean sea level is likely to rise at least one foot (0.3 meters) above 2000 levels, even if greenhouse gas emissions follow a relatively low pathway in coming decades. Past and future sea level rise at specific locations on land may be more or less than the global average due to local factors: ground settling, upstream flood control, erosion, regional ocean currents, and whether the land is still rebounding or resettling from the compressive weight of vanished Ice Age glaciers. In the United States, the fastest rates of sea level rise are occurring in the Gulf of America (formerly Gulf of Mexico) from the mouth of the Mississippi westward, followed by the mid-Atlantic. Only in Alaska and a few ",
+        "start": 895,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-4079fbe90b3f9aaf-1790-2687",
+        "end": 2687,
+        "text": "places in the Pacific Northwest are sea levels falling today, although that trend will reverse in the future if the world follows a pathway with high greenhouse gas emissions. Why sea level matters In the United States, almost 30 percent of the population lives in coastal areas, where sea level rise plays a role in flooding, shoreline erosion, and hazards from storms. Globally, 8 of the world’s 10 largest cities are near a coast, according to the U.N. Atlas of the Oceans. In urban settings along coastlines around the world, rising seas threaten infrastructure necessary for local jobs and regional industries. Roads, bridges, subways, water supplies, oil and gas wells, power plants, sewage treatment plants, landfills—the list is practically endless—are all at risk from sea level rise. Higher background water levels mean that deadly and destructive storm surges, such as those associated ",
+        "start": 1790,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-4079fbe90b3f9aaf-2687-3584",
+        "end": 3584,
+        "text": "with Hurricane Katrina, “Superstorm” Sandy, and Hurricane Michael, push farther inland than they once did. Higher sea level also means more frequent high-tide flooding, sometimes called “nuisance flooding” because it isn't generally deadly or dangerous, but it can be disruptive and expensive. (Explore past and future frequency of high-tide flooding at U.S. locations with the Climate Explorer, part of the U.S. Climate Resilience Toolkit.) In the natural world, rising sea level creates stress on coastal ecosystems that provide recreation, protection from storms, and habitat for fish and wildlife, including commercially valuable fisheries. As seas rise, saltwater is also contaminating freshwater aquifers, many of which sustain municipal and agricultural water supplies and natural ecosystems. What’s causing sea level to rise? Global warming is causing global mean sea level to rise in two ",
+        "start": 2687,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-4079fbe90b3f9aaf-3584-4484",
+        "end": 4484,
+        "text": "ways. First, glaciers and ice sheets worldwide are melting and adding water to the ocean. Second, the volume of the ocean is expanding as the water warms. A third, much smaller, contributor to sea level rise is a decline in the amount of liquid water on land—aquifers, lakes and reservoirs, rivers, soil moisture. This transfer of liquid water from land to ocean is largely due to people pumping ground water faster than natural processes can recharge aquifers. In an analysis of sea level trends published in May 2026, scientists concluded that over the period from 1960–2023, heat expansion from warming oceans accounted for about 43% of observed sea level rise, while melting of glaciers and ice sheets accounted for about 54% of the total rise. Consistent with previous research, that same analysis concluded that the rate of global sea level rise is accelerating. Researchers estimated that the ",
+        "start": 3584,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-4079fbe90b3f9aaf-4484-5381",
+        "end": 5381,
+        "text": "linear trend in average annual sea level rise from 1960-2023 was just over 2 millimeters per year. Rates increased to nearly 3.5 millimeters per year from 1993-2023, and increased again from 2005-2023, to nearly 4 millimeters per year. Heat expansion and faster melting of glaciers and ice sheets are contributing roughly equally to the observed acceleration in sea level rise. According to an update published in 2022, mass loss from the Greenland Ice Sheet increased 7-fold in the past three decades, from about 35 billion tonnes per year from 1992–1996 to 257 billion tonnes per year from 2017-2020. Mass loss from Antarctic ice sheets roughly doubled from 70 billion tonnes per year from 1992–1996 to 150 billion tonnes per year from 2012-2016, before losses slowed to 115 billion tonnes per year from 2017-2020. Meanwhile, thermal expansion of the ocean is estimated to have contributed 0.81 ",
+        "start": 4484,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-4079fbe90b3f9aaf-5381-6281",
+        "end": 6281,
+        "text": "millimeters per year to global sea level rise over the period 1960–2020, but nearly double that amount (1.55 millimeters per year) more recently, from 2005–2023. Measuring sea level Sea level is measured by two main methods: tide gauges and satellite altimeters. Tide gauge stations from around the world have measured the daily high and low tides for more than a century, using a variety of manual and automatic sensors. Using data from scores of stations around the world, scientists can calculate a global average and adjust it for seasonal differences. Since the early 1990s, sea level has been measured from space using radar altimeters, which determine the height of the sea surface by measuring the return speed and intensity of a radar pulse directed at the ocean. The higher the sea level, the faster and stronger the return signal is. To estimate how much of the observed sea level rise is ",
+        "start": 5381,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-4079fbe90b3f9aaf-17015-17913",
+        "end": 17913,
+        "text": "Thompson, P. R. , M. J. Widlansky, E. Leuliette, D. P. Chambers, B. Beckley, W. Sweet, B. D. Hamlington, S. Jevrejeva, M. A. Merrifield, G. T. Mitchum, and R. S. Nerem. (2024). Sea level variability and change [in “State of the Climate in 2023”]. Bull. Amer. Meteor. Soc., 105 (8), S183–S186, https://doi.org/10.1175/BAMS-D-24-0100.2. Zheng, H., Cheng, L., Dangendorf, S., Meyssignac, B., Barnoud, A., Trenberth, K. E., Fasullo, J. T., & Abraham, J. (2026). Improved closure of the global mean sea level budget from observational advances since 1960. Science Advances, 12(21), eaea0652. https://doi.org/10.1126/sciadv.aea0652 More sea level data and information from NOAA and partners Global Ocean Heat and Salt Content page at NCEI Tides and Currents Sea Level Trends page at the National Ocean Service Digital Coast Sea Level Rise Viewer at the Coastal Services Center Coastal Flood Risk page at ",
+        "start": 17015,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": "engine",
+        "representation": "supplied_string",
+        "supplied_value": "Jun 16, 2026"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.climate.us/news-features/understanding-climate/climate-change-global-sea-level",
+      "captured_at": "2026-09-30T12:01:03.528578+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Global mean sea level has risen at least 8–9 inches (21–24 centimeters) since 1880.\n- In 2024, global mean sea level was 105.8 millimeters (4.17 inches) above 1993 levels.\n- Researchers estimated that the linear trend in average annual sea level rise from 1960-2023 was just over 2 millimeters per year.\n- Rates increased to nearly 3.5 millimeters per year from 1993-2023.",
+      "original_snippet": "Climate change: global sea level This page was last updated on Climate. us updates began in June 2026. Global mean sea level has risen at least 8–9 inches (21–24 centimeters) since 1880. The rising water level is mostly due to a combination of melt water from glaciers and ice sheets and thermal expansion of seawater as it warms. In 2024, global mean sea level was 105",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "4079fbe90b3f9aaf9c43547c548494816e3dae63b8eccc60a02c073df461da73",
+      "input_content_basis": "full",
+      "retained_characters": 7179,
+      "extraction_characters": 17948
+     },
+     "dateBasis": "engine",
+     "originatorReview": {
+      "cue": "This page was last updated on Climate.gov in February 2025.",
+      "role": "relays",
+      "status": "reviewed",
+      "to_tier": "reporting",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "Climate.gov",
+      "cue_verified": true,
+      "original_type": "data"
+     }
+    },
+    {
+     "id": "bdcad398-acda-496a-82c5-13bff1158144",
+     "evidenceId": "ev-25d0e813b83a",
+     "source": "sealevel.nasa.gov",
+     "url": "https://sealevel.nasa.gov/vital-signs/global-mean-sea-level/",
+     "title": "Vital Signs: Global Mean Sea Level",
+     "snippet": "- Global change in sea level has been observed by satellite altimeters since 1993.\n- The annual rate of rise has increased from 0.08 inches/year (0.20 centimeters/year) in 1993 to the current yearly rate of 0.17 inches/year (0.44 centimeters/year).",
+     "publishedDate": null,
+     "relevanceScore": 0.15344827586206897,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 3,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-64c84be8728f81ac-0-897",
+        "end": 897,
+        "text": "What is global mean sea level? This is the average height of the entire ocean surface. Global mean sea level rise is caused primarily by two factors related to global warming: the added water from melting land-based ice sheets and glaciers and the expansion of seawater as it warms. What are we looking at? The plot shows global change in sea level since 1993, as observed by satellite altimeters. The black line tracks the measurements, while the blue line shows how much uncertainty is associated with these measurements. Note: The data shown in the plot does not include the glacial isostatic adjustment (GIA). Why do we care? Global mean sea level is an important climate indicator, providing information on how the ocean is warming and how much land ice is melting. Global sea levels have been rising for decades in response to a warming climate. The annual rate of rise – or how quickly sea ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-64c84be8728f81ac-897-1532",
+        "end": 1532,
+        "text": "level rise is happening – has also increased from 0.08 inches/year (0.20 centimeters/year) in 1993 to the current yearly rate of 0.17 inches/year (0.44 centimeters/year). Data on this increase in the rate of global sea level rise is critical to planners understanding the trajectory of future sea level rise. More information on the importance of the 30-year satellite record and data on the trajectory of global mean sea level can be found here. Reference: Willis, Hamlington, Fournier, 2023. Reference: Beckley et al., 2017; GMSL dataset Missions Satellite Altimetry (TOPEX/Poseidon and Jason I, II, III, Sentinel-6 Michael Freilich)",
+        "start": 897,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://sealevel.nasa.gov/vital-signs/global-mean-sea-level/",
+      "captured_at": "2026-09-30T12:01:03.528578+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Global change in sea level has been observed by satellite altimeters since 1993.\n- The annual rate of rise has increased from 0.08 inches/year (0.20 centimeters/year) in 1993 to the current yearly rate of 0.17 inches/year (0.44 centimeters/year).",
+      "original_snippet": "What is global mean sea level. This is the average height of the entire ocean surface. Global mean sea level rise is caused primarily by two factors related to global warming: the added water from melting land-based ice sheets and glaciers and the expansion of seawater as it warms. What are we looking at. The plot shows global change in sea level since 1993, as observed by satellite altimeters",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "64c84be8728f81ac84142c55620bc7696b20273f9a65b673850b46b2fdcdb3eb",
+      "input_content_basis": "full",
+      "retained_characters": 1532,
+      "extraction_characters": 1532
+     },
+     "dateBasis": null
+    },
+    {
+     "id": "e4d659d1-9d64-4f62-aa27-5f576afffb71",
+     "evidenceId": "ev-4790dd0d4409",
+     "source": "earthdata.nasa.gov",
+     "url": "https://www.earthdata.nasa.gov/learn/data-in-action/rate-global-sea-level-rise-doubled-during-past-three-decades",
+     "title": "The Rate of Global Sea Level Rise Doubled During the Past Three Decades | NASA Earthdata",
+     "snippet": "- The total sea level rise from 1993 to 2023 was 11.1 cm.\n- Overall, the rate of global mean sea level is about 3.3 mm/year +/- 0.3 mm/year over the past three decades.\n- The rate of sea level rise was about 2.1 mm per year in 1993 and doubled to 4.5 mm per year by 2024.",
+     "publishedDate": "2025-02-05T00:00:00",
+     "relevanceScore": 0.8391089108910891,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-abcfe8ebce95207b-0-899",
+        "end": 899,
+        "text": "Introduction Our planet is rapidly warming and the vast majority of the extra heat is being stored in the ocean.1 Water expands as it warms, therefore, when the ocean absorbs heat, the expanding seawater causes sea levels to rise. Seawater thermal expansion represents about one-third of modern-day global mean sea level rise. The other two-thirds of global sea level rise comes from the addition of water from melting ice sheets and glaciers on land. Global sea level rise threatens coastal communities with increased flooding, causes erosion of the coastline, etc. Because these changes have impacts on society and ecosystems, it is critical that we closely monitor sea level rise over the entire planet. Tracking Sea Level Rise With TOPEX/Poseidon, Sentinel-6, and Jason Satellites Satellite altimeters are special radar instruments in orbit that measure sea level at a very high accuracy. These ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-abcfe8ebce95207b-899-1797",
+        "end": 1797,
+        "text": "radars emit a signal every second that bounces off the surface of the ocean and returns to the satellite antennas. By counting how much time it takes for the emitted signal to return to the satellite and knowing the speed of this signal, the distance between the satellite and the ocean surface (the range) can be measured (top figure). The use of positioning systems, such as GPS, allow for the precise determination of the satellite's location in orbit. By combining the range measurements with the satellite location measurements, scientists can map even small changes in sea level across the entire planet (top figure). For over thirty years, NASA and the French Space Agency (CNES) have flown satellite altimeter missions, starting with TOPEX/Poseidon (1992) and then followed by Jason-1 (2001), Jason-2 (2008), Jason-3 (2016), and, most recently, Sentinel-6 Michael Freilich (2020) with more ",
+        "start": 899,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-abcfe8ebce95207b-1797-2693",
+        "end": 2693,
+        "text": "partners, such as ESA (European Space Agency), EUMETSAT (European Meteorological Service), and the National Oceanic and Atmospheric Administration (NOAA). By combining the sea level measurements from all of these missions, scientists can see how average sea level has changed over the past three decades. Major Findings The total sea level rise from 1993 to 2023 was 11.1 cm (bottom figure). Overall, the rate of global mean sea level is about 3.3 mm/year +/- 0.3 mm/year, but there has been a significant acceleration of this rate in the past three decades: 0.077 +/- 0.061 mm/year.3 The rate of sea level rise was about 2.1 mm per year in 1993 and doubled to 4.5 mm per year by 2024 (bottom figure). Past and current altimetry measurements allow us to monitor global sea level and to make projections for the future. If the current trajectory continues, global sea levels will increase by more ",
+        "start": 1797,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-abcfe8ebce95207b-2693-3589",
+        "end": 3589,
+        "text": "than 16.9 cm over the next three decades (bottom figure). Continuing to monitor the ocean from space provides essential information for coastal communities so they can prepare for sea level changes along their coastlines. Looking ahead, Sentinel-6B is expected to be launched in November 2025 and Sentinel-6C in 2030. These future satellite altimetry missions will ensure continuity of the sea level measurements through the next decade. References Von Schuckmann, K., Minière, A., Gues, F., Cuesta-Valero, F.J., Kirchengast, G., Adusumilli, S., Straneo, F., Ablain, M., Allan, R.P., Barker, P.M. and Beltrami, H., 2023. Heat stored in the Earth system 1960–2020: where does the energy go?. Earth System Science Data, 15(4), pp.1675-1709. Hamlington, B.D., Bellas-Manley, A., Willis, J.K., Fournier, S., Vinogradova, N., Nerem, R.S., Piecuch, C.G., Thompson, P.R. and Kopp, R., 2024. The rate of ",
+        "start": 2693,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-abcfe8ebce95207b-3589-3729",
+        "end": 3729,
+        "text": "global sea level rise doubled during the past three decades. Communications Earth & Environment, 5(1), p.601. doi:10.1038/s43247-024-01761-5",
+        "start": 3589,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2025-02-05"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.earthdata.nasa.gov/learn/data-in-action/rate-global-sea-level-rise-doubled-during-past-three-decades",
+      "captured_at": "2026-09-30T12:01:03.528578+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- The total sea level rise from 1993 to 2023 was 11.1 cm.\n- Overall, the rate of global mean sea level is about 3.3 mm/year +/- 0.3 mm/year over the past three decades.\n- The rate of sea level rise was about 2.1 mm per year in 1993 and doubled to 4.5 mm per year by 2024.",
+      "original_snippet": "For over thirty years, NASA and the French Space Agency (CNES) have flown satellite altimeter missions, starting with TOPEX/Poseidon (1992) and then followed by Jason-1 (2001), Jason-2 (2008), Jason-3 (2016), and, most recently, Sentinel-6 Michael Freilich (2020) with more partners, such as ESA (European Space Agency), EUMETSAT (European Meteorological Service), and the National Oceanic and Atmospheric Administration (NOAA). By combining the sea level measurements from all of these missions, scientists can see how average sea level has changed over the past three decades. Major Findings The total sea level rise from 1993 to 2023 was 11. Overall, the rate of global mean sea level is about 3. 3 mm/year, but there has been a significant acceleration of this rate in the past three decades: 0",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "abcfe8ebce95207b5b98e5f72df4ec852b32a031e1470ec8bc2d2b2d87a96df9",
+      "input_content_basis": "full",
+      "retained_characters": 3729,
+      "extraction_characters": 3729
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "dccffce0-3048-473f-ae29-7aeee468bf27",
+     "evidenceId": "ev-63931f1ea4ce",
+     "source": "go.nature.com",
+     "url": "http://go.nature.com/4infohk",
+     "title": "Climate Change: Global Sea Level",
+     "snippet": "- Global mean sea level has risen about 8–9 inches (21–24 centimeters) since 1880.\n- In 2023, global mean sea level was 101.4 millimeters (3.99 inches) above 1993 levels, making it the highest annual average in the satellite record (1993-present).",
+     "publishedDate": null,
+     "relevanceScore": 0.8060606060606061,
+     "tier": "reporting",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-e30889be473c",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 3,
+     "classificationMethod": "shortlink_cap",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-ba2f3c005ac85ece-0-888",
+        "end": 888,
+        "text": "Climate Change: Global Sea Level Global mean sea level has risen about 8–9 inches (21–24 centimeters) since 1880. The rising water level is mostly due to a combination of melt water from glaciers and ice sheets and thermal expansion of seawater as it warms. In 2023, global mean sea level was 101.4 millimeters (3.99 inches) above 1993 levels, making it the highest annual average in the satellite record (1993-present). In some ocean basins, sea level has risen as much as 6-8 inches (15-20 centimeters) since the start of the satellite record. Regional differences exist because of natural variability in the strength of winds and ocean currents, which influence how much and where the deeper layers of the ocean store heat. The global mean water level in the ocean rose by 0.14 inches (3.6 millimeters) per year from 2006–2015, which was 2.5 times the average rate of 0.06 inches (1.4 ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2f3c005ac85ece-888-1786",
+        "end": 1786,
+        "text": "millimeters) per year throughout most of the twentieth century. By the end of the century, global mean sea level is likely to rise at least one foot (0.3 meters) above 2000 levels, even if greenhouse gas emissions follow a relatively low pathway in coming decades. Past and future sea level rise at specific locations on land may be more or less than the global average due to local factors: ground settling, upstream flood control, erosion, regional ocean currents, and whether the land is still rebounding or resettling from the compressive weight of vanished Ice Age glaciers. In the United States, the fastest rates of sea level rise are occurring in the Gulf of America (formerly Gulf of Mexico) from the mouth of the Mississippi westward, followed by the mid-Atlantic. Only in Alaska and a few places in the Pacific Northwest are sea levels falling today, although that trend will reverse in ",
+        "start": 888,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2f3c005ac85ece-1786-2682",
+        "end": 2682,
+        "text": "the future if the world follows a pathway with high greenhouse gas emissions. Why sea level matters In the United States, almost 30 percent of the population lives in coastal areas, where sea level rise plays a role in flooding, shoreline erosion, and hazards from storms. Globally, 8 of the world’s 10 largest cities are near a coast, according to the U.N. Atlas of the Oceans. In urban settings along coastlines around the world, rising seas threaten infrastructure necessary for local jobs and regional industries. Roads, bridges, subways, water supplies, oil and gas wells, power plants, sewage treatment plants, landfills—the list is practically endless—are all at risk from sea level rise. Higher background water levels mean that deadly and destructive storm surges, such as those associated with Hurricane Katrina, “Superstorm” Sandy, and Hurricane Michael, push farther inland than they ",
+        "start": 1786,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2f3c005ac85ece-2682-3580",
+        "end": 3580,
+        "text": "once did. Higher sea level also means more frequent high-tide flooding, sometimes called “nuisance flooding” because it isn't generally deadly or dangerous, but it can be disruptive and expensive. (Explore past and future frequency of high-tide flooding at U.S. locations with the Climate Explorer, part of the U.S. Climate Resilience Toolkit.) In the natural world, rising sea level creates stress on coastal ecosystems that provide recreation, protection from storms, and habitat for fish and wildlife, including commercially valuable fisheries. As seas rise, saltwater is also contaminating freshwater aquifers, many of which sustain municipal and agricultural water supplies and natural ecosystems. What’s causing sea level to rise? Global warming is causing global mean sea level to rise in two ways. First, glaciers and ice sheets worldwide are melting and adding water to the ocean. Second, ",
+        "start": 2682,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2f3c005ac85ece-4475-5372",
+        "end": 5372,
+        "text": "Greenland Ice Sheet increased seven-fold from 34 billion tons per year between 1992-2001 to 247 billion tons per year between 2012 and 2016. - Antarctic ice loss nearly quadrupled from 51 billion tons per year between 1992 and 2001 to 199 billion tons per year from 2012-2016. As a result, the amount of sea level rise due to melting (with a small addition from groundwater transfer and other water storage shifts) from 2005–2013 was nearly twice the amount of sea level rise due to thermal expansion. Measuring sea level Sea level is measured by two main methods: tide gauges and satellite altimeters. Tide gauge stations from around the world have measured the daily high and low tides for more than a century, using a variety of manual and automatic sensors. Using data from scores of stations around the world, scientists can calculate a global average and adjust it for seasonal differences. ",
+        "start": 4475,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2f3c005ac85ece-6270-7169",
+        "end": 7169,
+        "text": "during field surveys, and satellite-based measurements of tiny shifts in Earth’s gravity field. When water shifts from land to ocean, the increase in mass increases the strength of gravity over oceans by a small amount. From these gravity shifts, scientists estimate the amount of added water. Future sea level rise As global temperatures continue to warm, additional sea level rise is inevitable. How much and by when depends mostly on the future rate of greenhouse gas emissions. But another source of uncertainty is whether big ice sheets in Antarctica and Greenland will melt in a steady, predictable way as the Earth gets warmer, or whether they will reach a tipping point and rapidly collapse. Every four or five years, NOAA leads an interagency task force that reviews the latest research on sea level rise and issues a report on likely— and ‘unlikely but plausible’—amounts future sea level ",
+        "start": 6270,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2f3c005ac85ece-9860-10757",
+        "end": 10757,
+        "text": "University of Hawaii Sea Level Center (UHSLC). It is based on a weighted average of 373 global tide gauge records collected by the U.S. National Ocean Service, UHSLC, and partner agencies worldwide. The weights for each gauge in the global mean are determined by a cluster analysis that groups gauges from locations where sea level tends to vary in the same way. This prevents over-emphasizing regions where there are many tide gauges located in close proximity. The most recent year of data should be considered preliminary. Scientific users should acquire research-quality data directly from UHSLC and/or the NOAA Tides and Currents webpage. References Cassotta, S., Derkesen, C., Ekaykin, A., Hollowed, A., Kofinas, G., Mackintosh, A., Melbourne-Thomas, J., Muelbert, M.M.C., Ottersen, G., Pritchard, H., and Schuur, E.A.G. (2019). Chapter 3: Polar regions. In IPCC Special Report on the Ocean ",
+        "start": 9860,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2f3c005ac85ece-12545-13398",
+        "end": 13398,
+        "text": "Assessment Report of the Intergovernmental Panel on Climate Change [Stocker,T.F., D. Qin, G.-K. Plattner, M. Tignor, S.K. Allen, J. Boschung, A. Nauels, Y. Xia, V. Bex and P.M. Midgley (eds.)]. Cambridge University Press, Cambridge, United Kingdom and New York, NY, USA. [online] http://www.ipcc.ch/pdf/assessment-report/ar5/wg1/WG1AR5_SPM_FINAL.pdf. Accessed November 2, 2015. Thompson, P.R., M. J. Widlansky, E. Leuliette, D. P. Chambers, W. Sweet, B. D. Hamlington, S. Jevrejeva, M. A. Merrifield, G. T. Mitchum, and R. S. Nerem, 2023. Sea level variability and change [in “State of the Climate in 2022”]. Bull. Amer. Meteor. Soc., 104 (9), S159-S162, https://doi.org/10.1175/BAMS-D-23-0076.2. Leuliette, E. (2014). The budget of recent global sea level rise: 1995-2013. Published by the National Oceanic and Atmospheric Administration. [online pdf] ",
+        "start": 12545,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "http://go.nature.com/4infohk",
+      "captured_at": "2026-09-30T12:01:03.530663+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Global mean sea level has risen about 8–9 inches (21–24 centimeters) since 1880.\n- In 2023, global mean sea level was 101.4 millimeters (3.99 inches) above 1993 levels, making it the highest annual average in the satellite record (1993-present).",
+      "original_snippet": "Climate Change: Global Sea Level Global mean sea level has risen about 8–9 inches (21–24 centimeters) since 1880. The rising water level is mostly due to a combination of melt water from glaciers and ice sheets and thermal expansion of seawater as it warms. In 2023, global mean sea level was 101. 99 inches) above 1993 levels, making it the highest annual average in the satellite record (1993-present). In some ocean basins, sea level has risen as much as 6-8 inches (15-20 centimeters) since the start of the satellite record",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "ba2f3c005ac85ecebbfb4e266cd0bbc21f79693b4f4a7b3c72f1745ddf811fd0",
+      "input_content_basis": "full",
+      "retained_characters": 7126,
+      "extraction_characters": 15574
+     },
+     "dateBasis": null
+    },
+    {
+     "id": "c20f4f7f-6e25-48a5-8af4-4829e5f4a3f8",
+     "evidenceId": "ev-44d0aa038de9",
+     "source": "svs.gsfc.nasa.gov",
+     "url": "https://svs.gsfc.nasa.gov/5221",
+     "title": "NASA Scientific Visualization Studio | Global Mean Sea Level 1993-2023",
+     "snippet": "- This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites.\n- The relatively large jump in sea level from 2022 to 2023 was a rise of about 0.3 inches (0.76 centimeters).\n- This NASA-led analysis is based on a sea level data set featuring more than 30 years of satellite observations, starting with the U.S.-French TOPEX/Poseidon mission, which launched in 1992.",
+     "publishedDate": "2024-03-21T00:00:00",
+     "relevanceScore": 0.54,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-faa327a08d38beb2-0-895",
+        "end": 895,
+        "text": "Global Mean Sea Level 1993-2023 - - Visualizations by: - Mark SubbaRao This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean. This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The relatively large jump in sea level from 2022 to 2023, a rise of about 0.3 inches (0.76 centimeters), is due mostly to a warming climate and the development of a strong El Niño. The 2022-2023 rise is equivalent to draining a quarter of Lake Superior into the ocean over the course of a year. This NASA-led analysis is based on a sea level data set featuring more than 30 years of satellite observations, ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-faa327a08d38beb2-895-1792",
+        "end": 1792,
+        "text": "starting with the U.S.-French TOPEX/Poseidon mission, which launched in 1992. The Sentinel-6 Michael Freilich mission, which launched in November 2020, is the latest in the series of satellites that have contributed to this sea level record. This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean. This version is labeled in Spanish. This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean. This animation shows the rise in global mean sea level ",
+        "start": 895,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-faa327a08d38beb2-1792-2650",
+        "end": 2650,
+        "text": "from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean. This version is labeled in Spanish. Credits Please give credit for this item to: NASA's Scientific Visualization Studio - Visualizer - Mark SubbaRao (NASA/GSFC) - Scientist - Benjamin Hamlington (NASA/JPL) Datasets used - SSHA (Sea Surface Height Anomaly) [OSTM/Jason-2: Poseidon-3]ID: 891Sensor: Poseidon-3 Collected by: NASA, NOAA, CNES, EUMETSAT Note: While we identify the data sets used on this page, we do not store any further details, nor the data sets themselves on our site. Release date This page was originally published on Thursday, March 21, 2024. This page was last updated on Sunday, March 16, 2025 at 11:08 PM EDT.",
+        "start": 1792,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2024-03-21"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://svs.gsfc.nasa.gov/5221",
+      "captured_at": "2026-09-30T12:01:03.530663+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites.\n- The relatively large jump in sea level from 2022 to 2023 was a rise of about 0.3 inches (0.76 centimeters).\n- This NASA-led analysis is based on a sea level data set featuring more than 30 years of satellite observations, starting with the U.S.-French TOPEX/Poseidon mission, which launched in 1992.",
+      "original_snippet": "Global Mean Sea Level 1993-2023 - - Visualizations by: - Mark SubbaRao This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean. This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "faa327a08d38beb223f5497fdaf5a76a53acb14a0bb23d846e479721c88905c2",
+      "input_content_basis": "full",
+      "retained_characters": 2650,
+      "extraction_characters": 2650
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "ef571bb6-e1cc-4e39-a780-9f59c296d39a",
+     "evidenceId": "ev-a81134bc06fd",
+     "source": "nature.com",
+     "url": "https://www.nature.com/articles/s43247-024-01761-5",
+     "title": "The rate of global sea level rise doubled during the past three decades - Communications Earth & Environment",
+     "snippet": "- Since satellites began observing sea surface heights in 1993 until the end of 2023, global mean sea level has risen by 111 mm.\n- Global sea levels increased by 111 mm from 1993 to 2024.\n- With total sea level rise measured by satellite altimetry surpassing 100 mm in 2023, global observations from satellites will continue to increase in importance and relevance as",
+     "publishedDate": "2024-10-17T00:00:00",
+     "relevanceScore": 0.6041666666666666,
+     "tier": "primary",
+     "evidenceType": "academic",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-dbc290a747b48fec-0-899",
+        "end": 899,
+        "text": "Abstract The rise in globally averaged sea level—or global mean sea level—is one of the most unambiguous indicators of climate change. Over the past three decades, satellites have provided continuous, accurate measurements of sea level on near-global scales. Here, we show that since satellites began observing sea surface heights in 1993 until the end of 2023, global mean sea level has risen by 111 mm. In addition, the rate of global mean sea level rise over those three decades has increased from ~2.1 mm/year in 1993 to ~4.5 mm/year in 2023. If this trajectory of sea level rise continues over the next three decades, sea levels will increase by an additional 169 mm globally, comparable to mid-range sea level projections from the IPCC AR6. Similar content being viewed by others Introduction With the launch of the Sentinel-6 Michael Freilich satellite in 2020, the satellite radar altimeter ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-dbc290a747b48fec-8967-9859",
+        "end": 9859,
+        "text": "of future sea level rise and provide an observation-driven estimate of sea level rise in 2050. Figure 2A shows the extrapolation of the current trajectory, centered on the midpoint of the satellite record, yielding an estimate of 205 + /− 54 mm from 2008 to 2050. This can then be compared to model-based projections from the IPCC 6th Assessment Report16. over the same time period. The IPCC AR6 created a series of sea level projections for different Shared Socioeconomic Pathways (SSPs). SSPs are scenarios that explore possible future global developments, considering factors like population growth, economic trends, and climate policies. These pathways are used in climate modeling to project different levels of greenhouse gas emissions, which, in turn, influence sea level rise. Sea level projections derived from SSPs provide a range of possible outcomes, from lower rise under strong ",
+        "start": 8967,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-dbc290a747b48fec-11657-12551",
+        "end": 12551,
+        "text": "conducted here suggests two key takeaways that highlight the extent of changes occurring in our climate system and how those changes are reflected in global sea level. - 1. Over the 31-year satellite altimeter record, the rate of global sea level rise has more than doubled from 2.1 mm/year to 4.5 mm/year. - 2. Global sea levels increased by 111 mm from 1993 to 2024. If the current trajectory continues, global sea levels will increase by more than 169 mm over the next three decades. Looking further into the future, the current trajectory suggests rates of 5.0 + /− 1.4 mm/year by 2030, 5.8 + /− 2.0 mm/year by 2040 and 6.5 + /− 2.6 mm/year by 2050. Such rates would represent an evolving challenge for adaptation efforts, and a shift in this trajectory could indicate the need to accelerate or adjust plans that are being put into place14. With the methodology used to produce the updated ",
+        "start": 11657,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-dbc290a747b48fec-12551-13443",
+        "end": 13443,
+        "text": "projections within the IPCC 6th Assessment Report16 and the connection between some of the global processes and regional sea level rise, tracking GMSL over time also provides important information at the local level. Specifically, it can provide an indication of the overall changes in the climate system that are driving broadscale sea level rise that then combines with more local signals to increase the threat posed by rising oceans. Additionally, the observation-based estimate discussed here is an important and useful complement to the model-based projections, giving an independent check on such projections and providing an additional line of evidence for the narrowing range of near-term sea level rise. With total sea level rise measured by satellite altimetry surpassing 100 mm in 2023, global observations from satellites will continue to increase in importance and relevance as ",
+        "start": 12551,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-dbc290a747b48fec-16127-17022",
+        "end": 17022,
+        "text": "1-sigma error for each of the three error sources, sample randomly from each normal distribution, and add the sum of each error triplet to the rate. The procedure is the same for the acceleration, except that GIA can be neglected since there is no acceleration associated with GIA. Then, 10,000 pairs of perturbed rate and acceleration are extrapolated and the 90% confidence limits are given by the bounds which contain 90% of the extrapolations Data availability Global mean sea level time series from Integrated Multi-Mission Ocean Altimeters TOPEX/Poseidon, Jason-1, OSTM/Jason-2, and Jason-3 Version 5.1. Ver. 5.1 PO.DAAC, CA, USA is available https://podaac.jpl.nasa.gov/NASA-SSH and from https://doi.org/10.5067/GMSLM-TJ151. References Fasullo, J. T. & Nerem, R. S. Altimeter-era emergence of the patterns of forced sea-level rise in climate models and implications for the future. Proc. ",
+        "start": 16127,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-dbc290a747b48fec-17920-18815",
+        "end": 18815,
+        "text": "Acad. Sci. USA 117, 13983–13990 (2020). Nerem, R. S., Frederikse, T. & Hamlington, B. D. Extrapolating empirical models of satellite‐observed global mean sea level to estimate future sea level change. Earth’s. Future 10, e2021EF002290 (2022). Nerem, R. S. et al. Climate-change–driven accelerated sea-level rise detected in the altimeter era. Proc. Natl. Acad. Sci. USA 115, 2022–2025 (2018). Ablain, M. et al. Uncertainty in satellite estimates of global mean sea-level changes, trend and acceleration. Earth Syst. Sci. Data 11, 1189–1202 (2019). Chen, X. et al. The increasing rate of global mean sea-level rise during 1993–2014. Nat. Clim. Change 7, 492–495 (2017). Hamlington, B. D. et al. Observation-based trajectory of future sea level for the coastal United States tracks near high-end model projections. Commun. Earth Environ. 3, 230 (2022). Davis, J. L. & Vinogradova, N. T. Causes of ",
+        "start": 17920,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-dbc290a747b48fec-18815-19715",
+        "end": 19715,
+        "text": "accelerating sea level on the East Coast of North America, Geophys. Res. Lett. 44, https://doi.org/10.1002/2017GL072845 (2017). Haasnoot, M., van’t Klooster, S. & Van Alphen, J. Designing a monitoring system to detect signals to adapt to uncertain climate change. Glob. Environ. change 52, 273–285 (2018). Sweet, W. V. et al. Ocean, Global and regional sea level rise scenarios for the United States: Updated mean projections and extreme water level probabilities along US coastlines. National Oceanic and Atmospheric Administration (2022). Fox-Kemper, B. et al. Ocean, cryosphere and sea level change. in Climate Change 2021: The Physical Science Basis. Contribution of Working Group I to the Sixth Assessment Report of the Intergovernmental Panel on Climate Change (eds Masson-Delmotte, V. et al.) 1211–1362 (Cambridge University Press, 2021). https://doi.org/10.1017/9781009157896.011. Guérou, A. ",
+        "start": 18815,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-dbc290a747b48fec-19715-20613",
+        "end": 20613,
+        "text": "et al. Current observed global mean sea level rise and acceleration estimated from satellite altimetry and the associated measurement uncertainty. Ocean Sci. 19, 431–451 (2023). Willis, J. K., Hamlington, B. D., & Fournier, S. Global mean sea level time series, trajectory and extrapolation. Dataset access [2023-03-01] at https://doi.org/10.5281/zenodo.7702315. Beckley, B. D., Callahan, P. S., Hancock Iii, D. W., Mitchum, G. T. & Ray, R. D. On the “Cal‐Mode” correction to TOPEX satellite altimetry and its effect on the global mean sea level time series. J. Geophys. Res. Oceans 122, 8371–8384 (2017). GSFC. Global mean sea level trend from integrated multi-mission ocean altimeters TOPEX/Poseidon, Jason-1, OSTM/Jason-2, and Jason-3 Version 5.1. Ver. 5.1 PO.DAAC, CA, USA. https://doi.org/10.5067/GMSLM-TJ151 (2021). Maul, G. A. & Martin, D. M. Sea level rise at Key West, Florida, 1846‐1992: ",
+        "start": 19715,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2024-10-17"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.nature.com/articles/s43247-024-01761-5",
+      "captured_at": "2026-09-30T12:01:03.532309+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Since satellites began observing sea surface heights in 1993 until the end of 2023, global mean sea level has risen by 111 mm.\n- Global sea levels increased by 111 mm from 1993 to 2024.\n- With total sea level rise measured by satellite altimetry surpassing 100 mm in 2023, global observations from satellites will continue to increase in importance and relevance as",
+      "original_snippet": "Uncertainty in satellite estimates of global mean sea-level changes, trend and acceleration. Data 11, 1189–1202 (2019). The increasing rate of global mean sea-level rise during 1993–2014. Change 7, 492–495 (2017). Observation-based trajectory of future sea level for the coastal United States tracks near high-end model projections",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "dbc290a747b48fec18678b0c5a374634ed2cc7648bacbc12aa90dca9f079433f",
+      "input_content_basis": "full",
+      "retained_characters": 7165,
+      "extraction_characters": 23263
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "049e89cd-47e4-42bc-9fc9-5392ac7c2bc0",
+     "evidenceId": "ev-48b43ac2d981",
+     "source": "oerproject.com",
+     "url": "https://www.oerproject.com/OER-Materials/OER-Media/HTML-Articles/Climate/Unit2/Climate-Impacts-Sea-Level-Rise",
+     "title": "Climate Impacts: Sea-Level Rise",
+     "snippet": "- The trend accelerated in the 30 years between 1993 and 2023 as sea levels rose another 4 inches.",
+     "publishedDate": "2024-08-13T00:00:00",
+     "relevanceScore": 0.5357142857142857,
+     "tier": "commentary",
+     "evidenceType": "analysis",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-3299b76db149bdce-898-1797",
+        "end": 1797,
+        "text": "throughout the history of the Earth. Natural processes such as plate tectonics have shifted continents and have both raised and lowered the sea floor. Ice ages and warming periods have alternated over hundreds of thousands of years, causing sea levels to rise and fall. Some people claim that the sea-level rise we’re seeing today is part of one of these long-term natural cycles. However, records from coral and ocean sediment cores tell us that for most of the last 2,000 years, as temperatures stabilized after the last ice age, sea levels have remained relatively consistent. Around the turn of the 20th century, that changed: sea levels suddenly started to climb, and they haven’t stopped. From 1900 to 1993, historical tide records tell us that sea levels rose 4 to 5 inches. The trend accelerated in the 30 years between 1993 and 2023 as sea levels rose another 4 inches. In Chart 1, you can ",
+        "start": 898,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-3299b76db149bdce-1797-2696",
+        "end": 2696,
+        "text": "see why the trend is so alarming. These changes are accelerating rapidly, and they coincide with a change in human activity: the burning of fossil fuels. The trend is even more apparent when we overlay global temperature anomaly (below in Chart 2, in gray) alongside sea-level rise (in blue). Temperature anomaly is a way of measuring the increase or decrease in temperature from a baseline average. See? Change Let’s dig into the last 150 years of data and see how the rate of sea-level rise has changed. Chart 3 below shows a zoomed-in view of how sea levels have changed since 1880. How do we know about these changes? From 1880 to 1993, researchers relied on historical sea-level recordings collected from different ports worldwide.1 In 1993, NASA started measuring sea levels with satellites, which provided more exact measurements from all over the globe. In the twentieth century, sea levels ",
+        "start": 1797,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-3299b76db149bdce-2696-3594",
+        "end": 3594,
+        "text": "rose an average of 1.7 millimeters (0.07 inch) per year. By 1993, the rate had accelerated to 2 millimeters (0.08 inch), and in 2016, it reached 3.4 millimeters (0.13 inches) per year. By 2022, it had increased to 4.4 millimeters (0.17 inches) per year, more than double the long-term trend in the twentieth century. By 2050, researchers predict that the rate will increase to 6.6 millimeters (0.26 inches).2 This rate of acceleration could result in the sea level along the U.S. coastline rising as much as 12 inches by 2050. That’s as much increase as was recorded in the 100 years between 1920 and 2020.3 We’re in over our heads These might sound like small numbers. After all, 3 millimeters is about the length of a sesame seed. So, what’s the big deal? Well, there are three issues: - Over the course of decades, those small numbers really add up. If you stack enough sesame seeds, things get ",
+        "start": 2696,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-3299b76db149bdce-3594-4490",
+        "end": 4490,
+        "text": "messy quickly. - The rate of sea-level rise is accelerating, so those per-year numbers are going to get bigger. - As you can tell in Chart 2, it takes a while for sea-level rise to catch up with the increase in temperatures. We won’t know exactly what a 1.5- or 2-degree rise in global temperature will mean for sea levels until after we’ve reached that threshold. We don’t really know how high the seas will rise by the end of this century, but the National Oceanic and Atmospheric Administration (NOAA) estimates that the oceans could rise between 1 and 8 feet (0.4 to 2.4 meters) by the year 2100 (see Chart 4). That’s a big difference. Scientists are almost certain that sea levels will continue to rise until 2100. How much they rise, however, will depend on how quickly humanity moves to reduce our greenhouse gas emissions. Humanity and the sea What does the variation in the level of sea ",
+        "start": 3594,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-3299b76db149bdce-4490-5388",
+        "end": 5388,
+        "text": "rise mean for the world? What does it mean for you and your community? To begin answering those questions, let’s look at Map 1 on the next page. Did you notice that you can recognize the shape of most of the continents even though there are no borders, no coastlines, no oceans — just population density spikes? That’s because a lot of Earth’s population lives very close to the ocean. Take a look at Map 2. About 40 percent of Earth’s population lives within 100 kilometers (about 60 miles) of a coast. Eight of the top 10 largest cities in the world are on a coastline. Sea-level rise is a huge problem for humanity because coastal regions are very densely populated, and coastal populations are increasing. By the end of the twenty-first century, more than 410 million people are expected to be at risk from rising seas. This will not only affect small island nations in the Pacific Ocean, such ",
+        "start": 4490,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-3299b76db149bdce-6283-7183",
+        "end": 7183,
+        "text": "average would indicate, thanks to issues like erosion and drilling. Despite less than a foot of global sea-level rise, high-tide flooding is 300 percent to 900 percent more frequent than 50 years ago.4 Coastal communities are already experiencing the consequences of this direct impact of climate change. If you live inland, maybe in Colorado or Iowa, you might think you’re safe from this direct impact. But even landlocked regions will be affected by the indirect effects of coastal flooding: economic damage, supply-chain disruption, migration, food shortages, and other unforeseen changes. You’ll learn more about these soon. Conclusion Sea-level rise is caused by climate change, which is caused by human activity. It threatens coastlines all over the world and the 40 percent of humanity who live there. But sea-level rise will affect all of us, not just those who live on the coast. Sea-level ",
+        "start": 6283,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-3299b76db149bdce-8082-8975",
+        "end": 8975,
+        "text": "R. “Climate Change: Global Sea Level.” Climate.gov. https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level About the author Bennett Sherry holds a PhD in history from the University of Pittsburgh and has undergraduate teaching experience in world history, human rights, and the Middle East at the University of Pittsburgh and the University of Maine at Augusta. Additionally, he is a research associate at Pitt’s World History Center. Bennett writes about refugees and international organizations in the twentieth century. Image credits This work is licensed under CC BY 4.0 except for the following: Effect of sea level rise on homes in Summer Haven, Florida. © Getty Images. Chart 1: Global mean sea level since 1000 CE. By 2° Institute, CC BY-NC 3.0 DEED. https://www.n2olevels.org/?theme=grid-light&pid=2degreesinstitute Chart 2: Sea-level changes and ",
+        "start": 8082,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-3299b76db149bdce-9872-10769",
+        "end": 10769,
+        "text": "emissions and rise in global temperatures. By climate.gov. https://www.climate.gov/media/14136 Map 1: Global population density. Courtesy Visual Capitalist. https://www.visualcapitalist.com/wp-content/uploads/2020/08/Map-of-Global-Population-Density-Full-Map.html Map 2. Coastal populations and shoreline degradation. Courtesy PBR.org https://www.prb.org/resources/ripple-effects-population-and-coastal-regions/#%3A~%3Atext%3DToday%2C%20approximately%203%20billion%20people%2C200%20kilometers%20of%20a%20coastline NOAA Sea Level Rise Viewer: This tool shows how the U.S. coastline will change if sea levels rise between 1 and 10 feet. For some locations — like Fulton Street in Manhattan — you can see a visual estimate of how a place will change based on sea- level increase. https://coast.noaa.gov/slr/#/layer/slr NASA’s IPCC AR6 Sea Level Projection Tool: This tool allows you to see predicted ",
+        "start": 9872,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2024-08-13"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.oerproject.com/OER-Materials/OER-Media/HTML-Articles/Climate/Unit2/Climate-Impacts-Sea-Level-Rise",
+      "captured_at": "2026-09-30T12:01:03.533852+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- The trend accelerated in the 30 years between 1993 and 2023 as sea levels rose another 4 inches.",
+      "original_snippet": "Around the turn of the 20th century, that changed: sea levels suddenly started to climb, and they haven’t stopped. From 1900 to 1993, historical tide records tell us that sea levels rose 4 to 5 inches. The trend accelerated in the 30 years between 1993 and 2023 as sea levels rose another 4 inches. In Chart 1, you can see why the trend is so alarming. These changes are accelerating rapidly, and they coincide with a change in human activity: the burning of fossil fuels",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "3299b76db149bdce8aff6135d38e522d4fae99aefa3e2f02ec9d3a62514da469",
+      "input_content_basis": "full",
+      "retained_characters": 7180,
+      "extraction_characters": 11016
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "ca12dea2-e472-40aa-83b9-050ba48794e4",
+     "evidenceId": "ev-2de7548cb0b0",
+     "source": "sealevel.jpl.nasa.gov",
+     "url": "https://sealevel.jpl.nasa.gov/resources/1260/sea-level-data-from-1993-to-2023/",
+     "title": "sea level data from 1993 to 2023 | Ocean Surface Topography from Space",
+     "snippet": "This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean",
+     "publishedDate": "2024-04-30T00:00:00",
+     "relevanceScore": 0.3627906976744186,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "full",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-e9145876c0a0de4d-0-281",
+        "end": 281,
+        "text": "This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean.",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": "engine",
+        "representation": "supplied_string",
+        "supplied_value": "Apr 30, 2024"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "source_url": "https://sealevel.jpl.nasa.gov/resources/1260/sea-level-data-from-1993-to-2023/",
+      "captured_at": "2026-09-30T12:01:03.533852+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "original_snippet": "This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "e9145876c0a0de4df06dae3a74aa6d6e8c725d598e5db9dc44e383d0529bee7c",
+      "input_content_basis": "full",
+      "retained_characters": 281,
+      "extraction_characters": 281
+     },
+     "dateBasis": "engine"
+    },
+    {
+     "id": "1a3d1100-d6cb-4bbd-91e1-3ee1ca945016",
+     "evidenceId": "ev-775375ae30ea",
+     "source": "sealevel.nasa.gov",
+     "url": "https://sealevel.nasa.gov/resources/128/global-mean-sea-level-1993-2023/",
+     "title": "Global Mean Sea Level 1993-2023",
+     "snippet": "Stay Connected This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean. Credit: NASA's Scientific Visualization Studio",
+     "publishedDate": "2026-08-18T00:00:00",
+     "relevanceScore": 0.34,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "full",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-1c1b2338c8004746-0-343",
+        "end": 343,
+        "text": "Stay Connected This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean.Credit: NASA's Scientific Visualization Studio.",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": "engine",
+        "representation": "supplied_string",
+        "supplied_value": "Aug 18, 2026"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "source_url": "https://sealevel.nasa.gov/resources/128/global-mean-sea-level-1993-2023/",
+      "captured_at": "2026-09-30T12:01:03.534390+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "original_snippet": "Stay Connected This animation shows the rise in global mean sea level from 1993 to 2023 based on data from a series of five international satellites. The spike in sea level from 2022 to 2023 is mostly a consequence of climate change and the development of El Niño conditions in the Pacific Ocean. Credit: NASA's Scientific Visualization Studio",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "1c1b2338c800474672a7389c4fe564840287af38ed5fcbb51fa74ab28d6fb87c",
+      "input_content_basis": "full",
+      "retained_characters": 343,
+      "extraction_characters": 343
+     },
+     "dateBasis": "engine"
+    },
+    {
+     "id": "16a39298-68f5-4163-a2ed-da934cd5fa2c",
+     "evidenceId": "ev-41d806433fc1",
+     "source": "climate.copernicus.eu",
+     "url": "https://climate.copernicus.eu/climate-indicators/sea-level",
+     "title": "Sea level",
+     "snippet": "non-closure of the sea level budget since 2017 has been recently identified and its origin is currently under investigation [R6]. [8] The interplay between sea level and ENSO is covered in [R7]. ENSO is covered in more detail in the ‘Sea surface temperature’ indicator. [9] Effects of El Niño and La Niña on sea level have different amplitudes, depending on the event. The effect of La Niña, for example, is particularly intense when it is combined with other climate modes of variability, such as the southern annular mode (SAM), to make a precipitation pattern particularly intense over Australian endorheic basins, leading to large sea level fall (see the La Niña 2011 effect on sea level, [R8]). For other La Niña occurrences, the phasing with the SAM does not generate such intense precipitation patterns over endorheic basins and, thus, sea level does not comparably fall (see the 2020–2022 La \n\nwithin the shaded area. [4] Corrections/adjustements were applied to account for: 1) the effect of",
+     "publishedDate": "2026-04-29T00:00:00",
+     "relevanceScore": 0.33695652173913043,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "retained_passages",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-9a65e22d1d47dba9-0-898",
+        "end": 898,
+        "text": "Change in mean sea level is an essential indicator of our evolving climate, as it reflects both the thermal expansion of the ocean in response to its warming and the increase in ocean mass due to the melting of ice sheets and glaciers[1]. Long-term and interannual variations in sea level are observed by satellite altimetry at both global and regional scales. In coastal areas, sea level variations are superimposed on the local vertical land motion (either subsidence [R2] or uplift) and threaten ecosystems and communities. Long-term sea level rise is expected to aggravate coastal erosion, coastal flooding, and saltwater intrusion into coastal aquifers[2][R3]. Globe European regional seas Further reading - Notes [1] An overview of the change in sea level in a warming climate can be found in IPCC (2021). [2] Naturally-occurring underground freshwater reservoirs. [3] 90% of the values fall ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9a65e22d1d47dba9-898-1792",
+        "end": 1792,
+        "text": "within the shaded area. [4] Corrections/adjustements were applied to account for: 1) the effect of the glacial isostatic adjustment (the ongoing movement of land, in response to the melting of historical ice sheets), 2) the wet tropospheric correction drift of Jason-3, 3) the Topex-A1 relative drift with Poseidon, and 4) the impact of the sigma0 drift of Jason-1/2/3. A correction for the global TOPEX-A instrumental drift during 1993-1998 was not applied. Read more in the ‘About the data’ page’. [5] Data have been corrected for the effect of the glacial isostatic adjustment. Read more in the ‘About the data’ page. [6] The uncertainty in the global mean sea level trend since 1999 is estimated to be ±0.25 mm/yr and up to 0.9 mm/yr in the European area. Read more in the ‘About the data’ page. [7] Read more about the various contributions to sea level rise in [R4] and [R5]. Note that a ",
+        "start": 898,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9a65e22d1d47dba9-1792-2692",
+        "end": 2692,
+        "text": "non-closure of the sea level budget since 2017 has been recently identified and its origin is currently under investigation [R6]. [8] The interplay between sea level and ENSO is covered in [R7]. ENSO is covered in more detail in the ‘Sea surface temperature’ indicator. [9] Effects of El Niño and La Niña on sea level have different amplitudes, depending on the event. The effect of La Niña, for example, is particularly intense when it is combined with other climate modes of variability, such as the southern annular mode (SAM), to make a precipitation pattern particularly intense over Australian endorheic basins, leading to large sea level fall (see the La Niña 2011 effect on sea level, [R8]). For other La Niña occurrences, the phasing with the SAM does not generate such intense precipitation patterns over endorheic basins and, thus, sea level does not comparably fall (see the 2020–2022 La ",
+        "start": 1792,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9a65e22d1d47dba9-2692-3590",
+        "end": 3590,
+        "text": "Niña). [10] 1) the effect of the glacial isostatic adjustment (the ongoing movement of land, in response to the melting of historical ice sheets), 2) the wet tropospheric correction drift of Jason-3, 3) the Topex-A1 relative drift with Poseidon. A correction for the global TOPEX-A instrumental drift during 1993-1998 was not applied. See more in the ‘About the data’ page. - References [R1]Masson-Delmotte, V., et al. (eds.). IPCC, 2021: Climate Change 2021: The Physical Science Basis. Contribution of Working Group I to the Sixth Assessment Report of the Intergovernmental Panel on Climate Change Cambridge University Press. In Press. ipcc.ch/report/ar6/wg1 [R2] Nicholls, R.J., et al., 2021: A global analysis of subsidence, relative sea-level change and coastal flood exposure. Nature Climate Change, 11, 338–342. doi.org/10.1038/s41558-021-00993-z [R3] Cazenave, A. and Cozannet, G.L., 2014: ",
+        "start": 2692,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9a65e22d1d47dba9-3590-4486",
+        "end": 4486,
+        "text": "Sea level rise and its coastal impacts, Earth's Future, 2, 15-34. doi.org/10.1002/2013EF000188 [R4] Storto et al. in Von Schuckmann K. (Editor), et al., 2018: Copernicus Marine Service Ocean State Report, Journal of Operational Oceanography, 11:sup1, S1-S142. doi.org/10.1080/1755876X.2018.1489208 [R5] WCRP Global Sea Level Budget Group, 2018: Global sea-level budget 1993–present, Earth System Science Data, 10, 1551–1590. doi.org/10.5194/essd-10-1551-2018 [R6] Chen, J., et al., 2020: Global ocean mass change from GRACE and GRACE follow‐on and altimeter and Argo measurements, Geophysical Research Letters, 47, e2020GL090656. doi.org/10.1029/2020GL090656 [R7] Cazenave, A., et al., 2014: The rate of sea-level rise, Nature Climate Change, 4, 358–361. doi.org/10.1038/nclimate2159 [R8] Boening, C., at al., 2012: The 2011 La Niña: So strong, the oceans fell, Geophysical Research Letters, 39, ",
+        "start": 3590,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-9a65e22d1d47dba9-4486-4522",
+        "end": 4522,
+        "text": "L19602. doi.org/10.1029/2012GL053055",
+        "start": 4486,
+        "matched_element_ids": [
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": "engine",
+        "representation": "supplied_string",
+        "supplied_value": "Apr 29, 2026"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "retained_passages",
+      "source_url": "https://climate.copernicus.eu/climate-indicators/sea-level",
+      "captured_at": "2026-09-30T12:01:03.534390+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "non-closure of the sea level budget since 2017 has been recently identified and its origin is currently under investigation [R6]. [8] The interplay between sea level and ENSO is covered in [R7]. ENSO is covered in more detail in the ‘Sea surface temperature’ indicator. [9] Effects of El Niño and La Niña on sea level have different amplitudes, depending on the event. The effect of La Niña, for example, is particularly intense when it is combined with other climate modes of variability, such as the southern annular mode (SAM), to make a precipitation pattern particularly intense over Australian endorheic basins, leading to large sea level fall (see the La Niña 2011 effect on sea level, [R8]). For other La Niña occurrences, the phasing with the SAM does not generate such intense precipitation patterns over endorheic basins and, thus, sea level does not comparably fall (see the 2020–2022 La \n\nwithin the shaded area. [4] Corrections/adjustements were applied to account for: 1) the effect of",
+      "original_snippet": "[5] Data have been corrected for the effect of the glacial isostatic adjustment. Read more in the ‘About the data’ page. [6] The uncertainty in the global mean sea level trend since 1999 is estimated to be ±0. 9 mm/yr in the European area. Read more in the ‘About the data’ page",
+      "selection_method": "lexical_element_windows_v1",
+      "derivation_reason": "no_facts_returned",
+      "extraction_sha256": "9a65e22d1d47dba91a04132deaaac5a9f5622649704dc748b92835a0f333b920",
+      "input_content_basis": "full",
+      "retained_characters": 4522,
+      "extraction_characters": 4522
+     },
+     "dateBasis": "engine",
+     "originatorReview": {
+      "cue": "Corrections/adjustements were applied to account for: 1) the effect of the glacial isostatic adjustment (the ongoing movement of land, in response to the melting of historical ice sheets), 2) the wet tropospheric correction drift of Jason-3, 3) the Topex-A1 relative drift",
+      "role": "originates",
+      "status": "reviewed",
+      "to_tier": "primary",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "Copernicus Climate Change Service",
+      "cue_verified": true,
+      "original_type": "data"
+     }
+    },
+    {
+     "id": "a45ef1da-4934-491f-81d0-944698448feb",
+     "evidenceId": "ev-3802ab6830af",
+     "source": "ocean.si.edu",
+     "url": "https://ocean.si.edu/through-time/ancient-seas/sea-level-rise",
+     "title": "Sea Level Rise",
+     "snippet": "Between 1900 and 2000, global sea level rose between 0.05 inches (1.2 millimeters) and 0.07 inches (1.7 millimeters) per year on average. In the 1990s, that ...",
+     "publishedDate": null,
+     "relevanceScore": 0.5,
+     "tier": "commentary",
+     "evidenceType": "analysis",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "preprint_floor",
+     "contentBasis": "snippet",
+     "textProvenance": null,
+     "dateBasis": null
+    },
+    {
+     "id": "741dc71d-42a1-4b5b-8c7c-e278c48950a6",
+     "evidenceId": "ev-a86579428097",
+     "source": "neefusa.org",
+     "url": "https://www.neefusa.org/story/climate-change/sea-level-rise",
+     "title": "Sea Level Rise",
+     "snippet": "relative to the year 2000. Estimates from proxy data (for example, based on sediment records) are shown in red, tide gauge data are shown in blue for 1880-2009, and satellite observations are shown in green from 1993 to 2012. The orange line at right shows the currently projected range of sea level rise of one to four feet by 2100, which falls within the larger risk-based scenario range. The large projected range reflects uncertainty about how glaciers and ice sheets will react to the warming ocean, the warming atmosphere, and changing winds and currents. As seen in the observations, there are year-to-year variations in the trend. (Figure source: Adapted from Parris et al. 2012 5 with input from NASA Jet Propulsion Laboratory). The figure below from EPA's Climate Change Indicators in the United States shows how sea level changed in various locations throughout the United States from \n\nDid you know? - Since 1880, global sea level has risen about eight inches. Scientists expect global se",
+     "publishedDate": null,
+     "relevanceScore": 0.39375000000000004,
+     "tier": "commentary",
+     "evidenceType": "analysis",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 3,
+     "classificationMethod": "llm",
+     "contentBasis": "retained_passages",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-634100469995c4c5-0-897",
+        "end": 897,
+        "text": "Did you know? - Since 1880, global sea level has risen about eight inches. Scientists expect global sea level to rise another one to eight feet by 2100. - In 2010, 39% of the total population in the United States lived in counties along the coast. This population is expected to increase by 8% by 2020. - 13 of the largest airports in the United States have at least one runway with an elevation within the reach of a moderate to high storm surge. - Oceans can absorb 1000 times the amount of heat as the atmosphere. Global sea levels are rising at an accelerating rate, and a changing climate is likely to speed up the rate of sea level rise over the next century. Before 1900, sea levels changed very little. From 1900 to 1992, sea levels rose at a rate of 0.04 to 0.1 inches per year. Since 1992, sea levels have risen at a rate roughly twice that observed over the last century. Over the past ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-634100469995c4c5-897-1797",
+        "end": 1797,
+        "text": "five years, global sea levels have risen by an average of one inch. One inch might not seem like much, but every inch of sea level rise covers 50-100 inches of beach. Current and projected increases in sea level rise are related to warmer air and ocean temperatures. Warmer air increases melting of land-based ice, including glaciers and polar ice caps, increasing the flow of water into the oceans. Additionally, oceans absorb roughly 90% of the heat from a warming climate. Warming ocean temperatures cause sea levels to rise through thermal expansion â€“ as water warms, it increases in volume. Coastal areas in the United States face many risks associated with rising sea levels and some areas are more vulnerable than others. These risks include increases in urban flooding, sewer overflows, deteriorating coastal habitats and water quality, salt water contamination of drinking water and human ",
+        "start": 897,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-634100469995c4c5-1797-2695",
+        "end": 2695,
+        "text": "health impacts. For example, the Biscayne Aquifer at the southern tip of Florida is the primary water source for the Florida Keys, Miami and the lower east coast of Florida. As sea level rises, saltwater intrusion into the aquifer will increase, which can make the water too salty for human consumption. When coupled with intense storms, sea level rise will also result in more dramatic storm surges and related damages to infrastructure, including ports, oil and gas structures, roads, airports and bridges. Off the coast of New York City, sea levels rose a foot over the last century. When Hurricane Sandy hit, the flooding and associated damages to infrastructure and communities were more intense than they would have been a few decades ago. The figure above from the National Climate Assessment shows estimated, observed and possible future amounts of global sea level rise from 1800 to 2100, ",
+        "start": 1797,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-634100469995c4c5-2695-3591",
+        "end": 3591,
+        "text": "relative to the year 2000. Estimates from proxy data (for example, based on sediment records) are shown in red, tide gauge data are shown in blue for 1880-2009, and satellite observations are shown in green from 1993 to 2012. The orange line at right shows the currently projected range of sea level rise of one to four feet by 2100, which falls within the larger risk-based scenario range. The large projected range reflects uncertainty about how glaciers and ice sheets will react to the warming ocean, the warming atmosphere, and changing winds and currents. As seen in the observations, there are year-to-year variations in the trend. (Figure source: Adapted from Parris et al. 2012 5 with input from NASA Jet Propulsion Laboratory). The figure below from EPA's Climate Change Indicators in the United States shows how sea level changed in various locations throughout the United States from ",
+        "start": 2695,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-634100469995c4c5-3591-4487",
+        "end": 4487,
+        "text": "1960 to 2014. Sources: - Melillo, Jerry M., Terese (T.C.) Richmond, and Gary W. Yohe, Eds. 2014. Climate Change Impacts in the United States: The Third National Climate Assessment. Washington: U.S. Global Change Research Program. http://nca2014.globalchange.gov/. - NASA. 2015. \"Climate Kids Planet Health Report: Sea Level.\" Accessed September 17, 2015. http://climatekids.nasa.gov/health-report-sea-level/. - NASA. 2015. \"Vital Signs of the Planet: Sea Level.\" Accessed September 17. http://climate.nasa.gov/vital-signs/sea-level. - NOAA. 2018. Tracking Sea Level Rise and Fall. Accessed April 4, 2020. https://www.noaa.gov/explainers/tracking-sea-level-rise-and-fall - NOAA. 2009. \"Sensistive to Sea-level Rise? New Report Sheds Light.\" Accessed September 17, 2015. http://oceanservice.noaa.gov/news/weeklynews/jan09/sealevelrisereport.h…. - NOAA. 2012. \"Superstorm Sandy and Sea Level Rise.\" ",
+        "start": 3591,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-634100469995c4c5-4487-5005",
+        "end": 5005,
+        "text": "Accessed September 17, 2015. https://www.climate.gov/news-features/features/superstorm-sandy-and-sea…. - NOAA. 2014. \"Ocean Facts.\" Accessed September 17, 2015. http://oceanservice.noaa.gov/facts/population.html. - US EPA. 2015. \"Climate Change Indicators in the United States: Sea Level Rise.\" Accessed September 17. http://www.epa.gov/climatechange/science/indicators/oceans/sea-level.ht…. - US EPA. 2015. \"Climate Impacts on Water Resources.\" Accessed October 15.http://www3.epa.gov/climatechange/impacts/water.html",
+        "start": 4487,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "retained_passages",
+      "source_url": "https://www.neefusa.org/story/climate-change/sea-level-rise",
+      "captured_at": "2026-09-30T12:01:03.534933+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "relative to the year 2000. Estimates from proxy data (for example, based on sediment records) are shown in red, tide gauge data are shown in blue for 1880-2009, and satellite observations are shown in green from 1993 to 2012. The orange line at right shows the currently projected range of sea level rise of one to four feet by 2100, which falls within the larger risk-based scenario range. The large projected range reflects uncertainty about how glaciers and ice sheets will react to the warming ocean, the warming atmosphere, and changing winds and currents. As seen in the observations, there are year-to-year variations in the trend. (Figure source: Adapted from Parris et al. 2012 5 with input from NASA Jet Propulsion Laboratory). The figure below from EPA's Climate Change Indicators in the United States shows how sea level changed in various locations throughout the United States from \n\nDid you know? - Since 1880, global sea level has risen about eight inches. Scientists expect global se",
+      "original_snippet": "From 1900 to 1992, sea levels rose at a rate of 0. Since 1992, sea levels have risen at a rate roughly twice that observed over the last century. Over the past five years, global sea levels have risen by an average of one inch. One inch might not seem like much, but every inch of sea level rise covers 50-100 inches of beach. Current and projected increases in sea level rise are related to warmer air and ocean temperatures",
+      "selection_method": "lexical_element_windows_v1",
+      "derivation_reason": "no_facts_returned",
+      "extraction_sha256": "634100469995c4c5fa600a2ab570dbe34e68479740ffce93f9dd30f073284e9a",
+      "input_content_basis": "full",
+      "retained_characters": 5005,
+      "extraction_characters": 5005
+     },
+     "dateBasis": null
+    },
+    {
+     "id": "a0e977ee-50e0-4ee0-b8ac-dcf62deb7e96",
+     "evidenceId": "ev-bb7765324e28",
+     "source": "sealevel.nasa.gov",
+     "url": "https://sealevel.nasa.gov/sea-level-101/global-sea-level-rise/the-basics/",
+     "title": "The Basics | Global Sea Level Rise – NASA Sea Level Change Portal",
+     "snippet": "- It took 90 years (1902 – 1992) for the global sea level to rise around 10 cm.\n- In just the last 30 years (1993 - 2023), that same amount of rise, around 10 cm, happened again.",
+     "publishedDate": null,
+     "relevanceScore": 0.4735294117647059,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-c3bb4d4cb5c695cd-0-897",
+        "end": 897,
+        "text": "The Link to Climate ChangeGlobal Sea Level Rise Is Linked to Climate Change For over 100 years, humans have burned coal, gas, and oil to produce energy. Burning these fossil fuels releases greenhouse gases into the air. Greenhouse gases warm the Earth, like a blanket wrapped around the globe. Adding more greenhouse gases thickens the blanket and the Earth becomes warmer. Around 90% of this added heat is being absorbed by the ocean, warming it up. When water warms, it expands and takes up more space. This causes the water to rise along the coastline. Currently, about one third (around 33%) of global sea level rise is because of ocean warming. The other two thirds (around 66%) of global sea level rise is because of melting land ice. As Earth heats up, it melts the land ice, including the Greenland and Antarctic Ice Sheets and other mountain glaciers. The water then flows into the ocean ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-c3bb4d4cb5c695cd-897-1791",
+        "end": 1791,
+        "text": "which raises sea levels. How Do We Know Sea Level Rise Is Increasing?How Do We Know Sea Levels Are Rising Faster Than They Were Before? For decades, sea levels have been measured across the world with tide gauges and satellite altimeters. These measurements are combined to calculate the average ocean height across the world, the global sea level, each month or year. Comparing these values over time shows the amount and rate of change of global sea level. The global sea level has been rising since the 19th century, when modern records began. And, it has been rising faster in recent years. It took 90 years (1902 – 1992) for the global sea level to rise around 10 cm. In just the last 30 years (1993 - 2023), that same amount of rise, around 10 cm, happened again. When we plot global sea level it is not a straight line, but rather it goes up and down slightly. These movements, known as ",
+        "start": 897,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-c3bb4d4cb5c695cd-1791-2299",
+        "end": 2299,
+        "text": "variability, show natural changes that happen due to a number of different factors. Things like tides can change sea levels over hours or days. Large climate events, like El Niño, can cause changes in sea levels over months or years. However, even though we see wiggles up and down in the global sea level, these natural changes are not large enough to offset the overall rise in global sea level we are seeing from climate change. Dive Deeper: Learn more about global sea level rise and why it is happening.",
+        "start": 1791,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://sealevel.nasa.gov/sea-level-101/global-sea-level-rise/the-basics/",
+      "captured_at": "2026-09-30T12:01:03.534933+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- It took 90 years (1902 – 1992) for the global sea level to rise around 10 cm.\n- In just the last 30 years (1993 - 2023), that same amount of rise, around 10 cm, happened again.",
+      "original_snippet": "The global sea level has been rising since the 19th century, when modern records began. And, it has been rising faster in recent years. It took 90 years (1902 – 1992) for the global sea level to rise around 10 cm. In just the last 30 years (1993 - 2023), that same amount of rise, around 10 cm, happened again. When we plot global sea level it is not a straight line, but rather it goes up and down slightly",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "c3bb4d4cb5c695cd4785bf41ce53052a80e2ad7a608e2434c82ae780367cfce0",
+      "input_content_basis": "full",
+      "retained_characters": 2299,
+      "extraction_characters": 2299
+     },
+     "dateBasis": null
+    },
+    {
+     "id": "98f18e69-d618-4fc4-9506-4a43be4d2924",
+     "evidenceId": "ev-f126721d061d",
+     "source": "aviso.altimetry.fr",
+     "url": "https://www.aviso.altimetry.fr/en/data/products/ocean-indicators-products/mean-sea-level.html",
+     "title": "Mean Sea Level",
+     "snippet": "- Continuous altimetry observations spanning from 1993 to the present have established the GMSL rise as a key climate indicator.\n- Since February 1993, the GMSL has risen by approximately 11 cm.\n- Different satellite altimetry missions have been monitoring the GMSL successively and continuously since 1993: TOPEX/Poseidon, Jason-1, Jason-2, Jason-3 and Sentinel-6 MF.\n- The average sea level rise rate is 3.6 mm per year (+/-0.3 mm/yr, 90%CI) over the globe and from 1999.\n- Over the altimeter record, sea level rise acceleration is estimated at 0.8 mm per year per decade (+/- 0.4 mm/yr/decacde, 90%CI).",
+     "publishedDate": null,
+     "relevanceScore": 0.06666666666666667,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-ec64b4827363a283-0-896",
+        "end": 896,
+        "text": "This release of the AVISO GMSL indicators includes several important changes regarding input data and processing software. For a detailed description of these changes and their impact, please refer to the release note, the data processing and geophysical corrections documentation, and in particular the technical note. Mean Sea Level As global warming progresses, one direct response of the climate system is rising sea levels. This increase is caused by two main factors: the thermal expansion of seawater due to ocean heat absorption and the addition of meltwater from land-based ice sheets and glaciers. Satellite altimetry provides precise monitoring of sea level rise, helping scientists understand climate change and its socioeconomic impacts. As a result, the Global Mean Sea Level (GMSL) has become a crucial indicator of climate change. Continuous altimetry observations, spanning from ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ec64b4827363a283-896-1796",
+        "end": 1796,
+        "text": "1993 to the present, have established the GMSL rise as a key climate indicator. On the one hand, the global ocean absorbs over 90% of the excess heat accumulated in the climate system due to rising atmospheric greenhouse gas concentrations. Consequently, ocean temperatures rise, causing seawater to expand. On the other hand, the accumulated heat accelerates the melting of polar ice caps (Greenland and Antartica) and mountain glaciers. The resulting meltwater increases ocean mass, contributing to the observed sea level rise detected by satellites since 1993. Since February 1993, the GMSL has risen by approximately 11 cm. AT THE GLOBAL SCALE Different satellite altimetry missions have been monitoring the GMSL successively and continuously since 1993: TOPEX/Poseidon, Jason-1, Jason-2, Jason-3 and Sentinel-6 MF. These missions are called \"reference missions\" as they fly on a well-determined ",
+        "start": 896,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ec64b4827363a283-1796-2695",
+        "end": 2695,
+        "text": "reference orbit that is unchanged since 1993. Dedicated calibration phases between the successive missions, during which the satellites fly a few second apart, help to ensure the long-term stability and precise monitoring of the sea level. In addition, a permanent control of the data quality and instrumental performances, in combination with the homogenization of the data processing and geophysical corrections , are key to produce homogeneous data that well capture the long-term evolution of the sea level.The average sea level rise rate is 3.6 mm per year (+/-0.3 mm/yr, 90%CI) over the globe and from 1999. There is also evidence that sea level rise is accelerating (eg Nerem et al., 2018, Guérou et al.,2023), over the altimeter record, this acceleration is estimated at 0.8 mm per year per deacade (+/- 0.4 mm/yr/decacde, 90%CI). Analyzing the uncertainty of the altimetry observing system ",
+        "start": 1796,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ec64b4827363a283-2695-3594",
+        "end": 3594,
+        "text": "yields to construct an uncertainty envelop for the GMSL climate data record (shaded area in the figure below, given at the 1 sigma level). See Guérou et al. (2023) for more details as well as the Validation page for some updates. The uncertainty envelope associated with the time series shown in this figure is available in delivered products. This envelope is the square root of the diagonal of the covariance matrix obtained from the uncertainty budget detailed in Quet et al. 2025 [in prep.]. This uncertainty budget table used is available from the data processing and geophysical corrections page. In the latest release of the GMSL indicators and the switch to updated along-track data to estimate the GMSL record, the processing of the early part of the record from 1993 to 1999 has changed. A discussion about the reasons for this change is available from the data processing and geophysical ",
+        "start": 2695,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ec64b4827363a283-3594-4489",
+        "end": 4489,
+        "text": "corrections page. AT THE REGIONAL SCALE The GMSL curve masks significant regional variability in mean sea level, with some regions rising three times faster than the global average. This spatial variability is mainly due to the redistribution of heat under the influence of major climate oscillations, in particular the Southern Oscillation/El Niño, the Pacific Decadal Oscillation, and the North Atlantic Oscillation. Regional trends in mean sea level also reflect variations at different spatial scales, from large-scale structures in ocean basins to finer mesoscale structures in major currents such as the Gulf Stream, the Kuroshio, and the Southern Circumpolar Current (around Antarctica). Access to these regional dynamics is a major contribution of satellite altimetry to understanding and monitoring sea level variations, as a complement to tide gauges. To compute the mean sea level at ",
+        "start": 3594,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ec64b4827363a283-4489-5226",
+        "end": 5226,
+        "text": "regional scales, auxiliary missions like SARAL/AltiKa, Envisat, ERS-1, ERS-2, Cryosat-2 and Copernicus Sentinel-3A are used in addition to the reference missions. This multimission approach allow to compute the Mean Sea Level at high latitudes (higher than 66°N and S) as well as to improve the products spatial resolution. See Ssalto/DUACS webpage for the processing details. Further information on Regional Variability and past sea level reconstructions. Animation of the data since 1993 Satellite altimetry provides sea level related measurements all over the globe. This long-term monitoring allows the scientific community to estimate sea level rise at global and regional scales and assess its impact on vulnerable coastal regions.",
+        "start": 4489,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.aviso.altimetry.fr/en/data/products/ocean-indicators-products/mean-sea-level.html",
+      "captured_at": "2026-09-30T12:01:03.534933+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Continuous altimetry observations spanning from 1993 to the present have established the GMSL rise as a key climate indicator.\n- Since February 1993, the GMSL has risen by approximately 11 cm.\n- Different satellite altimetry missions have been monitoring the GMSL successively and continuously since 1993: TOPEX/Poseidon, Jason-1, Jason-2, Jason-3 and Sentinel-6 MF.\n- The average sea level rise rate is 3.6 mm per year (+/-0.3 mm/yr, 90%CI) over the globe and from 1999.\n- Over the altimeter record, sea level rise acceleration is estimated at 0.8 mm per year per decade (+/- 0.4 mm/yr/decacde, 90%CI).",
+      "original_snippet": "This release of the AVISO GMSL indicators includes several important changes regarding input data and processing software. For a detailed description of these changes and their impact, please refer to the release note, the data processing and geophysical corrections documentation, and in particular the technical note. Mean Sea Level As global warming progresses, one direct response of the climate system is rising sea levels. This increase is caused by two main factors: the thermal expansion of seawater due to ocean heat absorption and the addition of meltwater from land-based ice sheets and glaciers. Satellite altimetry provides precise monitoring of sea level rise, helping scientists understand climate change and its socioeconomic impacts",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "ec64b4827363a2835357531f81c9c1d9dfa20a7c9307aecc2b5033a797b4245f",
+      "input_content_basis": "full",
+      "retained_characters": 5226,
+      "extraction_characters": 5226
+     },
+     "dateBasis": null,
+     "originatorReview": {
+      "cue": "This release of the AVISO GMSL indicators includes several important changes regarding input data and processing software.",
+      "role": "originates",
+      "status": "reviewed",
+      "to_tier": "primary",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "AVISO",
+      "cue_verified": true,
+      "original_type": "data"
+     }
+    },
+    {
+     "id": "516614df-a73b-446d-a402-3c6e959990c4",
+     "evidenceId": "ev-0ac30a0da21f",
+     "source": "nature.com",
+     "url": "https://www.nature.com/articles/s41598-025-89258-9",
+     "title": "Sea level trends along the South African coast from 1993 to 2022 using XTRACK altimetry, tide gauges, and GNSS measurements - Scientific Reports",
+     "snippet": "- This study meticulously analyses trends and patterns in SLR and subsidence rates using a wealth of data from 1993 to 2022.\n- Sea level rise in coastal areas of South Africa, such as Cape Town (6.3 mm/yr), is almost double the global average (3.3 mm/yr).\n- Our study provides comprehensive insights into the dynamic changes in sea level along the South African coast from 1993 to 2023.\n- Enhanced rates of sea level rise were observed in certain areas, notably Cape Town (6.3 ± 0.8 mm/yr), Walvis Bay (4.8 ± 0.3 mm/yr), Simons Bay (4.0 ± 0.2 mm/yr) and Durban (3.4 ± 0.4 mm/yr).\n- Our analysis focused on 10 stations along the east and west coasts of South Africa, including Namibia, covering the period from 1993 to 2023.",
+     "publishedDate": "2025-02-10T00:00:00",
+     "relevanceScore": 0.5857142857142857,
+     "tier": "primary",
+     "evidenceType": "academic",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-ba2569842a4feb50-0-900",
+        "end": 900,
+        "text": "Abstract This study presents a comprehensive investigation of the complex dynamics of sea-level rise (SLR) and its multiple impacts on coastal regions in southern Africa. We meticulously analyse trends and patterns in SLR and subsidence rates using a wealth of data from 1993 to 2022, including observations from a network of 10 reliable tide gauges and XTRACK data processed using the Coastal Altimetry Approach to minimise the shortcomings of conventional coastal altimetry data. Our results show that sea level rise in coastal areas of South Africa, such as Cape Town (6.3 mm/yr), is almost double the global average (3.3 mm/yr). This alarming rate of SLR, coupled with a subsidence rate of more than 2.2 mm/yr, poses a significant and immediate threat to coastal communities, infrastructure and ecosystems. Our research also highlights the impact of seismic activity on coastal dynamics, further ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2569842a4feb50-10759-11654",
+        "end": 11654,
+        "text": "estuaries, wetlands, and marine reserves, which provide ecosystem services and support local livelihoods. These socio-economic and ecological attributes underscore the importance of understanding and mitigating the impacts of SLR in this diverse and dynamic setting. Results and discussion Sea level trends over southern Africa from Altimetry The spatial distribution of sea level trends, shown in Fig. 2a, provides insight into the dynamic patterns derived from monthly mean altimetry observations over three decades. These trends range from − 4 to 8 mm/yr and show positive changes along the entire coastal region, particularly within the Agulhas Bank (Fig. 1) with increased sea-level rates up to 2 mm/yr. This closely matches the global mean sea level rise reported by Guérou, et al.26 for the period 1993–2021, indicated by the white contour of 3.5 mm/year in Fig. 2a. The upper range of 8 ",
+        "start": 10759,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2569842a4feb50-28694-29594",
+        "end": 29594,
+        "text": "interplay between ocean circulation, including the Agulhas and Benguela currents, and climate variables. These factors contribute to phenomena such as coastal flooding, erosion and land loss, which pose significant challenges to coastal communities, ecosystems and economies. Through a multi-faceted approach using both recent coastal altimetry missions and TG data, our study provides comprehensive insights into the dynamic changes in sea level along the South African coast from 1993 to 2023. In particular, we observed enhanced rates of sea level rise in certain areas, notably Cape Town (6.3 ± 0.8 mm/yr), Walvis Bay (4.8 ± 0.3 mm/yr), Simons Bay (4.0 ± 0.2 mm/yr) and Durban (3.4 ± 0.4 mm/yr), where both TG measurements and satellite data exceeded the global mean sea level trend. In these regions, the trend rates of sea level rise is well above the global average, indicating an urgent need ",
+        "start": 28694,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2569842a4feb50-32285-33176",
+        "end": 33176,
+        "text": "development of proactive strategies to protect coastal communities, ecosystems and economies from the impacts of sea level rise. Method and materials Tide gauge data analysis We used monthly averaged TG data from the Permanent Service for Mean Sea Level (PSMSL) Revised Local Reference (RLR) database, as compiled by Woodworth and Player78. Our analysis focused on 10 stations along the east and west coasts of South Africa, including Namibia, covering the period from 1993 to 2023 (Table 3). Table 3 provides details of the TGs used, along with the duration of sea level observation and analysis. In addition, Table 4 provides an insight into the XTRACK data used in our study. These TGs, provided by PSMSL and accessible through their website (http://www.psmsl.org), collected data on January 30, 2024. Each dataset spans over two decades of measurements. The data used in this study have ",
+        "start": 32285,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2569842a4feb50-34976-35876",
+        "end": 35876,
+        "text": "and self-attraction and loading81. With respect to the VLM, the Nevada Geodetic Laboratory’s GPS Networks Map data centre provides access to information from a number of GNSS stations and coastal TGs powered by GPS: https://geodesy.unr.edu/NGLStationPages/gpsnetmap/GPSNetMap.html). Nevertheless, the majority of GPS data demonstrate either substantial disparities between rates and uncertainties, or the duration of the data does not correspond to the time period examined in this research. As a result, coastal TGs were unable to be adjusted for VLM. Furthermore, the GIA-related VLM was not adjusted because it falls within the same order as the GIA correction (0.3 mm/yr) applied to the global mean sea level. This observation was made along the Southern African coastline, where VLM values fluctuate between 0.23 and 0.36 mm/year (https://psmsl.org/train_and_info/geo_signals/gia/peltier/). For ",
+        "start": 34976,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2569842a4feb50-45693-46587",
+        "end": 46587,
+        "text": "https://doi.org/10.1007/s13280-023-01901-9 (2023). Lucrezi, S., Saayman, M. & Van der Merwe, P. Managing beaches and beachgoers: Lessons from and for the Blue Flag award. Tour. Manage. 48, 211–230. https://doi.org/10.1016/j.tourman.2014.11.010 (2015). Murray, J. et al. Monitoring shoreline changes along the southwestern coast of South Africa from 1937 to 2020 using varied remote sensing data and approaches. Remote Sens. 15, 317. https://doi.org/10.3390/rs15020317 (2023). Abiodun, B. J., Mogebisa, T. O., Petja, B., Abatan, A. A. & Roland, T. R. Potential impacts of specific global warming levels on extreme rainfall events over southern Africa in CORDEX and NEX-GDDP ensembles. Int. J. Climatol. 40, 3118–3141. https://doi.org/10.1002/joc.6386 (2020). Raw, J. et al. Salt marsh elevation and responses to future sea-level rise in the Knysna Estuary, South Africa. Afr. J. Aquat. Sci. 45, ",
+        "start": 45693,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2569842a4feb50-46587-47480",
+        "end": 47480,
+        "text": "49–64. https://doi.org/10.2989/16085914.2019.1662763 (2020). Allison, L. C., Palmer, M. D. & Haigh, I. D. Projections of 21st century sea level rise for the coast of South Africa. Environ. Res. Commun. 4, 025001. https://doi.org/10.1088/2515-7620/ac4a90 (2022). Moreira, L., Cazenave, A., Barnoud, A. & Chen, J. Sea-level fingerprints due to present-day water mass redistribution in observed sea-level data. Rem. Sens. 13, 4667. https://doi.org/10.3390/rs13224667 (2021). Guérou, A. et al. Current observed global mean sea level rise and acceleration estimated from satellite altimetry and the associated measurement uncertainty. Ocean Sci. 19, 431–451. https://doi.org/10.5194/egusphere-2022-330 (2023). Steyl, G. & Dennis, I. Review of coastal-area aquifers in Africa. Hydrogeol. J. 18, 217. https://doi.org/10.1007/s10040-009-0545-9 (2010). Atekwana, E. A., Ramatlapeng, G. J., Ali, H. N., ",
+        "start": 46587,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-ba2569842a4feb50-49265-50163",
+        "end": 50163,
+        "text": "20th-century sea-level rise in the South Atlantic Ocean. J. Geophys. Res.: Oceans 126, e2020JC016970. https://doi.org/10.1029/2020jc016970 (2021). Legeais, J.-F. et al. Copernicus sea level space observations: A basis for assessing mitigation and developing adaptation strategies to sea level rise. Front. Mar. Sci. 8, 704721. https://doi.org/10.3389/fmars.2021.704721 (2021). Erkoç, M. H. & Doğan, U. Monitoring of recently sea level changes on the coast of New Zealand using XTRACK coastal altimetry and tide gauge data. Continent. Shelf Res. 269, 105127. https://doi.org/10.1016/j.csr.2023.105127 (2023). Thompson, P., Hamlington, B., Landerer, F. & Adhikari, S. Are long tide gauge records in the wrong place to measure global mean sea level rise?. Geophys. Res. Lett. 43, 10403–410411. https://doi.org/10.1002/2016gl070552 (2016). Barroso, A. et al. Observed spatiotemporal variability in the ",
+        "start": 49265,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2025-02-10"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.nature.com/articles/s41598-025-89258-9",
+      "captured_at": "2026-09-30T12:01:03.540208+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- This study meticulously analyses trends and patterns in SLR and subsidence rates using a wealth of data from 1993 to 2022.\n- Sea level rise in coastal areas of South Africa, such as Cape Town (6.3 mm/yr), is almost double the global average (3.3 mm/yr).\n- Our study provides comprehensive insights into the dynamic changes in sea level along the South African coast from 1993 to 2023.\n- Enhanced rates of sea level rise were observed in certain areas, notably Cape Town (6.3 ± 0.8 mm/yr), Walvis Bay (4.8 ± 0.3 mm/yr), Simons Bay (4.0 ± 0.2 mm/yr) and Durban (3.4 ± 0.4 mm/yr).\n- Our analysis focused on 10 stations along the east and west coasts of South Africa, including Namibia, covering the period from 1993 to 2023.",
+      "original_snippet": "These trends range from − 4 to 8 mm/yr and show positive changes along the entire coastal region, particularly within the Agulhas Bank (Fig. 1) with increased sea-level rates up to 2 mm/yr. This closely matches the global mean sea level rise reported by Guérou, et al. 26 for the period 1993–2021, indicated by the white contour of 3. The upper range of 8 mm/yr observed in some areas exceeds twice the current global average of 3",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "ba2569842a4feb50fe9e5432c1c8676d5cf8ba8befac73c02052ba7f5f3210e5",
+      "input_content_basis": "full",
+      "retained_characters": 7171,
+      "extraction_characters": 63540
+     },
+     "dateBasis": "page_metadata"
+    }
+   ]
+  }
+ ],
+ "createdAt": "2026-09-30T12:00:42.401211",
+ "completedAt": "2026-09-30T12:01:58.738004",
+ "currentStage": null,
+ "progress": null,
+ "progressMessage": null,
+ "reportIdentity": {
+  "basis": "evidence_snapshot_v1",
+  "contentHash": "7549765dcd0674db22e1a862c8017722af2c4aeac0240c535489fb485d1b11f2",
+  "revisionId": null,
+  "status": "unretained"
+ }
+}
