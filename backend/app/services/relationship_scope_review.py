@@ -242,10 +242,12 @@ def _call_timeout():
     return CALL_TIMEOUT_S
 
 
-def plan_review(claim_map, evidence, assessed=frozenset()):
+def plan_review(claim_map, evidence, assessed=frozenset(), only=None):
     """Pairs to review. ``assessed`` holds (element_id, evidence_id) already
     decided by an earlier run on this claim (coverage recovery re-runs the
-    review): they are not re-sent, so a second draw cannot undo the first."""
+    review): they are not re-sent, so a second draw cannot undo the first.
+    ``only``, when given, limits the plan to those pairs (echo copies restored
+    after their original was demoted, 2026-09-30)."""
     index = {e.get("evidence_id"): e for e in evidence}
     directions = _directions()
     queues = []
@@ -258,6 +260,11 @@ def plan_review(claim_map, evidence, assessed=frozenset()):
             if not ev or ev.get("receipt_status") == "excluded":
                 continue
             if (element["element_id"], ref.get("evidence_id")) in assessed:
+                continue
+            if only is not None and (
+                element["element_id"],
+                ref.get("evidence_id"),
+            ) not in only:
                 continue
             blocks = []
             text = (ev.get("snippet") or ev.get("text") or "")[:1800]
@@ -342,7 +349,7 @@ async def _review_call(analyzer, instructions, chunk):
     }
 
 
-async def review_relationship_scope(analyzer, claim_map, evidence):
+async def review_relationship_scope(analyzer, claim_map, evidence, only=None):
     from app.pipeline.claim_map_analyzer import (
         _compute_element_basis,
         _derive_element_state_with_authority,
@@ -351,12 +358,16 @@ async def review_relationship_scope(analyzer, claim_map, evidence):
     )
 
     prior = (claim_map.get("metadata") or {}).get("scope_review") or {}
+    # Every earlier run counts, not just the latest: an echo re-review
+    # (2026-09-30) makes the main run's pairs a `prior_runs` entry, and a later
+    # recovery review must still not re-draw them.
     assessed = frozenset(
         (r.get("element_id"), r.get("evidence_id"))
-        for r in prior.get("pairs") or []
+        for run in [prior] + list(prior.get("prior_runs") or [])
+        for r in run.get("pairs") or []
         if r.get("status") in ("compatible", "scoped", "unknown_kept")
     )
-    pairs, total = plan_review(claim_map, evidence, assessed)
+    pairs, total = plan_review(claim_map, evidence, assessed, only)
     receipt = {
         "version": 3,
         "method": "model_scope_review_not_entailment_proof",

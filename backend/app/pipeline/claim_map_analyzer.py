@@ -14,6 +14,7 @@ Orientation line is derived mechanically (no LLM).
 Canonical contract: audit/track-b/2026-02-12_claim-map-contract.md
 """
 
+import copy
 import asyncio
 import json
 import logging
@@ -1519,12 +1520,95 @@ class _IndexedEvidence(NamedTuple):
     # echo gate (2026-08-17) is the only reader. Recovery pools carry no
     # chains (annotation runs once, post-classify), so there this is always
     # None and the gate is silent — the safe direction.
+    #
+    # Only the FIRST original in pool order is kept, on purpose (2026-09-30).
+    # Keeping all of them lets the gate fire more often, and the links under it
+    # are weak: on corpus 0004 pages were "copies" of a UNCTAD page because they
+    # shared the date "August 16, 2022". Widening it waits until the link
+    # detector's precision is measured (audit/2026-09-30_echo_link_design.md).
     original_id: Optional[str] = None
     # Persistent identifier of the STUDY this item carries (doi:/pmid:/pmc:),
     # per app.utils.study_identity — None when the item carries none. The
     # same-study gate (2026-09-09) is the only reader.
     study_id: Optional[str] = None
 
+
+
+def _counted_original_id(
+    elem: Dict[str, Any], ref: Dict[str, Any], originals: List[str], side: str
+) -> Optional[str]:
+    """The first of ``originals`` counted on ``side`` of this element, else None.
+
+    Reads the LIVE ref states, so it answers for the element as it stands now.
+    Shared by the echo gate and ``_restore_orphaned_echoes``.
+    """
+    for original in originals:
+        for other in elem.get("evidence_refs") or []:
+            if other is ref or other.get("evidence_id") != original:
+                continue
+            rel = other.get("relationship")
+            if getattr(rel, "value", rel) == side:
+                return original
+    return None
+
+
+def _restore_orphaned_echoes(
+    claim_map: Dict[str, Any], evidence_list: List[Dict[str, Any]]
+) -> List[Tuple[str, str]]:
+    """Put back every echo-scoped copy whose original no longer counts.
+
+    The echo gate scopes a copy because its original is already counted on
+    the same side. A stage after the gates (the relationship review) can then
+    demote that original, which used to leave the side with neither the
+    original nor any copy of it (2026-09-30 review H1). This restores the copy
+    to its old relationship, records it under ``restored`` in the echo receipt
+    (never silently: invariant #5) and re-derives the element's basis and
+    state. Symmetric: it reads ``was``, never a direction.
+
+    Returns the (element_id, evidence_id) pairs restored, so the caller can
+    send exactly those to the relationship review: a copy relays the content
+    that caused its original's demotion, so it must not return unreviewed.
+    """
+    restored: List[Tuple[str, str]] = []
+    for elem in claim_map.get("elements") or []:
+        receipt = (elem.get("basis") or {}).get("echo_scope")
+        if not receipt or not receipt.get("scoped"):
+            continue
+        refs = {r.get("evidence_id"): r for r in elem.get("evidence_refs") or []}
+        keep: List[Dict[str, Any]] = []
+        back: List[Dict[str, Any]] = []
+        for entry in receipt["scoped"]:
+            ref = refs.get(entry.get("evidence_id"))
+            rel = ref.get("relationship") if ref else None
+            originals = [entry.get("original_id")]
+            if (
+                ref is None
+                or getattr(rel, "value", rel) != "context"
+                or _counted_original_id(elem, ref, originals, entry.get("was"))
+            ):
+                keep.append(entry)
+                continue
+            ref["relationship"] = EvidenceRelationship(entry["was"])
+            back.append({**entry, "reason": "original no longer counted on this side"})
+            restored.append((elem.get("element_id"), entry.get("evidence_id")))
+        if not back:
+            continue
+        receipt["scoped"] = keep
+        receipt["scoped_count"] = len(keep)
+        receipt.setdefault("restored", []).extend(back)
+        logger.info(
+            f"[ECHO RESTORED] elem={elem.get('element_id')}: {len(back)} ref(s) "
+            "restored; their original no longer counts on that side"
+        )
+        kept = {k: v for k, v in elem["basis"].items() if k in _SCOPE_RECEIPT_KEYS}
+        elem["basis"] = _compute_element_basis(elem, evidence_list)
+        elem["basis"].update(kept)
+        state, derivation = _derive_element_state_with_authority(
+            elem, evidence_list, *_state_floor_for(claim_map)
+        )
+        elem["state"] = state
+        elem["basis"]["state_derivation"] = derivation
+    return restored
 
 class _ScopeGate(NamedTuple):
     """One mechanical reason a reference cannot speak to an element.
@@ -1585,6 +1669,12 @@ def _merge_scope_receipts(
                 "scoped_count": (old.get("scoped_count") or 0)
                 + (new.get("scoped_count") or 0),
             }
+            # Echo copies put back after their original stopped counting.
+            restored = list(old.get("restored") or []) + list(
+                new.get("restored") or []
+            )
+            if restored:
+                merged[key]["restored"] = restored
         elif old:
             merged[key] = old
         elif new:
@@ -2090,11 +2180,14 @@ class ClaimMapAnalyzer:
             # 2026-09-29: with the review ON by default, the window is the
             # completion call's 25 s plus one review call's deadline plus slack,
             # so a slow completion cannot silently cancel the review.
+            # 2026-09-30: plus a second review call, for echo copies restored
+            # after the first review demoted their original (rare; see
+            # _reconcile_echoes, which undoes the restore if this cancels it).
             _COMPLETION_TIMEOUT = (
                 max(
                     50,
                     25
-                    + int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 25))
+                    + 2 * int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 25))
                     + 5,
                 )
                 if (
@@ -3184,8 +3277,8 @@ class ClaimMapAnalyzer:
                 carrier = min(members)[2]
                 return None if carrier is ref else carrier
 
-            # The driver re-labels the ref to `context` BEFORE asking for the
-            # receipt, so the carrier must be remembered from `fires`.
+            # The carrier is remembered from `fires` so the receipt names the
+            # same one the gate decided on.
             carrier_of: Dict[int, Dict[str, Any]] = {}
 
             def _same_study_fires(
@@ -3230,21 +3323,14 @@ class ClaimMapAnalyzer:
         # readily (five outlets reciting one critical report).
         if getattr(settings, "ENABLE_ECHO_SCOPE_GATE", True):
 
-            def _echo_fires(item: "_IndexedEvidence", ref: Dict[str, Any]) -> bool:
+            def _counted_original(
+                item: "_IndexedEvidence", ref: Dict[str, Any]
+            ) -> Optional[str]:
+                rel = ref.get("relationship")
                 orig = item.original_id
                 if not orig or orig == item.ev.get("evidence_id"):
-                    return False
-                rel = ref.get("relationship")
-                side = getattr(rel, "value", rel)
-                for other in elem.get("evidence_refs") or []:
-                    if other is ref:
-                        continue
-                    if other.get("evidence_id") != orig:
-                        continue
-                    other_rel = other.get("relationship")
-                    if getattr(other_rel, "value", other_rel) == side:
-                        return True
-                return False
+                    return None
+                return _counted_original_id(elem, ref, [orig], getattr(rel, "value", rel))
 
             gates.append(
                 _ScopeGate(
@@ -3252,7 +3338,7 @@ class ClaimMapAnalyzer:
                     label="ECHO",
                     pins="derivative of an original already counted on this side",
                     summary={},
-                    fires=_echo_fires,
+                    fires=lambda item, ref: _counted_original(item, ref) is not None,
                     entry=lambda item, _ref: {"original_id": item.original_id},
                 )
             )
@@ -3325,7 +3411,20 @@ class ClaimMapAnalyzer:
 
         scoped: Dict[str, List[Dict[str, Any]]] = {gate.key: [] for gate in gates}
 
-        for ref in elem.get("evidence_refs") or []:
+        # Echo asks whether a ref's ORIGINAL is counted on its side, so it must
+        # see the earlier gates' outcome on every ref. In one ref-ordered pass a
+        # copy listed before its original was scoped while the original still
+        # counted, and a later gate then scoped the original too, leaving the
+        # side with neither (2026-09-30 review H1). So the gates run in three
+        # passes over all refs: those before echo, echo, those after it (only
+        # `fact_applicability`, flag-only). Precedence is unchanged and one gate
+        # still owns each ref: a later pass skips refs already relabelled.
+        keys = [g.key for g in gates]
+        cut = keys.index("echo_scope") if "echo_scope" in keys else len(gates)
+        passes = [gates[:cut], gates[cut : cut + 1], gates[cut + 1 :]]
+        for pass_gates, ref in (
+            (pg, r) for pg in passes if pg for r in elem.get("evidence_refs") or []
+        ):
             relationship = ref.get("relationship")
             value = getattr(relationship, "value", relationship)
             if value not in ("supports", "challenges"):
@@ -3345,15 +3444,16 @@ class ClaimMapAnalyzer:
                         original_id=item.original_id
                     )
 
-            for gate in gates:
+            for gate in pass_gates:
                 if not gate.fires(item, ref):
                     continue
-                ref["relationship"] = EvidenceRelationship.context
                 entry: Dict[str, Any] = {
                     "evidence_id": ref.get("evidence_id"),
                     "was": value,
                 }
+                # Built BEFORE the relabel: echo's entry reads the ref's side.
                 entry.update(gate.entry(item, ref))
+                ref["relationship"] = EvidenceRelationship.context
                 if gate.key == "temporal_scope" and settings.ENABLE_PASSAGE_MAPPING:
                     # A scoped label must not retain a directional explanation.
                     # Keep the model's interpretation in the audit receipt.
@@ -3465,9 +3565,33 @@ class ClaimMapAnalyzer:
                             pair["status"] = "not_applied"
         # A− M1 (2026-09-24): the relationship review has its own flag.
         if settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW:
-            from app.services.relationship_scope_review import review_relationship_scope
+            from app.services import relationship_scope_review as review
 
-            await review_relationship_scope(self, claim_map, evidence_list)
+            await review.review_relationship_scope(self, claim_map, evidence_list)
+        await self._reconcile_echoes(claim_map, evidence_list)
+
+    async def _reconcile_echoes(
+        self, claim_map: ClaimMap, evidence_list: List[Dict[str, Any]]
+    ) -> None:
+        """Restore copies orphaned by a later stage, then review just those."""
+        review_on = settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW
+        before = copy.deepcopy(claim_map["elements"]) if review_on else None
+        restored = _restore_orphaned_echoes(claim_map, evidence_list)
+        if not restored or not review_on:
+            return
+        from app.services import relationship_scope_review as review
+
+        # A restored copy relays what the review just rejected in its original,
+        # so it must not stand unreviewed. If this review fails or is cancelled
+        # (the completion timeout), undo the restore: the copies stay context,
+        # which is where they were before this pass.
+        try:
+            await review.review_relationship_scope(
+                self, claim_map, evidence_list, only=set(restored)
+            )
+        except BaseException:
+            claim_map["elements"] = before
+            raise
 
     async def _complete_unmapped_sources(
         self,
@@ -3941,9 +4065,11 @@ class ClaimMapAnalyzer:
         if (
             settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW
         ) and parsed is not None:
-            from app.services.relationship_scope_review import review_relationship_scope
+            from app.services import relationship_scope_review as review
 
-            await review_relationship_scope(self, claim_map, pool)
+            await review.review_relationship_scope(self, claim_map, pool)
+        if parsed is not None:
+            await self._reconcile_echoes(claim_map, pool)
 
         # Re-derive orientation from all element states
         apply_orientation(claim_map)

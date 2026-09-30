@@ -178,6 +178,13 @@ RE_SCOPE_GATE = re.compile(
     r"elem=(?P<element>\S+?):\s+(?P<scoped>\d+)\s+ref\(s\)\s+scoped to context"
 )
 
+# Echo copies restored after a later stage demoted their original
+# (2026-09-30). Recorded as a negative echo event so `scoped_refs` stays the
+# net count of copies still scoped.
+RE_ECHO_RESTORED = re.compile(
+    r"\[ECHO RESTORED\]\s+elem=(?P<element>\S+?):\s+(?P<restored>\d+)\s+ref\(s\)\s+restored"
+)
+
 SCOPE_GATE_KEYS = {
     "JURISDICTION SCOPE": "jurisdiction_scope",
     "MEASURE SCOPE": "measure_scope",
@@ -324,7 +331,7 @@ class Observation:
             events = list(self.scope_gate_events.get(key, []))
             d[f"{key}_events"] = events
             d[f"{key}_summary"] = {
-                "elements": len(events),
+                "elements": sum(1 for e in events if int(e.get("scoped", 0)) > 0),
                 "scoped_refs": sum(int(e.get("scoped", 0)) for e in events),
             }
         return d
@@ -584,6 +591,12 @@ class PipelineCaptureHandler(logging.Handler):
         )
 
     def _match_scope_gate(self, msg: str) -> None:
+        r = RE_ECHO_RESTORED.search(msg)
+        if r:
+            self.obs.scope_gate_events["echo_scope"].append(
+                {"element": r.group("element"), "scoped": -int(r.group("restored"))}
+            )
+            return
         m = RE_SCOPE_GATE.search(msg)
         if not m:
             return
