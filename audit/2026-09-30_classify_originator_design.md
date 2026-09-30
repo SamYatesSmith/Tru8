@@ -338,3 +338,10 @@ Fresh 22 (too small to judge alone): originators lowered 1/13 and 0/13; non-orig
 - **Asked "are you POSITIVE it improves the product?" — the honest answer given:** not positive. Measured: badge honesty improves (0/66 originators wrongly lowered, ~80% of relayers lowered, on never-read pages; right pages kept in both live checks). Not proven: any A− grade lift (never run on those records) or reader-visible gain beyond the badge (no element state changed in any replay or live check). Costs: ~1p/check, a few seconds (unmeasured), 5–8% of boundary pages unstable between runs.
 - **Watch after deploy:** `originatorReview` receipts and `stage_timings_s.originator_review` on the first real checks; any genuine originator lowered is a regression to read.
 - **Later (route B):** fix the classifier's own prompt (the "if unsure, prefer PRIMARY" tie-break and the 300-char read), measured on its own.
+
+## 22. First production check with the review ON (2026-09-30, `ed83167`) — PASS
+Check `3fc387b0-2128-416c-ac9f-64adf1922793` (TRU-3FC3-87B0), "The EU AI Act entered into force on 1 August 2024", run by the founder from the dashboard; receipts read with `tru8_get_result_raw`.
+- 18 sources, **5 receipts, all `reviewed/relays`, primary → reporting, input `page_opening`**: four artificialintelligenceact.eu pages (home, /the-act/, /implementation-timeline/, /high-level-summary/; an independent institute's site re-presenting the Act) and a sas-dhrh.github.io copyright toolkit page. Each cue is the page's own self-description ("This site exists with the aim of providing helpful, objective information…", "In this article we provide you with a high-level summary of the AI Act…").
+- Kept PRIMARY: commission.europa.eu news, digital-strategy.ec.europa.eu, sciencedirect.com. **No genuine originator lowered.**
+- The element stays `supported` (4 supports incl. both Commission pages); the review changed badges, not the finding.
+- Note: the model named the originator "European Union" in all five; the cues are self-descriptions, not attributions. Correct outcome; the cue rule accepts any verbatim phrase by design (§18).
