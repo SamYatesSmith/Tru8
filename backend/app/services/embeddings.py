@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 import hashlib
 import json
+from concurrent.futures import ThreadPoolExecutor
 import redis.asyncio as redis
 from app.core.config import settings
 
@@ -11,6 +12,18 @@ from app.core.config import settings
 # heavy ML libraries from loading at startup. They will only load when embedding service is actually used.
 
 logger = logging.getLogger(__name__)
+
+# Every model call runs on ONE dedicated thread, with torch capped at a few
+# intra-op threads (2026-09-30, audit/2026-09-30_api_crash_brief.md).
+# libgomp gives each calling thread its own OpenMP team sized to the visible
+# CPUs (48 on Railway, whose quota is 8). ~20 concurrent page encodes from the
+# default executor asked for ~940 threads against the container's pids.max of
+# 1000; libgomp then failed thread creation and the process segfaulted with no
+# shutdown log. One caller thread = one team, and it works across the
+# per-pipeline event loops because the executor is module-level.
+# Measured at 8 CPUs: 1 worker x 4 threads matches the old throughput.
+EMBEDDING_TORCH_THREADS = 4
+_ENCODE_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="embed")
 
 class EmbeddingService:
     """Sentence embedding service using Sentence-Transformers"""
@@ -36,10 +49,12 @@ class EmbeddingService:
                         
                         def load_model():
                             # Import sentence_transformers only when actually needed
+                            import torch
                             from sentence_transformers import SentenceTransformer
+                            torch.set_num_threads(EMBEDDING_TORCH_THREADS)
                             return SentenceTransformer(self.model_name)
                         
-                        self.model = await loop.run_in_executor(None, load_model)
+                        self.model = await loop.run_in_executor(_ENCODE_EXECUTOR, load_model)
                         logger.info("Embedding model loaded successfully")
             
             # Initialize Redis for caching
@@ -70,7 +85,7 @@ class EmbeddingService:
             # Generate embedding in thread pool
             loop = asyncio.get_event_loop()
             embedding = await loop.run_in_executor(
-                None,
+                _ENCODE_EXECUTOR,
                 lambda: self.model.encode(text, normalize_embeddings=True)
             )
             
@@ -109,7 +124,7 @@ class EmbeddingService:
             try:
                 loop = asyncio.get_event_loop()
                 new_embeddings = await loop.run_in_executor(
-                    None,
+                    _ENCODE_EXECUTOR,
                     lambda: self.model.encode(uncached_texts, normalize_embeddings=True)
                 )
                 
