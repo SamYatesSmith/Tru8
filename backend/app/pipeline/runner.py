@@ -32,6 +32,7 @@ from app.utils import interested_party
 from app.utils.date_provenance import derive_date_basis
 from app.utils.date_utils import parse_date
 from app.utils.temporal_markers import has_historical_marker
+from app.utils.url_identity import UrlKeySet
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
@@ -1965,6 +1966,7 @@ async def run_pipeline_phase2(
             )
             stage_start = datetime.now(timezone.utc)
             try:
+                from app.pipeline.retrieve import _already_pooled
                 from app.services.search import SearchService
                 from app.services.evidence import (
                     get_runtime_blocked_domains,
@@ -1979,7 +1981,7 @@ async def run_pipeline_phase2(
                 # never fetched. Apply the same blocklist EvidenceService
                 # uses at extraction time.
                 recovery_blocklist = get_runtime_blocked_domains()
-                existing_urls = set()
+                existing_urls = UrlKeySet()
                 for ev_list in evidence.values():
                     for ev in ev_list:
                         existing_urls.add(ev.get("url", ""))
@@ -2009,7 +2011,7 @@ async def run_pipeline_phase2(
                         added = 0
                         dropped_blocked = 0
                         for r in results:
-                            if r.url in existing_urls:
+                            if _already_pooled(existing_urls, r.url, f"claim={pos}"):
                                 continue
                             if is_domain_blocked(r.url, recovery_blocklist):
                                 dropped_blocked += 1
@@ -2550,7 +2552,7 @@ async def run_pipeline_phase2(
         )
 
         # Collect existing URLs for dedup
-        existing_urls = set()
+        existing_urls = UrlKeySet()
         for ev_list in evidence.values():
             for ev in ev_list:
                 if ev.get("url"):

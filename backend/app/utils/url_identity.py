@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
 # ── C1: canonical URL key ─────────────────────────────────────────────────────
@@ -42,7 +42,8 @@ _HOST_ALIASES = {"bbc.co.uk": "bbc.com"}
 #: Query parameters that track a visit and never identify a page. Measured on
 #: the 19 payloads: srsltid (Google SERP click id) on Statista, syn-* (FT
 #: syndication). Every other parameter is KEPT — Eurostat pages differ only by
-#: ``?title=``, YouTube identity is ``?v=``.
+#: ``?title=``, YouTube identity is ``?v=``. 2026-10-01: ``eafs_enabled`` (a
+#: WSJ feature switch, A− #5 — the same article with and without it).
 _TRACKING_EXACT = frozenset(
     {
         "fbclid",
@@ -55,6 +56,7 @@ _TRACKING_EXACT = frozenset(
         "ocid",
         "smid",
         "_ga",
+        "eafs_enabled",
     }
 )
 _TRACKING_PREFIX = ("utm_", "syn-")
@@ -93,6 +95,33 @@ def canonical_url_key(url: Optional[str]) -> str:
 
 def same_url(a: Optional[str], b: Optional[str]) -> bool:
     return bool(a and b) and canonical_url_key(a) == canonical_url_key(b)
+
+
+class UrlKeySet:
+    """A set of URLs whose membership is the canonical key (2026-10-01).
+
+    The recovery paths deduped on the raw string, so a Statista page with and
+    without ``?srsltid=`` entered one pool twice (A− #5, #12, #14). Drop-in for
+    the ``set()`` they used: ``in`` and ``add`` keep their meaning, and
+    ``twin`` names the stored URL a newcomer duplicates, for the receipt."""
+
+    def __init__(self, urls: Optional[Iterable[Optional[str]]] = None):
+        self._by_key: Dict[str, str] = {}
+        for url in urls or ():
+            self.add(url)
+
+    def add(self, url: Optional[str]) -> None:
+        if url:
+            self._by_key.setdefault(canonical_url_key(url), url)
+
+    def twin(self, url: Optional[str]) -> Optional[str]:
+        return self._by_key.get(canonical_url_key(url)) if url else None
+
+    def __contains__(self, url: object) -> bool:
+        return isinstance(url, str) and self.twin(url) is not None
+
+    def __len__(self) -> int:
+        return len(self._by_key)
 
 
 # ── C2a: title normalisation and shells ───────────────────────────────────────

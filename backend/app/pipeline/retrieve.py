@@ -14,7 +14,7 @@ from app.services.evidence import (
     is_domain_blocked,
 )
 from app.utils.date_provenance import DATE_BASIS_API, derive_date_basis
-from app.utils.url_identity import canonical_url_key
+from app.utils.url_identity import UrlKeySet
 from app.utils.url_utils import extract_domain
 from app.services.government_api_client import get_api_registry
 from app.core.config import settings
@@ -166,6 +166,24 @@ def _log_copy_shadow(candidates: List[Any], max_sources: int, site: str) -> None
             )
     except Exception as exc:  # pragma: no cover - defensive
         logger.warning(f"[COPY DEDUP] shadow failed site={site}: {exc}")
+
+
+def _already_pooled(existing_urls: Any, url: Optional[str], where: str) -> bool:
+    """Recovery dedup: True when `url` is already in the pool. A raw-different
+    twin (tracking parameter, www., bbc.co.uk) gets a URL-ledger receipt
+    naming the pooled URL, since it is a drop the reader never sees
+    (invariant #5). An exact repeat stays silent, as it always was."""
+    if not url:
+        return False
+    twin = existing_urls.twin(url) if hasattr(existing_urls, "twin") else None
+    if twin is None:
+        return url in existing_urls
+    if twin != url:
+        logger.info(
+            f"[URL LEDGER] {where} dropped stage=copy_dedup rule=i "
+            f"url={url[:160]} survivor={twin[:160]}"
+        )
+    return True
 
 
 def _json_date(value: Any) -> Optional[str]:
@@ -1096,7 +1114,7 @@ class EvidenceRetriever:
         )
 
         # Collect existing URLs to avoid duplicates
-        existing_urls = set()
+        existing_urls = UrlKeySet()
         for ev_list in evidence_by_claim.values():
             for ev in ev_list:
                 if ev.get("url"):
@@ -1154,7 +1172,7 @@ class EvidenceRetriever:
         self,
         claim: Dict[str, Any],
         claim_position: str,
-        existing_urls: set,
+        existing_urls: "set | UrlKeySet",
         excluded_domain: Optional[str] = None,
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """
@@ -1230,6 +1248,8 @@ class EvidenceRetriever:
 
             # Execute searches
             all_snippets = []
+            # Two recovery queries can return one page under two URLs.
+            seen_here = UrlKeySet()
             for query in queries[:2]:  # Limit to 2 queries to control latency
                 try:
                     search_country = _resolve_search_country(claim)
@@ -1248,7 +1268,11 @@ class EvidenceRetriever:
                                 if hasattr(r, "url")
                                 else r.get("url", "")
                             )
-                            if url in existing_urls:
+                            if _already_pooled(
+                                existing_urls, url, f"claim={claim_position}"
+                            ) or _already_pooled(
+                                seen_here, url, f"claim={claim_position}"
+                            ):
                                 continue
 
                             if is_domain_blocked(url, blocked_domains):
@@ -1299,6 +1323,7 @@ class EvidenceRetriever:
                                 ),
                             )
                             all_snippets.append(snippet)
+                            seen_here.add(url)
 
                 except Exception as e:
                     logger.warning(
@@ -1467,7 +1492,7 @@ class EvidenceRetriever:
         self,
         elements: List[Dict[str, Any]],
         claim_text: str,
-        existing_urls: set,
+        existing_urls: "set | UrlKeySet",
         article_context: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """Targeted retrieval for specific unresolved elements.
@@ -1487,7 +1512,6 @@ class EvidenceRetriever:
         """
         all_evidence = []
         claim_context = claim_text[:100]
-        _existing_keys: Optional[Dict[str, str]] = None  # Build C shadow, lazy
 
         # Runtime blocklist for recovery URL filtering (same rationale as
         # _recover_evidence_for_claim above). The main retrieve path's
@@ -1578,22 +1602,10 @@ class EvidenceRetriever:
                             if hasattr(r, "url")
                             else r.get("url", "")
                         )
-                        if url in existing_urls:
+                        if _already_pooled(
+                            existing_urls, url, f"element={elem['element_id']}"
+                        ):
                             continue
-                        # Build C shadow (C1 at recovery): a raw-different URL
-                        # naming a page already in the pool (bbc.co.uk/bbc.com).
-                        if getattr(settings, "ENABLE_COPY_DEDUP_SHADOW", True):
-                            if _existing_keys is None:
-                                _existing_keys = {
-                                    canonical_url_key(u): u for u in existing_urls
-                                }
-                            twin = _existing_keys.get(canonical_url_key(url))
-                            if twin:
-                                logger.info(
-                                    f"[COPY DEDUP] site=recovery rule=i "
-                                    f"element={elem['element_id']} "
-                                    f"would_drop={url[:160]} survivor={twin[:160]}"
-                                )
 
                         if is_domain_blocked(url, blocked_domains):
                             logger.info(
