@@ -19,6 +19,17 @@ from app.core.config import settings
 from app.models.claim_map import ElementState
 from app.pipeline.claim_map_analyzer import _SCOPE_RECEIPT_KEYS, ClaimMapAnalyzer
 
+
+@pytest.fixture(autouse=True)
+def _echo_gate_on(monkeypatch):
+    """The echo gate is OFF by default since 2026-10-01 (link precision
+    24-32%, audit/2026-10-01_echo_link_precision.md). These tests pin its
+    behaviour and its place in the gate order for when it returns."""
+    from app.core.config import settings as _s
+
+    monkeypatch.setattr(_s, "ENABLE_ECHO_SCOPE_GATE", True)
+
+
 # ev-orig is the primary; ev-d1/ev-d2 are its derivatives per the
 # corroboration engine (chains live ON the primary, listing derivatives).
 # ev-d4 is a derivative of ev-orig2, which is NOT referenced by the element.

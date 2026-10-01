@@ -21,6 +21,17 @@ from app.pipeline.claim_map_analyzer import (
     _restore_orphaned_echoes,
 )
 
+
+@pytest.fixture(autouse=True)
+def _echo_gate_on(monkeypatch):
+    """The echo gate is OFF by default since 2026-10-01 (link precision
+    24-32%, audit/2026-10-01_echo_link_precision.md). These tests pin its
+    behaviour and its place in the gate order for when it returns."""
+    from app.core.config import settings as _s
+
+    monkeypatch.setattr(_s, "ENABLE_ECHO_SCOPE_GATE", True)
+
+
 ELEMENT = (
     "The measured consumer price index inflation rate in the UK in "
     "September 2024 was less than 2 percent."
@@ -307,7 +318,11 @@ async def test_real_review_does_not_redraw_pairs_decided_in_an_earlier_run(
         "prior_runs": [
             {
                 "pairs": [
-                    {"element_id": "e1", "evidence_id": "ev-orig", "status": "compatible"}
+                    {
+                        "element_id": "e1",
+                        "evidence_id": "ev-orig",
+                        "status": "compatible",
+                    }
                 ]
             }
         ],
@@ -382,7 +397,11 @@ def test_gates_after_echo_still_yield_to_echo(monkeypatch):
     monkeypatch.setattr(
         analyzer,
         "_armed_scope_gates",
-        lambda *_a: [gate("temporal_scope", False), gate("echo_scope"), gate("fact_applicability")],
+        lambda *_a: [
+            gate("temporal_scope", False),
+            gate("echo_scope"),
+            gate("fact_applicability"),
+        ],
     )
     receipts = analyzer._apply_scope_gates(elem, index, {})
     assert list(receipts) == ["echo_scope"]
@@ -391,7 +410,11 @@ def test_gates_after_echo_still_yield_to_echo(monkeypatch):
     monkeypatch.setattr(
         analyzer,
         "_armed_scope_gates",
-        lambda *_a: [gate("temporal_scope"), gate("echo_scope"), gate("fact_applicability")],
+        lambda *_a: [
+            gate("temporal_scope"),
+            gate("echo_scope"),
+            gate("fact_applicability"),
+        ],
     )
     receipts = analyzer._apply_scope_gates(elem, index, {})
     assert list(receipts) == ["temporal_scope"]
@@ -400,7 +423,13 @@ def test_gates_after_echo_still_yield_to_echo(monkeypatch):
 def test_receipt_merge_keeps_restored_copies():
     from app.pipeline.claim_map_analyzer import _merge_scope_receipts
 
-    old = {"echo_scope": {"scoped": [], "scoped_count": 0, "restored": [{"evidence_id": "a"}]}}
+    old = {
+        "echo_scope": {
+            "scoped": [],
+            "scoped_count": 0,
+            "restored": [{"evidence_id": "a"}],
+        }
+    }
     new = {"echo_scope": {"scoped": [{"evidence_id": "b"}], "scoped_count": 1}}
     merged = _merge_scope_receipts(old, new)["echo_scope"]
     assert merged["restored"] == [{"evidence_id": "a"}]

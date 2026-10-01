@@ -760,7 +760,12 @@ class Settings(BaseSettings):
     # copies of one story stop counting as five supports (the NHS outreach
     # record's failure). Symmetric; the first derivative stays directional
     # when its original is not counted. ROLLBACK: ENABLE_ECHO_SCOPE_GATE=False.
-    ENABLE_ECHO_SCOPE_GATE: bool = Field(True, env="ENABLE_ECHO_SCOPE_GATE")
+    # OFF 2026-10-01 (founder): the link it reads is wrong more often than
+    # right. Blind labels found 12 relays among 38 decided pairs it scoped
+    # (32%), so it hid about two independent sources per copy. Stays off
+    # until a model-confirmed link is designed and evaluated.
+    # Record: audit/2026-10-01_echo_link_precision.md.
+    ENABLE_ECHO_SCOPE_GATE: bool = Field(False, env="ENABLE_ECHO_SCOPE_GATE")
 
     # Unreadable-text floor (A− M2, 2026-09-24). A directional ref whose source
     # text is a JavaScript/login wall or an empty shell becomes `context` with a

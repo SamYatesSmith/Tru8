@@ -22,6 +22,17 @@ from app.utils.figure_scope import (
     stated_figures,
 )
 
+
+@pytest.fixture(autouse=True)
+def _echo_gate_on(monkeypatch):
+    """The echo gate is OFF by default since 2026-10-01 (link precision
+    24-32%, audit/2026-10-01_echo_link_precision.md). These tests pin its
+    behaviour and its place in the gate order for when it returns."""
+    from app.core.config import settings as _s
+
+    monkeypatch.setattr(_s, "ENABLE_ECHO_SCOPE_GATE", True)
+
+
 LEGUM_ELEMENT = (
     "The total value of these securities trades is between $898 million and "
     "$2.87 billion since 2025."
@@ -362,9 +373,7 @@ GEF_TEXT = (
     "steadily through the heating months. - According to global-energy-flow.com, "
     "the norm for this date is about 82%, per EnergyRiskIQ."
 )
-KENNEDY_NORM = (
-    "As of 11 September 2026, the seasonal norm for EU-wide gas storage stocks is 83% full."
-)
+KENNEDY_NORM = "As of 11 September 2026, the seasonal norm for EU-wide gas storage stocks is 83% full."
 
 
 def test_82_does_not_state_83():
@@ -425,7 +434,9 @@ def test_gate_scopes_the_other_period_support_with_its_reason():
 # ── count named by a "number of" phrase (2026-09-23, Legum 06ef2b65) ──────
 
 
-LEGUM_COUNT = "The number of securities trades made by Donald Trump since 2025 is almost 28,700."
+LEGUM_COUNT = (
+    "The number of securities trades made by Donald Trump since 2025 is almost 28,700."
+)
 
 
 def test_a_number_of_phrase_names_what_a_bare_count_counts():
@@ -475,7 +486,11 @@ def test_a_year_range_or_a_function_word_is_never_a_count(element):
     [
         ("The number of deaths in 2020-21 was 12,000.", "n:death", 12000.0),
         ("Admissions in 2019/20 rose to 4,300 patients.", "n:patient", 4300.0),
-        ("Donald Trump has made almost 28,700 securities trades since 2025.", "n:trade", 28700.0),
+        (
+            "Donald Trump has made almost 28,700 securities trades since 2025.",
+            "n:trade",
+            28700.0,
+        ),
     ],
 )
 def test_real_counts_beside_a_year_range_still_parse(element, kind, value):

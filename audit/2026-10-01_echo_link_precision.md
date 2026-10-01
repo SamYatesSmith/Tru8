@@ -34,3 +34,6 @@ No threshold gets both: ≥3 is clean on B but 3/7 on A. Text similarity carries
 The derivation-chain NOTE (grey "echo" sourcing note) reads the same chains and inherits the same error.
 
 Files: `audit/echo_precision/` (extract script, blind inputs, keys, labels).
+
+## Decision (2026-10-01)
+Founder chose option 3. The gate is off by default now. The model-confirmed link comes next, as a design with an independent review before anything is built. Open: the grey echo note (`_compute_element_basis` reads `derivation_chain`) still shows on live checks.
