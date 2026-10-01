@@ -37,3 +37,6 @@ Files: `audit/echo_precision/` (extract script, blind inputs, keys, labels).
 
 ## Decision (2026-10-01)
 Founder chose option 3. The gate is off by default now. The model-confirmed link comes next, as a design with an independent review before anything is built. Open: the grey echo note (`_compute_element_basis` reads `derivation_chain`) still shows on live checks.
+
+## Verbatim re-check (same day)
+The labels above were made on stored snippets, which are distilled model text for most items (design review H1). Of the labelled pairs, 48 also have verbatim text, and those were re-labelled blind on it: 13 relay / 35 independent, against 23 / 25 on distilled text. All 10 changes went relay → independent. The measured precision was an overestimate, so the decision to turn the gate off stands. Files: `echo_precision/blind3.json`, `key3.json`, `labels3.json`.

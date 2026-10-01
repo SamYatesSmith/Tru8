@@ -110,3 +110,9 @@ Every cue is ≥ 12 chars. Any failed check ⇒ `cue_not_found` ⇒ no link.
 | on | off | on | Confirmed copies (≥ 1) → gate only. |
 | on | on | on | Target. |
 | off | on / any | any | Unconfirmed legacy links (rollback only); startup warning. |
+
+## 11. Re-label on verbatim text (H1 check, free)
+48 of the 121 labelled pairs have verbatim text on both sides. A fresh blind labeller re-labelled them on `original_snippet` + passages.
+- Verbatim: **13 relay / 35 independent**. The same pairs on distilled text: 23 / 25. All 10 disagreements went relay → independent; there were none the other way.
+- Scoped subset (pairs the gate actually removed): 10 relay / 17 independent on verbatim text (37%).
+- **Distillation made independent pages look like copies, not the reverse.** This matches the review's H1 point (claim-shaped rewrites converge). So the 24–32% figure was, if anything, generous. The gate-off decision stands.
