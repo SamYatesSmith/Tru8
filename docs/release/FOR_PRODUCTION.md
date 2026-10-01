@@ -182,7 +182,6 @@ Review these flags for production readiness:
 | `ENABLE_JUDGE_FEW_SHOT` | `true` | Keep - improves verdicts |
 | `ENABLE_CROSS_ENCODER_RERANK` | `true` | Keep if performance acceptable |
 | `ENABLE_QUERY_PLANNING` | `true` | Keep - better evidence retrieval |
-| `ENABLE_RHETORICAL_CONTEXT` | `true` | Keep - handles sarcasm/satire |
 
 ---
 

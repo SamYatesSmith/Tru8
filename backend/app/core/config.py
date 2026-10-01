@@ -279,7 +279,6 @@ class Settings(BaseSettings):
     )
 
     # Phase 4 - Legal Integration
-    ENABLE_LEGAL_SEARCH: bool = Field(True, env="ENABLE_LEGAL_SEARCH")
     GOVINFO_API_KEY: Optional[str] = Field(None, env="GOVINFO_API_KEY")
     CONGRESS_API_KEY: Optional[str] = Field(None, env="CONGRESS_API_KEY")
     LEGAL_API_TIMEOUT_SECONDS: int = Field(10, env="LEGAL_API_TIMEOUT_SECONDS")
@@ -331,7 +330,6 @@ class Settings(BaseSettings):
 
     # Global Domain Capping (cross-claim diversity enforcement)
     # Tightened from 5/25% to 3/15% to prevent single-source dominance (e.g., NYTimes appearing 5x)
-    ENABLE_GLOBAL_DOMAIN_CAPPING: bool = Field(True, env="ENABLE_GLOBAL_DOMAIN_CAPPING")
     GLOBAL_MAX_PER_DOMAIN: int = Field(
         3, env="GLOBAL_MAX_PER_DOMAIN"
     )  # Max sources from any domain across ALL claims
@@ -379,11 +377,6 @@ class Settings(BaseSettings):
     )  # ENABLED: Extract claim-relevant sentences using embeddings
     SNIPPET_SEMANTIC_THRESHOLD: float = Field(0.65, env="SNIPPET_SEMANTIC_THRESHOLD")
     SNIPPET_CONTEXT_SENTENCES: int = Field(2, env="SNIPPET_CONTEXT_SENTENCES")
-
-    # ========== RHETORICAL CONTEXT DETECTION ==========
-    # Detect when evidence sources describe rhetorical intent (sarcasm, mockery, satire)
-    # More reliable than direct sarcasm detection - trusts journalists' characterization
-    ENABLE_RHETORICAL_CONTEXT: bool = Field(True, env="ENABLE_RHETORICAL_CONTEXT")
 
     # ========== ARTICLE-LEVEL CLASSIFICATION ==========
     # LLM-based article classification (runs once per check, not per claim)

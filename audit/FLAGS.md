@@ -4,7 +4,7 @@ Regenerate with `cd backend && python -m scripts.flag_register`. `tests/unit/tes
 
 Defaults are the code's. **Railway can override any flag with an env var of the same name; this file cannot see that.** Check Railway when a live value matters.
 
-**54 flags: 46 on, 8 off by default.**
+**51 flags: 43 on, 8 off by default.**
 
 | Flag | Default | Read in | Why (from config.py) |
 |---|---|---|---|
@@ -35,10 +35,8 @@ Defaults are the code's. **Railway can override any flag with an env var of the 
 | `ENABLE_FACTCHECK_SIGNAL` | ON | 1 file | Item 7 stage 1 (2026-08-28): the factcheck signal. ON 2026-08-28 (founder-approved) after measurement: 200 stored-ledger URLs → zero false positives, 10/10 flagged were genuine (7 by content judgement beyond the domain list); probed on /r/fa08cff7's own poo... |
 | `ENABLE_FETCH_PHASE_DEADLINE` | ON | 1 file | Fetch-phase deadline (2026-09-02). |
 | `ENABLE_FIGURE_SCOPE_GATE` | ON | 1 file | Figure scope gate (F2, 2026-09-23). |
-| `ENABLE_GLOBAL_DOMAIN_CAPPING` | ON | **unused** (setting it does nothing) | Global Domain Capping (cross-claim diversity enforcement) Tightened from 5/25% to 3/15% to prevent single-source dominance (e.g., NYTimes appearing 5x) |
 | `ENABLE_INTERESTED_PARTY_GATE` | ON | 1 file | Interested-party gate (2026-08-13): check TRU-018F-44AA badged "Donald Trump stopped 6 wars" supported-all-4, with whitehouse.gov's own "I've solved six wars" weighing primary-3 against PolitiFact at commentary-1. |
 | `ENABLE_JURISDICTION_SCOPE_GATE` | ON | 1 file | Jurisdiction gate (2026-08-06): the mechanical analogue of F1. |
-| `ENABLE_LEGAL_SEARCH` | ON | **unused** (setting it does nothing) | Phase 4 - Legal Integration |
 | `ENABLE_LLM_RELEVANCE_SCORER` | ON | 2 files | ========== LLM RELEVANCE SCORER ========== Replaces embedding-based ranking with LLM-based understanding of evidential value Uses GPT-4o-mini to score evidence 1-5 based on how well it helps verify/refute claims |
 | `ENABLE_MEASURE_SCOPE_GATE` | ON | 1 file | Measure gate (2026-08-06): the third mismatch in check 757f02c2. |
 | `ENABLE_OPINION_REFRAME` | ON | 3 files | ========== OPINION DECOUPLING (Phase 1a, 2026-07-16) ========== Extraction KEEPS main-predicate evaluative claims (reframed affirmative, type_hint="normative") instead of dropping them under Rule 6; the grounds stage then rebuilds their elements as neutral ... |
@@ -53,7 +51,6 @@ Defaults are the code's. **Railway can override any flag with an env var of the 
 | `ENABLE_RECOVERY_ENRICHMENT` | ON | 1 file | ========== PIPELINE EVIDENCE QUALITY (Track N Phase 2) ========== Coverage recovery enrichment: fetch full page content for recovery evidence |
 | `ENABLE_RECOVERY_QUERY_PLANNING` | ON | 1 file |  |
 | `ENABLE_RELATIONSHIP_REVIEW` | ON | 3 files | Relationship review on the DEFAULT path (A− M1, 2026-09-24). |
-| `ENABLE_RHETORICAL_CONTEXT` | ON | **unused** (setting it does nothing) | ========== RHETORICAL CONTEXT DETECTION ========== Detect when evidence sources describe rhetorical intent (sarcasm, mockery, satire) More reliable than direct sarcasm detection - trusts journalists' characterization |
 | `ENABLE_SAME_STUDY_SCOPE_GATE` | ON | 1 file | Same-study scope gate (2026-09-09, Track Q — Astra finding 10). |
 | `ENABLE_SEARCH_CLARITY` | ON | 2 files | Search Clarity Feature (MVP) |
 | `ENABLE_SEMANTIC_SNIPPET_EXTRACTION` | ON | 1 file | Semantic Snippet Extraction |
