@@ -1,0 +1,207 @@
+[
+ {
+  "id": "s001",
+  "label": "relay",
+  "why": "Both report the SELECT trial's 20% MACE result, 17,604 patients and 1:1 2.4 mg design."
+ },
+ {
+  "id": "s002",
+  "label": "independent",
+  "why": "A widely published mirror spec and launch date; nothing shows EBSCO derives from this NASA page."
+ },
+ {
+  "id": "s003",
+  "label": "independent",
+  "why": "Public Brexit dates restated; no sign B derives from the Commons Library briefing."
+ },
+ {
+  "id": "s004",
+  "label": "independent",
+  "why": "BBC states well-known Brexit dates in its own framing; not derived from A."
+ },
+ {
+  "id": "s005",
+  "label": "independent",
+  "why": "Two secondary pages giving common JWST facts; neither derives from the other."
+ },
+ {
+  "id": "s006",
+  "label": "independent",
+  "why": "Both note creatine trials showed no effect on PD, but B does not derive from this review."
+ },
+ {
+  "id": "s007",
+  "label": "independent",
+  "why": "A doctor's dosing advice; shared 5 g is a common number."
+ },
+ {
+  "id": "s008",
+  "label": "independent",
+  "why": "Bitesize restates well-known Brexit dates, not derived from A."
+ },
+ {
+  "id": "s009",
+  "label": "independent",
+  "why": "Common mirror spec and launch date; B does not derive from the ESA page."
+ },
+ {
+  "id": "s010",
+  "label": "relay",
+  "why": "Space.com repeats NASA's mirror figure in NASA's exact 21 ft 4 in (6.5 m) form."
+ },
+ {
+  "id": "s011",
+  "label": "relay",
+  "why": "Cleveland Clinic summarises the same SELECT trial result, population and design."
+ },
+ {
+  "id": "s012",
+  "label": "unclear",
+  "why": "B's generic 'not shown to slow progression' may rest on the JAMA trial, but the excerpt does not say so."
+ },
+ {
+  "id": "s013",
+  "label": "independent",
+  "why": "Both restate SQLite defaults; B does not derive from the Xojo page."
+ },
+ {
+  "id": "s014",
+  "label": "relay",
+  "why": "B copies A's sentences almost word for word."
+ },
+ {
+  "id": "s015",
+  "label": "independent",
+  "why": "Two guides describe the same 3.13 feature from their own angles."
+ },
+ {
+  "id": "s016",
+  "label": "independent",
+  "why": "B reports a different analysis with its own conclusions."
+ },
+ {
+  "id": "s017",
+  "label": "relay",
+  "why": "The Guardian re-reports SELECT's 20% MACE result in 17,604 people from 41 countries, which A also states."
+ },
+ {
+  "id": "s018",
+  "label": "independent",
+  "why": "A standard 3-5 g dosing recommendation; a common figure."
+ },
+ {
+  "id": "s019",
+  "label": "independent",
+  "why": "Well-known Venus day and year lengths, explained independently."
+ },
+ {
+  "id": "s020",
+  "label": "independent",
+  "why": "T&E gives its own analysis of European emissions."
+ },
+ {
+  "id": "s021",
+  "label": "independent",
+  "why": "Both make the same general economic point independently."
+ },
+ {
+  "id": "s022",
+  "label": "relay",
+  "why": "B reports that large long-term creatine trials failed to show benefit, which is the JAMA trial's finding."
+ },
+ {
+  "id": "s023",
+  "label": "relay",
+  "why": "Both report the same SELECT trial's 20% MACE result and design."
+ },
+ {
+  "id": "s024",
+  "label": "relay",
+  "why": "Medscape reports the same SELECT trial result and enrolment figures."
+ },
+ {
+  "id": "s025",
+  "label": "relay",
+  "why": "B reports the 3.13 release's experimental free-threaded build announced by python.org."
+ },
+ {
+  "id": "s026",
+  "label": "independent",
+  "why": "An expert explainer giving common Venus facts in its own framing, not copied from NASA."
+ },
+ {
+  "id": "s027",
+  "label": "independent",
+  "why": "A Quora answer giving well-known rotation facts in its own words."
+ },
+ {
+  "id": "s028",
+  "label": "independent",
+  "why": "Both give common SQLite WAL and busy_timeout advice independently."
+ },
+ {
+  "id": "s029",
+  "label": "independent",
+  "why": "Both state SQLite's documented default; B does not derive from Xojo."
+ },
+ {
+  "id": "s030",
+  "label": "relay",
+  "why": "ClearScore reports the Bank Rate set by the Bank of England."
+ },
+ {
+  "id": "s031",
+  "label": "relay",
+  "why": "B restates NASA's 1993-2023 rise (about 10 cm, given as 4 inches) in the same framing."
+ },
+ {
+  "id": "s032",
+  "label": "independent",
+  "why": "A standard 3-5 g dosing recommendation; a common figure."
+ },
+ {
+  "id": "s033",
+  "label": "relay",
+  "why": "B explicitly takes its Venus figures from a NASA fact sheet."
+ },
+ {
+  "id": "s034",
+  "label": "independent",
+  "why": "A well-known SQLite history fact; fly.io does not derive from the mailing-list post."
+ },
+ {
+  "id": "s035",
+  "label": "independent",
+  "why": "An expert explainer giving common Venus facts in its own framing, not copied from NASA."
+ },
+ {
+  "id": "s036",
+  "label": "independent",
+  "why": "B gives NOAA's own 2023 measurement, a separate data release."
+ },
+ {
+  "id": "s037",
+  "label": "independent",
+  "why": "B reports NOAA's 2024 record, a different figure and release."
+ },
+ {
+  "id": "s038",
+  "label": "unclear",
+  "why": "B's broad statement about failed supplement trials may include the JAMA trial, but the excerpt does not say."
+ },
+ {
+  "id": "s039",
+  "label": "unclear",
+  "why": "The Reddit post may concern the same Science study, but the truncated excerpts cannot confirm it."
+ },
+ {
+  "id": "s040",
+  "label": "independent",
+  "why": "B gives market expectations, not A's page content."
+ },
+ {
+  "id": "s041",
+  "label": "independent",
+  "why": "Both make the same general economic point independently."
+ }
+]

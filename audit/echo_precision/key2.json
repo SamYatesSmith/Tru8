@@ -1,0 +1,401 @@
+[
+ {
+  "id": "s001",
+  "claim_id": "3bc3cf2b-dea3-4192-b9e3-1632dcd9e053",
+  "was": "supports",
+  "text_sim": 0.044,
+  "shared_facts": [
+   "1",
+   "17",
+   "2.4",
+   "20",
+   "27",
+   "45",
+   "604"
+  ]
+ },
+ {
+  "id": "s002",
+  "claim_id": "69a46a09-e14d-492d-bd17-79af80538f80",
+  "was": "supports",
+  "text_sim": 0.442,
+  "shared_facts": [
+   "6.5"
+  ]
+ },
+ {
+  "id": "s003",
+  "claim_id": "2328ea11-ca5f-43b1-8e64-afec0b5308a1",
+  "was": "supports",
+  "text_sim": 0.47,
+  "shared_facts": [
+   "2020",
+   "31"
+  ]
+ },
+ {
+  "id": "s004",
+  "claim_id": "2328ea11-ca5f-43b1-8e64-afec0b5308a1",
+  "was": "supports",
+  "text_sim": 0.037,
+  "shared_facts": [
+   "2020",
+   "31"
+  ]
+ },
+ {
+  "id": "s005",
+  "claim_id": "929ec7e5-7a80-492a-bce2-d4f5e0fdb0c7",
+  "was": "supports",
+  "text_sim": 0.398,
+  "shared_facts": [
+   "2021",
+   "25",
+   "6.5"
+  ]
+ },
+ {
+  "id": "s006",
+  "claim_id": "a34f3489-2702-46ed-8f8e-197f75310bf8",
+  "was": "challenges",
+  "text_sim": 0.358,
+  "shared_facts": []
+ },
+ {
+  "id": "s007",
+  "claim_id": "ce896688-4061-4f85-9be4-d527e4028848",
+  "was": "supports",
+  "text_sim": 0.268,
+  "shared_facts": [
+   "5"
+  ]
+ },
+ {
+  "id": "s008",
+  "claim_id": "2328ea11-ca5f-43b1-8e64-afec0b5308a1",
+  "was": "supports",
+  "text_sim": 0.518,
+  "shared_facts": [
+   "2020"
+  ]
+ },
+ {
+  "id": "s009",
+  "claim_id": "69a46a09-e14d-492d-bd17-79af80538f80",
+  "was": "supports",
+  "text_sim": 0.069,
+  "shared_facts": [
+   "6.5"
+  ]
+ },
+ {
+  "id": "s010",
+  "claim_id": "69a46a09-e14d-492d-bd17-79af80538f80",
+  "was": "supports",
+  "text_sim": 0.301,
+  "shared_facts": [
+   "21",
+   "4",
+   "6.5"
+  ]
+ },
+ {
+  "id": "s011",
+  "claim_id": "3bc3cf2b-dea3-4192-b9e3-1632dcd9e053",
+  "was": "supports",
+  "text_sim": 0.094,
+  "shared_facts": [
+   "17",
+   "2.4",
+   "20",
+   "27",
+   "45",
+   "604",
+   "8"
+  ]
+ },
+ {
+  "id": "s012",
+  "claim_id": "b4ae121d-889c-45a6-8e71-c8fad452af5f",
+  "was": "challenges",
+  "text_sim": 0.4,
+  "shared_facts": []
+ },
+ {
+  "id": "s013",
+  "claim_id": "4f718d19-7d89-4bfa-b3aa-f60eb2881522",
+  "was": "supports",
+  "text_sim": 0.339,
+  "shared_facts": [
+   "1000"
+  ]
+ },
+ {
+  "id": "s014",
+  "claim_id": "fb3e1e2b-3a29-45de-9f27-a07643b28a87",
+  "was": "supports",
+  "text_sim": 0.849,
+  "shared_facts": [
+   "167",
+   "333",
+   "464",
+   "867",
+   "96.5"
+  ]
+ },
+ {
+  "id": "s015",
+  "claim_id": "6c85e9f7-f0f9-439e-85c2-14522c104061",
+  "was": "supports",
+  "text_sim": 0.165,
+  "shared_facts": [
+   "3.13"
+  ]
+ },
+ {
+  "id": "s016",
+  "claim_id": "549ce060-8f45-42cc-98e2-f67b4090e587",
+  "was": "challenges",
+  "text_sim": 0.022,
+  "shared_facts": [
+   "19",
+   "2020"
+  ]
+ },
+ {
+  "id": "s017",
+  "claim_id": "2d94f187-3cd6-407b-bb9d-4b17c009f582",
+  "was": "supports",
+  "text_sim": 0.108,
+  "shared_facts": [
+   "17",
+   "20",
+   "41",
+   "604"
+  ]
+ },
+ {
+  "id": "s018",
+  "claim_id": "ce896688-4061-4f85-9be4-d527e4028848",
+  "was": "supports",
+  "text_sim": 0.255,
+  "shared_facts": [
+   "3",
+   "5"
+  ]
+ },
+ {
+  "id": "s019",
+  "claim_id": "81b8c65c-3df2-4274-b738-973bb7ec00d1",
+  "was": "supports",
+  "text_sim": 0.231,
+  "shared_facts": [
+   "225",
+   "243"
+  ]
+ },
+ {
+  "id": "s020",
+  "claim_id": "d348aab1-5f2c-4792-a98e-04dbc1bc0f80",
+  "was": "supports",
+  "text_sim": 0.316,
+  "shared_facts": [
+   "3"
+  ]
+ },
+ {
+  "id": "s021",
+  "claim_id": "5ca92a85-4cbd-40fc-bfb3-e713225e67b3",
+  "was": "challenges",
+  "text_sim": 0.382,
+  "shared_facts": []
+ },
+ {
+  "id": "s022",
+  "claim_id": "a34f3489-2702-46ed-8f8e-197f75310bf8",
+  "was": "challenges",
+  "text_sim": 0.278,
+  "shared_facts": []
+ },
+ {
+  "id": "s023",
+  "claim_id": "67e8fe8d-2ec4-464a-989d-7efe84d2efbd",
+  "was": "supports",
+  "text_sim": 0.192,
+  "shared_facts": [
+   "1",
+   "17",
+   "2.4",
+   "20",
+   "604"
+  ]
+ },
+ {
+  "id": "s024",
+  "claim_id": "2d94f187-3cd6-407b-bb9d-4b17c009f582",
+  "was": "supports",
+  "text_sim": 0.203,
+  "shared_facts": [
+   "17",
+   "20",
+   "2018",
+   "41",
+   "604"
+  ]
+ },
+ {
+  "id": "s025",
+  "claim_id": "6c85e9f7-f0f9-439e-85c2-14522c104061",
+  "was": "supports",
+  "text_sim": 0.101,
+  "shared_facts": [
+   "3.13"
+  ]
+ },
+ {
+  "id": "s026",
+  "claim_id": "fb3e1e2b-3a29-45de-9f27-a07643b28a87",
+  "was": "supports",
+  "text_sim": 0.044,
+  "shared_facts": [
+   "464",
+   "867"
+  ]
+ },
+ {
+  "id": "s027",
+  "claim_id": "81b8c65c-3df2-4274-b738-973bb7ec00d1",
+  "was": "supports",
+  "text_sim": 0.356,
+  "shared_facts": [
+   "243"
+  ]
+ },
+ {
+  "id": "s028",
+  "claim_id": "be750bd2-c039-457d-9eb5-b4ec335c55f2",
+  "was": "supports",
+  "text_sim": 0.221,
+  "shared_facts": [
+   "5000"
+  ]
+ },
+ {
+  "id": "s029",
+  "claim_id": "4f718d19-7d89-4bfa-b3aa-f60eb2881522",
+  "was": "supports",
+  "text_sim": 0.085,
+  "shared_facts": [
+   "1000"
+  ]
+ },
+ {
+  "id": "s030",
+  "claim_id": "4afdb491-15b1-4b33-9fe0-8842832c6212",
+  "was": "supports",
+  "text_sim": 0.49,
+  "shared_facts": [
+   "2026",
+   "3.75"
+  ]
+ },
+ {
+  "id": "s031",
+  "claim_id": "a31552c3-8459-4d27-983d-eaddf7e82936",
+  "was": "supports",
+  "text_sim": 0.578,
+  "shared_facts": [
+   "1993",
+   "2023",
+   "30"
+  ]
+ },
+ {
+  "id": "s032",
+  "claim_id": "ce896688-4061-4f85-9be4-d527e4028848",
+  "was": "supports",
+  "text_sim": 0.462,
+  "shared_facts": [
+   "3",
+   "5"
+  ]
+ },
+ {
+  "id": "s033",
+  "claim_id": "81b8c65c-3df2-4274-b738-973bb7ec00d1",
+  "was": "supports",
+  "text_sim": 0.133,
+  "shared_facts": [
+   "225",
+   "243"
+  ]
+ },
+ {
+  "id": "s034",
+  "claim_id": "94ee795d-b267-4c1b-8974-39c187970a4e",
+  "was": "supports",
+  "text_sim": 0.353,
+  "shared_facts": [
+   "0",
+   "2010",
+   "3.7"
+  ]
+ },
+ {
+  "id": "s035",
+  "claim_id": "fb3e1e2b-3a29-45de-9f27-a07643b28a87",
+  "was": "supports",
+  "text_sim": 0.044,
+  "shared_facts": [
+   "464",
+   "867"
+  ]
+ },
+ {
+  "id": "s036",
+  "claim_id": "a31552c3-8459-4d27-983d-eaddf7e82936",
+  "was": "supports",
+  "text_sim": 0.312,
+  "shared_facts": [
+   "1993",
+   "2023"
+  ]
+ },
+ {
+  "id": "s037",
+  "claim_id": "a31552c3-8459-4d27-983d-eaddf7e82936",
+  "was": "supports",
+  "text_sim": 0.352,
+  "shared_facts": [
+   "1993"
+  ]
+ },
+ {
+  "id": "s038",
+  "claim_id": "b4ae121d-889c-45a6-8e71-c8fad452af5f",
+  "was": "challenges",
+  "text_sim": 0.351,
+  "shared_facts": []
+ },
+ {
+  "id": "s039",
+  "claim_id": "d348aab1-5f2c-4792-a98e-04dbc1bc0f80",
+  "was": "supports",
+  "text_sim": 0.417,
+  "shared_facts": []
+ },
+ {
+  "id": "s040",
+  "claim_id": "eb471bb2-f014-4bcd-a98f-0478a73f085f",
+  "was": "challenges",
+  "text_sim": 0.462,
+  "shared_facts": []
+ },
+ {
+  "id": "s041",
+  "claim_id": "5ca92a85-4cbd-40fc-bfb3-e713225e67b3",
+  "was": "challenges",
+  "text_sim": 0.015,
+  "shared_facts": []
+ }
+]

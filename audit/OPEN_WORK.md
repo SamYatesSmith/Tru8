@@ -15,6 +15,9 @@
 ## ▶ 2026-10-01 — ECHO SAFETY FIX DEPLOYED (`1b6a6a3` + cassette `c085894`) (START HERE)
 5647 re-recorded (`--record-missing`, ~1p): replays 19/5/1, its baseline. `--all` = 158/13/11/5 + 82CF drift only (93DD did not drift this run). Production healthy on `c085894`. Open: TRU-C1A0-0004 `jaccard:domain_set` 0.17 "likely regression" is not in the README's attributed list; its cassette and code are unchanged since 30 Sep, so it is not the echo fix. Attributed: same class as the 2026-08-13 "0004 `domain_set` 0.22 = record-time drift". The golden domain set dates from 10 Sep, and the cassette has been re-recorded five times since (Build C changed which pages get fetched). The pool itself is healthy: 12 unique domains, top share 0.08, every v3 floor passes. A fresh golden capture would clear it. That is optional, and it needs the curated pins restored.
 
+## ▶ 2026-10-01 — ECHO LINK PRECISION MEASURED: 24–32% (START HERE)
+**Record: `audit/2026-10-01_echo_link_precision.md`.** Blind labels (free, local pools). Of 80 chain pairs, 19 are real relays. Of 41 pairs the echo gate actually scoped, 12 are relays, 26 independent and 3 unclear. The live gate hides about two independent sources for every copy. No mechanical threshold fixes both samples. **Founder decision owed:** gate off / tighten to ≥3 strong facts / model-confirmed link (design).
+
 ## 2026-10-01 — S4 URL-variant duplicates: recovery paths dedupe on the canonical key
 A− #5/#12/#14 showed one page twice (`srsltid`, WSJ `eafs_enabled`). The main lane already collapsed these (Build C). The four recovery dedup sites compared raw strings, and one of them only shadow-logged. Now:
 - `url_identity.UrlKeySet` is a drop-in for their `set()`.

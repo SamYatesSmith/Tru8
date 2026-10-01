@@ -1,0 +1,816 @@
+[
+ {
+  "id": "p001",
+  "rule": "text",
+  "text_sim": 0.374,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "ac8017bc-0b1f-4b9e-9abc-9a2672c7d4b8"
+ },
+ {
+  "id": "p002",
+  "rule": "text",
+  "text_sim": 0.368,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "2831b4a3-a959-41ba-804d-040d04f26e4d"
+ },
+ {
+  "id": "p003",
+  "rule": "text",
+  "text_sim": 0.5,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "243"
+  ],
+  "claim_id": "81b8c65c-3df2-4274-b738-973bb7ec00d1"
+ },
+ {
+  "id": "p004",
+  "rule": "facts",
+  "text_sim": 0.099,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "46a1a79f-3b99-4cb0-952d-9543ec59b759"
+ },
+ {
+  "id": "p005",
+  "rule": "text",
+  "text_sim": 0.394,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "710210d2-e672-4724-b802-184d7f76f8e1"
+ },
+ {
+  "id": "p006",
+  "rule": "text",
+  "text_sim": 0.371,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "2034"
+  ],
+  "claim_id": "b1e6869c-27d3-4d29-b214-dad20c3e9a17"
+ },
+ {
+  "id": "p007",
+  "rule": "facts",
+  "text_sim": 0.089,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "2024"
+  ],
+  "claim_id": "2bd5fba1-6305-4afd-bd54-8e07a1edd616"
+ },
+ {
+  "id": "p008",
+  "rule": "text",
+  "text_sim": 0.358,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "fb3e1e2b-3a29-45de-9f27-a07643b28a87"
+ },
+ {
+  "id": "p009",
+  "rule": "text",
+  "text_sim": 0.458,
+  "fact_overlap": 1.0,
+  "shared_facts": [
+   "1941",
+   "8",
+   "december 8, 1941"
+  ],
+  "claim_id": "5c6bd155-9f53-4814-9200-8f52daab6999"
+ },
+ {
+  "id": "p010",
+  "rule": "text",
+  "text_sim": 0.361,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "991e403a-81a9-49ea-b63d-86cbafbf6b3f"
+ },
+ {
+  "id": "p011",
+  "rule": "facts",
+  "text_sim": 0.337,
+  "fact_overlap": 0.429,
+  "shared_facts": [
+   "0",
+   "2010",
+   "3.7"
+  ],
+  "claim_id": "1d41521e-c6b5-4fb7-9a12-03a5510661c7"
+ },
+ {
+  "id": "p012",
+  "rule": "text",
+  "text_sim": 0.381,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "991e403a-81a9-49ea-b63d-86cbafbf6b3f"
+ },
+ {
+  "id": "p013",
+  "rule": "facts",
+  "text_sim": 0.247,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "2021",
+   "25",
+   "6.5"
+  ],
+  "claim_id": "929ec7e5-7a80-492a-bce2-d4f5e0fdb0c7"
+ },
+ {
+  "id": "p014",
+  "rule": "text",
+  "text_sim": 0.371,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "0",
+   "3.7"
+  ],
+  "claim_id": "4ed866b2-ac55-4512-8944-625830ded12f"
+ },
+ {
+  "id": "p015",
+  "rule": "text",
+  "text_sim": 0.361,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "2058d8b3-5203-4183-b570-e611ab95b2e6"
+ },
+ {
+  "id": "p016",
+  "rule": "text",
+  "text_sim": 0.385,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "3.75"
+  ],
+  "claim_id": "4afdb491-15b1-4b33-9fe0-8842832c6212"
+ },
+ {
+  "id": "p017",
+  "rule": "facts",
+  "text_sim": 0.294,
+  "fact_overlap": 0.625,
+  "shared_facts": [
+   "1.65",
+   "2.2",
+   "2023",
+   "2024",
+   "206"
+  ],
+  "claim_id": "aeb1c5ef-d102-4dee-9286-603187a24722"
+ },
+ {
+  "id": "p018",
+  "rule": "facts",
+  "text_sim": 0.098,
+  "fact_overlap": 1.0,
+  "shared_facts": [
+   "2010"
+  ],
+  "claim_id": "60f9b386-dc4f-47e2-bf8b-3e019accccaf"
+ },
+ {
+  "id": "p019",
+  "rule": "facts",
+  "text_sim": 0.127,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "0",
+   "3.7"
+  ],
+  "claim_id": "1d41521e-c6b5-4fb7-9a12-03a5510661c7"
+ },
+ {
+  "id": "p020",
+  "rule": "facts",
+  "text_sim": 0.081,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "3.13"
+  ],
+  "claim_id": "6c85e9f7-f0f9-439e-85c2-14522c104061"
+ },
+ {
+  "id": "p021",
+  "rule": "text",
+  "text_sim": 0.472,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "53cc809b-6e2c-49af-b540-645b2a454873"
+ },
+ {
+  "id": "p022",
+  "rule": "text",
+  "text_sim": 0.516,
+  "fact_overlap": 1.0,
+  "shared_facts": [
+   "3.75"
+  ],
+  "claim_id": "4afdb491-15b1-4b33-9fe0-8842832c6212"
+ },
+ {
+  "id": "p023",
+  "rule": "facts",
+  "text_sim": 0.028,
+  "fact_overlap": 0.429,
+  "shared_facts": [
+   "1",
+   "2012",
+   "25"
+  ],
+  "claim_id": "e197960e-a92d-49c6-a876-854e4910294d"
+ },
+ {
+  "id": "p024",
+  "rule": "text",
+  "text_sim": 0.47,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "2021"
+  ],
+  "claim_id": "b396f1c5-825c-412a-b792-590686e8c69a"
+ },
+ {
+  "id": "p025",
+  "rule": "text",
+  "text_sim": 0.407,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "a34f3489-2702-46ed-8f8e-197f75310bf8"
+ },
+ {
+  "id": "p026",
+  "rule": "facts",
+  "text_sim": 0.109,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "1",
+   "2012",
+   "25",
+   "august 25, 2012"
+  ],
+  "claim_id": "e197960e-a92d-49c6-a876-854e4910294d"
+ },
+ {
+  "id": "p027",
+  "rule": "facts",
+  "text_sim": 0.068,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "2025",
+   "7"
+  ],
+  "claim_id": "cb78419b-42b8-4663-bce7-accfe96f32a7"
+ },
+ {
+  "id": "p028",
+  "rule": "facts",
+  "text_sim": 0.304,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "2019",
+   "2050"
+  ],
+  "claim_id": "1ede824a-6ac0-40ac-8235-39e604bc0f05"
+ },
+ {
+  "id": "p029",
+  "rule": "facts",
+  "text_sim": 0.236,
+  "fact_overlap": 1.0,
+  "shared_facts": [
+   "2010"
+  ],
+  "claim_id": "5a4baeca-ae75-4a97-aa78-8398548b58bb"
+ },
+ {
+  "id": "p030",
+  "rule": "facts",
+  "text_sim": 0.294,
+  "fact_overlap": 1.0,
+  "shared_facts": [
+   "2034"
+  ],
+  "claim_id": "b1e6869c-27d3-4d29-b214-dad20c3e9a17"
+ },
+ {
+  "id": "p031",
+  "rule": "facts",
+  "text_sim": 0.337,
+  "fact_overlap": 1.0,
+  "shared_facts": [
+   "2010"
+  ],
+  "claim_id": "5a4baeca-ae75-4a97-aa78-8398548b58bb"
+ },
+ {
+  "id": "p032",
+  "rule": "facts",
+  "text_sim": 0.037,
+  "fact_overlap": 0.667,
+  "shared_facts": [
+   "2020",
+   "31"
+  ],
+  "claim_id": "2328ea11-ca5f-43b1-8e64-afec0b5308a1"
+ },
+ {
+  "id": "p033",
+  "rule": "facts",
+  "text_sim": 0.028,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "1",
+   "2012",
+   "25"
+  ],
+  "claim_id": "a35e82fc-4526-4fe4-977a-94dfd7ba2556"
+ },
+ {
+  "id": "p034",
+  "rule": "text",
+  "text_sim": 0.472,
+  "fact_overlap": 0.143,
+  "shared_facts": [
+   "33"
+  ],
+  "claim_id": "2831b4a3-a959-41ba-804d-040d04f26e4d"
+ },
+ {
+  "id": "p035",
+  "rule": "facts",
+  "text_sim": 0.126,
+  "fact_overlap": 0.667,
+  "shared_facts": [
+   "2026",
+   "3.75"
+  ],
+  "claim_id": "4afdb491-15b1-4b33-9fe0-8842832c6212"
+ },
+ {
+  "id": "p036",
+  "rule": "facts",
+  "text_sim": 0.035,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "2025"
+  ],
+  "claim_id": "cb78419b-42b8-4663-bce7-accfe96f32a7"
+ },
+ {
+  "id": "p037",
+  "rule": "text",
+  "text_sim": 0.381,
+  "fact_overlap": 0.4,
+  "shared_facts": [
+   "2020",
+   "31"
+  ],
+  "claim_id": "2328ea11-ca5f-43b1-8e64-afec0b5308a1"
+ },
+ {
+  "id": "p038",
+  "rule": "facts",
+  "text_sim": 0.179,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "2020",
+   "31"
+  ],
+  "claim_id": "2328ea11-ca5f-43b1-8e64-afec0b5308a1"
+ },
+ {
+  "id": "p039",
+  "rule": "text",
+  "text_sim": 0.369,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "18bca939-8622-48c6-888d-f27e3adacf3c"
+ },
+ {
+  "id": "p040",
+  "rule": "text",
+  "text_sim": 0.358,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "69a46a09-e14d-492d-bd17-79af80538f80"
+ },
+ {
+  "id": "p041",
+  "rule": "facts",
+  "text_sim": 0.192,
+  "fact_overlap": 0.357,
+  "shared_facts": [
+   "16",
+   "19",
+   "2020",
+   "2021",
+   "23"
+  ],
+  "claim_id": "de899e6f-8392-47ba-9580-29b8350fd09c"
+ },
+ {
+  "id": "p042",
+  "rule": "facts",
+  "text_sim": 0.241,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "243"
+  ],
+  "claim_id": "81b8c65c-3df2-4274-b738-973bb7ec00d1"
+ },
+ {
+  "id": "p043",
+  "rule": "facts",
+  "text_sim": 0.086,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "1998",
+   "2018"
+  ],
+  "claim_id": "88b5b905-893b-426c-8181-d266516b2c25"
+ },
+ {
+  "id": "p044",
+  "rule": "text",
+  "text_sim": 0.408,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "929ec7e5-7a80-492a-bce2-d4f5e0fdb0c7"
+ },
+ {
+  "id": "p045",
+  "rule": "text",
+  "text_sim": 0.455,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "2021"
+  ],
+  "claim_id": "929ec7e5-7a80-492a-bce2-d4f5e0fdb0c7"
+ },
+ {
+  "id": "p046",
+  "rule": "facts",
+  "text_sim": 0.339,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "bc1106d9-5bde-4321-a295-1f7b0d8f5d67"
+ },
+ {
+  "id": "p047",
+  "rule": "text",
+  "text_sim": 0.357,
+  "fact_overlap": 0.167,
+  "shared_facts": [
+   "1000"
+  ],
+  "claim_id": "676a4061-2056-44f8-bf07-6fc127c5f02a"
+ },
+ {
+  "id": "p048",
+  "rule": "facts",
+  "text_sim": 0.349,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "2050"
+  ],
+  "claim_id": "8793e8d5-bc9f-494a-af85-073ff2126f3e"
+ },
+ {
+  "id": "p049",
+  "rule": "facts",
+  "text_sim": 0.022,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "1"
+  ],
+  "claim_id": "b2adc928-bba8-47c2-9e97-3ddd0a5671e0"
+ },
+ {
+  "id": "p050",
+  "rule": "facts",
+  "text_sim": 0.238,
+  "fact_overlap": 0.364,
+  "shared_facts": [
+   "12",
+   "15",
+   "16",
+   "19"
+  ],
+  "claim_id": "de899e6f-8392-47ba-9580-29b8350fd09c"
+ },
+ {
+  "id": "p051",
+  "rule": "facts",
+  "text_sim": 0.094,
+  "fact_overlap": 0.412,
+  "shared_facts": [
+   "17",
+   "2.4",
+   "20",
+   "27",
+   "45",
+   "604",
+   "8"
+  ],
+  "claim_id": "3bc3cf2b-dea3-4192-b9e3-1632dcd9e053"
+ },
+ {
+  "id": "p052",
+  "rule": "text",
+  "text_sim": 0.376,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "0",
+   "2010",
+   "3.7"
+  ],
+  "claim_id": "1d41521e-c6b5-4fb7-9a12-03a5510661c7"
+ },
+ {
+  "id": "p053",
+  "rule": "facts",
+  "text_sim": 0.217,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "2021",
+   "6.5"
+  ],
+  "claim_id": "69a46a09-e14d-492d-bd17-79af80538f80"
+ },
+ {
+  "id": "p054",
+  "rule": "facts",
+  "text_sim": 0.022,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "1000"
+  ],
+  "claim_id": "676a4061-2056-44f8-bf07-6fc127c5f02a"
+ },
+ {
+  "id": "p055",
+  "rule": "text",
+  "text_sim": 0.362,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "1",
+   "2012"
+  ],
+  "claim_id": "e197960e-a92d-49c6-a876-854e4910294d"
+ },
+ {
+  "id": "p056",
+  "rule": "facts",
+  "text_sim": 0.106,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "710210d2-e672-4724-b802-184d7f76f8e1"
+ },
+ {
+  "id": "p057",
+  "rule": "text",
+  "text_sim": 0.389,
+  "fact_overlap": 0.385,
+  "shared_facts": [
+   "16",
+   "19",
+   "2021",
+   "23",
+   "august 23, 2021"
+  ],
+  "claim_id": "de899e6f-8392-47ba-9580-29b8350fd09c"
+ },
+ {
+  "id": "p058",
+  "rule": "text",
+  "text_sim": 0.409,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "1664d7bb-f59b-408f-9624-914fb9f95c45"
+ },
+ {
+  "id": "p059",
+  "rule": "text",
+  "text_sim": 0.44,
+  "fact_overlap": 1.0,
+  "shared_facts": [
+   "1000"
+  ],
+  "claim_id": "a5301792-4675-45af-9d9f-9b8fb5e6a379"
+ },
+ {
+  "id": "p060",
+  "rule": "facts",
+  "text_sim": 0.288,
+  "fact_overlap": 0.667,
+  "shared_facts": [
+   "464",
+   "867"
+  ],
+  "claim_id": "fb3e1e2b-3a29-45de-9f27-a07643b28a87"
+ },
+ {
+  "id": "p061",
+  "rule": "facts",
+  "text_sim": 0.066,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "160"
+  ],
+  "claim_id": "a29c6436-1696-4896-a559-4ec0887f2cbd"
+ },
+ {
+  "id": "p062",
+  "rule": "facts",
+  "text_sim": 0.205,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "10"
+  ],
+  "claim_id": "7bc64474-bc18-4b5d-9dfe-ba8d97f6f7f1"
+ },
+ {
+  "id": "p063",
+  "rule": "facts",
+  "text_sim": 0.08,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "46a1a79f-3b99-4cb0-952d-9543ec59b759"
+ },
+ {
+  "id": "p064",
+  "rule": "text",
+  "text_sim": 0.394,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "dc131241-bbe0-4baf-bd04-3fee86d2eb53"
+ },
+ {
+  "id": "p065",
+  "rule": "facts",
+  "text_sim": 0.346,
+  "fact_overlap": 0.429,
+  "shared_facts": [
+   "0",
+   "07",
+   "2010",
+   "2010-07-21",
+   "21",
+   "3.7"
+  ],
+  "claim_id": "4ed866b2-ac55-4512-8944-625830ded12f"
+ },
+ {
+  "id": "p066",
+  "rule": "text",
+  "text_sim": 0.448,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "2021",
+   "21.3",
+   "6.5"
+  ],
+  "claim_id": "69a46a09-e14d-492d-bd17-79af80538f80"
+ },
+ {
+  "id": "p067",
+  "rule": "text",
+  "text_sim": 0.395,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "2034"
+  ],
+  "claim_id": "b1e6869c-27d3-4d29-b214-dad20c3e9a17"
+ },
+ {
+  "id": "p068",
+  "rule": "text",
+  "text_sim": 0.373,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "2058d8b3-5203-4183-b570-e611ab95b2e6"
+ },
+ {
+  "id": "p069",
+  "rule": "text",
+  "text_sim": 0.399,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "bddf1842-eeb1-4a56-8947-8aa297c22538"
+ },
+ {
+  "id": "p070",
+  "rule": "text",
+  "text_sim": 0.393,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "a34f3489-2702-46ed-8f8e-197f75310bf8"
+ },
+ {
+  "id": "p071",
+  "rule": "text",
+  "text_sim": 0.361,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "be2ea7b4-7598-4f31-b910-4674328be5ff"
+ },
+ {
+  "id": "p072",
+  "rule": "facts",
+  "text_sim": 0.186,
+  "fact_overlap": 1.0,
+  "shared_facts": [
+   "1000"
+  ],
+  "claim_id": "18bca939-8622-48c6-888d-f27e3adacf3c"
+ },
+ {
+  "id": "p073",
+  "rule": "text",
+  "text_sim": 0.38,
+  "fact_overlap": 0.4,
+  "shared_facts": [
+   "1",
+   "2012"
+  ],
+  "claim_id": "a35e82fc-4526-4fe4-977a-94dfd7ba2556"
+ },
+ {
+  "id": "p074",
+  "rule": "facts",
+  "text_sim": 0.188,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "2022",
+   "23"
+  ],
+  "claim_id": "ccda11e9-f955-4546-ac6f-a19fb7e3953b"
+ },
+ {
+  "id": "p075",
+  "rule": "text",
+  "text_sim": 0.404,
+  "fact_overlap": 0.833,
+  "shared_facts": [
+   "16",
+   "19",
+   "2021",
+   "23",
+   "august 23, 2021"
+  ],
+  "claim_id": "de899e6f-8392-47ba-9580-29b8350fd09c"
+ },
+ {
+  "id": "p076",
+  "rule": "text",
+  "text_sim": 0.365,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "fb3e1e2b-3a29-45de-9f27-a07643b28a87"
+ },
+ {
+  "id": "p077",
+  "rule": "facts",
+  "text_sim": 0.173,
+  "fact_overlap": 0.667,
+  "shared_facts": [
+   "1941",
+   "7"
+  ],
+  "claim_id": "5c6bd155-9f53-4814-9200-8f52daab6999"
+ },
+ {
+  "id": "p078",
+  "rule": "text",
+  "text_sim": 0.383,
+  "fact_overlap": 0.0,
+  "shared_facts": [],
+  "claim_id": "676a4061-2056-44f8-bf07-6fc127c5f02a"
+ },
+ {
+  "id": "p079",
+  "rule": "text",
+  "text_sim": 0.518,
+  "fact_overlap": 0.5,
+  "shared_facts": [
+   "2020"
+  ],
+  "claim_id": "2328ea11-ca5f-43b1-8e64-afec0b5308a1"
+ },
+ {
+  "id": "p080",
+  "rule": "facts",
+  "text_sim": 0.29,
+  "fact_overlap": 0.333,
+  "shared_facts": [
+   "6.5"
+  ],
+  "claim_id": "69a46a09-e14d-492d-bd17-79af80538f80"
+ }
+]

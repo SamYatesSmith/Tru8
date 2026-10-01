@@ -1,0 +1,402 @@
+[
+ {
+  "id": "p001",
+  "label": "independent",
+  "why": "Different points: a forum failure report vs a general WAL concurrency statement."
+ },
+ {
+  "id": "p002",
+  "label": "independent",
+  "why": "A is about 2022 floods; B about 2025 floods."
+ },
+ {
+  "id": "p003",
+  "label": "independent",
+  "why": "Common astronomical fact; CNES did not originate it and B reports its own study."
+ },
+ {
+  "id": "p004",
+  "label": "relay",
+  "why": "AP's NOAA forecast (13-18 storms, 5-9 hurricanes, 2-5 major) restates NOAA's on-track prediction update."
+ },
+ {
+  "id": "p005",
+  "label": "independent",
+  "why": "Different explanatory points on inflation."
+ },
+ {
+  "id": "p006",
+  "label": "independent",
+  "why": "Bid description vs a promotional-video story."
+ },
+ {
+  "id": "p007",
+  "label": "independent",
+  "why": "General election results vs later council elections."
+ },
+ {
+  "id": "p008",
+  "label": "independent",
+  "why": "Same general fact, B gives its own explanation."
+ },
+ {
+  "id": "p009",
+  "label": "independent",
+  "why": "Both state a well-known historical date; neither derives from the other."
+ },
+ {
+  "id": "p010",
+  "label": "independent",
+  "why": "Different fires, regions and figures."
+ },
+ {
+  "id": "p011",
+  "label": "independent",
+  "why": "B is about a bug; the 3.7.0 date is incidental and A is a mailing-list mirror."
+ },
+ {
+  "id": "p012",
+  "label": "independent",
+  "why": "Different events and figures."
+ },
+ {
+  "id": "p013",
+  "label": "independent",
+  "why": "Common mission facts; A is a contractor page, not the originator."
+ },
+ {
+  "id": "p014",
+  "label": "relay",
+  "why": "B restates SQLite's own release fact that WAL arrived in 3.7.0."
+ },
+ {
+  "id": "p015",
+  "label": "independent",
+  "why": "Unrelated content."
+ },
+ {
+  "id": "p016",
+  "label": "independent",
+  "why": "A is a rate tracker, not the producer; B reports the MPC vote itself."
+ },
+ {
+  "id": "p017",
+  "label": "independent",
+  "why": "B describes a different OPEC+ meeting (May start, next meeting May 3) than A's April-implementation release."
+ },
+ {
+  "id": "p018",
+  "label": "independent",
+  "why": "Both explain the general statutory duty; B does not derive from A's guidance."
+ },
+ {
+  "id": "p019",
+  "label": "relay",
+  "why": "B restates the WAL-in-3.7.0 (2010) fact that SQLite announced."
+ },
+ {
+  "id": "p020",
+  "label": "independent",
+  "why": "Different points on free-threaded Python; B has its own benchmarks."
+ },
+ {
+  "id": "p021",
+  "label": "independent",
+  "why": "Different cases and points."
+ },
+ {
+  "id": "p022",
+  "label": "relay",
+  "why": "Both report the same committee session questioning Bailey on the 3.75% hold; B relays the event notice."
+ },
+ {
+  "id": "p023",
+  "label": "independent",
+  "why": "B gives its own detailed account; A is a secondary briefing."
+ },
+ {
+  "id": "p024",
+  "label": "independent",
+  "why": "A non-originating IMF note and B's own article on El Salvador; overlap is general."
+ },
+ {
+  "id": "p025",
+  "label": "independent",
+  "why": "Different studies and points."
+ },
+ {
+  "id": "p026",
+  "label": "independent",
+  "why": "Both derive from NASA separately; A is not the originator."
+ },
+ {
+  "id": "p027",
+  "label": "independent",
+  "why": "Canadian supply report vs US real price analysis."
+ },
+ {
+  "id": "p028",
+  "label": "relay",
+  "why": "B restates the government's 2019 legally binding net-zero-by-2050 commitment described by A."
+ },
+ {
+  "id": "p029",
+  "label": "independent",
+  "why": "Generic descriptions of the Act."
+ },
+ {
+  "id": "p030",
+  "label": "independent",
+  "why": "Wikipedia fact vs Reddit opinion."
+ },
+ {
+  "id": "p031",
+  "label": "independent",
+  "why": "Generic description of the Act; EHRC did not originate the consolidation."
+ },
+ {
+  "id": "p032",
+  "label": "independent",
+  "why": "Common legal dates; Commons Library is a summary, not the originator."
+ },
+ {
+  "id": "p033",
+  "label": "independent",
+  "why": "B gives its own account; A is a secondary briefing."
+ },
+ {
+  "id": "p034",
+  "label": "independent",
+  "why": "A is about 2022; B about a later flood event."
+ },
+ {
+  "id": "p035",
+  "label": "relay",
+  "why": "B reports the same BoE decision to hold Bank Rate at 3.75%."
+ },
+ {
+  "id": "p036",
+  "label": "independent",
+  "why": "Canadian outlook vs US real price analysis."
+ },
+ {
+  "id": "p037",
+  "label": "independent",
+  "why": "Different timeline points."
+ },
+ {
+  "id": "p038",
+  "label": "independent",
+  "why": "Common legal dates; neither derives from the other."
+ },
+ {
+  "id": "p039",
+  "label": "independent",
+  "why": "A is a user forum post; B states the documented behaviour independently."
+ },
+ {
+  "id": "p040",
+  "label": "independent",
+  "why": "Different facts (mirror size vs launch date)."
+ },
+ {
+  "id": "p041",
+  "label": "independent",
+  "why": "Both cite the FDA approval separately; A is not the originator."
+ },
+ {
+  "id": "p042",
+  "label": "independent",
+  "why": "Common astronomical facts not originated by CNES."
+ },
+ {
+  "id": "p043",
+  "label": "independent",
+  "why": "Generic descriptions of the Act; ICO did not originate it."
+ },
+ {
+  "id": "p044",
+  "label": "independent",
+  "why": "Different facts (orbit vs launch/mirror)."
+ },
+ {
+  "id": "p045",
+  "label": "relay",
+  "why": "B restates the December 2021 launch that ESA's page records."
+ },
+ {
+  "id": "p046",
+  "label": "independent",
+  "why": "Generic timeline vs a specific Odesa attack report."
+ },
+ {
+  "id": "p047",
+  "label": "relay",
+  "why": "B quotes the SQLite documentation sentence on the 1000-page automatic checkpoint verbatim."
+ },
+ {
+  "id": "p048",
+  "label": "independent",
+  "why": "Different points; A is not the originator of the Act."
+ },
+ {
+  "id": "p049",
+  "label": "independent",
+  "why": "B gives its own analysis; A truncated and different measure."
+ },
+ {
+  "id": "p050",
+  "label": "relay",
+  "why": "NPR reports the FDA's own approval announcement."
+ },
+ {
+  "id": "p051",
+  "label": "relay",
+  "why": "Both report the same SELECT trial 20% MACE result, design and 17,604 patients."
+ },
+ {
+  "id": "p052",
+  "label": "relay",
+  "why": "B restates SQLite's release-log fact that WAL arrived in 3.7.0 (2010)."
+ },
+ {
+  "id": "p053",
+  "label": "relay",
+  "why": "B restates the ESA-stated 6.5 m mirror and December 2021 launch."
+ },
+ {
+  "id": "p054",
+  "label": "relay",
+  "why": "B restates SQLite's documented default auto-checkpoint threshold of 1000."
+ },
+ {
+  "id": "p055",
+  "label": "independent",
+  "why": "Cornell news vs a Reddit recollection; different content."
+ },
+ {
+  "id": "p056",
+  "label": "independent",
+  "why": "Different explanatory points."
+ },
+ {
+  "id": "p057",
+  "label": "independent",
+  "why": "Both cite the FDA approval separately; A is not the originator."
+ },
+ {
+  "id": "p058",
+  "label": "independent",
+  "why": "Different studies and figures (85% vs four-fold)."
+ },
+ {
+  "id": "p059",
+  "label": "relay",
+  "why": "B restates SQLite's documented 1000-page default auto-checkpoint."
+ },
+ {
+  "id": "p060",
+  "label": "relay",
+  "why": "B repeats NASA's 867°F/464°C Venus temperature figure exactly."
+ },
+ {
+  "id": "p061",
+  "label": "independent",
+  "why": "Common historical fact; B is its own legal explainer."
+ },
+ {
+  "id": "p062",
+  "label": "independent",
+  "why": "Chart index vs Reddit comment."
+ },
+ {
+  "id": "p063",
+  "label": "independent",
+  "why": "AP cites NOAA's earlier May outlook (13-19 storms), not A's update."
+ },
+ {
+  "id": "p064",
+  "label": "independent",
+  "why": "Different topics (Canadian heat waves vs storms)."
+ },
+ {
+  "id": "p065",
+  "label": "relay",
+  "why": "B restates the 3.7.0 (2010-07-21) date from SQLite's own documentation."
+ },
+ {
+  "id": "p066",
+  "label": "relay",
+  "why": "B restates NASA's fact-sheet mirror (6.5 m / 21.3 ft) and December 2021 launch."
+ },
+ {
+  "id": "p067",
+  "label": "independent",
+  "why": "Bid outcome vs promotional-video story."
+ },
+ {
+  "id": "p068",
+  "label": "independent",
+  "why": "Unrelated content."
+ },
+ {
+  "id": "p069",
+  "label": "independent",
+  "why": "Different records and metrics."
+ },
+ {
+  "id": "p070",
+  "label": "independent",
+  "why": "A review statement vs a bare reference listing; no shared finding."
+ },
+ {
+  "id": "p071",
+  "label": "independent",
+  "why": "Overlapping conclusion but B's own basis."
+ },
+ {
+  "id": "p072",
+  "label": "relay",
+  "why": "B restates SQLite's documented 1000-page default auto-checkpoint."
+ },
+ {
+  "id": "p073",
+  "label": "independent",
+  "why": "Different publications on related findings."
+ },
+ {
+  "id": "p074",
+  "label": "independent",
+  "why": "Both summarise the Treasury event separately."
+ },
+ {
+  "id": "p075",
+  "label": "independent",
+  "why": "Both relay the FDA separately; A is not the originator."
+ },
+ {
+  "id": "p076",
+  "label": "independent",
+  "why": "B gives its own explanation, no shared figures."
+ },
+ {
+  "id": "p077",
+  "label": "independent",
+  "why": "Different content."
+ },
+ {
+  "id": "p078",
+  "label": "independent",
+  "why": "A is a forum thread; B states documented default independently."
+ },
+ {
+  "id": "p079",
+  "label": "independent",
+  "why": "Common legal dates; neither derives from the other."
+ },
+ {
+  "id": "p080",
+  "label": "relay",
+  "why": "B restates the 6.5 m mirror figure stated by the mission partner agency."
+ }
+]

@@ -1,0 +1,1122 @@
+[
+ {
+  "id": "p001",
+  "claim": "SQLite write-ahead logging means SQLITE_BUSY errors cannot occur.",
+  "A": {
+   "url": "https://sqlite.org/forum/forumpost/4350638e78869137?t=h&unf",
+   "title": "SQLite User Forum: ”database is locked”: detecting deadlock vs. busy timeout?",
+   "text": "- According to an anonymous user on the SQLite User Forum, a delete failed with SQL_BUSY while the database was in WAL mode with a 100 ms busy timeout."
+  },
+  "B": {
+   "url": "https://www.activesphere.com/blog/2018/12/24/understanding-sqlite-busy",
+   "title": "Understanding SQLITE_BUSY • ActiveSphere - Software consulting",
+   "text": "- According to ActiveSphere, WAL mode permits simultaneous readers and writers."
+  }
+ },
+ {
+  "id": "p002",
+  "claim": "Pakistan's monsoon flooding displaced 33 million people in 2024",
+  "A": {
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12700151/",
+   "title": "From 2022 to 2025: Preventing the Escalating Health Crisis of ... - PMC",
+   "text": "In 2022, unprecedented monsoon rains submerged nearly one‑third of Pakistan, displacing more than 33 million people and destroying more than 2,000 health ..."
+  },
+  "B": {
+   "url": "https://www.facebook.com/CanadaDevelopment/posts/since-june-2025-millions-have-been-affected-and-hundreds-of-lives-lost-in-pakist/1100128995628585/",
+   "title": "Since June 2025, millions have been affected and hundreds of lives ...",
+   "text": "Since June 2025, millions have been affected and hundreds of lives lost in Pakistan due to severe flooding, especially in Punjab province. Homes, schools, roads ..."
+  }
+ },
+ {
+  "id": "p003",
+  "claim": "Venus takes longer to rotate once on its axis than to orbit the Sun",
+  "A": {
+   "url": "https://cnes.fr/en/folders/planet-venus",
+   "title": "Venus | CNES",
+   "text": "- Venus takes 224 Earth days to complete its journey around the Sun.\n- Venus rotates very slowly on itself, once every 243 days."
+  },
+  "B": {
+   "url": "https://news.ucr.edu/articles/2022/04/20/why-venus-rotates-slowly-despite-suns-powerful-grip",
+   "title": "Why Venus rotates, slowly, despite sun’s powerful grip",
+   "text": "- Venus takes 243 Earth days to rotate one time."
+  }
+ },
+ {
+  "id": "p004",
+  "claim": "The 2024 Atlantic hurricane season produced 18 named storms, of which Eleven became hurricanes.",
+  "A": {
+   "url": "https://www.noaa.gov/news-release/prediction-remains-on-track-for-above-normal-atlantic-hurricane-season",
+   "title": "Prediction remains on track for above-normal Atlantic hurricane ...",
+   "text": "In the Atlantic basin, a typical hurricane season will yield 14 named storms, of which seven become hurricanes and three become major hurricanes. The likelihood ..."
+  },
+  "B": {
+   "url": "https://apnews.com/article/hurricane-imelda-humberto-bermuda-c6760b885b541c2154dcb1b5b9bcf163",
+   "title": "Hurricane Imelda descends on Bermuda - AP News",
+   "text": "- Imelda reached hurricane strength on Tuesday, becoming the Atlantic season’s fourth hurricane this year.\n- The U.S. National Oceanic and Atmospheric Administration had predicted an above-normal season with 13 to 18 named storms.\n- Of those, five to nine were forecast to become hurricanes, including two to five major hurricanes, which pack winds of 111 mph (178 kph) or greater."
+  }
+ },
+ {
+  "id": "p005",
+  "claim": "Inflation falling from 10% to 3% means that prices fell by 7%",
+  "A": {
+   "url": "https://calculatorlib.com/inflation-calculator",
+   "title": "Inflation Calculator – Calculate Value Change Over Time - CalculatorLib",
+   "text": "- Inflation rate is the percentage increase in the general price level over a period, usually one year.\n- A 3% annual rate means prices are, on average, 3% higher than a year earlier."
+  },
+  "B": {
+   "url": "https://www.reddit.com/r/Economics/comments/1pqlcrd/think_lower_inflation_means_cheaper_prices_think/",
+   "title": "Reddit",
+   "text": "So slowing inflation, is generally going to come out to lower prices relative to their actual purchasing power than faster inflation"
+  }
+ },
+ {
+  "id": "p006",
+  "claim": "Saudi Arabia will host the FIFA World Cup 2034",
+  "A": {
+   "url": "https://en.wikipedia.org/wiki/Saudi_Arabia_2034_FIFA_World_Cup_bid",
+   "title": "Saudi Arabia 2034 FIFA World Cup bid",
+   "text": "The Saudi Arabia 2034 bid is a bid by the Saudi Arabian Football Federation to host the 2034 FIFA World Cup in Saudi Arabia."
+  },
+  "B": {
+   "url": "https://www.espn.com/soccer/story/_/id/46763808/no-saudi-arabia-not-building-world-cup-stadium-top-skyscraper",
+   "title": "No, Saudi Arabia is not building a World Cup stadium on top ... - ESPN",
+   "text": "Saudi Arabia plan 350m high stadium for World Cup 2034 (2:03). Saudi Arabia have released a promotional video for their bid to host the 2034 FIFA World Cup."
+  }
+ },
+ {
+  "id": "p007",
+  "claim": "In the 2024 UK general election, Reform UK won 14.3% of the vote and secured 5 seats, while the Liberal Democrats achieved 12.2% of the vote and won 72 seats.",
+  "A": {
+   "url": "https://commonslibrary.parliament.uk/research-briefings/cbp-10009/",
+   "title": "General election 2024 results - The House of Commons Library",
+   "text": "Full results and analysis of the 4th July 2024 general election, where Labour won a majority in Parliament."
+  },
+  "B": {
+   "url": "https://www.bbc.com/news/articles/cvgz155y9exo",
+   "title": "Election results so far at a glance - and what's still to come - BBC",
+   "text": "Election results so far at a glance - and what's still to come Reform UK has made significant gains at the expense of Labour and the Conservatives in council election results in England so far. The polls across Scotland, Wales and 136 English local authorities are the biggest set of elections since the 2024 general election and a key test for Prime Minister Sir Keir Starmer. As most councils did not begin counting overnight, a fuller picture will only emerge later on Friday - when results are also expected from parliamentary elections in Wales and Scotland"
+  }
+ },
+ {
+  "id": "p008",
+  "claim": "Venus is the hottest planet in the Solar System",
+  "A": {
+   "url": "https://www.nature.com/articles/s44172-026-00647-y",
+   "title": "Mars planetary insights and design framework for future in-situ aerial robotic missions - Communications Engineering",
+   "text": "- Venus is the hottest planet in the Solar System.\n- Venus sustains an average surface temperature of 464 °C.\n- Venus has a dense atmosphere rich in carbon dioxide and sulphuric acid.\n- Venus generates atmospheric pressures up to 92 bar."
+  },
+  "B": {
+   "url": "https://www.reddit.com/r/explainlikeimfive/comments/f73z31/eli5_why_is_venus_the_hottest_planet_in_our_solar/",
+   "title": "Reddit",
+   "text": "Venus is hotter than Mercury because it has a much thicker atmosphere. The heat the atmosphere traps is called the greenhouse effect"
+  }
+ },
+ {
+  "id": "p009",
+  "claim": "President Franklin D. Roosevelt delivered his 'Day of Infamy' speech to a joint session of Congress on December 8, 1941",
+  "A": {
+   "url": "https://docsteach.org/document/day-of-infamy-recording/",
+   "title": "President Franklin Roosevelt's 'Day of Infamy' Speech - DocsTeach",
+   "text": "This sound recording captures a speech delivered by President Franklin Delano Roosevelt before a joint session of Congress on December 8, 1941, in which the President asked for a Declaration of War against Japan, marking the entry of the United States into World War II. The speech was given the day after the Japanese attack on Pearl Harbor. You can also listen to it in our main National Archives online catalog"
+  },
+  "B": {
+   "url": "https://www.pacificwarmuseum.org/learn/resources/president-franklin-roosevelt-after-pearl-harbor-speech-december-8-1945",
+   "title": "President Franklin Roosevelt after Pearl Harbor Speech, December ...",
+   "text": "- This is the famous speech that President Franklin Delano Roosevelt delivered on December 8, 1941, one day after the Japanese attack on Pearl Harbor."
+  }
+ },
+ {
+  "id": "p010",
+  "claim": "California's summer wildfires in 2024 burned 1.2 million acres, marking the largest area on record since 2020.",
+  "A": {
+   "url": "https://tyndall.ac.uk/wp-content/uploads/2025/10/State-of-Wildfires-2024-25-Slide-Deck.pdf",
+   "title": "[PDF] State of Wildfires 2024-25",
+   "text": "• Southern California. • Northeast Amazonia. • Pantanal-Chiquitano ... Record total burned area: 49,328 hectares. Jan 2025. October. 2025. T o ta. l b u."
+  },
+  "B": {
+   "url": "https://www.youtube.com/watch?v=OszNB42V8oY",
+   "title": "Gifford Fire becomes California's largest of the year as wildfires burn ...",
+   "text": "The Gifford Fire in Central California has grown into the state's largest wildfire of the year, burning over 82000 acres with minimal containment."
+  }
+ },
+ {
+  "id": "p011",
+  "claim": "SQLite introduced the Write-Ahead Log option beginning with version 3.7.0 on July 21, 2010",
+  "A": {
+   "url": "https://sqlite-users.sqlite.narkive.com/Jv2nDJjm/sqlite-wal-file-size-increase",
+   "title": "[sqlite] WAL file size increase",
+   "text": "- Beginning with version 3.7.0 (2010-07-21), a new \"Write-Ahead Log\" option (hereafter referred to as \"WAL\") is available."
+  },
+  "B": {
+   "url": "https://www.theregister.com/databases/2026/08/12/deeply-buried-16-year-old-sqlite-bug-caused-last-years-tailscale-outages/5287004",
+   "title": "Deeply buried 16-year-old SQLite bug caused last year's Tailscale ...",
+   "text": "SQLite maintainers believe the bug was present going all the way back to version 3.7.0, released in July 2010; it's now fixed, and the SQLite team recommends"
+  }
+ },
+ {
+  "id": "p012",
+  "claim": "California's summer wildfires in 2024 burned 1.2 million acres, marking the largest area on record since 2020.",
+  "A": {
+   "url": "https://www.bu.edu/sph/news/articles/2025/death-count-for-2025-la-county-wildfires-likely-hundreds-higher-than-official-records-show/",
+   "title": "Death Count for 2025 LA County Wildfires Likely Hundreds Higher ...",
+   "text": "An estimated 440 deaths are attributable to the Los Angeles wildfires that set the area ablaze in January 2025—a much higher toll than the 31 deaths reported in ..."
+  },
+  "B": {
+   "url": "https://www.facebook.com/CALFIREMEU/posts/five-years-ago-today-california-experienced-the-start-of-one-of-the-most-devasta/1219762169953720/",
+   "title": "Five years ago today, California experienced the start of one of the ...",
+   "text": "In 2020, the state saw 4,397,809 acres (roughly 4 percent of the entire state), making it the largest wildfire season ever recorded in California's history."
+  }
+ },
+ {
+  "id": "p013",
+  "claim": "The James Webb Space Telescope orbits the Earth every 90 minutes, has a 6.5-metre primary mirror and was launched in December 2021.",
+  "A": {
+   "url": "https://www.teledyne.com/digital-imaging-space-science-monthly/the-james-webb-space-telescope",
+   "title": "The James Webb Space Telescope",
+   "text": "- The James Webb Space Telescope (JWST) was launched on December 25, 2021.\n- The James Webb Space Telescope has a 6.5-meter primary mirror."
+  },
+  "B": {
+   "url": "https://www.eoportal.org/satellite-missions/jwst",
+   "title": "JWST (James Webb Space Telescope) - eoPortal",
+   "text": "- According to eoportal.org, the James Webb Space Telescope was launched in December 2021 (25 Dec 2021).\n- According to eoportal.org, JWST features a 6.5-meter mirror.\n- According to eoportal.org, the total mass of JWST at launch is estimated to be 6,500 kg."
+  }
+ },
+ {
+  "id": "p014",
+  "claim": "SQLite made the Write-Ahead Log option available beginning with version 3.7.0 on July 21, 2010",
+  "A": {
+   "url": "https://sqlite.org/releaselog/3_7_0.html",
+   "title": "SQLite Release 3.7.0 On 2010-07-21",
+   "text": "- SQLite Release 3.7.0 was released on 2010-07-21.\n- Support for write-ahead logging was added in SQLite Release 3.7.0."
+  },
+  "B": {
+   "url": "https://www.youtube.com/watch?v=hcHxpsftiko",
+   "title": "How to Open WAL Files (SQLite Write-Ahead Log) - YouTube",
+   "text": "Rated) https://www.filemagic.com/?utm_source=youtube&utm_content=WAL A .WAL file is a Write-Ahead Log used by SQLite databases (version 3.7.0 and newer) ..."
+  }
+ },
+ {
+  "id": "p015",
+  "claim": "The Australian Institute of Marine Science attributed the event to sustained ocean heat anomalies",
+  "A": {
+   "url": "https://www.cpc.ncep.noaa.gov/products/attribution/images/Attribution202603.pdf",
+   "title": "[PDF] Attribution of Seasonal Climate Anomalies January-February-March ...",
+   "text": "Extratropical height and T2m anomalies are driven mainly by the forecast SST warming trend mode, which offset the negative height and cold T2m anomaly responses ..."
+  },
+  "B": {
+   "url": "https://www.facebook.com/australianmarinescience/videos/our-baby-corals-have-reached-the-end-of-their-journey-to-the-great-barrier-reef-/1212089037694867/",
+   "title": "Our baby corals have reached the end of their journey to the Great ...",
+   "text": "... Australian Government's Reef Trust and led by the Australian Institute of Marine Science. It is part of the Reef Restoration and Adaptation Program, funded ..."
+  }
+ },
+ {
+  "id": "p016",
+  "claim": "The Bank of England's Bank Rate is 3.75% and the next decision is on 17 September 2026, as of 7 September 2026.",
+  "A": {
+   "url": "https://stoozemax.com/tools/base-rate",
+   "title": "Bank of England Base Rate History | StoozeMax",
+   "text": "- The Bank of England base rate was 3.75% on 7 September 2026 with no change."
+  },
+  "B": {
+   "url": "https://www.independent.co.uk/news/uk/politics/bank-of-england-interest-rate-huw-pill-b3044335.html",
+   "title": "Bank of England chief economist calls for interest rates to be raised",
+   "text": "- The majority, which featured governor Andrew Bailey, voted instead to hold benchmark rates at 3.75 per cent."
+  }
+ },
+ {
+  "id": "p017",
+  "claim": "OPEC implemented production cuts",
+  "A": {
+   "url": "https://www.opec.org/pr-detail/593-1-march-2026.html",
+   "title": "Press Releases - OPEC.org",
+   "text": "- The eight OPEC+ countries decided to resume the unwinding of the 1.65 million barrels per day of additional voluntary adjustments announced in April 2023.\n- They agreed on a production adjustment of 206 thousand barrels per day.\n- This adjustment will be implemented in April 2026.\n- The 1.65 million barrels per day may be returned in part or in full subject to evolving market conditions and in a gradual manner.\n- The countries will continue to closely monitor and assess market conditions, and in their continuous efforts to support market stability, they reaffirmed the importance of adopting a cautious approach and retaining full flexibility to increase, pause or reverse the phase out of the voluntary production adjustments, including reversing the previously implemented voluntary adjustments of the 2.2 million barrels per day announced in November 2023.\n- The eight OPEC+ countries also noted that this measure will provide an opportunity for the participating countries to accelerate their compensation.\n- The eight countries reiterated their collective commitment to achieve full conformity with the Declaration of Cooperation, including the additional voluntary production adjustment"
+  },
+  "B": {
+   "url": "https://www.newsweek.com/opec-nations-agree-to-adjust-oil-production-what-to-know-11785259",
+   "title": "OPEC nations agree to adjust oil production: What to know",
+   "text": "- The eight countries who are a part of the Organization of the Petroleum Exporting Countries (OPEC) met on Sunday to implement a new round of voluntary oil-production adjustments.\n- They agreed to adjust production by 206,000 barrels per day (bpd), drawing from the 1.65 million bpd voluntary cuts first announced in April 2023.\n- The adjustment will start in May, with the option to restore the 1.65 million bpd “in part or in full” depending on market conditions.\n- The group emphasized maintaining flexibility—including the ability to increase, pause or reverse previous voluntary cuts, including the 2.2 million bpd announced in November 2023.\n- Countries reiterated their commitment to full conformity with the Declaration of Cooperation and pledged to compensate for any overproduction since January 2024.\n- OPEC will hold monthly meetings to reassess market conditions, monitor conformity and review compensation progress.\n- Its next meeting is scheduled for May 3 where it will evaluate whether further adjustments—or reversals—are needed as global demand, geopolitical risks and supply disruptions evolve."
+  }
+ },
+ {
+  "id": "p018",
+  "claim": "Employers in the UK must make reasonable adjustments for disabled employees under the Equality Act 2010",
+  "A": {
+   "url": "https://www.gov.uk/government/publications/workforce-equalities-requirements-in-schools-and-colleges-an-outline/workforce-equalities-requirements-in-schools-and-colleges-an-outline",
+   "title": "Workforce equalities requirements in schools and colleges: an outline",
+   "text": "However, the worker has been treated unfavourably because of something arising in consequence of her disability (namely, the need to take a period of disability-related sick leave). The employer would need to show that the unfavourable treatment was a proportionate means of achieving a legitimate aim. Reasonable adjustments The Equality Act 2010 creates a positive duty on employers to anticipate the needs of and make reasonable adjustments for those who are disabled. This applies to: - employees - workers, such as supply teachers - job applicants - former employees Practical examples of reasonable adjustments might include: - flexible working - special equipment such as chairs or assistive technology - limiting the need for movement around the building - assigning a ground floor classroom - cover for emergency bathroom breaks Case study A middle leader in a secondary school has Crohn’s disease and other chronic health conditions that require regular medication, frequent medical appointments, and can lead to long periods of exhaustion. She has been able to sustain full time work and the full responsibilities of being Head of English because her school has implemented a flexible work"
+  },
+  "B": {
+   "url": "https://multiunion.org.uk/legislation/your-right-to-request-flexible-working-in-the-uk-how-to-make-a-successful-application/",
+   "title": "Your Right to Request Flexible Working in the UK - MultiUnion",
+   "text": "You shouldn't need a law degree to ask for a schedule that accommodates your life. The Legal Overlap: Flexible Working and Reasonable Adjustments If your request relates to a disability or long-term health condition, your rights are even stronger. Under the Equality Act 2010, employers have a duty to make reasonable adjustments at work. A request from a disabled employee isn't just a \"favour\" — it interacts with a much stronger legal protection against discrimination. A well-crafted flexible working request sample for a disabled worker will frame the application to trigger this duty, articulating not just what you want, but how it removes a substantial disadvantage related to your disability"
+  }
+ },
+ {
+  "id": "p019",
+  "claim": "SQLite introduced the Write-Ahead Log option beginning with version 3.7.0 on July 21, 2010",
+  "A": {
+   "url": "https://groups.google.com/g/sqlite_users/c/be2mwGecdpU",
+   "title": "[sqlite] Please beta-test SQLite 3.7.0",
+   "text": "- SQLite version 3.7.0 will feature the addition of a write-ahead log (WAL) capability for transaction control."
+  },
+  "B": {
+   "url": "https://fly.io/blog/sqlite-internals-wal/",
+   "title": "How SQLite Scales Read Concurrency",
+   "text": "- In 2010, SQLite introduced a second method called the write-ahead log, or as it’s more commonly referred to: the WAL.\n- This is the big-endian integer representation of 3007000 which means it’s the WAL version created in SQLite 3.7.0."
+  }
+ },
+ {
+  "id": "p020",
+  "claim": "Python 3.13 introduced an experimental free-threaded build that can run without the GIL",
+  "A": {
+   "url": "https://pyo3.rs/main/free-threading",
+   "title": "Supporting Free-Threaded Python - PyO3 user guide",
+   "text": "- CPython 3.13 introduced the \"free-threaded\" build as an experimental mode where it was first added.\n- In Python 3.13, the free-threaded build triggers global synchronization events when the first background thread is started in order to mark certain objects as immortal."
+  },
+  "B": {
+   "url": "https://blog.miguelgrinberg.com/post/python-3-14-is-here-how-fast-is-it",
+   "title": "Python 3.14 Is Here. How Fast Is It?",
+   "text": "- Starting with Python 3.13, the CPython interpreter comes in three flavors: standard, free-threading (FT) and just-in-time (JIT).\n- The free-threading interpreter disables the global interpreter lock (GIL).\n- In Python 3.13 the free-threading interpreter ran about 2.2x faster than the standard interpreter on the multi-threaded Fibonacci test."
+  }
+ },
+ {
+  "id": "p021",
+  "claim": "Companies can be fined under UK competition law for abusing a dominant market position to exclude competitors",
+  "A": {
+   "url": "https://www.gov.uk/government/news/cma-fines-pharma-companies-45-million",
+   "title": "CMA fines pharma companies £45 million",
+   "text": "The CMA has fined a number of pharmaceutical companies for anti-competitive conduct and agreements in relation to the supply of paroxetine."
+  },
+  "B": {
+   "url": "https://www.slaughterandmay.com/insights/new-insights/competition-and-regulatory-newsletter-cma-imposes-fine-on-euro-car-parks-exercising-its-dmcc-act-fining-powers-for-the-first-time/",
+   "title": "CMA imposes fine on Euro Car Parks, exercising its DMCC Act ...",
+   "text": "Articles 101 and 102 prohibit anti-competitive agreements and the abuse of a dominant position"
+  }
+ },
+ {
+  "id": "p022",
+  "claim": "The Bank of England's Bank Rate is 3.75% and the next decision is on 17 September 2026, as of 7 September 2026.",
+  "A": {
+   "url": "https://committees.parliament.uk/event/28071/formal-meeting-oral-evidence-session/",
+   "title": "Bank of England Monetary Policy Reports - Oral evidence",
+   "text": "The session will focus on July's Monetary Policy Report, and the MPC's most recent decision to hold the Bank Rate at 3.75%. The Governor of the Bank of England ..."
+  },
+  "B": {
+   "url": "https://www.theguardian.com/business/live/2026/sep/08/oil-price-approaches-100-a-barrel-saudi-attacks-bank-of-england-latest-news-updates?CMP=share_btn_url&page=with%3Ablock-6a9fa3a38f08b1fc6ac22c25",
+   "title": "More than 600 UK flights cancelled after air traffic control ‘technical issue’ – as it happened",
+   "text": "- MPs in London will question Bank of England governor Andrew Bailey and colleagues about their recent decision to hold the Bank Rate at 3.75%."
+  }
+ },
+ {
+  "id": "p023",
+  "claim": "Voyager 1 became the first human-made object to cross the heliopause",
+  "A": {
+   "url": "https://www.accessscience.com/content/briefing/aBR0115142",
+   "title": "Voyager 1 crosses the heliopause into interstellar space",
+   "text": "The Voyage 1 probe finally entered interstellar space on August 25, 2012, according to the National Aeronautics and Space Administration (NASA)."
+  },
+  "B": {
+   "url": "https://doi.org/10.1063/PT.6.3.20190215a",
+   "title": "The confounding magnetic readings of Voyager 1 | Physics Today",
+   "text": "- In December 2012, a group of space scientists gathered in San Francisco to hold a vote.\n- Throughout that year, the hardy spacecraft had beamed back tantalizing hints that it had left the heliosphere, the magnetic bubble inflated by the solar wind, and become the first human-made object to enter interstellar space.\n- Subsequent measurements from the probe’s other instruments ultimately provided enough evidence to convince most of the voters in San Francisco that Voyager 1 had crossed into interstellar space in August 2012, some 122 AU from the Sun.\n- The puzzling measurements have sent space scientists struggling to explain what Voyager is seeing just beyond the solar bubble.\n- The first hint of Voyager 1‘s heliopause crossing came on 28 July 2012, when galactic cosmic-ray intensity abruptly jumped, the concentration of solar particles plummeted, and the magnetic field intensity doubled, to about 0.4 nT.\n- Four more inflection points occurred over the next month, marked by a fall in field intensity, then a jump, then a fall, and one last jump on 25 August, the currently accepted interstellar crossing date.\n- Yet during those turbulent four weeks, the direction of the magnetic fie"
+  }
+ },
+ {
+  "id": "p024",
+  "claim": "The first Bitcoin transaction was for two pizzas worth 10000 BTC",
+  "A": {
+   "url": "https://www.elibrary.imf.org/view/journals/002/2025/068/article-A001-en.xml",
+   "title": "El Salvador: Selected Issues in: IMF Staff Country Reports Volume ...",
+   "text": "Publication Date: 19 Mar ... In June 2021, President Bukele announced his intention to make El Salvador the first country to adopt Bitcoin as legal tender."
+  },
+  "B": {
+   "url": "https://www.americasquarterly.org/article/in-el-salvador-bitcoins-retreat-left-valuable-lessons/",
+   "title": "In El Salvador, Bitcoin's Retreat Left Valuable Lessons",
+   "text": "In September 2021, El Salvador became the first country to adopt Bitcoin as legal tender. At that time, President Nayib Bukele argued that the bold decision ..."
+  }
+ },
+ {
+  "id": "p025",
+  "claim": "Taking creatine supplements prevents Parkinson's disease.",
+  "A": {
+   "url": "https://www.sciencedirect.com/science/article/pii/S3050624726000033",
+   "title": "Creatine supplementation and brain health - ScienceDirect.com",
+   "text": "A small body of evidence suggests that creatine supplementation may increase brain creatine and thereby support brain energetics, particularly under ..."
+  },
+  "B": {
+   "url": "https://www.neurologylive.com/view/gene-caffeine-creatine-link-parkinson-disease",
+   "title": "Gene, Caffeine, Creatine: Link to Parkinson Disease | NeurologyLive",
+   "text": "A study suggests that PD may progress more rapidly in people who possess the GRIN2A T allele, and who also take creatine and consume high levels ..."
+  }
+ },
+ {
+  "id": "p026",
+  "claim": "Voyager 1 became the first human-made object to cross the heliopause",
+  "A": {
+   "url": "https://www.accessscience.com/content/briefing/aBR0115142",
+   "title": "Voyager 1 crosses the heliopause into interstellar space",
+   "text": "The Voyage 1 probe finally entered interstellar space on August 25, 2012, according to the National Aeronautics and Space Administration (NASA)."
+  },
+  "B": {
+   "url": "https://www.pbs.org/newshour/science/voyager-has-entered-interstellar-space",
+   "title": "Voyager 1 Has Entered Interstellar Space | PBS News",
+   "text": "- Now, 36 years and 12 billion miles later, Voyager 1 has left the solar system and entered interstellar space, NASA announced Thursday afternoon, nearly settling a yearlong debate.\n- New data published in Thursday's edition of the journal Science indicates that the spacecraft officially crossed from the heliosphere into interstellar space on or around August 25, 2012, making it the first manmade object to travel beyond our solar system.\n- Voyager is now about 12 billion miles from Earth - that's six times farther than the distance between Earth and Neptune's orbit - and racing through space at 37,000 miles per hour, or 325 million miles per year.\n- The heliosphere is a bullet-shaped bubble surrounding the sun.\n- The boundary where the two the interstellar plasma and helioplasma meet is the heliopause, the threshold to interstellar space.\n- NASA's Voyager spacecraft is now about 12 billion miles from Earth - that's six times farther than the distance between Earth and Neptune's orbit - and racing through space at 37,000 miles per hour.\n- When the Voyager mission began in 1977, many scientists believed it was just beyond Jupiter, Stone said, about 365 million miles from Earth.\n- Fin"
+  }
+ },
+ {
+  "id": "p027",
+  "claim": "House prices fell 20% in real terms between 2022 and 2025",
+  "A": {
+   "url": "https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/market-reports/housing-market/housing-supply-report",
+   "title": "Fall 2025 Housing Supply Report - CMHC",
+   "text": "Despite a steady first half, combined housing starts for the 7 key markets in 2025 are expected to fall below 2024 levels"
+  },
+  "B": {
+   "url": "https://calculatedrisk.substack.com/p/inflation-adjusted-house-prices-27",
+   "title": "Inflation Adjusted House Prices 2.7% Below 2022 Peak",
+   "text": "Typically, after a sharp increase in prices, it takes a number of years for real prices to reach new highs (see House Prices: 7 Years in Purgatory). There is nothing magic about “7 years”, it just made a good post title. My initial guess on house prices was “mostly flat prices nationally in 2025” which would suggest a slight decline in real prices. The increase in inventory is putting downward pressure on house prices, combined with an increase in inflation, and real house prices are declining. In real terms, national house prices are 9"
+  }
+ },
+ {
+  "id": "p028",
+  "claim": "The Climate Change Act 2008 set the UK target of net zero emissions by 2050",
+  "A": {
+   "url": "https://www.gov.uk/government/publications/carbon-budget-and-growth-delivery-plan/unlocking-the-benefits-of-the-clean-energy-economy-accessible-webpage",
+   "title": "Unlocking the benefits of the clean energy economy (accessible ...",
+   "text": "Annex - Climate Change Act and carbon budgets explainer The Climate Change Act in 2008 made the UK the first country to introduce a legally binding, long-term emissions reduction target. Under the act, the UK was originally required to reduce greenhouse gas emissions by at least 80% on 1990 levels by 2050. In 2019, on advice of the Climate Change Committee (CCC), the UK committed to reaching net zero emissions by 2050 and consequently the target reduction in the act was amended to at least 100% reduction on 1990 levels. The Climate Change Act covers all major greenhouse gases, including carbon dioxide, methane and others. The UK led the way with the Climate Change Act and our legally binding decarbonisation target"
+  },
+  "B": {
+   "url": "https://www.fsb.org.uk/resources/article/what-is-the-uk-national-commitment-to-net-zero-and-what-does-it-mean-MCI3FQYNQSS5BDVG4AYZF6C4D2CY",
+   "title": "What is the UK National commitment to Net Zero and what does it ...",
+   "text": "In 2019, the UK government set out a legally binding target to achieve net zero by 2050. Scotland, in line with its own climate strategy, aims for net zero by"
+  }
+ },
+ {
+  "id": "p029",
+  "claim": "The Equality Act 2010 consolidated UK anti-discrimination law into a single statute",
+  "A": {
+   "url": "https://sheffield.ac.uk/careers/support/edi/equality",
+   "title": "Know your rights: the Equality Act 2010 - University of Sheffield",
+   "text": "Know your rights: the Equality Act 2010 Understanding your rights: the UK Equality Act 2010 As a university student preparing for your future career, it's important to know your rights in the workplace. The UK Equality Act (2010) aims to create a fairer and more equal society by preventing discrimination, harassment, and victimisation, and is there to protect you. This Act means that employers (and other organisations like universities themselves) cannot treat you unfairly because of certain personal characteristics. It ensures that you have the same opportunities as everyone else, and that decisions about recruitment, employment, training, and promotion are based on your skills and abilities, not on who you are"
+  },
+  "B": {
+   "url": "https://rnid.org.uk/information-and-support/your-rights/the-equality-act-2010/",
+   "title": "The Equality Act 2010 - RNID",
+   "text": "The Equality Act 2010 is the law that bans discrimination (unfair treatment) and helps achieve equal opportunities in the workplace and in wider society."
+  }
+ },
+ {
+  "id": "p030",
+  "claim": "Saudi Arabia will host the FIFA World Cup 2034",
+  "A": {
+   "url": "https://en.wikipedia.org/wiki/2034_FIFA_World_Cup_bids",
+   "title": "2034 FIFA World Cup bids",
+   "text": "The 2034 FIFA World Cup bidding process resulted in the Fédération Internationale de Football Association (FIFA) selecting Saudi Arabia as the host nation for the 2034 FIFA World Cup."
+  },
+  "B": {
+   "url": "https://www.reddit.com/r/football/comments/1o43mzf/world_cup_2034_in_saudi_arabia_and_now_theyre/",
+   "title": "World Cup 2034 in Saudi Arabia – and now they're talking ... - Reddit",
+   "text": "We thought Qatar was the absolute low point. But no – now it's Saudi Arabia in 2034. A country with no football culture, no real fanbase, no genuine passion for ..."
+  }
+ },
+ {
+  "id": "p031",
+  "claim": "The Equality Act 2010 consolidated UK anti-discrimination law into a single statute",
+  "A": {
+   "url": "https://www.equalityhumanrights.com/equality/equality-act-2010/equality-act-faqs",
+   "title": "Equality Act FAQs | EHRC",
+   "text": "What is the purpose of the Equality Act 2010? The Equality Act 2010 (the Act) brings together a number of existing laws in one place so that it is easier to use ..."
+  },
+  "B": {
+   "url": "https://www.bamboohr.com/uk/blog/2010-equality-act",
+   "title": "What is the Equality Act 2010? - BambooHR",
+   "text": "The Act was created in 2010 and consolidated multiple anti-discrimination laws into one piece of legislation. This was to ensure the law was better ..."
+  }
+ },
+ {
+  "id": "p032",
+  "claim": "The UK left the EU on 31 January 2020 but remained in the single market and customs union until 31 December 2020.",
+  "A": {
+   "url": "https://commonslibrary.parliament.uk/research-briefings/cbp-7960/",
+   "title": "Brexit timeline: events leading to the UK’s exit from the European Union",
+   "text": "At 11pm on 31 January 2020, the UK left the EU and entered a transition period. At 11pm on 31 December 2020, the transition period ended and ..."
+  },
+  "B": {
+   "url": "https://www.bbc.co.uk/news/uk-politics-32810887",
+   "title": "Brexit: What you need to know about the UK leaving the EU",
+   "text": "- The UK officially left the trading bloc on 31 January 2020.\n- Both sides agreed to keep many things the same until 31 December 2020.\n- Transition period: The 11-month period following the UK's exit from the EU (finishing at the end of 2020), during which time the UK has followed EU rules."
+  }
+ },
+ {
+  "id": "p033",
+  "claim": "Voyager 1 entered interstellar space in August 2012",
+  "A": {
+   "url": "https://www.accessscience.com/content/briefing/aBR0115142",
+   "title": "Voyager 1 crosses the heliopause into interstellar space",
+   "text": "The Voyage 1 probe finally entered interstellar space on August 25, 2012, according to the National Aeronautics and Space Administration (NASA)."
+  },
+  "B": {
+   "url": "https://doi.org/10.1063/PT.6.3.20190215a",
+   "title": "The confounding magnetic readings of Voyager 1 | Physics Today",
+   "text": "- In December 2012, a group of space scientists gathered in San Francisco to hold a vote.\n- Throughout that year, the hardy spacecraft had beamed back tantalizing hints that it had left the heliosphere, the magnetic bubble inflated by the solar wind, and become the first human-made object to enter interstellar space.\n- Subsequent measurements from the probe’s other instruments ultimately provided enough evidence to convince most of the voters in San Francisco that Voyager 1 had crossed into interstellar space in August 2012, some 122 AU from the Sun.\n- The first hint of Voyager 1‘s heliopause crossing came on 28 July 2012, when galactic cosmic-ray intensity abruptly jumped, the concentration of solar particles plummeted, and the magnetic field intensity doubled, to about 0.4 nT.\n- Four more inflection points occurred over the next month, marked by a fall in field intensity, then a jump, then a fall, and one last jump on 25 August, the currently accepted interstellar crossing date.\n- The Science paper describing Voyager 1‘s exit concluded with the observation that because of the lack of shift in field direction, “the very definition of the heliopause comes into question.”\n- In 2009 "
+  }
+ },
+ {
+  "id": "p034",
+  "claim": "Pakistan's monsoon flooding displaced 33 million people in 2024",
+  "A": {
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12700151/",
+   "title": "From 2022 to 2025: Preventing the Escalating Health Crisis of ... - PMC",
+   "text": "In 2022, unprecedented monsoon rains submerged nearly one‑third of Pakistan, displacing more than 33 million people and destroying more than 2,000 health ..."
+  },
+  "B": {
+   "url": "https://www.facebook.com/IWMIonFB/posts/-monsoon-floods-are-once-again-devastating-communities-across-pakistan-recalling/1156996616475934/",
+   "title": "International Water Management Institute (IWMI) - Facebook",
+   "text": "Flooding, brought by record monsoon rainfall and glacier melt in the north, has impacted 33 million people and killed at least 1,325, including 466 children, ..."
+  }
+ },
+ {
+  "id": "p035",
+  "claim": "The Bank of England's Bank Rate is 3.75% and the next decision is on 17 September 2026, as of 7 September 2026.",
+  "A": {
+   "url": "https://www.bankofengland.co.uk/?q=base%20rate%20announcements%202026",
+   "title": "Home | Bank of England – the UK's central bank",
+   "text": "- Bank Rate was maintained at 3.75% in July 2026."
+  },
+  "B": {
+   "url": "https://hoa.org.uk/news/interest-rate-predictions-2/",
+   "title": "Latest UK Interest Rate Forecasts: Will The Bank Of England Cut Interest Rates On 17 September? - HomeOwners Alliance",
+   "text": "- According to Mortgage Expert Sarah Tucker speaking on 30 July 2026, the Bank of England has held Bank Rate at 3.75%.\n- The Bank of England has gradually fallen to 3.75% as inflation pressures have eased."
+  }
+ },
+ {
+  "id": "p036",
+  "claim": "House prices fell 20% in real terms between 2022 and 2025",
+  "A": {
+   "url": "https://www.cmhc-schl.gc.ca/observer/2025/summer-update-2025-housing-market-outlook",
+   "title": "Summer Update: 2025 Housing Market Outlook",
+   "text": "Overall, our current housing forecast in 2025 is increasingly aligned with the Housing Market Outlook’s low scenario in the near term which highlights growing downside risks to the outlook"
+  },
+  "B": {
+   "url": "https://calculatedrisk.substack.com/p/inflation-adjusted-house-prices-27",
+   "title": "Inflation Adjusted House Prices 2.7% Below 2022 Peak",
+   "text": "Typically, after a sharp increase in prices, it takes a number of years for real prices to reach new highs (see House Prices: 7 Years in Purgatory). There is nothing magic about “7 years”, it just made a good post title. My initial guess on house prices was “mostly flat prices nationally in 2025” which would suggest a slight decline in real prices. The increase in inventory is putting downward pressure on house prices, combined with an increase in inflation, and real house prices are declining. In real terms, national house prices are 9"
+  }
+ },
+ {
+  "id": "p037",
+  "claim": "The UK left the EU on 31 January 2020 but remained in the single market and customs union until 31 December 2020.",
+  "A": {
+   "url": "https://commonslibrary.parliament.uk/research-briefings/cbp-7960/",
+   "title": "Brexit timeline: events leading to the UK’s exit from the European Union",
+   "text": "At 11pm on 31 January 2020, the UK left the EU and entered a transition period. At 11pm on 31 December 2020, the transition period ended and ..."
+  },
+  "B": {
+   "url": "https://www.kennedyslaw.com/en/thought-leadership/key-legislation/brexit-timeline/",
+   "title": "Brexit timeline - Kennedys Law",
+   "text": "EU agrees to Brexit extension until 31 January 2020. 17-18 Oct ... End of Phase 2 negotiations: UK and EU agree terms for transition/implementation period."
+  }
+ },
+ {
+  "id": "p038",
+  "claim": "The UK left the EU on 31 January 2020 but remained in the single market and customs union until 31 December 2020.",
+  "A": {
+   "url": "https://brexitlegal.ie/wp-content/uploads/2020/09/CBP-7960.pdf",
+   "title": "[PDF] events leading to the UK's exit from the European Union (p. 3)",
+   "text": "This is the legislation that will implement\nthe withdrawal agreement negotiated by the UK and the EU. \nAt 11pm on 31 January 2020, the UK left the European Union and\nentered a transition period that is due to run until the end of the year."
+  },
+  "B": {
+   "url": "https://ukandeu.ac.uk/the-facts/what-does-a-transition-period-for-the-uk-mean/",
+   "title": "What was the transition period? - UK in a changing Europe",
+   "text": "- According to UK in a changing Europe, the transition period was an 11-month grace period agreed by the UK and the EU following the UK’s exit from the bloc on 31 January 2020.\n- According to UK in a changing Europe, the UK left the EU political institutions on 31 January 2020, but remained part of the EU single market and customs union.\n- According to UK in a changing Europe, the transition period lasted until 31 December 2020, with a Trade and Cooperation Agreement signed on 24 December 2020."
+  }
+ },
+ {
+  "id": "p039",
+  "claim": "SQLite performs an automatic checkpoint by default when the WAL file reaches a threshold size of 1000 pages. An SQLite database connection defaults to journal_mode=DELETE. SQLite journal_mode=WAL setting is persistent across closing and reopening the database.",
+  "A": {
+   "url": "https://sqlite.org/forum/forumpost/c4dbf6ca17",
+   "title": "SQLite User Forum: Using WAL mode with multiple processes",
+   "text": "- According to Kees Nuyt on sqlite.org, the WAL journaling mode is persistent; after being set it stays in effect across multiple database connections and after closing and reopening the database."
+  },
+  "B": {
+   "url": "https://oneuptime.com/blog/post/2026-03-02-how-to-set-up-sqlite-with-wal-mode-on-ubuntu/view",
+   "title": "How to Set Up SQLite with WAL Mode on Ubuntu",
+   "text": "- WAL mode is set per-database and persists across connections.\n- By default, an automatic checkpoint triggers after 1000 pages are written to the WAL."
+  }
+ },
+ {
+  "id": "p040",
+  "claim": "The James Webb Space Telescope has a 6.5-metre primary mirror and was launched in December 2021",
+  "A": {
+   "url": "https://svs.gsfc.nasa.gov/13521",
+   "title": "NASA Scientific Visualization Studio | Primary Mirror Size Comparison Between Webb and Hubble",
+   "text": "- According to NASA's Goddard Space Flight Center, the James Webb Space Telescope primary mirror is 6.5 meters (21 feet 4-inches) across."
+  },
+  "B": {
+   "url": "https://www.firstcoastnews.com/article/weather/james-webb-space-telescope-is-set-to-launch-december-2021-space/77-5de8eadf-5e2a-4382-ac00-e686ff9209a5",
+   "title": "James Webb Space Telescope is set to launch December 2021",
+   "text": "It is set to launch from the Guiana Space Center in French Guiana on December 18, 2021, and it will be the largest telescope ever put into space ..."
+  }
+ },
+ {
+  "id": "p041",
+  "claim": "The FDA granted full approval to the Pfizer-BioNTech COVID-19 vaccine for people aged 16 and over in August 2021",
+  "A": {
+   "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0278624",
+   "title": "Effectiveness of Pfizer-BioNTech COVID-19 vaccine as evidence for ...",
+   "text": "- In December 2020, an interim recommendation for the use of Pfizer-BioNTech COVID-19 vaccine in persons aged ≥16 years was made under Food and Drug Administration’s Emergency Use Authorization.\n- On August 23, 2021, the FDA approved the biologics license application (BLA) for the Pfizer-BioNTech COVID-19 vaccine for the prevention of COVID-19 in persons aged ≥16 years.\n- The pooled VE of Pfizer-BioNTech COVID-19 vaccine was 92.4% (95% CI: 87.5%–95.3%) against symptomatic COVID-19 with moderate evidence certainty (eight studies).\n- The Pfizer-BioNTech COVID-19 vaccine demonstrated high effectiveness in all pre-specified outcomes and extended knowledge of the vaccine’s benefits to outcomes and populations not informed by the RCTs.\n- In the United States, the Food and Drug Administration (FDA) is the regulatory authority for approval of new vaccines.\n- Following regulatory allowance from the FDA (Emergency Use Authorization or licensure), the Centers for Disease Control and Prevention (CDC) makes public health recommendations for vaccine use under advice from the Advisory Committee for Immunization Practices (ACIP), with interim recommendations following Emergency Use Authorization ("
+  },
+  "B": {
+   "url": "https://www.politifact.com/factchecks/2021/sep/17/tiktok-posts/pfizers-covid-19-vaccine-got-fda-approval-august/",
+   "title": "Yes, Pfizer’s COVID-19 vaccine is FDA approved",
+   "text": "Get PolitiFact in your inbox. Yes, Pfizer’s COVID-19 vaccine is FDA approved If Your Time is short - The Pfizer vaccine had been administered under an emergency use authorization from the U.S. Food and Drug Administration. On Aug. 23, the vaccine received FDA approval. Even after the U.S. Food and Drug Administration gave its approval to the Pfizer COVID-19 vaccine — the first vaccine to get such approval — posters on TikTok were still suggesting it was some kind of rogue jab. One video started with a woman stating: \"You guys, the Pfizer vaccine is not approved. They’ve been saying it’s been approved. I have proof, straight from the website where you sign up to get your vaccine, it is not approved for anything beyond the emergency use approval.\" TikTok identified videos with this message as part of its efforts to counter inauthentic, misleading or false content. (Read more about PolitiFact's partnership with TikTok.) Similar claims have been made elsewhere on TikTok. Text with another video states: \"The Pfizer vaccine is not an approved FDA vaccine it's only approved for emergency use for a third dose.\" The claim that the Pfizer vaccine is not approved is wrong. During public healt"
+  }
+ },
+ {
+  "id": "p042",
+  "claim": "Venus takes longer to rotate once on its axis than to orbit the Sun",
+  "A": {
+   "url": "https://cnes.fr/en/folders/planet-venus",
+   "title": "Venus | CNES",
+   "text": "- Venus takes 224 Earth days to complete its journey around the Sun.\n- Venus rotates very slowly on itself, once every 243 days."
+  },
+  "B": {
+   "url": "https://www.rmg.co.uk/stories/space-astronomy/interesting-facts-about-venus",
+   "title": "Interesting facts about Venus",
+   "text": "- It takes Venus longer to rotate once on its axis than to complete one orbit of the Sun.\n- It takes 243 Earth days for Venus to rotate once.\n- It takes 224.7 Earth days for Venus to complete an orbit of the Sun."
+  }
+ },
+ {
+  "id": "p043",
+  "claim": "The Data Protection Act 2018 implemented GDPR in the United Kingdom",
+  "A": {
+   "url": "https://ico.org.uk/for-organisations/report-a-breach/personal-data-breach/",
+   "title": "UK GDPR data breach reporting (DPA 2018) | ICO",
+   "text": "- The Data Protection Act (2018) is an Act of Parliament in the UK that is designed to ensure that personal data is collected, stored, and handled appropriately and responsibly to protect people’s privacy.\n- The act was incorporated into UK law as a result of the EU-wide guidelines on data protection, also known as the General Data Protection Regulation or GDPR.\n- The Data Protection Act (2018) is an official piece of legislation, and for companies specifically, it holds them accountable by law to ensure that their customers’ data is safely and securely dealt with.\n- The main purpose of the Data Protection Act 2018 is to allow individuals to feel empowered that they have control over their data.\n- The UK Data Protection Act (2018) predecessor was the Data Protection Act (1998).\n- The new Data Protection Act (2018) was enforced and adapted the EU GDPR guidelines to the specific conditions for processing data in the UK.\n- The Data Protection Act 2018 explores four key areas.\n- This refers to the act implementing GDPR standards across all general data processing."
+  },
+  "B": {
+   "url": "https://www.dpo-consulting.com/blog/uk-data-protection-act-explained",
+   "title": "UK Data Protection Act 2018 Explained: Scope, Principles ...",
+   "text": "- The UK’s Data Protection Act 2018 (DPA 2018) is the backbone of modern data privacy law in the United Kingdom.\n- It works in tandem with the UK General Data Protection Regulation (UK GDPR) to govern how organizations collect, process, store, and share personal information.\n- In plain terms, the DPA 2018 builds on the framework of the EU’s GDPR (General Data Protection Regulations 2018) and adapts it for the UK context.\n- The DPA 2018 fulfills three primary purposes: (1) to incorporate EU GDPR into UK law, (2) to allow the UK to modify or exempt certain GDPR provisions, and (3) to extend data protection into areas not originally covered by the EU GDPR.\n- The Data Protection Act 2018 is the UK’s national data privacy law that came into force on 25 May 2018.\n- It replaces the older 1998 Act and implements the GDPR into UK law.\n- The Act was designed to be read alongside the UK GDPR.\n- Before Brexit, it was paired with the EU GDPR, but now the Data Protection Act 2018 and UK GDPR together form the UK’s data protection regime."
+  }
+ },
+ {
+  "id": "p044",
+  "claim": "The James Webb Space Telescope orbits the Earth every 90 minutes, has a 6.5-metre primary mirror and was launched in December 2021.",
+  "A": {
+   "url": "https://science.nasa.gov/mission/webb/",
+   "title": "James Webb Space Telescope - NASA Science",
+   "text": "- Webb orbits the Sun 1.5 million kilometers from the Earth.\n- The James Webb Space Telescope is the largest and most powerful telescope ever launched to space."
+  },
+  "B": {
+   "url": "https://www.planetary.org/space-missions/james-webb-space-telescope",
+   "title": "James Webb Space Telescope, the world's new great space observatory",
+   "text": "- According to planetary.org, NASA’s James Webb Space Telescope, JWST, is a multipurpose observatory launched in December 2021.\n- According to planetary.org, JWST's mirror is 6.5-meters across."
+  }
+ },
+ {
+  "id": "p045",
+  "claim": "The James Webb Space Telescope orbits the Earth every 90 minutes, has a 6.5-metre primary mirror and was launched in December 2021.",
+  "A": {
+   "url": "https://www.esa.int/ESA_Multimedia/Transmissions/2021/12/James_Webb_Space_Telescope_live_launch",
+   "title": "James Webb Space Telescope live launch",
+   "text": "- The James Webb Space Telescope was launched on Saturday 25 December 2021."
+  },
+  "B": {
+   "url": "https://www.planetary.org/space-missions/james-webb-space-telescope",
+   "title": "James Webb Space Telescope, the world's new great space observatory",
+   "text": "- According to planetary.org, NASA’s James Webb Space Telescope, JWST, is a multipurpose observatory launched in December 2021.\n- According to planetary.org, JWST's mirror is 6.5-meters across."
+  }
+ },
+ {
+  "id": "p046",
+  "claim": "Two people died when a Russian drone fell on a truck stop",
+  "A": {
+   "url": "https://en.wikipedia.org/wiki/Timeline_of_the_Russo-Ukrainian_war_(1_January_2025_%E2%80%93_31_May_2025)",
+   "title": "Timeline of the Russo-Ukrainian war (1 January 2025 – 31 May 2025)",
+   "text": "This timeline of the Russo-Ukrainian war covers the period from 1 January to 31 May 2025."
+  },
+  "B": {
+   "url": "https://glavnoe.in.ua/en/news-en/night-attack-on-odesa-region-two-people-dead-several-wounded",
+   "title": "Night attack on Odesa region: two people dead, several wounded",
+   "text": "One of the drones also hit an apartment in a high-rise building without detonating"
+  }
+ },
+ {
+  "id": "p047",
+  "claim": "SQLite does a checkpoint automatically by default when the WAL file reaches a threshold size of 1000 pages. An SQLite database connection defaults to journal_mode=DELETE.",
+  "A": {
+   "url": "https://www3.sqlite.org/matrix/wal.html",
+   "title": "Write-Ahead Logging",
+   "text": "- By default, SQLite does a checkpoint automatically when the WAL file reaches a threshold size of 1000 pages."
+  },
+  "B": {
+   "url": "https://news.ycombinator.com/item?id=48899847",
+   "title": "Lobste.rs is now running on SQLite - Hacker News",
+   "text": "id=40688336 I'm absolutely no expert, I'm just reading about it now, but from the SQLite WAL documentation [0]: > 7. There is the extra operation of checkpointing which, though automatic by default, is still something that application developers need to be mindful of. and from their \"checkpointing\" documentation [1]: > By default, SQLite does a checkpoint automatically when the WAL file reaches a threshold size of 1000 pages. I'm only skimming but I see no mention of waiting for an idle time win"
+  }
+ },
+ {
+  "id": "p048",
+  "claim": "The 2008 Climate Change Act commits the United Kingdom to net zero by 2050",
+  "A": {
+   "url": "https://commonslibrary.parliament.uk/research-briefings/cbp-9888/",
+   "title": "The UK's plans and progress to reach net zero by 2050",
+   "text": "The UK is committed to reaching net zero by 2050. This means that the total greenhouse gas emissions would be equal to the emissions removed from the atmosphere ..."
+  },
+  "B": {
+   "url": "https://haush.co.uk/understanding-the-climate-change-act-2008-the-uks-roadmap-to-net-zero/",
+   "title": "Understanding the Climate Change Act 2008: The UK's Roadmap to ...",
+   "text": "The Net Zero Target: A Historic Amendment. Originally, the Act committed the UK to reducing GHG emissions by at least 80% from 1990 levels by 2050. However, in ..."
+  }
+ },
+ {
+  "id": "p049",
+  "claim": "The Earth has warmed 1.1 degrees Celsius since 1880",
+  "A": {
+   "url": "https://science.nasa.gov/earth/earth-observatory/world-of-change/global-temperatures/",
+   "title": "World of Change: Global Temperatures",
+   "text": "According to NASA scientists, the planet’s average temperature that year was 1"
+  },
+  "B": {
+   "url": "https://www.carbonbrief.org/state-of-the-climate-2025-on-track-to-be-second-or-third-warmest-year-on-record/",
+   "title": "State of the climate: 2025 on track to be second or third warmest ...",
+   "text": "5C target – which refers to long-term warming, rather than annual temperatures – in the next five years. In this latest state of the climate quarterly update, Carbon Brief finds: - So far, 2025 has seen record warm temperatures in January, the third warmest February and June and the second warmest monthly temperatures for March through May on record. - The world, as a whole, has warmed approximately 1. 1C since 1970 – and around 1. 4C since the mid-1800s"
+  }
+ },
+ {
+  "id": "p050",
+  "claim": "The FDA granted full approval to the Pfizer-BioNTech COVID-19 vaccine for people aged 16 and over in August 2021",
+  "A": {
+   "url": "https://www.fda.gov/news-events/press-announcements/fda-approves-first-covid-19-vaccine",
+   "title": "FDA Approves First COVID-19 Vaccine",
+   "text": "- The U.S. Food and Drug Administration approved the first COVID-19 vaccine.\n- The vaccine has been known as the Pfizer-BioNTech COVID-19 Vaccine, and will now be marketed as Comirnaty.\n- The FDA's approval of this vaccine is a milestone as we continue to battle the COVID-19 pandemic.\n- Since Dec. 11, 2020, the Pfizer-BioNTech COVID-19 Vaccine has been available under EUA in individuals 16 years of age and older.\n- The authorization was expanded to include those 12 through 15 years of age on May 10, 2021.\n- FDA-approved vaccines undergo the agency’s standard process for reviewing the quality, safety and effectiveness of medical products.\n- Comirnaty contains messenger RNA (mRNA), a kind of genetic material.\n- Comirnaty has the same formulation as the EUA vaccine and is administered as a series of two doses, three weeks apart."
+  },
+  "B": {
+   "url": "https://www.npr.org/sections/coronavirus-live-updates/2021/08/23/1030251410/pfizer-covid-vaccine-fda-approval",
+   "title": "Pfizer-BioNTech's COVID Vaccine Gets Full Approval From The FDA",
+   "text": "- The Food and Drug Administration has formally approved Pfizer's COVID-19 vaccine.\n- The widely anticipated decision replaces the emergency use authorization granted by the agency last December.\n- The vaccine, developed by Pfizer and its partner BioNTech, is the first COVID-19 vaccine to be subject to a full review by the U.S. regulator and to get an approval that puts the vaccine on par with other marketed vaccines.\n- The FDA's full approval applies to people 16 and older.\n- Those ages 12 through 15 can still receive the vaccine under the existing emergency use authorization.\n- As of Sunday, 73% of adults in the U.S. have had at least one dose of the Pfizer, Moderna or Johnson & Johnson vaccines.\n- Pfizer's vaccine is most commonly administered, accounting for about 56% of the doses administered overall, according to data from the Centers for Disease Control and Prevention."
+  }
+ },
+ {
+  "id": "p051",
+  "claim": "Semaglutide reduced major adverse cardiovascular events by 20% relative to placebo in adults with overweight or obesity and established cardiovascular disease without diabetes in the SELECT trial",
+  "A": {
+   "url": "https://www.nature.com/articles/s41591-026-04281-1",
+   "title": "Semaglutide on liver fibrosis and heart outcomes in patients at high risk of liver fibrosis: a prespecified analysis of the SELECT randomized trial - Nature Medicine",
+   "text": "- In the SELECT trial, once-weekly subcutaneous semaglutide reduced major adverse cardiovascular events (MACE) by 20% versus placebo in patients with atherosclerotic cardiovascular disease and obesity but without diabetes.\n- ClinicalTrials.gov registration no. NCT03574597.\n- Eligible patients were aged ≥45 years with a BMI of ≥27 kg m−2 and established ASCVD, defined as at least one of the following: prior MI, prior ischemic or hemorrhagic stroke, or symptomatic peripheral artery disease.\n- A total of 17,604 patients were randomized (1:1) to escalating doses of once-weekly subcutaneous semaglutide over 16 weeks to a target dose of 2.4 mg (n = 8,803) or placebo (8,801)."
+  },
+  "B": {
+   "url": "https://my.clevelandclinic.org/podcasts/cardiac-consult/the-select-trial-a-brief-summary",
+   "title": "The SELECT Trial: A Brief Summary",
+   "text": "- Semaglutide reduced cardiovascular events by 20 percent in adults with overweight or obesity and established cardiovascular disease who don't have diabetes, according to findings from the SELECT trial reported by Dr. A. Michael Lincoff.\n- The SELECT Trial was a large-scale multicenter trial conducted in 41 countries throughout the world, including patients who were 45 years or older, had a body mass index of 27 kilograms per meter squared or greater, and had established cardiovascular disease.\n- A total of approximately 17,604 patients were randomized in a one-to-one ratio to receive placebo or semaglutide with dose escalation to the weight loss dose of 2.4 milligrams once weekly subcutaneously.\n- The primary endpoint occurred in 8 percent of patients in the placebo group over an average of 40 months follow-up as compared to 6.5 percent of patients in the semaglutide group, representing a 0.8 hazard ratio or a 20 percent relative risk reduction (P < 0.001)."
+  }
+ },
+ {
+  "id": "p052",
+  "claim": "SQLite introduced the Write-Ahead Log option beginning with version 3.7.0 on July 21, 2010",
+  "A": {
+   "url": "https://sqlite.org/releaselog/3_7_0.html",
+   "title": "SQLite Release 3.7.0 On 2010-07-21",
+   "text": "- SQLite Release 3.7.0 on 2010-07-21 added support for write-ahead logging."
+  },
+  "B": {
+   "url": "https://www.sqlprostudio.com/blog/60-fixing-database-is-locked-in-sqlite",
+   "title": "Fixing \"database is locked\" in SQLite",
+   "text": "- WAL mode has been available since SQLite 3.7.0 (2010) and is a persistent property of the database file."
+  }
+ },
+ {
+  "id": "p053",
+  "claim": "The James Webb Space Telescope has a 6.5-metre primary mirror and was launched in December 2021",
+  "A": {
+   "url": "https://esahubble.org/wordbank/james-webb-space-telescope/",
+   "title": "James Webb Space Telescope",
+   "text": "- Launched in December 2021 on an Ariane 5 rocket from Europe’s Spaceport in French Guiana.\n- Webb is equipped with a primary mirror that spans 6.5 metres in diameter."
+  },
+  "B": {
+   "url": "https://dctemplevisitorscenter.org/worlds-without-number-exhibit/james-webb-space-telescope-the-instrument/",
+   "title": "Hubble and James Webb Space Telescopes – The Instruments - DC Temple Visitors' Center",
+   "text": "- The James Webb Space Telescope (JWST), launched on Dec 25, 2021.\n- The primary mirror consists of 18 hexagonal mirror segments that combine to form one large mirror 6.5 meters (~21 ft) in diameter.\n- The diameter of the JWST primary mirror is 6.5 meters."
+  }
+ },
+ {
+  "id": "p054",
+  "claim": "SQLite does a checkpoint automatically by default when the WAL file reaches a threshold size of 1000 pages. An SQLite database connection defaults to journal_mode=DELETE.",
+  "A": {
+   "url": "https://www.sqlite.org/walformat.html",
+   "title": "WAL-mode File Format",
+   "text": "- Since the default automatic checkpoint threshold is 1000, WAL files rarely reach the 4079 threshold needed to make the shm file grow."
+  },
+  "B": {
+   "url": "https://oneuptime.com/blog/post/2026-03-02-how-to-set-up-sqlite-with-wal-mode-on-ubuntu/view",
+   "title": "How to Set Up SQLite with WAL Mode on Ubuntu - OneUptime",
+   "text": "executescript(''' PRAGMA synchronous = NORMAL; PRAGMA cache_size = -32768; PRAGMA temp_store = MEMORY; ''') return conn WAL File Size and Checkpointing The WAL file grows as writes happen. It is periodically checkpointed back to the main database file. By default, an automatic checkpoint triggers after 1000 pages are written to the WAL. -- Check current WAL autocheckpoint setting PRAGMA wal_autocheckpoint; -- Default: 1000 -- Increase to reduce checkpoint frequency (better write throughput) -- b"
+  }
+ },
+ {
+  "id": "p055",
+  "claim": "Voyager 1 became the first human-made object to cross the heliopause",
+  "A": {
+   "url": "https://news.cornell.edu/stories/2021/05/emptiness-space-voyager-1-detects-plasma-hum",
+   "title": "In the emptiness of space, Voyager 1 detects plasma 'hum'",
+   "text": "Travelling at about 38,000 mph, Voyager 1 crossed the heliopause in August 2012. After entering interstellar space, the spacecraft's Plasma ..."
+  },
+  "B": {
+   "url": "https://www.reddit.com/r/IAmA/comments/1m9wke/were_scientists_and_engineers_on_nasas_voyager/",
+   "title": "We're scientists and engineers on NASA's Voyager mission ... - Reddit",
+   "text": "I recall in Aug-Sep 2012 that suspicions were raised about Voyager 1 crossing the heliopause, due to the levelling off of ion density around the"
+  }
+ },
+ {
+  "id": "p056",
+  "claim": "Inflation falling from 10% to 3% means that prices fell by 7%",
+  "A": {
+   "url": "https://calculatorlib.com/inflation-calculator",
+   "title": "Inflation Calculator – Calculate Value Change Over Time - CalculatorLib",
+   "text": "- Inflation rate is the percentage increase in the general price level over a period, usually one year.\n- A 3% annual rate means prices are, on average, 3% higher than a year earlier."
+  },
+  "B": {
+   "url": "https://hisabhkaro.com/learn/deflation-formula/",
+   "title": "Deflation Formula: Meaning, Calculation & Examples",
+   "text": "- Disinflation refers to a slower rate of price increase, where the inflation rate is positive but falling (e.g., 7% to 4%).\n- Deflation refers to an absolute fall in the price level, where the inflation rate is negative.\n- Disinflation means prices are still rising, just more slowly, whereas deflation means prices are falling in absolute terms."
+  }
+ },
+ {
+  "id": "p057",
+  "claim": "The FDA granted full approval to the Pfizer-BioNTech COVID-19 vaccine for people aged 16 and over in August 2021",
+  "A": {
+   "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0278624",
+   "title": "Effectiveness of Pfizer-BioNTech COVID-19 vaccine as evidence for ...",
+   "text": "- In December 2020, an interim recommendation for the use of Pfizer-BioNTech COVID-19 vaccine in persons aged ≥16 years was made under Food and Drug Administration’s Emergency Use Authorization.\n- On August 23, 2021, the FDA approved the biologics license application (BLA) for the Pfizer-BioNTech COVID-19 vaccine for the prevention of COVID-19 in persons aged ≥16 years.\n- The pooled VE of Pfizer-BioNTech COVID-19 vaccine was 92.4% (95% CI: 87.5%–95.3%) against symptomatic COVID-19 with moderate evidence certainty (eight studies).\n- The Pfizer-BioNTech COVID-19 vaccine demonstrated high effectiveness in all pre-specified outcomes and extended knowledge of the vaccine’s benefits to outcomes and populations not informed by the RCTs.\n- In the United States, the Food and Drug Administration (FDA) is the regulatory authority for approval of new vaccines.\n- Following regulatory allowance from the FDA (Emergency Use Authorization or licensure), the Centers for Disease Control and Prevention (CDC) makes public health recommendations for vaccine use under advice from the Advisory Committee for Immunization Practices (ACIP), with interim recommendations following Emergency Use Authorization ("
+  },
+  "B": {
+   "url": "https://doi.org/10.1177/10600280211058387",
+   "title": "Finally, an FDA Approval for an Immunization Against COVID-19",
+   "text": "On August 23, 2021, the FDA-approved Pfizer-BioNTech COVID-19 Vaccine for the prevention of COVID-19 disease in individuals 16 years of age and ..."
+  }
+ },
+ {
+  "id": "p058",
+  "claim": "A Harvard Mass Eye and Ear study found an 8.9-fold increased risk of NAION in semaglutide-exposed diabetic patients",
+  "A": {
+   "url": "https://pubmed.ncbi.nlm.nih.gov/41104517/",
+   "title": "GLP-1RA and the risk of non-arteritic anterior ischaemic optic ...",
+   "text": "In this large observational study, the initiation of GLP-1RA was associated with an 85% increase in the risk of presumed NAION, compared with the initiation ..."
+  },
+  "B": {
+   "url": "https://www.buycanadianinsulin.com/ozempic-blindness/",
+   "title": "Ozempic Blindness: Understanding NAION Risks and Side Effects",
+   "text": "Recent studies show diabetic patients taking semaglutide may have over four times higher risk of developing NAION compared to those not taking the medication."
+  }
+ },
+ {
+  "id": "p059",
+  "claim": "SQLite does a checkpoint automatically when the WAL file reaches a threshold size of 1000 pages by default. An SQLite database connection defaults to journal_mode equals DELETE. The PRAGMA journal_mode equals WAL setting in SQLite is persistent across closing and reopening the database.",
+  "A": {
+   "url": "https://sqlite.org/c3ref/wal_autocheckpoint.html",
+   "title": "Configure an auto-checkpoint",
+   "text": "- Every new database connection defaults to having the auto-checkpoint enabled with a threshold of 1000 or SQLITE_DEFAULT_WAL_AUTOCHECKPOINT pages."
+  },
+  "B": {
+   "url": "https://www.sqliteforum.com/p/checkpoint-algorithms-and-wal-performance",
+   "title": "SQLite WAL Checkpoints and Performance Tuning",
+   "text": "- By default, SQLite triggers a checkpoint after roughly 1000 WAL pages accumulate via PRAGMA wal_autocheckpoint = 1000;."
+  }
+ },
+ {
+  "id": "p060",
+  "claim": "Venus is the hottest planet in the Solar System",
+  "A": {
+   "url": "https://science.nasa.gov/resource/solar-system-temperatures/",
+   "title": "Solar System Temperatures - NASA Science",
+   "text": "- According to the NASA Planetary Fact Sheet, Venus is our solar system's hottest planet due to its proximity to the Sun and its dense atmosphere.\n- According to NASA, the mean temperature of Venus is 867°F (464°C).\n- According to NASA, the dense atmosphere of Venus acts as a greenhouse and heats the surface to above the melting point of lead."
+  },
+  "B": {
+   "url": "https://www.reddit.com/r/space/comments/1ep2gd/one_of_the_first_photos_of_the_surface_of_venus/",
+   "title": "Reddit",
+   "text": "The average temperature of the surface is around 460 degrees Celsius. The surface of the planet Venus, approximately 867°F/464°C"
+  }
+ },
+ {
+  "id": "p061",
+  "claim": "The Homestead Act of 1862 granted 160 acres of public land to settlers",
+  "A": {
+   "url": "https://www.loc.gov/item/today-in-history/may-20/?loclr=blogtea",
+   "title": "Today in History - May 20 - The Library of Congress",
+   "text": "The act provided settlers with 160 acres of surveyed public land after payment of a filing fee and five years of continuous residence. Designed to spur Western ..."
+  },
+  "B": {
+   "url": "https://legal-resources.uslegalforms.com/h/homestead-principle",
+   "title": "Homestead Principle: Understanding Land Ownership Rights",
+   "text": "- The homestead principle is a legal concept that allows individuals to claim ownership of unowned land or resources by using or improving them.\n- In the United States, the Homestead Act of 1862 exemplifies this principle, enabling eligible individuals to acquire up to 160 acres of land, provided they meet specific conditions related to settlement and improvement.\n- The Homestead Act of 1862 is the most significant statute related to the homestead principle in the United States.\n- Typical land size 160 acres\n- Eligibility age 21 years or head of a family\n- Duration of residence Typically five years"
+  }
+ },
+ {
+  "id": "p062",
+  "claim": "Most plastic waste in the ocean originates from a small number of rivers in Asia and Africa",
+  "A": {
+   "url": "https://ourworldindata.org/grapher/waste-items-ocean-region",
+   "title": "Most common items of waste in the ocean by region",
+   "text": "GDP per capita - Plastic exports to China by top 10 exporting countries - Plastic pollution versus plastic waste generation per person - Plastic waste accumulated in aquatic environments - Plastic waste accumulated in rivers and lakes - Plastic waste accumulated in the oceans - Plastic waste by disposal method with projectionsOECD - Plastic waste emitted to the ocean - Plastic waste emitted to the ocean per capita - Plastic waste emitted to the ocean per capita vs. GDP per capita - Plastic waste generation - Plastic waste generation by industrial sector - Plastic waste generation by region and industrial sector - Plastic waste generation by region and polymer - Plastic waste generation per capita - Plastic waste per capita imports vs. exports - Plastics collected in the Great Pacific Garbage Patch - Probability of mismanaged plastic waste being emitted to the ocean - Projections of plastic waste by disposal method - Rivers that contribute the most to ocean plastic pollution - Share of cumulative plastic exports by top ten exporters - Share of global mismanaged plastic waste - Share of global plastic waste emitted to the ocean - Share of global plastic waste imports - Share of plast"
+  },
+  "B": {
+   "url": "https://www.reddit.com/r/geography/comments/1mo7r0q/95_of_ocean_plastic_originates_from_these_10/",
+   "title": "95% of ocean plastic originates from these 10 rivers - Reddit",
+   "text": "These 10 rivers make up 95% of all plastic waste that comes into the ocean through rivers. ... This sounds fake, 90% of ocean plastic originates from africa and ..."
+  }
+ },
+ {
+  "id": "p063",
+  "claim": "The 2024 Atlantic hurricane season produced 18 named storms, of which Eleven became hurricanes.",
+  "A": {
+   "url": "https://www.noaa.gov/news-release/prediction-remains-on-track-for-above-normal-atlantic-hurricane-season",
+   "title": "Prediction remains on track for above-normal Atlantic hurricane ...",
+   "text": "In the Atlantic basin, a typical hurricane season will yield 14 named storms, of which seven become hurricanes and three become major hurricanes. The likelihood ..."
+  },
+  "B": {
+   "url": "https://apnews.com/article/tropical-storm-andrea-hurricane-atlantic-90911e66e84006d23fb82296144635fd",
+   "title": "Tropical Storm Andrea, first of Atlantic hurricane season, is quickly ...",
+   "text": "- But they don’t think it will be as chaotic as 2024, the third-costliest season on record as it spawned killer storms Beryl, Helene and Milton.\n- The National Oceanic and Atmospheric Administration’s forecast calls for 13 to 19 named storms with six to 10 becoming hurricanes and three to five reaching major status with winds of more than 110 mph (177 kph)."
+  }
+ },
+ {
+  "id": "p064",
+  "claim": "Extreme heat events are becoming more frequent in Europe due to climate change",
+  "A": {
+   "url": "https://www.canada.ca/en/environment-climate-change/news/2025/09/recent-canadian-heat-waves-made-much-more-likely-by-human-caused-climate-change.html",
+   "title": "Recent Canadian heat waves made much more likely by human ...",
+   "text": "Environment and Climate Change Canada is exploring how weather events—like heat waves, floods, and wildfires—are impacted by human-caused climate change."
+  },
+  "B": {
+   "url": "https://climateinstitute.ca/news/fact-sheet-climate-change-and-storms/",
+   "title": "FACT SHEET: Climate change and storms",
+   "text": "Climate change is increasing the intensity of extreme weather across the globe—including storms. Warmer global temperatures provide more energy to fuel storms ..."
+  }
+ },
+ {
+  "id": "p065",
+  "claim": "SQLite made the Write-Ahead Log option available beginning with version 3.7.0 on July 21, 2010",
+  "A": {
+   "url": "https://sqlite.org/capi3ref.html",
+   "title": "C/C++ Interface For SQLite Version 3",
+   "text": "The iVersion value started out as 1 in SQLite version 3.5.0 on 2007-09-04, then increased to 2 with SQLite version 3.7.0 on 2010-07-21, and then increased to 3 ..."
+  },
+  "B": {
+   "url": "https://wiki.tnonline.net/w/Blog/SQLite_Performance_on_Btrfs",
+   "title": "Blog/SQLite Performance on Btrfs",
+   "text": "- SQLite has since version 3.7.0 (2010-07-21) supported a new journaling mode called Write-Ahead Logging, or simply WAL."
+  }
+ },
+ {
+  "id": "p066",
+  "claim": "The James Webb Space Telescope has a 6.5-metre primary mirror and was launched in December 2021",
+  "A": {
+   "url": "https://science.nasa.gov/mission/webb/fact-sheet/",
+   "title": "Fact Sheet - NASA Science",
+   "text": "- Launch Date was December 25, 2021 07:20am EST.\n- Diameter of Primary Mirror is 6.5 m (21.3 ft) approximately."
+  },
+  "B": {
+   "url": "https://www.ebsco.com/research-starters/engineering/james-webb-space-telescope-jwst",
+   "title": "James Webb Space Telescope (JWST) | Engineering | Research Starters | EBSCOhost",
+   "text": "- The James Webb Space Telescope (JWST) is a space observatory launched by NASA in December 2021.\n- The JWST features a primary mirror measuring 21.3 feet (6.5 meters) across."
+  }
+ },
+ {
+  "id": "p067",
+  "claim": "Saudi Arabia will host the FIFA World Cup 2034",
+  "A": {
+   "url": "https://en.wikipedia.org/wiki/2034_FIFA_World_Cup_bids",
+   "title": "2034 FIFA World Cup bids",
+   "text": "The 2034 FIFA World Cup bidding process resulted in the Fédération Internationale de Football Association (FIFA) selecting Saudi Arabia as the host nation for the 2034 FIFA World Cup."
+  },
+  "B": {
+   "url": "https://www.espn.com/soccer/story/_/id/46763808/no-saudi-arabia-not-building-world-cup-stadium-top-skyscraper",
+   "title": "No, Saudi Arabia is not building a World Cup stadium on top ... - ESPN",
+   "text": "Saudi Arabia plan 350m high stadium for World Cup 2034 (2:03). Saudi Arabia have released a promotional video for their bid to host the 2034 FIFA World Cup."
+  }
+ },
+ {
+  "id": "p068",
+  "claim": "The Australian Institute of Marine Science attributed the event to sustained ocean heat anomalies",
+  "A": {
+   "url": "https://www.sciencedirect.com/science/article/pii/S1385110125000280",
+   "title": "Accelerated Ocean thermal expansion and its contribution to Global ...",
+   "text": "Fig. 1 illustrates the global sea surface temperature (SST) anomaly for 2023 compared to the 1961–2020 average, showing that SSTs in many regions exceeded ..."
+  },
+  "B": {
+   "url": "https://theconversation.com/institutions/australian-institute-of-marine-science-1086",
+   "title": "Australian Institute of Marine Science - The Conversation",
+   "text": "AIMS is a leader in tropical marine science. The Institute is consistently ranked among the top one per cent of specialist research institutions ..."
+  }
+ },
+ {
+  "id": "p069",
+  "claim": "The streak was the longest on record",
+  "A": {
+   "url": "https://www.extremeweatherwatch.com/cities/phoenix/yearly-days-of-100-degrees",
+   "title": "Number of Days of 100 °F in Phoenix by Year",
+   "text": "Based on NOAA records, the year 2020 holds the record for the most 100 °F days in Phoenix history. There were 145 days with a high temperature of at least ..."
+  },
+  "B": {
+   "url": "https://www.foxla.com/video/1250735",
+   "title": "Phoenix breaks record for longest heat wave | FOX 11 Los Angeles",
+   "text": "Phoenix breaks record for longest heat wave The city of Phoenix has seen temperatures of 110 or hotter for 19 straight days"
+  }
+ },
+ {
+  "id": "p070",
+  "claim": "Taking creatine supplements prevents Parkinson's disease.",
+  "A": {
+   "url": "https://journals.sagepub.com/doi/10.1177/1877718X261446386",
+   "title": "Dietary supplements for Parkinson's disease: State of the science",
+   "text": "However, evidence from clinical trials has consistently demonstrated no effect of creatine supplementation on PD progression. Bender and colleagues randomised ..."
+  },
+  "B": {
+   "url": "https://www.mdpi.com/2072-6643/14/5/921",
+   "title": "Effects of Creatine Supplementation on Brain Function and Health",
+   "text": "Effect of creatine monohydrate on clinical progression in patients with Parkinson disease: A randomized clinical trial. JAMA 2015, 313, 584 ..."
+  }
+ },
+ {
+  "id": "p071",
+  "claim": "Sweden had lower excess mortality in 2020-2022 than every other European country",
+  "A": {
+   "url": "https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/articles/comparingdifferentinternationalmeasuresofexcessmortality/2022-12-20",
+   "title": "Comparing different international measures of excess mortality - Office for National Statistics",
+   "text": "- According to the ONS, the five countries with the lowest cumulative excess mortality up to week 26 of 2022 were Denmark, Iceland, Luxembourg, Norway, and Sweden."
+  },
+  "B": {
+   "url": "https://www.preventionweb.net/news/did-swedens-controversial-covid-strategy-pay-many-ways-it-did-it-let-elderly-down",
+   "title": "Did Sweden’s controversial COVID strategy pay off? In many ways it did – but it let the elderly down",
+   "text": "- According to the article, although Sweden was hit hard by the first wave, its total excess deaths during the first two years of the pandemic were among the lowest in Europe."
+  }
+ },
+ {
+  "id": "p072",
+  "claim": "SQLite performs an automatic checkpoint by default when the WAL file reaches a threshold size of 1000 pages. An SQLite database connection defaults to journal_mode=DELETE. SQLite journal_mode=WAL setting is persistent across closing and reopening the database.",
+  "A": {
+   "url": "https://sqlite.org/c3ref/wal_autocheckpoint.html",
+   "title": "Configure an auto-checkpoint",
+   "text": "- According to SQLite, every new database connection defaults to having the auto-checkpoint enabled with a threshold of 1000 or SQLITE_DEFAULT_WAL_AUTOCHECKPOINT pages."
+  },
+  "B": {
+   "url": "https://coddy.tech/docs/sqlite/wal-mode-and-concurrency",
+   "title": "Runnable SQLite Docs: WAL & Concurrency | Coddy",
+   "text": "- The setting is persistent - it's stored in the database file header, so future connections automatically use WAL too.\n- SQLite checkpoints automatically when the WAL passes ~1000 pages (the default wal_autocheckpoint)."
+  }
+ },
+ {
+  "id": "p073",
+  "claim": "Voyager 1 entered interstellar space in August 2012",
+  "A": {
+   "url": "https://astro.cornell.edu/news/emptiness-space-voyager-1-detects-plasma-hum",
+   "title": "In the emptiness of space, Voyager 1 detects plasma 'hum'",
+   "text": "Travelling at about 38,000 mph, Voyager 1 crossed the heliopause in August 2012. After entering interstellar space, the spacecraft's Plasma ..."
+  },
+  "B": {
+   "url": "https://www.aaas.org/news/science-voyager-1-now-probing-unexplored-region-space",
+   "title": "Science: Voyager 1 Now Probing Unexplored Region of Space - AAAS",
+   "text": "... interstellar medium, researchers suggest that Voyager 1 arrived in this unexplored interstellar region on or about 25 August 2012. \"The holy grail of ..."
+  }
+ },
+ {
+  "id": "p074",
+  "claim": "Liz Truss's mini-budget occurred on 23 September 2022",
+  "A": {
+   "url": "https://www.cipp.org.uk/static/38ccda3a-f312-4756-8e40b2d6ca242530/Growth-Plan-Mini-budget-summary.pdf",
+   "title": "[PDF] Mini budget 2022 - CIPP (p. 2)",
+   "text": "The Chartered Institute of Payroll Professionals\n……………………………………………………………………………. Mini budget 2022\nCIPP summary of mini budget 2022\nFollowing the appointment of new prime minister, Liz Truss, on 6 September 2022, it was announced there\nwould be a ‘mini budget’ on 23 September 2022.  This would be deli..."
+  },
+  "B": {
+   "url": "https://www.sgllp.co.uk/mini-budget-23-september-2022/",
+   "title": "Mini-Budget 23 September 2022 - Simmons Gainsford",
+   "text": "Mini-Budget 23 September 2022 · A reduction in the Income Tax basic rate from 20% to 19%. · The abolition of the 45% additional Income Tax rate."
+  }
+ },
+ {
+  "id": "p075",
+  "claim": "The FDA granted full approval to the Pfizer-BioNTech COVID-19 vaccine for people aged 16 and over in August 2021",
+  "A": {
+   "url": "https://www.immunizationmanagers.org/content/uploads/2022/08/pfizer-full-approval-talking-points-082521.pdf",
+   "title": "[PDF] Full FDA Approval – Pfizer COVID-19 Vaccine Updated: Aug. 25, 2021 (p. 1)",
+   "text": "Full FDA Approval – Pfizer COVID-19 Vaccine Updated: Aug.  25, 2021\nThe FDA approved the Pfizer-BioNTech COVID-19 Vaccine for persons 16-years and older on\nAugust 23, 2021\n• The Pfizer-BioNTech vaccine will now be called Comirnaty for marketing purposes; it\nis the same vaccine, and no changes were m..."
+  },
+  "B": {
+   "url": "https://doi.org/10.1177/10600280211058387",
+   "title": "Finally, an FDA Approval for an Immunization Against COVID-19",
+   "text": "On August 23, 2021, the FDA-approved Pfizer-BioNTech COVID-19 Vaccine for the prevention of COVID-19 disease in individuals 16 years of age and ..."
+  }
+ },
+ {
+  "id": "p076",
+  "claim": "Venus is the hottest planet in the Solar System",
+  "A": {
+   "url": "https://science.nasa.gov/resource/solar-system-temperatures/",
+   "title": "Solar System Temperatures - NASA Science",
+   "text": "- According to the NASA Planetary Fact Sheet, Venus is our solar system's hottest planet due to its proximity to the Sun and its dense atmosphere.\n- According to NASA, the mean temperature of Venus is 867°F (464°C).\n- According to NASA, the dense atmosphere of Venus acts as a greenhouse and heats the surface to above the melting point of lead."
+  },
+  "B": {
+   "url": "https://www.reddit.com/r/explainlikeimfive/comments/f73z31/eli5_why_is_venus_the_hottest_planet_in_our_solar/",
+   "title": "Reddit",
+   "text": "Venus is hotter than Mercury because it has a much thicker atmosphere. The heat the atmosphere traps is called the greenhouse effect"
+  }
+ },
+ {
+  "id": "p077",
+  "claim": "President Franklin D. Roosevelt delivered his 'Day of Infamy' speech to a joint session of Congress on December 8, 1941",
+  "A": {
+   "url": "https://www.loc.gov/resource/sn82014085/1945-12-08/ed-1/?sp=7&q=president+franklin+d.+roosevelt+delivered+his+%27day+of+infamy%27+speech+to+a+joint+session+of+congress+on+december+8%2C+1941",
+   "title": "Image 7 of The Waterbury Democrat (Waterbury, Conn.), December 8, 1945",
+   "text": "Pearl Harbor Events Topics of Discussion VFW Members to Celebrate Vindication of Infamous Attack With Military Social Function The fourth anniversary of Pearl Harbor yesterday was quietly ob served throughout the city Free movie day offering free admission to bondbuyers was the only event marking the beginning of World War n as far as could be ascer tained Tonight the Wheeler Young post Veterans of Foreign Wars will sponsor a Pearl Harbor day mili tary ball at Temple hall to mark the victorious vindication of the infamous attack on the peaceful port In the Hawaiian Islands on De cember 7 1941 Late Presidents Voice The voice of the late President Franklin D Roosevelt delivering his historic day of Infamy speech before the Joint session of Congress December 8 was broadcast several times yesterday In connection with bond sales appeal As the wellre membered voice was broadcast once again people everywhere looked back on the four chaotic years of the war Particularly Im pressing were the closing words of the message to Congress of the great leader who knew no fear With confidence In our armed forces with unbounding determination of our people we will gain the inevit able triumphso help"
+  },
+  "B": {
+   "url": "https://www.arkansasonline.com/news/2025/dec/07/84-years-ago-remembering-the-day-of-infamy-famous/",
+   "title": "84 years ago: Remembering the day of infamy — famous speech ...",
+   "text": "7, 1941, the headline of a story in the Arkansas Gazette proclaimed: \"Main Street in Holiday Attire for Christmas"
+  }
+ },
+ {
+  "id": "p078",
+  "claim": "SQLite does a checkpoint automatically by default when the WAL file reaches a threshold size of 1000 pages. An SQLite database connection defaults to journal_mode=DELETE.",
+  "A": {
+   "url": "https://sqlite.org/forum/info/6a562df53960ed0b9ce336f64be16102a0847fcac707fef527ce85d856bd5c51",
+   "title": "SQLite User Forum: [ENOTABUG] Bug report: default journal_mode seems to delete journal without checking status",
+   "text": "- According to Gravis, the default journal_mode (DELETE?) will delete the journal while it's still needed if the status is SQLITE_BUSY.\n- According to Dan Kennedy, if the journal mode is DELETE, then the journal should be deleted at the end of every transaction."
+  },
+  "B": {
+   "url": "https://news.ycombinator.com/item?id=45781519",
+   "title": "In SQLite, transactions by default start in “deferred” mode. This ...",
+   "text": "The default is DELETE mode, where the rollback journal is deleted at the conclusion of each transaction."
+  }
+ },
+ {
+  "id": "p079",
+  "claim": "The UK left the EU on 31 January 2020 but remained in the single market and customs union until 31 December 2020.",
+  "A": {
+   "url": "https://commonslibrary.parliament.uk/research-briefings/cbp-7960/",
+   "title": "Brexit timeline: events leading to the UK’s exit from the European Union",
+   "text": "At 11pm on 31 January 2020, the UK left the EU and entered a transition period. At 11pm on 31 December 2020, the transition period ended and ..."
+  },
+  "B": {
+   "url": "https://www.bbc.co.uk/bitesize/guides/zjyhbdm/revision/1",
+   "title": "The UK and the European Union - The UK's decision to leave the EU - Higher Modern Studies Revision - BBC Bitesize",
+   "text": "- The UK left the EU on the 31st January 2020 and the transition period finished on the 31st December 2020."
+  }
+ },
+ {
+  "id": "p080",
+  "claim": "The James Webb Space Telescope has a 6.5-metre primary mirror and was launched in December 2021",
+  "A": {
+   "url": "https://www.asc-csa.gc.ca/eng/satellites/jwst/about.asp",
+   "title": "About the James Webb Space Telescope",
+   "text": "- Webb's primary mirror is 6.5 metres wide, making Webb the largest space-based telescope ever built."
+  },
+  "B": {
+   "url": "https://www.ebsco.com/research-starters/engineering/james-webb-space-telescope-jwst",
+   "title": "James Webb Space Telescope (JWST) | Engineering | Research Starters | EBSCOhost",
+   "text": "- The James Webb Space Telescope (JWST) is a space observatory launched by NASA in December 2021.\n- The JWST features a primary mirror measuring 21.3 feet (6.5 meters) across."
+  }
+ }
+]
