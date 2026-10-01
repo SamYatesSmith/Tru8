@@ -5,6 +5,7 @@ import { UsageCard } from './components/usage-card';
 import { QuickActionCard } from './components/quick-action-card';
 import { RecentChecksList } from './components/recent-checks-list';
 import { UserInsightsCard } from './components/user-insights-card';
+import { HeardAboutCard } from './components/heard-about-card';
 
 // Force dynamic rendering - prevents Next.js from caching this page
 export const dynamic = 'force-dynamic';
@@ -14,6 +15,7 @@ interface User {
   name: string | null;
   email: string;
   credits: number;
+  heardAbout?: string | null;
 }
 
 interface Subscription {
@@ -75,6 +77,9 @@ export default async function DashboardPage({
         usage={{ periodCreditsUsed: periodUsage, creditsPerPeriod: creditsLimit }}
         isFreeUser={isFreeUser}
       />
+
+      {/* Optional, asked once: null means not yet answered or skipped */}
+      {user.heardAbout === null && <HeardAboutCard />}
 
       {/* Success/Cancellation Messages */}
       {isUpgraded && (

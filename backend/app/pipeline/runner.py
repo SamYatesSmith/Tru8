@@ -3598,5 +3598,13 @@ async def send_success_notifications(
     except Exception as e:
         logger.warning(f"Failed to queue trial-exhausted email: {e}")
 
+    # Funnel: activation (ACE Stage 4). Server-side, cookieless, detached.
+    try:
+        from app.services.product_analytics import schedule_check_completed
+
+        schedule_check_completed(user_id, check_id)
+    except Exception as e:
+        logger.warning(f"Failed to queue check_completed analytics: {e}")
+
 
 # reload trigger

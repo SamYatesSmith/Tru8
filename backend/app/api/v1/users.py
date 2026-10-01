@@ -157,6 +157,8 @@ async def get_profile(
             "failedChecks": len([c for c in checks if c.status == "failed"]),
         },
         "createdAt": user.created_at.isoformat(),
+        # NULL = not yet asked; the dashboard first run asks once.
+        "heardAbout": user.heard_about,
     }
 
 
@@ -524,6 +526,56 @@ async def record_signup_source(
     recorded = result.rowcount == 1
     if recorded:
         logger.info(f"Signup source recorded: {source} (user {user.id})")
+    return {"recorded": recorded, "reason": None if recorded else "already_set"}
+
+
+class HeardAboutRequest(BaseModel):
+    answer: str
+    detail: str | None = None
+
+
+@router.post("/heard-about")
+async def record_heard_about(
+    request: HeardAboutRequest,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Record the self-reported "How did you hear about us?" (2026-10-01).
+
+    Write-once, like signup-source: a conditional UPDATE lands only while
+    ``heard_about`` is NULL, and "skipped" counts as an answer so the question
+    is never asked twice. Refusals are 200s with ``recorded: false``.
+    """
+    from app.core.attribution import normalise_heard_about
+
+    parsed = normalise_heard_about(request.answer, request.detail)
+    if parsed is None:
+        return {"recorded": False, "reason": "invalid_answer"}
+    answer, detail = parsed
+
+    user = await get_or_create_user(session, current_user)
+    if user.heard_about is not None:
+        return {"recorded": False, "reason": "already_set"}
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    result = await session.execute(
+        text(
+            'UPDATE "user" SET heard_about = :answer, heard_about_detail = :detail, '
+            "heard_about_at = :now WHERE id = :user_id AND heard_about IS NULL"
+        ),
+        {"answer": answer, "detail": detail, "now": now, "user_id": user.id},
+    )
+    await session.commit()
+    recorded = result.rowcount == 1
+    if recorded and answer != "skipped":
+        from app.services.product_analytics import schedule_event
+
+        schedule_event(
+            "heard_about_answered",
+            user.id,
+            {"answer": answer},
+            dedup_key=user.id,
+        )
     return {"recorded": recorded, "reason": None if recorded else "already_set"}
 
 

@@ -41,6 +41,15 @@ class User(SQLModel, table=True):
     signup_source: Optional[str] = Field(default=None, max_length=64, index=True)
     signup_source_at: Optional[datetime] = Field(default=None)
 
+    # Self-reported "How did you hear about us?" (2026-10-01, ACE Stage 4).
+    # Asked once, optionally, on the dashboard first run. `?src=` above is
+    # empty for word-of-mouth arrivals, which at this stage is most of them.
+    # A code from app.core.attribution.HEARD_ABOUT_CODES, or "skipped"; NULL
+    # means not yet asked. `heard_about_detail` holds the "other" free text.
+    heard_about: Optional[str] = Field(default=None, max_length=32, index=True)
+    heard_about_detail: Optional[str] = Field(default=None, max_length=200)
+    heard_about_at: Optional[datetime] = Field(default=None)
+
     # Lifecycle (funnel) emails: welcome on first arrival, trial exhausted.
     # Separate from email_marketing, which defaults False — gating on that
     # would ship the feature dark for everyone.

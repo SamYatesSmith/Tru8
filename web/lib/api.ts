@@ -118,6 +118,19 @@ class ApiClient {
   }
 
   /**
+   * POST /api/v1/users/heard-about
+   * The optional "How did you hear about us?" answer. Write-once; "skipped"
+   * counts as an answer. Refusals come back as 200 {recorded:false}.
+   */
+  async recordHeardAbout(answer: string, detail?: string | null, token?: string | null) {
+    return this.request<{ recorded: boolean; reason: string | null }>(
+      '/api/v1/users/heard-about',
+      { method: 'POST', body: JSON.stringify({ answer, detail: detail ?? null }) },
+      token
+    );
+  }
+
+  /**
    * GET /api/v1/users/stats
    * Returns aggregated user statistics for dashboard insights
    */

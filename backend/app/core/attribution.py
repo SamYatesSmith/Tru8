@@ -37,3 +37,34 @@ def normalise_signup_source(raw: object) -> str | None:
 def attribution_window_open(created_at: datetime, now: datetime) -> bool:
     """True while a signup source may still be recorded for this account."""
     return (now - created_at) <= ATTRIBUTION_WINDOW
+
+
+# Self-reported "How did you hear about us?" (2026-10-01). The codes are
+# stored; the labels are the frontend's. "skipped" records a dismissal so the
+# question is never asked twice.
+HEARD_ABOUT_CODES = frozenset(
+    {
+        "search",
+        "ai_assistant",
+        "bluesky",
+        "linkedin",
+        "newsletter",
+        "colleague",
+        "shared_record",
+        "mcp_directory",
+        "other",
+        "skipped",
+    }
+)
+HEARD_ABOUT_DETAIL_MAX = 200
+
+
+def normalise_heard_about(answer: object, detail: object) -> tuple | None:
+    """(code, detail) for a valid answer, else None. Detail is kept only for
+    "other", trimmed, control characters removed, capped."""
+    if not isinstance(answer, str) or answer not in HEARD_ABOUT_CODES:
+        return None
+    if answer != "other" or not isinstance(detail, str):
+        return answer, None
+    clean = "".join(ch for ch in detail if ch.isprintable()).strip()
+    return answer, (clean[:HEARD_ABOUT_DETAIL_MAX] or None)

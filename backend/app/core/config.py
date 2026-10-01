@@ -195,6 +195,8 @@ class Settings(BaseSettings):
     # Monitoring
     SENTRY_DSN: str = Field("", env="SENTRY_DSN")
     POSTHOG_API_KEY: str = Field("", env="POSTHOG_API_KEY")
+    # Must match the web app's NEXT_PUBLIC_POSTHOG_HOST (EU cloud).
+    POSTHOG_HOST: str = Field("https://eu.i.posthog.com", env="POSTHOG_HOST")
     OTLP_ENDPOINT: str = Field(
         "", env="OTLP_ENDPOINT"
     )  # OpenTelemetry collector endpoint (e.g., http://localhost:4317)

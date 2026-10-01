@@ -5,6 +5,7 @@ from app.core.database import get_session
 from app.core.auth import get_current_user
 from app.core.config import settings
 from app.models import User, Subscription
+from app.services.product_analytics import schedule_event
 from pydantic import BaseModel
 from typing import Optional
 import stripe
@@ -284,6 +285,12 @@ async def handle_agent_credit_purchase(session_data: dict, session: AsyncSession
     logger.info(
         f"Agent credit purchase: user={user_id}, pack={pack}, added={pence_value}p"
     )
+    schedule_event(
+        "credits_purchased",
+        user_id,
+        {"pack": pack, "pence": pence_value},
+        dedup_key=session_data.get("id") or f"{user_id}:{pack}:{pence_value}",
+    )
 
 
 async def handle_successful_payment(session_data: dict, session: AsyncSession):
@@ -383,6 +390,16 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
 
     await session.commit()
     logger.info(f"Successfully processed payment for user {user_id}, plan: {plan}")
+    schedule_event(
+        "subscription_started",
+        user_id,
+        {
+            "plan": plan,
+            "interval": _interval_from_subscription(stripe_subscription),
+            "new_subscription": existing_subscription is None,
+        },
+        dedup_key=session_data.get("id") or stripe_subscription_id,
+    )
 
 
 def _plan_from_price_id(price_id: str):
