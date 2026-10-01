@@ -12,7 +12,10 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## ▶ 2026-09-30 (late) — ECHO SAFETY FIX BUILT, NOT PUSHED (START HERE)
+## ▶ 2026-10-01 — ECHO SAFETY FIX DEPLOYED (`1b6a6a3` + cassette `c085894`) (START HERE)
+5647 re-recorded (`--record-missing`, ~1p): replays 19/5/1, its baseline. `--all` = 158/13/11/5 + 82CF drift only (93DD did not drift this run). Production healthy on `c085894`. Open: TRU-C1A0-0004 `jaccard:domain_set` 0.17 "likely regression" is not in the README's attributed list; its cassette and code are unchanged since 30 Sep, so it is not the echo fix. Attributed: same class as the 2026-08-13 "0004 `domain_set` 0.22 = record-time drift". The golden domain set dates from 10 Sep, and the cassette has been re-recorded five times since (Build C changed which pages get fetched). The pool itself is healthy: 12 unique domains, top share 0.08, every v3 floor passes. A fresh golden capture would clear it. That is optional, and it needs the curated pins restored.
+
+## 2026-09-30 (late) — ECHO SAFETY FIX BUILT, NOT PUSHED
 **Record: `audit/2026-09-30_echo_link_design.md` §8–9; review `audit/2026-09-30_echo_link_review.md`.** S4 (duplicates/echo) is the most common soft fail (11/19) but has six mechanisms; the figure-relay design covers two records and was held. Founder chose "safety holes first": a side can no longer lose an original and every copy of it (echo runs after the other gates over all refs; copies orphaned by the relationship review are restored, then reviewed themselves; undone if that review fails). Review H2 (any original) built, measured, **backed out** (weak date-only links on 0004). Unit 4,326 pass; 10/10 mutants killed; bench = baseline except **5647, which drifts by one intended request** (the restored copy's own review) and needs one `--record-missing` pass (paid, awaiting approval). Then push.
 - **Next S4 candidates:** URL tracking-parameter duplicates (#5/#12/#14, difficulty 1–2) · measure the link detector's precision before any widening (§6 control arm).
 
