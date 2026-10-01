@@ -766,6 +766,12 @@ class Settings(BaseSettings):
     # until a model-confirmed link is designed and evaluated.
     # Record: audit/2026-10-01_echo_link_precision.md.
     ENABLE_ECHO_SCOPE_GATE: bool = Field(False, env="ENABLE_ECHO_SCOPE_GATE")
+    # Derivation chains (post-classify `annotate_derivation_chains`): the
+    # primary -> re-reporter links behind the grey "echo" sourcing note and
+    # the echo gate. OFF 2026-10-01 (founder) for the same measured reason:
+    # 24% of links are real relays. With chains off, neither the note nor the
+    # gate can fire. Unrelated: F4 repetition clusters (shingle-based) stay on.
+    ENABLE_DERIVATION_CHAINS: bool = Field(False, env="ENABLE_DERIVATION_CHAINS")
 
     # Unreadable-text floor (A− M2, 2026-09-24). A directional ref whose source
     # text is a JavaScript/login wall or an empty shell becomes `context` with a

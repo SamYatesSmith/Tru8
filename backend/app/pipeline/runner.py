@@ -1265,6 +1265,41 @@ async def run_pipeline_phase1(
     )
 
 
+def annotate_post_classify_structure(evidence: Dict[str, List[Dict[str, Any]]]) -> None:
+    """Derivation chains (flagged) and F4 repetition clusters, after classify.
+
+    Both need tiers. Chains are OFF by default since 2026-10-01
+    (`ENABLE_DERIVATION_CHAINS`, audit/2026-10-01_echo_link_precision.md);
+    when off, any chain an earlier pass wrote is removed so neither the echo
+    note nor the echo gate can read one."""
+    from app.utils.corroboration import (
+        annotate_derivation_chains,
+        annotate_repetition_clusters,
+    )
+
+    total_chains = 0
+    total_repetition = 0
+    write_chains = getattr(settings, "ENABLE_DERIVATION_CHAINS", False)
+    for ev_list in evidence.values():
+        if write_chains:
+            total_chains += annotate_derivation_chains(ev_list)
+        else:
+            # Off: no item may carry a chain from any earlier pass, or
+            # the echo note and gate would read it anyway.
+            for ev in ev_list:
+                ev.pop("derivation_chain", None)
+        # F4: unanchored talking-point repetition — same seam, needs tiers.
+        total_repetition += annotate_repetition_clusters(ev_list)
+    if total_chains:
+        logger.info(
+            f"[DERIVATION] Wrote {total_chains} derivation chain(s) post-classify"
+        )
+    if total_repetition:
+        logger.info(
+            f"[REPETITION] Wrote {total_repetition} unanchored cluster(s) post-classify"
+        )
+
+
 @metered  # counts every billable search query this check issues
 async def run_pipeline_phase2(
     check_id: str,
@@ -2304,25 +2339,7 @@ async def run_pipeline_phase2(
     # runs before tiers exist, so its chain step no-ops; this writes the chains
     # that feed the per-element basis. Same in-memory objects flow to analyze.
     if evidence:
-        from app.utils.corroboration import (
-            annotate_derivation_chains,
-            annotate_repetition_clusters,
-        )
-
-        total_chains = 0
-        total_repetition = 0
-        for ev_list in evidence.values():
-            total_chains += annotate_derivation_chains(ev_list)
-            # F4: unanchored talking-point repetition — same seam, needs tiers.
-            total_repetition += annotate_repetition_clusters(ev_list)
-        if total_chains:
-            logger.info(
-                f"[DERIVATION] Wrote {total_chains} derivation chain(s) post-classify"
-            )
-        if total_repetition:
-            logger.info(
-                f"[REPETITION] Wrote {total_repetition} unanchored cluster(s) post-classify"
-            )
+        annotate_post_classify_structure(evidence)
 
     article_excerpt = content.get("content", "")[:5000]
 
