@@ -15,6 +15,15 @@
 ## ▶ 2026-10-01 — ECHO SAFETY FIX DEPLOYED (`1b6a6a3` + cassette `c085894`) (START HERE)
 5647 re-recorded (`--record-missing`, ~1p): replays 19/5/1, its baseline. `--all` = 158/13/11/5 + 82CF drift only (93DD did not drift this run). Production healthy on `c085894`. Open: TRU-C1A0-0004 `jaccard:domain_set` 0.17 "likely regression" is not in the README's attributed list; its cassette and code are unchanged since 30 Sep, so it is not the echo fix. Attributed: same class as the 2026-08-13 "0004 `domain_set` 0.22 = record-time drift". The golden domain set dates from 10 Sep, and the cassette has been re-recorded five times since (Build C changed which pages get fetched). The pool itself is healthy: 12 unique domains, top share 0.08, every v3 floor passes. A fresh golden capture would clear it. That is optional, and it needs the curated pins restored.
 
+## 2026-10-01 — OUTREACH LAW (from the ACE session, founder signed off)
+UK PECR / GDPR rules: `C:/Users/projects/Autonomous-Commercialisation-Engine-ACE-/ace/uk-outreach-rules.md`.
+- Sole traders and ordinary partnerships, which covers most freelance journalists and Substack writers, are individual subscribers. Cold marketing to them needs prior consent.
+- Substack and Bluesky DMs count as electronic mail. A "free record, no ask" note is still marketing.
+- Work addresses at companies, LLPs, universities and public bodies are fine with sender identity, an opt-out, and Article 14 information in the first message.
+- **Before any send resumes:** check the 667-contact list and the 16 Sep Substack DM against these rules.
+
+ACE Stage 4 plumbing (preview deploy, activation and paid events, read-only Stripe key, self-reported source): status and plan sent to the ACE session. Nothing built.
+
 ## ▶ 2026-10-01 — ECHO LINK PRECISION MEASURED: 24–32% (START HERE)
 **Record: `audit/2026-10-01_echo_link_precision.md`.** Blind labels (free, local pools). Of 80 chain pairs, 19 are real relays. Of 41 pairs the echo gate actually scoped, 12 are relays, 26 independent and 3 unclear. The live gate hides about two independent sources for every copy. No mechanical threshold fixes both samples. **Founder chose option 3:** the gate is OFF by default now (`ENABLE_ECHO_SCOPE_GATE=False`). Its tests pin it on so it stays tested. Three cassettes were patched (`--record-missing`, ~5p): the relationship review now sees supports the gate used to remove. Bench 158/13/11/5 + 82CF. **Next:** design a model-confirmed link (difficulty 3: design, review, held-out eval, then switch on). **The grey "echo" note is OFF too (founder, same day):** `ENABLE_DERIVATION_CHAINS=False` stops the post-classify chains (`runner.annotate_post_classify_structure`, now testable), so neither the note nor the gate can fire. F4 repetition stays on. Bench unchanged. Both flags return together with the model-confirmed link.
 
