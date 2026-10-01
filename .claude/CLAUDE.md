@@ -28,7 +28,7 @@ AI-powered evidence research platform. Users submit a URL or claim, the pipeline
 ## Where the reasoning lives (changed 2026-07-27)
 `audit/` is now **TRACKED** (`a003759`) — 50 live docs including `audit/OPEN_WORK.md` (single
 source of truth for what is open NOW; edit it FIRST on every ship) and
-`audit/DECOUPLING_STATE.md` (SOT for the decoupling track). It was gitignored since
+`audit/DECOUPLING_STATE.md` (SOT for the decoupling track). **Feature flags: `audit/FLAGS.md`** (generated from `config.py` by `python -m scripts.flag_register`; a unit test fails when it is stale — regenerate in the same commit as any flag change). It was gitignored since
 inception, so design reasoning never travelled with the commits it explained. Still
 untracked by choice: `audit/_archive/` (230 retired docs — history, never resurrect as a live
 plan) and the outreach contact map (third-party personal data).
