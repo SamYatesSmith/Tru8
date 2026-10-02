@@ -22,7 +22,7 @@ UK PECR / GDPR rules: `C:/Users/projects/Autonomous-Commercialisation-Engine-ACE
 - Work addresses at companies, LLPs, universities and public bodies are fine with sender identity, an opt-out, and Article 14 information in the first message.
 - **Before any send resumes:** check the 667-contact list and the 16 Sep Substack DM against these rules.
 
-ACE Stage 4: founder approved items 2 and 4. **BUILT, committed locally, NOT deployed** (awaits founder review):
+ACE Stage 4: founder approved items 2 and 4. **DEPLOYED 2026-10-02 (`6b044bb`; health reports it, `alembic current` = `heard_about (head)`; `POSTHOG_API_KEY` set on the backend by the founder):**
 - **Analytics** (`app/services/product_analytics.py`): `check_completed` (`first`, `completed_checks`) from `send_success_notifications`, plus `subscription_started` / `credits_purchased` from the Stripe webhook after commit. Server-side and keyed by Clerk user id; a deterministic `uuid` makes retries ingest once. A no-op until `POSTHOG_API_KEY` is set on Railway (`POSTHOG_HOST` defaults to EU). Agent-API completions are not counted (they do not pass through `send_success_notifications`).
 - **"How did you hear about us?"**: `User.heard_about` / `heard_about_detail` / `heard_about_at` (migration `heard_about`), `POST /users/heard-about` (write-once; "skipped" counts as an answer), `heardAbout` on `/users/profile`, `HeardAboutCard` on the dashboard while `heardAbout === null`. Only the code reaches PostHog (`heard_about_answered`); the "other" free text stays in the DB.
 - Items 1 (local preview) and 3 (Stripe key, founder creates) need no build.
