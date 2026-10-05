@@ -1970,6 +1970,55 @@ async def run_pipeline_phase2(
         ).total_seconds()
 
     # =========================================================================
+    # Source-text capture, moved before post-filter recovery (2026-10-05,
+    # cited-source lane design rev 2.1 §12.8): the lane and its name call read
+    # the stored text (`text_provenance`), so it must exist before they run.
+    # Capture is idempotent; items without `_full_text` (post-filter recovery,
+    # snippet fallbacks) are skipped, as before.
+    # =========================================================================
+    from app.services.originator_review import copy_page_opening
+    from app.services.text_provenance import capture_text_provenance
+
+    from app.services import echo_link_confirmation as _elc
+
+    _echo_on = _elc.should_run()
+
+    def _capture_source_text() -> None:
+        for claim in selected_claims:
+            for item in (evidence or {}).get(str(claim.get("position", 0)), []):
+                copy_page_opening(item)
+                if _echo_on:
+                    # Claim-independent verbatim text for echo link
+                    # confirmation, before distil pops `_full_text`.
+                    _elc.copy_page_opening(item)
+                capture_text_provenance(
+                    item,
+                    claim.get("text", ""),
+                    (claim.get("claim_map") or {}).get(
+                        "elements", claim.get("elements", [])
+                    ),
+                )
+
+    _capture_source_text()
+
+    # Cited-source lane, step 1 (names), started beside post-filter recovery:
+    # it reads only the text captured above (design rev 2 M2).
+    from app.services import cited_source as _cs
+
+    _cs_on = (
+        _cs.enabled()
+        and bool(evidence)
+        and not _is_frozen_evidence_replay
+        and config.mode != "quick"
+    )
+    _cs_started = datetime.now(timezone.utc)
+    _cs_names_task = (
+        asyncio.ensure_future(_cs.name_cited_sources_default(selected_claims, evidence))
+        if _cs_on
+        else None
+    )
+
+    # =========================================================================
     # Stage 3.8: Post-Filter Recovery — backfill claims thinned by scoring
     # =========================================================================
     MIN_EVIDENCE_POST_FILTER = settings.MIN_EVIDENCE_POST_FILTER
@@ -2111,32 +2160,43 @@ async def run_pipeline_phase2(
                 datetime.now(timezone.utc) - stage_start
             ).total_seconds()
 
+    # Cited-source lane, step 2 (follow the names). Skipped tiers and replays
+    # leave a receipt; any fault leaves no lane items, never a failed check.
+    _cs_claim_maps = {
+        str(c.get("position", 0)): c["claim_map"]
+        for c in selected_claims
+        if isinstance(c.get("claim_map"), dict)
+    }
+    if _cs_names_task is not None:
+        try:
+            await _cs.follow_for_check(
+                selected_claims, evidence, _cs_claim_maps, _cs_names_task, source_url
+            )
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            logger.warning(f"[CITED SOURCE] lane failed (non-critical): {e}")
+            _cs.skip(_cs_claim_maps, "failed")
+        finally:
+            if not _cs_names_task.done():
+                _cs_names_task.cancel()
+        stage_timings["cited_source"] = (
+            datetime.now(timezone.utc) - _cs_started
+        ).total_seconds()
+    elif _cs.enabled() and evidence:
+        _cs.skip(
+            _cs_claim_maps,
+            "frozen_replay" if _is_frozen_evidence_replay else "quick_tier",
+        )
+
     # =========================================================================
     # Stage 4.5 + 4.6: Classification + Distillation (run concurrently)
     # =========================================================================
-    from app.services.originator_review import copy_page_opening
-    from app.services.text_provenance import (
-        capture_text_provenance,
-        finalize_distilled_payload,
-    )
+    from app.services.text_provenance import finalize_distilled_payload
 
-    from app.services import echo_link_confirmation as _elc
-
-    _echo_on = _elc.should_run()
-    for claim in selected_claims:
-        for item in (evidence or {}).get(str(claim.get("position", 0)), []):
-            copy_page_opening(item)
-            if _echo_on:
-                # Claim-independent verbatim text for echo link confirmation,
-                # before distil pops `_full_text` (plan rev 2 H1 of 2026-10-01).
-                _elc.copy_page_opening(item)
-            capture_text_provenance(
-                item,
-                claim.get("text", ""),
-                (claim.get("claim_map") or {}).get(
-                    "elements", claim.get("elements", [])
-                ),
-            )
+    # Idempotent: catches items added since the first capture (the cited-source
+    # lane's), and is a no-op on items already captured.
+    _capture_source_text()
     _run_classify = not _is_frozen_evidence_replay and bool(evidence)
     _run_distil = (
         not _is_frozen_evidence_replay

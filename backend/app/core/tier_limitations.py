@@ -96,4 +96,10 @@ def limitations_for_tier(tier: Optional[str]) -> List[str]:
 
     if should_run():
         out.append("no_echo_link_confirmation")
+    # The cited-source lane (2026-10-05) is skipped on quick for the same
+    # reason and declared on the same terms.
+    from app.services.cited_source import enabled as cited_source_on
+
+    if cited_source_on():
+        out.append("no_cited_source_lane")
     return sorted(out)

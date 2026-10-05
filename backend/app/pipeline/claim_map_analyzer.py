@@ -3174,7 +3174,26 @@ class ClaimMapAnalyzer:
             _metadata.get("subject_kinds"),
         )
 
-        if subjects and getattr(settings, "ENABLE_INTERESTED_PARTY_GATE", True):
+        # Cited-source lane (2026-10-05, design rev 2 §11.5 / rev 2.1 R1): a
+        # page the lane fetched because the pool cites the body's OWN statement
+        # or filing carries `interested_subject`. That body is an interested
+        # party for THAT item only, on top of the claim's subjects. A release
+        # the claim earned (`released_subjects`) still wins.
+        def _item_subjects(item: "_IndexedEvidence", _s=subjects) -> List[str]:
+            extra = ((item.ev.get("metadata") or {}).get("cited_source") or {}).get(
+                "interested_subject"
+            )
+            return _s + [extra] if extra and extra not in _s else _s
+
+        _lane_subjects = any(
+            ((it.ev.get("metadata") or {}).get("cited_source") or {}).get(
+                "interested_subject"
+            )
+            for it in (ev_index or {}).values()
+        )
+        if (subjects or _lane_subjects) and getattr(
+            settings, "ENABLE_INTERESTED_PARTY_GATE", True
+        ):
             gates.append(
                 _ScopeGate(
                     key="interested_party",
@@ -3188,12 +3207,12 @@ class ClaimMapAnalyzer:
                             else {}
                         ),
                     },
-                    fires=lambda item, _ref, _s=subjects, _r=_released: interested_party_match(
-                        _s, item.ev.get("url"), _r
+                    fires=lambda item, _ref, _r=_released: interested_party_match(
+                        _item_subjects(item), item.ev.get("url"), _r
                     )
                     is not None,
-                    entry=lambda item, _ref, _s=subjects, _r=_released: interested_party_match(
-                        _s, item.ev.get("url"), _r
+                    entry=lambda item, _ref, _r=_released: interested_party_match(
+                        _item_subjects(item), item.ev.get("url"), _r
                     )
                     or {},
                 )

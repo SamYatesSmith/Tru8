@@ -12,7 +12,13 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## ▶ 2026-10-05 — ECHO LINK CONFIRMATION: EVALUATED, WIRED, FLAG OFF (START HERE)
+## ▶ 2026-10-05 (late) — H3 CITED-SOURCE LANE: DESIGN IN REVIEW (START HERE)
+- **Design:** `audit/2026-10-05_cited_source_lane_design.md` (rev 1). Review: `…_design_review.md`, running.
+- **Evidence:** the pooled copies NAME the missing original on 4 of the 6 H3 failures (#1 Telegraph, #6 Bloomberg, #15 NHS England, #17 EFFIS). A search built from that name returned the original at rank 1–2 on 5/5. #4 needed a German query. Probe ≈ 1p (`audit/cited_source/`).
+- **Plan:** one model call names the cited originals, guarded by verbatim cue and name checks. That is followed by ≤ 3 queries per claim through the normal fetch path, plus a gap note when the original is still not found (that alone turns H3 from hard to soft). Mechanical-only extraction was tested and is too noisy.
+- **Parked (founder 2026-10-05):** the decomposition rule for a total shared across conjoined places ("23 reefs … on the Porcupine Bank … and in the Bay of Biscay" → e1 "23 at Porcupine Bank"). Found on 1 of 465 stored claims (`audit/shared_total/`). Bundle it as a one-line `DECOMPOSITION_PROMPT` rule with the next decomposition change, to share the cassette re-record.
+
+## 2026-10-05 — ECHO LINK CONFIRMATION: EVALUATED, WIRED, FLAG OFF
 **Records:** plan + rev 2 + eval result `audit/2026-10-05_echo_link_confirmation_build_plan.md` (§11–12); plan review `…_build_plan_review.md`; verification `…_verification.md`.
 - **Held-out eval (founder-approved, ≈ £0.72 in total):**
   - **Data:** 248 pairs from 87 checks (local plus a read-only production export), blind-labelled by six fresh agents.
