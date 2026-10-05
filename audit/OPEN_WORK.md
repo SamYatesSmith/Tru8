@@ -26,7 +26,10 @@
   - Strengthen rebuilds the links from `metadata.echo_links`. Frozen replay skips with a receipt. Pairs are deduplicated per check. The legacy unconfirmed path is removed.
   - The stage also runs on the quick tier.
   - Tests: 4,457 unit tests pass; module 19/19 and seam 14/14 mutants killed.
-- **Next:**
+- **UPDATE (same day): committed `0d3f87f` (+ cassettes). The push was blocked by the auto-mode classifier, so the founder must push.** The flag-on bench and two live checks (plan §14) found it safe: 3/3 confirmations correct. **But there was no visible effect:** the gate fires only when the original is counted on the same side, and in practice it usually is not (A− #8's pattern). **NOT switched on.** Pending founder choice:
+  - (1) a "copies count once" rule (design first);
+  - (2) the new decomposition fault first. A true claim (`676ffb49`, Galway) read `disputed`: a shared total was split across conjoined places.
+- **Next (superseded by the update above):**
   1. The independent verifier's findings.
   2. Bench `--all` with the flags off must equal the baseline.
   3. Commit.

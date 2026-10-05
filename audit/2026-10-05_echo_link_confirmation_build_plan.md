@@ -157,3 +157,25 @@ The founder's instruction was "whatever's logical". The logical course is a safe
   - Echo tokens share the analyzer's usage and are not split out in `by_stage`; noted, not built.
   - `corroboration.annotate_derivation_chains` no longer has a pipeline caller. Its own tests still pin it.
 - **Checks:** unit suite green; module 19/19, seam 22/22 + 1 mutants killed.
+
+## 14. Flag-on verification (2026-10-05): safe, but no visible effect. NOT switched on.
+**Bench, flags on** (`--record-missing`, 9 claims; 82CF excluded as known drift): every claim's ok/warn/fail line is identical to the flags-off run. Three cassettes gained a few echo calls (5647, B4A3, 0004), costing a few pence. The flags-off bench on the patched cassettes is unchanged: 158/13/11/5 + 82CF.
+
+**Two local live checks** (`audit/echo_precision/live_checks.py`, payloads in `live_checks/`; 9p and 6p; the echo run took 9.0 s and 2.7 s and fully overlapped mapping, with join wait 0.0 s):
+- `676ffb49` (A− #8 input, Galway reefs): 2 pairs.
+  - Confirmed, whole: Irish Mirror ← the university release. The cue is an attribution naming Galway, Ifremer and the Sorbonne. Correct.
+  - The independent.ie pair had no verbatim text.
+- `bea9b8d7` (UK CPI, July 2025): 10 pairs.
+  - Confirmed: Trading Economics, whole ("source: Office for National Statistics"), and BBC, part ("tracked by the ONS"). Both correct.
+  - 3 were rejected `predates` because the ONS bulletin's stored date is later than its real one; safe, but recall lost.
+  - 4 had no verbatim text (FT, BBC live pages).
+- **The gate scoped nothing in either check.** It fires only when the original is counted on the same element. In practice the original is often missing or filed as context while its copies support. On Galway, four rewrites of the release support e2 and the release is not on e2. That is A− #8's S4 pattern, and this rule cannot reach it.
+
+**Decision pending (founder):**
+1. A counting rule: copies of one confirmed original count once per side, even when the original is not counted. Difficulty 3; design and review first; testable offline on stored checks.
+2. Leave echo off and go to the next A− blocker.
+
+**Found on the way (not echo):** `676ffb49` shows a TRUE claim as `disputed`.
+- Decomposition made e1 "23 structures at Porcupine Bank" from "23 structures … on the Porcupine Bank … and in the Bay of Biscay" (a shared total split across conjoined places).
+- The relationship review then correctly scoped every support (measure mismatch), and one source saying "a total of 23 … across both" became a challenge.
+- This is a hard H1-class fault (wrong badge).

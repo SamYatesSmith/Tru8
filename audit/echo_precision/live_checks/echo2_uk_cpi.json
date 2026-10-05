@@ -1,0 +1,1775 @@
+{
+ "id": "bea9b8d7-a912-4fc6-a22f-047968ee91dc",
+ "inputType": "text",
+ "inputContent": {
+  "content": "UK consumer price inflation rose to 3.8% in the 12 months to July 2025.",
+  "url": null,
+  "file_path": null
+ },
+ "inputUrl": null,
+ "status": "completed",
+ "creditsUsed": 0,
+ "processingTimeMs": 49128,
+ "errorMessage": null,
+ "entryMode": "focused",
+ "selectedClaimsCount": 1,
+ "articleDomain": "Finance",
+ "articleSecondaryDomains": [
+  "Demographics"
+ ],
+ "articleJurisdiction": "UK",
+ "articleClassificationSource": "llm_primary",
+ "userQuery": null,
+ "queryResponse": null,
+ "queryConfidence": null,
+ "querySources": null,
+ "queryRelatedClaims": null,
+ "claims": [
+  {
+   "id": "a77348a3-d833-4c07-97bd-74fe7b35a8d1",
+   "text": "UK consumer price inflation rose to 3.8% in the 12 months to July 2025",
+   "position": 0,
+   "claimMap": {
+    "claimId": "0",
+    "elements": [
+     {
+      "basis": {
+       "measure_scope": {
+        "scoped": [
+         {
+          "was": "supports",
+          "evidence_id": "ev-1c1d9a94269a",
+          "element_interval_end": "2025-07",
+          "evidence_interval_ends": [
+           "2025-06"
+          ]
+         }
+        ],
+        "scoped_count": 1,
+        "element_interval_end": "2025-07"
+       },
+       "evidence_count": 9,
+       "temporal_scope": {
+        "scoped": [
+         {
+          "was": "supports",
+          "evidence_id": "ev-341c7c415cab",
+          "element_period": "2025-07"
+         }
+        ],
+        "scoped_count": 1,
+        "element_period": "2025-07"
+       },
+       "tier_breakdown": {
+        "primary": 3,
+        "reporting": 6
+       },
+       "state_derivation": {
+        "caveat": null,
+        "llm_state": "supported",
+        "rule_applied": "all_supports",
+        "context_count": 3,
+        "supports_count": 6,
+        "challenges_count": 0,
+        "weighted_supports": 15,
+        "weighted_challenges": 0
+       },
+       "support_structure": {
+        "count": 6,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 3,
+         "reporting": 3,
+         "commentary": 0
+        },
+        "distinct_domains": 4
+       },
+       "challenge_structure": {
+        "count": 0,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 0,
+         "reporting": 0,
+         "commentary": 0
+        },
+        "distinct_domains": 0
+       },
+       "relationship_breakdown": {
+        "context": 3,
+        "supports": 6
+       },
+       "content_basis_breakdown": {
+        "snippet": 2,
+        "distilled": 6,
+        "retained_passages": 1
+       },
+       "classification_breakdown": {
+        "llm": 9
+       }
+      },
+      "state": "supported",
+      "elementId": "e1",
+      "description": "UK consumer price inflation reached 3.8% in the 12 months to July 2025",
+      "scopeFlags": {
+       "universal": [],
+       "geographic": [
+        "uk"
+       ]
+      },
+      "scopeReach": null,
+      "uncertainty": null,
+      "evidenceRefs": [
+       {
+        "reasoning": "Official Office for National Statistics data confirms CPI rose by 3.8% in the 12 months to July 2025.",
+        "evidenceId": "ev-adfd72d3531b",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Reports ONS data showing the Consumer Prices Index rose by 3.8% in the 12 months to July 2025.",
+        "evidenceId": "ev-9caaa07bea9c",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Confirms ONS data showing UK Consumer Prices Index inflation rose by 3.8% in the year to July.",
+        "evidenceId": "ev-a5f9e5c113c1",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Reports that UK inflation accelerated to 3.8% in July.",
+        "evidenceId": "ev-45955cf2b7e4",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Confirms UK inflation rose to 3.8% in the year to July.",
+        "evidenceId": "ev-1c1d9a94269a",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "States that UK inflation was 3.8% in July 2025.",
+        "evidenceId": "ev-d6a8910bf114",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "This report confirms that the UK inflation rate held at 3.8% for multiple months, corroborating the 3.8% figure for the period around July 2025.",
+        "evidenceId": "ev-341c7c415cab",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "This source notes that inflation had previously shown signs of cooling from a peak of 3.8% last year, providing contextual background to the 3.8% figure.",
+        "evidenceId": "ev-9171cfff8a3e",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "This reporting explicitly confirms the UK inflation rate at 3.8%.",
+        "evidenceId": "ev-66a9af95f837",
+        "relationship": "supports"
+       }
+      ]
+     }
+    ],
+    "metadata": {
+     "subjects": [],
+     "claimText": "UK consumer price inflation rose to 3.8% in the 12 months to July 2025",
+     "echoLinks": {
+      "totals": {
+       "calls": 1,
+       "pairs": 10,
+       "seconds": 2.7,
+       "contract": "v1",
+       "rejected": 4,
+       "confirmed": 2,
+       "call_seconds": [
+        2.7
+       ],
+       "not_inspected": 4,
+       "join_wait_seconds": 0.0
+      },
+      "records": [
+       {
+        "cue": "tracked by the Office for National Statistics (ONS)",
+        "rank": 0,
+        "extent": "part",
+        "status": "confirmed",
+        "cue_kind": "attribution",
+        "original_id": "ev-d9cfdba9947b",
+        "derivative_id": "ev-f443126794cf"
+       },
+       {
+        "cue": "source: Office for National Statistics",
+        "rank": 1,
+        "extent": "whole",
+        "status": "confirmed",
+        "cue_kind": "attribution",
+        "original_id": "ev-d9cfdba9947b",
+        "derivative_id": "ev-6ea5d598fc9f"
+       },
+       {
+        "rank": 2,
+        "detail": "no_verbatim_text",
+        "status": "not_inspected",
+        "original_id": "ev-d6a8910bf114",
+        "derivative_id": "ev-66a9af95f837"
+       },
+       {
+        "rank": 3,
+        "detail": "no_verbatim_text",
+        "status": "not_inspected",
+        "original_id": "ev-d6a8910bf114",
+        "derivative_id": "ev-45955cf2b7e4"
+       },
+       {
+        "rank": 4,
+        "detail": "predates",
+        "status": "rejected",
+        "original_id": "ev-adfd72d3531b",
+        "derivative_id": "ev-71228181702d"
+       },
+       {
+        "rank": 5,
+        "detail": "predates",
+        "status": "rejected",
+        "original_id": "ev-adfd72d3531b",
+        "derivative_id": "ev-66a9af95f837"
+       },
+       {
+        "rank": 6,
+        "detail": "no_verbatim_text",
+        "status": "not_inspected",
+        "original_id": "ev-d6a8910bf114",
+        "derivative_id": "ev-341c7c415cab"
+       },
+       {
+        "rank": 7,
+        "detail": "no_verbatim_text",
+        "status": "not_inspected",
+        "original_id": "ev-adfd72d3531b",
+        "derivative_id": "ev-45955cf2b7e4"
+       },
+       {
+        "rank": 8,
+        "detail": "predates",
+        "status": "rejected",
+        "original_id": "ev-adfd72d3531b",
+        "derivative_id": "ev-341c7c415cab"
+       },
+       {
+        "rank": 9,
+        "status": "rejected",
+        "original_id": "ev-adfd72d3531b",
+        "derivative_id": "ev-6ea5d598fc9f"
+       }
+      ]
+     },
+     "queryPlan": {
+      "queries": [
+       "UK consumer price inflation 3.8 percent July 2025",
+       "UK CPI 12 months to July 2025 ONS",
+       "UK consumer price inflation 3.8 percent July 2025 site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+       "UK inflation rate July 2025 ONS report",
+       "Consumer price inflation UK 3.8 percent July 2025"
+      ],
+      "freshness": [
+       "none",
+       "none",
+       "none",
+       "none",
+       "none"
+      ],
+      "element_ids": [
+       "c0",
+       "c0",
+       "c0",
+       "e1",
+       "e1"
+      ]
+     },
+     "completedAt": "2026-10-05T13:25:04.237450+00:00",
+     "jurisdiction": "UK",
+     "scopeReview": {
+      "calls": [
+       {
+        "pairs": 6,
+        "status": "ok",
+        "seconds": 13.5
+       }
+      ],
+      "pairs": [
+       {
+        "quote": "2. Consumer price inflation rates |CPIH Index (UK, 2015 = 100) |CPIH 12- month rate (%) |CPIH 1- month rate (%) |CPI Index (UK, 2015=100) |CPI 12- month rate (%) |CPI 1- month rate (%) |OOH Index (UK, 2015=100) |OOH 12- month rate (%) |2025 |Jul |138.5 |4.2 |0.0 |139.0 |3.8 |0.1 |134.0 |5.5",
+        "status": "compatible",
+        "block_id": "p-e7917609c272e242-894-1790",
+        "dimension": "result",
+        "reasoning": "The source table from the Office for National Statistics directly confirms that the UK Consumer Prices Index (CPI) 12-month rate was 3.8% in July 2025.",
+        "element_id": "e1",
+        "claim_scope": "UK CPI inflation in the 12 months to July 2025",
+        "evidence_id": "ev-adfd72d3531b",
+        "input_sha256": "cc29488d892b8bc9285b5514531f9656bcac07fb2c33bda65362ff229b644e4a",
+        "source_scope": "UK CPI inflation in the 12 months to July 2025",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "The Consumer Prices Index (CPI) rose by 3.8% in the 12 months to July 2025, up from 3.6% in the 12 months to June.",
+        "status": "compatible",
+        "block_id": "p-08e5a959b6d72f74-2694-3591",
+        "dimension": "result",
+        "reasoning": "The text directly affirms that UK CPI rose by 3.8% in the 12 months to July 2025.",
+        "element_id": "e1",
+        "claim_scope": "UK CPI inflation in the 12 months to July 2025",
+        "evidence_id": "ev-9caaa07bea9c",
+        "input_sha256": "68bbbcc61068ada32924cfb7ecabb244e98c44282556324e6831fb3e2a4dff38",
+        "source_scope": "UK CPI inflation in the 12 months to July 2025",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "status": "invalid",
+        "element_id": "e1",
+        "evidence_id": "ev-a5f9e5c113c1",
+        "invalid_reason": "unknown_block"
+       },
+       {
+        "status": "invalid",
+        "element_id": "e1",
+        "evidence_id": "ev-45955cf2b7e4",
+        "invalid_reason": "not_returned"
+       },
+       {
+        "status": "invalid",
+        "element_id": "e1",
+        "evidence_id": "ev-d6a8910bf114",
+        "invalid_reason": "not_returned"
+       },
+       {
+        "status": "invalid",
+        "element_id": "e1",
+        "evidence_id": "ev-66a9af95f837",
+        "invalid_reason": "not_returned"
+       }
+      ],
+      "method": "model_scope_review_not_entailment_proof",
+      "status": "needs_review",
+      "version": 3,
+      "assessed_pairs": 2,
+      "selected_pairs": 6,
+      "candidate_pairs": 6,
+      "uninspected_pairs": 4
+     },
+     "elementCount": 1,
+     "mappingModel": "gemini-3.7-flash",
+     "subjectKinds": {},
+     "decompositionModel": "gemini-3.5-flash-lite",
+     "sourceConcentration": {
+      "basis": "mapped_documents_by_domain",
+      "domains": [
+       {
+        "domain": "bbc.co.uk",
+        "documents": 3
+       },
+       {
+        "domain": "ons.gov.uk",
+        "documents": 2
+       },
+       {
+        "domain": "theguardian.com",
+        "documents": 2
+       },
+       {
+        "domain": "commonslibrary.parliament.uk",
+        "documents": 1
+       },
+       {
+        "domain": "ft.com",
+        "documents": 1
+       }
+      ],
+      "independence": "not_established",
+      "mapped_documents": 9
+     }
+    },
+    "claimType": "empirical",
+    "orientation": "Of 1 element examined, retrieved evidence predominantly supports it.",
+    "normalisedClaim": "UK consumer price inflation rose to 3.8% in the 12 months to July 2025",
+    "orientationBasis": {
+     "total_elements": 1,
+     "state_distribution": {
+      "disputed": 0,
+      "supported": 1,
+      "contextual": 0,
+      "unresolved": 0
+     }
+    }
+   },
+   "claimType": "empirical",
+   "isSelected": true,
+   "significanceRank": 1,
+   "subjectContext": "UK consumer price inflation",
+   "keyEntities": [
+    {
+     "text": "UK",
+     "type": "LOCATION"
+    },
+    {
+     "text": "3.8%",
+     "type": "AMOUNT"
+    },
+    {
+     "text": "July 2025",
+     "type": "DATE"
+    }
+   ],
+   "sourceTitle": null,
+   "sourceUrl": null,
+   "sourcesReviewedCount": 39,
+   "evidence": [
+    {
+     "id": "cf352a7f-e7b7-40ba-94dc-17536c4d0dcd",
+     "evidenceId": "ev-adfd72d3531b",
+     "source": "ons.gov.uk",
+     "url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/july2026",
+     "title": "Consumer price inflation, UK - Office for National Statistics",
+     "snippet": "- According to the Office for National Statistics, the Consumer Prices Index (CPI) rose by 3.8% in the 12 months to July 2025.",
+     "publishedDate": "2026-08-18T00:00:00",
+     "relevanceScore": 0.4626760563380282,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-6ea5d598fc9f,ev-1c1d9a94269a,ev-c8199016c82a,ev-3c7a7b21465c",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-e7917609c272e242-894-1790",
+        "end": 1790,
+        "text": "unchanged, at 3.6%. Core CPI (CPI excluding energy, food, alcohol and tobacco) rose by 2.6% in the 12 months to July 2026, unchanged from the 12 months to June; the CPI goods annual rate rose from 1.7% to 2.2%, while the CPI services annual rate eased from 3.6% to 3.4%. 2. Consumer price inflation rates |CPIH Index (UK, 2015 = 100) |CPIH 12- month rate (%) |CPIH 1- month rate (%) |CPI Index (UK, 2015=100) |CPI 12- month rate (%) |CPI 1- month rate (%) |OOH Index (UK, 2015=100) |OOH 12- month rate (%) |2025 |Jul |138.5 |4.2 |0.0 |139.0 |3.8 |0.1 |134.0 |5.5 |Aug |138.9 |4.1 |0.3 |139.3 |3.8 |0.3 |134.5 |5.3 |Sep |138.9 |4.1 |0.1 |139.3 |3.8 |0.0 |135.1 |5.2 |Oct |139.5 |3.8 |0.4 |139.8 |3.6 |0.4 |135.7 |4.8 |Nov |139.4 |3.5 |-0.1 |139.5 |3.2 |-0.2 |136.5 |4.5 |Dec |139.9 |3.6 |0.4 |140.1 |3.4 |0.4 |136.8 |4.2 |2026 |Jan |139.4 |3.2 |-0.3 |139.5 |3.0 |-0.5 |137.0 |3.9 |Feb |140.0 |3.2 ",
+        "start": 894,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-e7917609c272e242-1790-2689",
+        "end": 2689,
+        "text": "|0.4 |140.1 |3.0 |0.4 |137.4 |3.8 |Mar |140.8 |3.4 |0.6 |141.0 |3.3 |0.7 |137.7 |3.6 |Apr |141.8 |3.0 |0.8 |142.1 |2.8 |0.7 |137.9 |3.6 |May |142.1 |3.0 |0.2 |142.4 |2.8 |0.2 |138.1 |3.3 |Jun |142.3 |2.8 |0.2 |142.5 |2.6 |0.1 |138.6 |3.3 |Jul |142.7 |3.1 |0.3 |142.9 |2.9 |0.3 |139.0 |3.7 Download this table Table 1: CPIH, OOH component and CPI index values, and annual and monthly rates.xls .csv Figure 1: CPIH and CPI annual inflation rates rose for the first time since March 2026 CPIH, owner occupiers’ housing (OOH) costs component and CPI annual inflation rates, UK, July 2016 to July 2026 Source: Consumer price inflation from the Office for National Statistics Download this chart Figure 1: CPIH and CPI annual inflation rates rose for the first time since March 2026Image .csv .xls The Consumer Prices Index including owner occupiers' housing costs (CPIH) rose by 3.1% in the 12 months to ",
+        "start": 1790,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-e7917609c272e242-2689-3588",
+        "end": 3588,
+        "text": "July 2026, up from 2.8% the previous month (Figure 1). This was the first time since March 2026 that the 12-month rate had increased. On a monthly basis, CPIH rose by 0.3% in July 2026, having been little changed in July 2025. The Consumer Prices Index (CPI) rose by 2.9% in the 12 months to July 2026, up from 2.6% the previous month. This was the first time since March 2026 that the 12-month rate had increased. On a monthly basis, CPI rose by 0.3% in July 2026, compared with a rise of 0.1% in July 2025. The main drivers of the annual inflation rate for CPIH and CPI are the same where they are common to both measures. However, the owner occupiers' housing (OOH) costs component accounts for approximately 18% of the CPIH and is the main driver for differences between the CPIH and CPI inflation rates. This makes CPIH our most comprehensive measure of inflation. We cover this in more detail ",
+        "start": 2689,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-e7917609c272e242-7181-8076",
+        "end": 8076,
+        "text": "the conflict in the Middle East. The increase was the largest rise in gas prices since October 2022, when UK consumers were initially exposed to the higher prices arising from the energy crisis relating to the war in Ukraine. The price rise this month means that gas prices are at their highest level since March 2024 (Figure 3). Figure 3: Largest rise in gas prices since October 2022 Electricity and gas prices, rebased to January 2021, UK, January 2021 to July 2026 Source: Consumer price inflation from the Office for National Statistics Download this chart Figure 3: Largest rise in gas prices since October 2022Image .csv .xls The rise in the 12-month rate also reflected an upward effect from electricity, where prices rose by 3.6% in July 2026, compared with a fall of 3.8% a year ago. Furniture and household goods Prices of furniture and household goods overall rose by 1.0% in the 12 ",
+        "start": 7181,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-e7917609c272e242-9871-10770",
+        "end": 10770,
+        "text": "Figure 4: Transport inflation rate slowed in July 2026 CPIH, transport and motor fuels 12-month inflation rates, UK, July 2016 to July 2026 Source: Consumer price inflation from the Office for National Statistics Download this chart Figure 4: Transport inflation rate slowed in July 2026Image .csv .xls The largest downward effect behind the slowing in the transport annual rate came from motor fuels, particularly diesel. The average price of diesel fell by 8.8 pence per litre between June and July 2026, compared with a rise of 2.9 pence per litre between June and July 2025. The average price stood at 167.6 pence per litre in July 2026. Petrol prices fell by 3.1 pence per litre in July 2026, compared with a rise of 2.0 pence per litre in July 2025. The average price stood at 152.2 pence per litre in July 2026. These movements resulted in overall motor fuel prices rising by 15.5% in the 12 ",
+        "start": 9871,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-e7917609c272e242-16140-17031",
+        "end": 17031,
+        "text": "counteracted by a large downward contribution from motor fuels. The CPIH all-services index rose by 3.6% in the 12 months to July 2026, unchanged from the 12 months to June. The upward and downward contributions to the change in the annual rate were mostly small and offset one another. The largest downward contribution came from airfares and the largest upward contributions came from owner-occupied housing costs, and actual rentals for housing. Figure 7: Food and non-alcoholic beverages provided its smallest contribution to CPIH inflation since October 2021 Contributions to the CPIH annual inflation rate, UK, July 2024 to July 2026 Source: Consumer price inflation from the Office for National Statistics Notes: - Individual contributions may not sum to the total because of rounding. - More information on the contents of each division can be found in Table 3 of our Consumer price ",
+        "start": 16140,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-e7917609c272e242-18825-19725",
+        "end": 19725,
+        "text": "Consumer Prices Index (CPI) differs from the CPIH because it does not include these two components. The annual contribution from OOH costs rose slightly, to 0.65 percentage points in July 2026. This was the second consecutive rise between months and followed 16 consecutive decreases. Although the current contribution was larger than the previous month’s, it was smaller than the recent high of 1.31 percentage points in January 2025.Back to table of contents 5. Latest movements in CPI inflation While the Consumer Prices Index including owner occupiers' housing costs (CPIH) is our most comprehensive measure of consumer price inflation, the Consumer Prices Index (CPI) is based on a harmonised methodology developed by Eurostat. This enables international comparisons to be drawn. It is also used to set the operational inflation target for UK monetary policy, and to uprate working-age benefits ",
+        "start": 18825,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-e7917609c272e242-22424-23317",
+        "end": 23317,
+        "text": "and core annual inflation rates, UK, July 2016 to July 2026 Source: Consumer price inflation from the Office for National Statistics Download this chart Figure 10: CPI goods inflation rate rose in July 2026, CPI services inflation fell, and core CPI was unchangedImage .csv .xls Figure 10 shows the 12-month inflation rates for the CPI all-goods and all-services series, together with CPI excluding energy, food, alcohol and tobacco (often referred to as core CPI). The headline CPI inflation rate is added for comparison. The core CPI annual inflation rate was 2.6% in July 2026, unchanged from June. The CPI all-goods index rose by 2.2% in the 12 months to July 2026, up from 1.7% the previous month. The CPI all-services index rose by 3.4% in the 12 months to July 2026, down from 3.6% the previous month. As with the all-items annual inflation rates, the drivers of CPIH and CPI goods and ",
+        "start": 22424,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-08-18"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/july2026",
+      "captured_at": "2026-10-05T13:24:37.356823+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- According to the Office for National Statistics, the Consumer Prices Index (CPI) rose by 3.8% in the 12 months to July 2025.",
+      "original_snippet": "For comparison, we produced the all-items headline rates for February 2026 without using scanner data. Based on locally collected grocery data, the Consumer Prices Index including owner occupiers' housing costs (CPIH) rose by 3. 3% in the year to February 2026, and the Consumer Prices Index (CPI) rose by 3. These were slightly above the official rates of 3. You can find more about this change and how it affects our headline measures of inflation in our Impact analysis on transformation of UK consumer price statistics: January 2026 article",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "e7917609c272e242e9cb3e9805c20f7c4bd107dc993890293f460c2d7d66da07",
+      "input_content_basis": "full",
+      "retained_characters": 7172,
+      "extraction_characters": 43661
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "fa7a95b3-d829-493c-a8c7-96ff8dfe4817",
+     "evidenceId": "ev-6ea5d598fc9f",
+     "source": "tradingeconomics.com",
+     "url": "https://tradingeconomics.com/united-kingdom/inflation-cpi",
+     "title": "United Kingdom Inflation Rate",
+     "snippet": "- According to the Office for National Statistics, the UK’s annual inflation rate rose to 3.1% in August 2026, up from 2.9% in July.",
+     "publishedDate": null,
+     "relevanceScore": 0.375,
+     "tier": "reporting",
+     "evidenceType": "data",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-adfd72d3531b,ev-f443126794cf",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-5e11623446451290-0-897",
+        "end": 897,
+        "text": "The UK’s annual inflation rate rose to 3.1% in August 2026, the highest in five months, in line with market expectations and up from 2.9% in July. Transport costs made the largest upward contribution to the annual rate, with inflation rising to 4.6% from 3.6% in July, driven particularly by motor fuels. Petrol prices rose 9.1 pence per litre from a month earlier to 161.3 pence, while diesel prices increased 14.2 pence to 181.8 pence, pushing motor fuel inflation to 23.0% from 15.5%. Inflation also rose for housing and household services (4.9% vs 4.6%), communication (5.3% vs 5.0%), and recreation and culture (1.6% vs 1.4%). Meanwhile, food inflation was unchanged at 1.3%. Core CPI inflation held at 2.6%, with goods inflation rising to 2.7% from 2.2% and services inflation unchanged at 3.4%. On a monthly basis, consumer prices rose 0.5%, the most in four months, matching forecasts and ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-5e11623446451290-897-1791",
+        "end": 1791,
+        "text": "accelerating from 0.3% in July. source: Office for National Statistics Inflation Rate in the United Kingdom increased to 3.10 percent in August from 2.90 percent in July of 2026. Inflation Rate in the United Kingdom averaged 2.84 percent from 1989 until 2026, reaching an all time high of 11.10 percent in October of 2022 and a record low of -0.10 percent in April of 2015. This page provides - United Kingdom Inflation Rate - actual values, historical data, forecast, chart, statistics, economic calendar and news. United Kingdom Inflation Rate - data, historical chart, forecasts and calendar of releases - was last updated on October of 2026. Inflation Rate in the United Kingdom increased to 3.10 percent in August from 2.90 percent in July of 2026. Inflation Rate in the United Kingdom is expected to be 3.40 percent by the end of this quarter, according to Trading Economics global macro ",
+        "start": 897,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-5e11623446451290-1791-1989",
+        "end": 1989,
+        "text": "models and analysts expectations. In the long-term, the United Kingdom Inflation Rate is projected to trend around 2.90 percent in 2027 and 2.40 percent in 2028, according to our econometric models.",
+        "start": 1791,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://tradingeconomics.com/united-kingdom/inflation-cpi",
+      "captured_at": "2026-10-05T13:24:37.357831+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- According to the Office for National Statistics, the UK’s annual inflation rate rose to 3.1% in August 2026, up from 2.9% in July.",
+      "original_snippet": "The UK’s annual inflation rate rose to 3. 1% in August 2026, the highest in five months, in line with market expectations and up from 2. Transport costs made the largest upward contribution to the annual rate, with inflation rising to 4",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "5e11623446451290e9736a2334d214e95dbd278bfd6b79f7caffe9fb3db9ab50",
+      "input_content_basis": "full",
+      "retained_characters": 1989,
+      "extraction_characters": 1989
+     },
+     "dateBasis": null
+    },
+    {
+     "id": "dcac65f2-95da-4f22-a97c-68dc290040ac",
+     "evidenceId": "ev-d9cfdba9947b",
+     "source": "ons.gov.uk",
+     "url": "https://www.ons.gov.uk/economy/inflationandpriceindices",
+     "title": "Inflation and price indices - Office for National Statistics",
+     "snippet": "- According to the Office for National Statistics, the Consumer Prices Index (CPI) rose by 3.1% in the 12 months to August 2026.",
+     "publishedDate": null,
+     "relevanceScore": 0.33641975308641975,
+     "tier": "primary",
+     "evidenceType": "official_statement",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-8a109e84032c827d-0-900",
+        "end": 900,
+        "text": "Spotlight CPIH ANNUAL RATE 00: ALL ITEMS 2015=100 Change over 12 months 3.3 % 2026 AUG - Release date: - 16 September 2026 - Next release: - 21 October 2026 Consumer price inflation, UK: August 2026 What's in the bulletin? - The Consumer Prices Index including owner occupiers' housing costs (CPIH) rose by 3.3% in the 12 months to August 2026, up from 3.1% the previous month. - On a monthly basis, CPIH rose by 0.5% in August 2026, compared with a rise of 0.3% in August 2025. - The Consumer Prices Index (CPI) rose by 3.1% in the 12 months to August 2026, up from 2.9% the previous month. Time series related to Inflation and price indices - CPIH ANNUAL RATE 00: ALL ITEMS 2015=100 Change over 12 months3.3 % 2026 AUG - Release date: - 16 September 2026 - Next release: - 21 October 2026 - CPIH INDEX 00: ALL ITEMS 2015=100 Index, 2015 = 100143.4 Index, base year = 100 2026 AUG - Release date: - ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-8a109e84032c827d-900-1797",
+        "end": 1797,
+        "text": "16 September 2026 - Next release: - 21 October 2026 - CPI ANNUAL RATE 00: ALL ITEMS 2015=100 Change over 12 months3.1 % 2026 AUG - Release date: - 16 September 2026 - Next release: - 21 October 2026 - CPI INDEX 00: ALL ITEMS 2015=100 Index, 2015 = 100143.6 Index, base year = 100 2026 AUG - Release date: - 16 September 2026 - Next release: - 21 October 2026 - RPI All Items: Percentage change over 12 months: Jan 1987=100 Not a National Statistic. Change over 12 months3.4 % 2026 AUG - Release date: - 16 September 2026 - Next release: - 21 October 2026 - RPI All Items Index: Jan 1987=100 Not a National Statistic. Index, 1987 = 100421.6 Index, base year = 100 2026 AUG - Release date: - 16 September 2026 - Next release: - 21 October 2026 Datasets related to Inflation and price indices - Consumer price inflation tables Measures of monthly UK inflation data including CPIH, CPI and RPI. These ",
+        "start": 900,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-8a109e84032c827d-1797-2692",
+        "end": 2692,
+        "text": "tables complement the consumer price inflation time series dataset. - Consumer price inflation time series Comprehensive database of time series covering measures of inflation data for the UK including CPIH, CPI and RPI. - Producer price inflation statistics Price index data and monthly and annual inflation rates for UK producer price inflation (input, output, import, export) - Producer price inflation time series A comprehensive selection of data on input and output indices. Contains producer price indices of materials and fuels purchased and output of manufacturing industry by broad sector. - House price data: quarterly tables Quarterly house price data based on a sub-sample of the Regulated Mortgage Survey. - Index of Private Housing Rental Prices, UK: monthly estimates Rental price statistics historical data time series (indices and annual percentage change). These are official ",
+        "start": 1797,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-8a109e84032c827d-2692-3592",
+        "end": 3592,
+        "text": "statistics in development. Publications related to Inflation and price indices Statistical bulletins - Household Costs Indices for UK household groups: April to June 2026 Household Costs Indices, 12-month growth rates, expenditure shares, and contributions for UK household groups and all households. - Consumer price inflation, UK: August 2026 Price indices, percentage changes, and weights for the different measures of consumer price inflation. - Producer price inflation, UK: August 2026 Changes in the prices of goods bought and sold by UK manufacturers, including price indices of materials and fuels purchased (input prices) and factory gate prices (output prices). - Private rent and house prices, UK: September 2026 The Price Index of Private Rents (PIPR) measures private rent inflation for new and existing tenancies. The UK House Price Index (HPI) measures house price inflation. - Index ",
+        "start": 2692,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-8a109e84032c827d-3592-4489",
+        "end": 4489,
+        "text": "of Private Housing Rental Prices, UK: January 2024 An experimental price index tracking the prices paid for renting property from private landlords in the UK. Articles - Growth rates of selected output and input Producer Price Indices and Services Producer Price Indices Update on progress towards resuming publication of our Producer Price Indices (PPI) and Services Producer Price Indices (SPPI) bulletins, including an indicative dataset - What are your wages worth? Use our calculator to find out if your salary is keeping pace with inflation. - What's in the basket of goods? 70 years of shopping history Explore how the basket of goods has changed over the decades and how the ONS calculates inflation. - Train tickets and hybrid cars: understanding spending habits New data shows the effect of strikes on train ticket sales, and the most popular second-hand cars in Great Britain - Cost of ",
+        "start": 3592,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-8a109e84032c827d-4489-4902",
+        "end": 4902,
+        "text": "living latest insights The latest data and trends about the cost of living. Explore changes in the cost of everyday items and how this is affecting people. - Consumer prices development plan An update on the proposed development plan for consumer price statistics. Includes the rationale for our priorities and their potential impact. Find, compare and visualise statistics about places within the United Kingdom.",
+        "start": 4489,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": null,
+        "representation": "missing",
+        "supplied_value": null
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.ons.gov.uk/economy/inflationandpriceindices",
+      "captured_at": "2026-10-05T13:24:37.357831+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- According to the Office for National Statistics, the Consumer Prices Index (CPI) rose by 3.1% in the 12 months to August 2026.",
+      "original_snippet": "These are official statistics in development. Publications related to Inflation and price indices Statistical bulletins - Household Costs Indices for UK household groups: April to June 2026 Household Costs Indices, 12-month growth rates, expenditure shares, and contributions for UK household groups and all households. - Consumer price inflation, UK: August 2026 Price indices, percentage changes, and weights for the different measures of consumer price inflation. - Producer price inflation, UK: August 2026 Changes in the prices of goods bought and sold by UK manufacturers, including price indices of materials and fuels purchased (input prices) and factory gate prices (output prices). - Private rent and house prices, UK: September 2026 The Price Index of Private Rents (PIPR) measures private rent inflation for new and existing tenancies",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "8a109e84032c827dde588695a5243e75dff258faaf95853fbec7fb60f720dd3e",
+      "input_content_basis": "full",
+      "retained_characters": 4902,
+      "extraction_characters": 4902
+     },
+     "dateBasis": null
+    },
+    {
+     "id": "570a6d70-90a6-47f2-a424-da03ab19f3d0",
+     "evidenceId": "ev-1c1d9a94269a",
+     "source": "theguardian.com",
+     "url": "https://www.theguardian.com/business/2025/aug/20/inflation-rises-july-pause-interest-rate-cuts",
+     "title": "UK inflation rises by more than expected to 3.8% amid higher food prices",
+     "snippet": "said a jump in air fares was behind much of the increase in average prices. Tickets on flights out of the UK rose 30% month on month, although much of the increase was because of the earlier timing of the summer holiday break. Petrol prices added 0.1 percentage points to inflation after a comparison with last year, when prices at the pumps were falling. Food and non-alcoholic beverages were up 4.9% year on year in July, an increase from 4.5% in the 12 months to June. Beef, orange juice, coffee and chocolate were among the worst-hit products. Droughts in Spain, Italy and Portugal, where the UK sources much of its fresh fruit and vegetables, have pushed up prices this summer, at a time when prices would usually fall. The increase in food prices will present the government with a difficult negotiating position as it enters talks with public sector unions over pay. Ministers are trying to \n\nUK inflation rose again last month to a higher-than-expected 3.8% amid higher food prices and travel",
+     "publishedDate": "2025-08-20T00:00:00",
+     "relevanceScore": 0.27,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-adfd72d3531b,ev-9caaa07bea9c,ev-45955cf2b7e4,ev-c8199016c82a,ev-71228181702d,ev-3c7a7b21465c",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "retained_passages",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-ae95e23340d5d04c-0-900",
+        "end": 900,
+        "text": "UK inflation rose again last month to a higher-than-expected 3.8% amid higher food prices and travel costs, adding to fears that the Bank of England will delay further interest rate cuts. Figures showed the annual rate as measured by the consumer prices index climbed from June’s 3.6% reading, sitting above the central bank’s 2% target for the 10th consecutive month. That overshot financial market forecasts of a 3.7% figure for July and makes another reduction in the cost of borrowing this year unlikely, with financial markets not fully pricing in the chance of a fresh quarter-point cut until next spring. The data also suggests rail fares are likely to rise by 5.8% next year. Increases in regulated train ticket prices are usually calculated by adding one percentage point to July’s inflation reading as measured by the retail prices index, which was 4.8%. The Office for National Statistics ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-ae95e23340d5d04c-900-1798",
+        "end": 1798,
+        "text": "said a jump in air fares was behind much of the increase in average prices. Tickets on flights out of the UK rose 30% month on month, although much of the increase was because of the earlier timing of the summer holiday break. Petrol prices added 0.1 percentage points to inflation after a comparison with last year, when prices at the pumps were falling. Food and non-alcoholic beverages were up 4.9% year on year in July, an increase from 4.5% in the 12 months to June. Beef, orange juice, coffee and chocolate were among the worst-hit products. Droughts in Spain, Italy and Portugal, where the UK sources much of its fresh fruit and vegetables, have pushed up prices this summer, at a time when prices would usually fall. The increase in food prices will present the government with a difficult negotiating position as it enters talks with public sector unions over pay. Ministers are trying to ",
+        "start": 900,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-ae95e23340d5d04c-1798-2696",
+        "end": 2696,
+        "text": "limit annual earnings increases to below 4%, except for resident hospital doctors. However, higher food prices are likely to lead to demands for higher wages from staff. Analysts said the likelihood of an interest rate cut this year had diminished but that it was not impossible. The National Institute of Economic and Social Research (Niesr) expects inflation to decline in the second half of the year and to fall back to the Bank’s 2% target by the end of 2026. It said there was a strong argument for a cut in November after a rise in unemployment and decline in job vacancies showed the economy weakening, although the decision would depend on the path of inflation over the coming months. The Niesr economist Monica George Michail said: “Given that several of the current drivers of annual price increases are one-off policy changes, we think the Bank of England may look through them and cut ",
+        "start": 1798,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-ae95e23340d5d04c-2696-3596",
+        "end": 3596,
+        "text": "interest rates one more time this year. However, there remain upside risks especially from food prices and sustained wage pressures, which will force the Bank to remain cautious” The Bank’s monetary policy committee trimmed interest rates to 4% earlier this month in line with projections of falling inflation over the next two years. However, several of its members voted to hold interest rates until the trend became clearer. The chancellor, Rachel Reeves, said: “We have taken the decisions needed to stabilise the public finances, and we’re a long way from the double-digit inflation we saw under the previous government, but there’s more to do to ease the cost of living. “That’s why we’ve raised the minimum wage, extended the £3 bus fare cap, expanded free school meals to over half a million more children, and are rolling out free breakfast clubs for every child in the country. Through our ",
+        "start": 2696,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-ae95e23340d5d04c-3596-4490",
+        "end": 4490,
+        "text": "plan for change we’re going further and faster to put more money in people’s pockets.” Companies have blamed employment tax rises and the uncertainty caused by Donald Trump’s tariff war for an increase in domestic prices. The shadow chancellor, Mel Stride, said the increase in employer national insurance contributions had forced companies to increase prices, making a global rise in prices even worse. The energy consultancy Cornwall Insight said on Tuesday that it expected the energy price cap covering domestic electricity and gas would go up by £17 or 1% in October, adding to domestic fuel costs. Sharon Graham, the head of Unite, the UK’s second-largest union, said the government needed to ease the pressure on household budgets after the increase in food costs. “Once again, the soaring cost of basic essentials like food and water is pushing families to the brink. Workers and their ",
+        "start": 3596,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2025-08-20"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "retained_passages",
+      "source_url": "https://www.theguardian.com/business/2025/aug/20/inflation-rises-july-pause-interest-rate-cuts",
+      "captured_at": "2026-10-05T13:24:37.358832+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "said a jump in air fares was behind much of the increase in average prices. Tickets on flights out of the UK rose 30% month on month, although much of the increase was because of the earlier timing of the summer holiday break. Petrol prices added 0.1 percentage points to inflation after a comparison with last year, when prices at the pumps were falling. Food and non-alcoholic beverages were up 4.9% year on year in July, an increase from 4.5% in the 12 months to June. Beef, orange juice, coffee and chocolate were among the worst-hit products. Droughts in Spain, Italy and Portugal, where the UK sources much of its fresh fruit and vegetables, have pushed up prices this summer, at a time when prices would usually fall. The increase in food prices will present the government with a difficult negotiating position as it enters talks with public sector unions over pay. Ministers are trying to \n\nUK inflation rose again last month to a higher-than-expected 3.8% amid higher food prices and travel",
+      "original_snippet": "UK inflation rose again last month to a higher-than-expected 3. 8% amid higher food prices and travel costs, adding to fears that the Bank of England will delay further interest rate cuts. Figures showed the annual rate as measured by the consumer prices index climbed from June’s 3",
+      "selection_method": "lexical_element_windows_v1",
+      "derivation_reason": "no_facts_returned",
+      "extraction_sha256": "ae95e23340d5d04cd64a1c961e9ec5dbf7b420c9fe3ac0d956bacae57ce3abf3",
+      "input_content_basis": "full",
+      "retained_characters": 4490,
+      "extraction_characters": 4642
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "d19f1c61-8bd6-44e6-9416-308c3755428b",
+     "evidenceId": "ev-341c7c415cab",
+     "source": "bbc.co.uk",
+     "url": "https://www.bbc.co.uk/news/live/cvgv1071417t",
+     "title": "As it happened: UK inflation rate holds at 3.8% for third month in a row",
+     "snippet": "- The UK inflation rate held at 3.8% for the third month in a row in October 2025, according to BBC reporting.",
+     "publishedDate": "2025-10-22T00:00:00",
+     "relevanceScore": 0.16666666666666669,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 3,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-88edf7bf0963a86d-0-899",
+        "end": 899,
+        "text": "Focus turns to Bank's next interest rate decision as inflation holds at 3.8%published at 10:07 BST 22 October 2025 Lucy Hooker Business reporter For a lot of people, the main takeaway from today's slightly lower-than-expected inflation rate of 3.8% is a sense of relief that their weekly shop isn't getting more expensive. But as my colleagues have pointed out, for economists the big question is what does it mean for interest rates. Inflation is of course still well above the Bank of England's 2% target, but signs of it easing should help pave the way for another cut in interest rates as early as at their next meeting on 6 November. And above all, as Faisal noted earlier, it does take the pressure off the chancellor, just a fraction, as she sweats over final plans for her Budget in five weeks' time. We're now ending our live coverage of today's inflation figures, but you can read more in ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2025-10-22"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.bbc.co.uk/news/live/cvgv1071417t",
+      "captured_at": "2026-10-05T13:24:37.358832+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- The UK inflation rate held at 3.8% for the third month in a row in October 2025, according to BBC reporting.",
+      "original_snippet": "Inflation is of course still well above the Bank of England's 2% target, but signs of it easing should help pave the way for another cut in interest rates as early as at their next meeting on 6 November",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "88edf7bf0963a86dd0c4e74332e365944e71b409a0ef8242888ef0aae58e3772",
+      "input_content_basis": "full",
+      "retained_characters": 899,
+      "extraction_characters": 915
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "f5b481ed-8cbf-4d28-860f-6a0fe53e9f65",
+     "evidenceId": "ev-4eff044f2d17",
+     "source": "bankofengland.co.uk",
+     "url": "https://www.bankofengland.co.uk/monetary-policy-report/2026/july-2026",
+     "title": "Monetary Policy Report - July 2026",
+     "snippet": "- According to the Bank of England, CPI inflation was 2.6% in June, above the MPC’s 2% target.\n- The Bank’s Agents report average pay settlements of 3.5% for 2026, below the average settlement of 4.0% in 2025.\n- The Bank of England's central projection is conditioned on wholesale energy prices evolving in line with gas and oil futures curves in the 15 UK working days to 20 July.",
+     "publishedDate": "2026-10-02T00:00:00",
+     "relevanceScore": 0.08536585365853659,
+     "tier": "primary",
+     "evidenceType": "official_statement",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-63704292d8c4f6e2-1797-2696",
+        "end": 2696,
+        "text": "Committee stands ready to act as necessary to ensure that CPI inflation remains on track to meet the 2% target in the medium term. Monetary Policy Overview The situation in the Middle East is volatile and continuing to have a material effect on the outlook for UK inflation. CPI inflation was 2.6% in June, above the MPC’s 2% target. There are clear signs that underlying price and wage pressures have continued to ease. But that has been offset by higher global energy prices as a result of the conflict in the Middle East, which have led to higher motor fuel prices for UK consumers. Inflation is likely to rise over the rest of this year as higher global energy prices continue to feed through into UK consumer prices. That is due to a mix of the direct effects of higher global prices on household utility prices, and indirect effects, as companies at home and abroad pass on increases in their ",
+        "start": 1797,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-63704292d8c4f6e2-16127-17026",
+        "end": 17026,
+        "text": "Tracker line shows annual average job title matched pay growth for UK job vacancies. The latest data points are for the three months to May 2026 for private sector regular pay, June 2026 for the HMRC RTI private sector median and the Indeed Wage Tracker, and July 2026 for the DMP survey. The private sector regular pay growth projection diamonds are for the three months to June and September 2026. The Bank’s Agents continue to report average pay settlements of 3.5% for 2026, below the average settlement of 4.0% in 2025. Contacts cite a lower NLW increase this year, lower inflation at the time of settling and a looser labour market as driving that fall. Most 2026 settlements were agreed before the Middle East conflict, and not many contacts expect to review pay again this year. Some contacts report that knock-on effects from the conflict could slow wage disinflation in 2027. In the three ",
+        "start": 16127,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-63704292d8c4f6e2-17924-18821",
+        "end": 18821,
+        "text": "bars). Chart 1.5: The indirect effects of the energy shock are projected to grow over the remainder of 2026 CPI inflation relative to the projection in the February Report (a) Footnotes - Sources: ONS and Bank calculations. - (a) The bars show contributions to CPI inflation relative to the projection in the February Report. The bars to June 2026 are based on CPI outturns. The bars from July to December 2026 are based on Bank staff projections. As Bank staff’s February 2026 short-term inflation projection covered only six months, the expected direct energy contribution for 2026 H2 at the time of the February Report has been estimated using wholesale energy prices averaged over the 15 UK working days to 26 January 2026, together with the expected impact of the reduction in costs levied on household electricity and gas from April 2026 announced in Budget 2025 (Box D of the February 2026 ",
+        "start": 17924,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-63704292d8c4f6e2-25103-26001",
+        "end": 26001,
+        "text": "than expected in the April Report, largely reflecting downside news in food prices over recent months – some of which is judged to reflect easing agricultural commodity price pressures – as well as developments in wholesale energy markets. The lower projection for food price inflation than at the time of the April Report is directionally consistent with recent intelligence from the Bank’s Agents. Contacts of the Agents report that they now expect food price inflation to reach around 4%–5% by the end of the year (Agents’ summary of business conditions – July 2026 (ASBC)). Supermarkets report fragile consumer demand and intense competition. As such, they are focused on cost management and are resisting proposals for price increases from suppliers. The indirect pass-through of higher energy costs is also expected to raise core goods inflation. Intelligence from the Bank’s Agents suggests ",
+        "start": 25103,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-63704292d8c4f6e2-31385-32281",
+        "end": 32281,
+        "text": "five-year forward inflation swap rate. A short back-run is shown because of the impact of RPI reform, which distorted the five-year, five-year forward inflation swap rate between April 2020 and March 2025. From 2030, UK RPI will be aligned with the CPIH measure of consumer prices. The final data points are for 20 July 2026. - (b) The data are from the DMP survey and show three-month averages. The data are in response to the question: ‘What do you think the annual CPI inflation rate will be in the UK, one year from now and three years from now?’. The latest data points are for July 2026, with the survey conducted between 3–17 July. The DMP survey data have a short back-run, so no historical averages are shown. - (c) The data are from the Citi/YouGov survey and are based on responses to the questions: ‘How do you expect consumer prices of goods and services will develop in the next 12 ",
+        "start": 31385,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-63704292d8c4f6e2-91455-92355",
+        "end": 92355,
+        "text": "growth, and a depreciation of the renminbi effective exchange rate index over the first half of 2025. It also reflected some downward pressure from trade diversion. Four-quarter UK-weighted world export price inflation (excluding the direct effect of oil prices) rose to 1.7% in 2026 Q1 and is expected to rise further to a little over 5% in 2026 Q2 and Q3 (Chart D.1), before slowing somewhat in 2026 Q4. The expected pickup over 2026 mainly reflects the impact of the conflict in the Middle East, although the indirect contribution from energy is expected to be lower than at the time of the April Report reflecting the fallback in oil prices since then based on the 15-day average to 20 July (Section 1.1). AI-related demand is also expected to put upward pressure on UK-weighted world export price inflation over the remainder of the year. Acting in the opposite direction, the continued effects ",
+        "start": 91455,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-63704292d8c4f6e2-96847-97746",
+        "end": 97746,
+        "text": "goods, as defined by the WTO, make up 6%–7% of the direct value of UK goods imports, while consumer electronics account for an additional 5%–7%. Memory chips, an important component of consumer electronics as well as an input for data centres, have experienced particularly strong price pressures. The Bank’s Agents report significant investment in UK data centre capacity, though this has been limited by infrastructure, planning and key input constraints. Some contacts have reported upward cost pressure on consumer electronics such as mobile phones, laptops and games consoles that rely on AI-related components (ASBC – July 2026). Looking ahead, the pace of the global AI buildout has been rapid and global demand for key components continues to exceed expanding supply. As a result, AI-related demand is expected to continue to boost Asian export price inflation in the near term and to raise ",
+        "start": 96847,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-63704292d8c4f6e2-142610-143510",
+        "end": 143510,
+        "text": "set out in Budget 2025, as well as recent additional fiscal announcements of a removal of VAT on household electricity bills from October 2026 for six months (Section 1.1) and a £2 bus fares cap over 2027. Energy price assumptions Chart 3.1 illustrates the conditioning paths for wholesale oil and gas prices in the central projection and both scenarios. The central projection is conditioned on wholesale energy prices evolving in line with gas and oil futures curves in the 15 UK working days to 20 July. In this projection, oil prices gradually decline from $76 per barrel in 2026 Q3 to around $71 per barrel at the end of the forecast period. Gas futures prices peak at a little over 123 pence per therm in 2026 Q4 before declining to a little under 60 pence per therm at the end of the projection. The central projection for inflation additionally accounts for the currently elevated spreads of ",
+        "start": 142610,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-10-02"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.bankofengland.co.uk/monetary-policy-report/2026/july-2026",
+      "captured_at": "2026-10-05T13:24:37.369690+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- According to the Bank of England, CPI inflation was 2.6% in June, above the MPC’s 2% target.\n- The Bank’s Agents report average pay settlements of 3.5% for 2026, below the average settlement of 4.0% in 2025.\n- The Bank of England's central projection is conditioned on wholesale energy prices evolving in line with gas and oil futures curves in the 15 UK working days to 20 July.",
+      "original_snippet": "There are clear signs that underlying price and wage pressures have continued to ease. But that has been offset by higher global energy prices as a result of the conflict in the Middle East, which have led to higher motor fuel prices for UK consumers. Inflation is likely to rise over the rest of this year as higher global energy prices continue to feed through into UK consumer prices. That is due to a mix of the direct effects of higher global prices on household utility prices, and indirect effects, as companies at home and abroad pass on increases in their energy costs through supply chains. The MPC cannot influence global energy prices",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "63704292d8c4f6e21b954e1fdb7bd61ce8d6f20c6b1ba9b246eee8e83892976e",
+      "input_content_basis": "full",
+      "retained_characters": 7188,
+      "extraction_characters": 175161
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "95349f53-d040-4a41-a20f-8f39893ed87a",
+     "evidenceId": "ev-f443126794cf",
+     "source": "bbc.com",
+     "url": "https://www.bbc.com/news/articles/c17rgd8e9gjo",
+     "title": "UK inflation: What is the rate and why are prices still rising?",
+     "snippet": "- Inflation in the UK rose to 3.1% in the year to August, according to the BBC.\n- According to the ONS, the base interest rate is currently 3.75%.\n- According to the ONS, core CPI was 2.6% in the 12 months to August 2026, unchanged from the 12 months to July.",
+     "publishedDate": "2011-01-14T00:00:00",
+     "relevanceScore": 0.3090909090909091,
+     "tier": "reporting",
+     "evidenceType": "analysis",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-6ea5d598fc9f,ev-3c7a7b21465c",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-836e6271bf025c97-0-899",
+        "end": 899,
+        "text": "What is happening to UK prices? Inflation in the UK rose to 3.1% in the year to August, the highest rate in five months and above the Bank of England's 2% target. The rise was in line with what economists had predicted, driven by higher petrol and diesel prices. Inflation is widely expected to rise again in the coming months. What is inflation? Inflation is the increase in the price of something over time. For example, if a bottle of milk costs £1 but is £1.05 a year later, then annual milk inflation is 5%. How is the UK's inflation rate measured and what does it mean for UK interest rates? The prices of hundreds of everyday items, including food and fuel, are tracked by the Office for National Statistics (ONS). This virtual \"basket of goods\" is regularly updated to reflect shopping trends, with alcohol-free beer, dashboard cameras, and pet grooming equipment among items added in 2026, ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-836e6271bf025c97-899-1790",
+        "end": 1790,
+        "text": "while premium bottled lager and sheets of wrapping paper were removed. The ONS uses price changes in the basket of goods over the previous 12 months to calculate inflation. The main inflation measure is called the Consumer Prices Index (CPI), and the latest figure is published every month. The Bank of England looks closely at the inflation figures when deciding whether to increase, lower or hold its base interest rate, which is currently 3.75%. Putting rates up makes borrowing more expensive, giving people and businesses less money to spend, reducing demand for goods and slowing price rises. But it is a careful balancing act – increasing borrowing costs also risks harming the economy. For example, homeowners face higher mortgage repayments, which can outweigh better savings deals. Businesses also borrow less, making them less likely to create jobs. Some may cut staff and reduce ",
+        "start": 899,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-836e6271bf025c97-1790-2690",
+        "end": 2690,
+        "text": "investment. What is happening to UK inflation? Although CPI inflation of 3.1% remains above the Bank of England's 2% target, it is well below the 11.1% figure reached in October 2022 as gas and oil prices soared in the wake of Russia's full-scale invasion of Ukraine. That was the highest rate for 40 years. While inflation has fallen significantly since then, prices have not. They have just risen less quickly. The higher figure for August was mostly caused by higher prices for motor fuel, which rose by 23% compared to August last year. Food price inflation remained at 1.3%. But it can take a year for changes in the cost of food to filter through to the shop floor because of the way supply chains work, so prices could still rise as a result of the widespread disruption caused by the war in Iran. How do energy prices affect UK inflation? Inflation soared in 2022 because oil and gas were in ",
+        "start": 1790,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-836e6271bf025c97-2690-3589",
+        "end": 3589,
+        "text": "greater demand after the Covid pandemic, and energy prices surged again when Russia invaded Ukraine. Before the war in the Middle East broke out, UK inflation had been expected to be at or around the target level of 2% over the next five years, according to the official forecasts published in March 2026. But in April, the Bank of England warned that disruption to global energy markets could push UK inflation as high as 6% in the worst-case scenario. When the latest ceasefire took effect, analysts said it could limit further inflation hikes. Oil prices initially fell sharply after the deal was announced, but have risen again since the US and Iran resumed attacks in the Strait of Hormuz in July. As a result, UK petrol prices are likely to climb back up. This - coupled with the increase in household energy bills from 1 July when the new Ofgem price cap took effect - is expected to push UK ",
+        "start": 2690,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-836e6271bf025c97-3589-4488",
+        "end": 4488,
+        "text": "inflation higher. The new Prime Minister Andy Burnham has announced that VAT on household electricity bills will be scrapped, but that will not take effect until October. It is predicted to have a small downward impact on inflation. Precisely because food and energy prices can be very volatile, the Bank of England also considers other economic measures such as \"core inflation\", which excludes these costs. Core CPI was 2.6% in the 12 months to August 2026, unchanged from the 12 months to July. What is happening to UK interest rates and will they fall again? The Bank cut interest rates six times between August 2024 and June 2026, which brought rates down to 3.75%, the lowest level since early 2023. In April, the Bank's Monetary Policy Committee indicated it would act \"forcefully\" if oil prices did not start to fall, with up to six rate hikes in a worst-case scenario. At its June meeting, ",
+        "start": 3589,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-836e6271bf025c97-4488-5384",
+        "end": 5384,
+        "text": "just after a tentative agreement to re-open the Strait of Hormuz, the Bank held interest rates, but oil prices have since risen. The Bank held rates again in July and is expected to do the same in September, but it has indicated it could raise them if the Iran war escalates. Are wages keeping up with inflation? The Bank also looks closely at what is happening to wages and unemployment. The latest official figures show that regular pay in the UK grew ahead of inflation in the three months to July. Average annual growth in pay, excluding bonuses, during the three-month period was 3.5%. The ONS said this had been relatively stable in recent months, after a year of slowing growth. After taking inflation into account, it means regular pay grew by 0.6% between May and July. What is happening to inflation and interest rates in Europe and the US? The US and eurozone countries have also been ",
+        "start": 4488,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-836e6271bf025c97-5384-6117",
+        "end": 6117,
+        "text": "trying to limit price increases, but also face challenges with inflation. The inflation rate for countries using the euro was 3.3% in August, according to EU data - up from 2.9% in July. The European Central Bank (ECB) has raised interest rates twice in recent months to 2.5%. US inflation was in 3.4% in August, the same as in July, with prices there also affected by higher fuel costs. The Federal Reserve is set to make its latest announcement on interest rates later on Wednesday. President Donald Trump has made it clear he expects new Fed chair Kevin Warsh to cut rates more aggressively than his predecessor Jerome Powell. However, the central bank is widely expected to raise them for the first time in more than three years.",
+        "start": 5384,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2011-01-14"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.bbc.com/news/articles/c17rgd8e9gjo",
+      "captured_at": "2026-10-05T13:24:37.370701+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Inflation in the UK rose to 3.1% in the year to August, according to the BBC.\n- According to the ONS, the base interest rate is currently 3.75%.\n- According to the ONS, core CPI was 2.6% in the 12 months to August 2026, unchanged from the 12 months to July.",
+      "original_snippet": "What is happening to UK prices. Inflation in the UK rose to 3. 1% in the year to August, the highest rate in five months and above the Bank of England's 2% target. The rise was in line with what economists had predicted, driven by higher petrol and diesel prices",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "836e6271bf025c972b736a1cf623bfc959f4e1d68b024a3a6d99ea8a289f0330",
+      "input_content_basis": "full",
+      "retained_characters": 6117,
+      "extraction_characters": 6117
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "5fddd48d-278c-47f0-9470-8c0ad483d0b3",
+     "evidenceId": "ev-9caaa07bea9c",
+     "source": "ons.gov.uk",
+     "url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/july2025",
+     "title": "Consumer price inflation, UK - Office for National Statistics",
+     "snippet": "- According to the Office for National Statistics, core CPI rose by 3.8% in the 12 months to July 2025, up slightly from 3.7% in the 12 months to June.\n- According to the Office for National Statistics, the Consumer Prices Index including owner occupiers' housing costs (CPIH) rose by 4.2% in the 12 months to July 2025, up from 4.1% in the 12 months to June.\n- According to the Office for National Statistics, the Consumer Prices Index (CPI) rose by 3.8% in the 12 months to July 2025, up from 3.6% in the 12 months to June.\n- According to the Office for National Statistics, overall motor fuel prices fell by 6.7% in the 12 months to July 2025, compared with a larger fall of 9.0% in the 12 months to June.\n- According to the Office for National Statistics, prices in the restaurants and hotels division rose overall by 3.4% in the 12 months to July 2025, up from 2.6% in the 12 months to June.\n- According to the Office for National Statistics, the 12-month inflation rate for food and non-alcoholic beverages was 4.9% in July 2025, up from 4.5% in the 12 months to June.\n- According to the Office for National Statistics, the CPI all goods index rose by 2.7% in the 12 months to July 2025, up from 2.4% in the 12 months to June.\n- According to the Office for National Statistics, the CPI all services index rose by 5.0% in the 12 months to July 2025, up from 4.7% in June.",
+     "publishedDate": "2025-08-19T00:00:00",
+     "relevanceScore": 0.5467741935483871,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-1c1d9a94269a,ev-71228181702d",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-08e5a959b6d72f74-897-1796",
+        "end": 1796,
+        "text": "the CPIH goods annual rate rose from 2.4% to 2.7%, while the CPIH services annual rate was unchanged at 5.2%. Core CPI (CPI excluding energy, food, alcohol and tobacco) rose by 3.8% in the 12 months to July 2025, up slightly from 3.7% in the 12 months to June; the CPI goods annual rate rose from 2.4% to 2.7%, while the CPI services annual rate rose from 4.7% to 5.0%. We have identified a minor error in the imputation of missing seasonal item indices. This error has no impact on headline CPI or CPIH annual and monthly growth rates. The Retail Prices Index (RPI) is also unaffected. For more details see Section 8: Data sources and quality. 2. Consumer price inflation rates |CPIH Index (UK, 2015 =100) |CPIH 12- month rate (%) |CPIH 1- month rate (%) |CPI Index (UK, 2015 =100) |CPI 12- month rate (%) |CPI 1- month rate (%) |OOH Index (UK, 2015 =100) |OOH 12- month rate (%) |2024 |Jul |132.9 ",
+        "start": 897,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-08e5a959b6d72f74-2694-3591",
+        "end": 3591,
+        "text": "annual inflation rates, UK, July 2015 to July 2025 Source: Consumer price inflation from the Office for National Statistics Download this chart Figure 1: CPIH annual inflation rate was last higher in October 2023Image .csv .xls The Consumer Prices Index including owner occupiers' housing costs (CPIH) rose by 4.2% in the 12 months to July 2025, up from 4.1% in the 12 months to June (Figure 1). On a monthly basis, CPIH was little changed in July 2025, the same as in July 2024. The owner occupiers' housing (OOH) costs component of CPIH rose by 5.5% in the 12 months to July 2025. This is down from 6.4% in the 12 months to June, returning to the levels seen in late 2023 and early 2024. OOH costs fell by 0.1% on the month, compared with a 0.6% increase a year earlier. The Consumer Prices Index (CPI) rose by 3.8% in the 12 months to July 2025, up from 3.6% in the 12 months to June. The July ",
+        "start": 2694,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-08e5a959b6d72f74-5382-6280",
+        "end": 6280,
+        "text": "large upward contribution to the change in CPIH annual inflation from transport was partially offset by housing and household services Contributions to change in the CPIH annual inflation rate, UK, between June and July 2025 Source: Consumer price inflation from the Office for National Statistics Notes: - Individual contributions may not sum to the total because of rounding. - More information on the contents of each division can be found in Table 3 in our accompanying Consumer price inflation dataset. Download this chart Figure 2: The large upward contribution to the change in CPIH annual inflation from transport was partially offset by housing and household servicesImage .csv .xls Figure 2 shows the contributions from the 12 divisions to the change in the annual Consumer Prices Index including owner occupiers' housing costs (CPIH) inflation rate between June and July 2025. These sum ",
+        "start": 5382,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-08e5a959b6d72f74-8077-8975",
+        "end": 8975,
+        "text": "141.4 pence per litre in June 2025, down from 150.4 pence per litre a year earlier. These movements resulted in overall motor fuel prices falling by 6.7% in the 12 months to July 2025, compared with a larger fall of 9.0% in the 12 months to June. There were also upward effects from sea fares and from roadside recovery services. Figure 3: Annual motor fuel price deflation for 12th consecutive month CPIH, transport, airfares and motor fuels 12-month inflation rates, UK, July 2015 to July 2025 Source: Consumer price inflation from the Office for National Statistics Download this chart Figure 3: Annual motor fuel price deflation for 12th consecutive monthImage .csv .xls Restaurants and hotels Prices in the restaurants and hotels division rose overall by 3.4% in the 12 months to July 2025, up from 2.6% in the 12 months to June. On a monthly basis, prices rose by 0.4% in July 2025, compared ",
+        "start": 8077,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-08e5a959b6d72f74-8975-9873",
+        "end": 9873,
+        "text": "with a fall of 0.4% a year ago. The largest upward effect came from accommodation services, specifically from overnight hotel stays booked the night before. There were smaller upward effects from restaurants and cafes, and from canteens. Food and non-alcoholic beverages The 12-month inflation rate for food and non-alcoholic beverages was 4.9% in July 2025, up from 4.5% in the 12 months to June. This was the fourth consecutive increase in the annual rate and the highest recorded since February 2024, but remains well below the peak seen in early 2023 (Figure 4). On a monthly basis, food and non-alcoholic beverages prices rose by 0.4% in July 2025, compared with being little changed a year ago. Figure 4: Food and non-alcoholic beverages annual inflation rate highest since February 2024 CPIH, and food and non-alcoholic beverages 12-month inflation rates, UK, July 2015 to July 2025 Source: ",
+        "start": 8975,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-08e5a959b6d72f74-11669-12567",
+        "end": 12567,
+        "text": "ago. This resulted from a change in the Office of Gas and Electricity Markets (Ofgem) energy price cap in July 2025, described on the Ofgem website. Ofgem estimated that for an average household paying by direct debit for dual fuel, this equates to an annual bill of £1,720, a fall of £129.Back to table of contents 4. Latest movements in CPIH inflation Figure 5: CPIH goods annual inflation at its highest rate since October 2023, while services inflation at its joint lowest rate since January 2023 CPIH goods, services and core annual inflation rates, UK, July 2015 to July 2025 Source: Consumer price inflation from the Office for National Statistics Download this chart Figure 5: CPIH goods annual inflation at its highest rate since October 2023, while services inflation at its joint lowest rate since January 2023Image .csv .xls Figure 5 shows the 12-month inflation rates for the Consumer ",
+        "start": 11669,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-08e5a959b6d72f74-18839-19733",
+        "end": 19733,
+        "text": "services |4.7 |5.0 |0.5 |0.7 |CPI exc food, energy, alcohol and tobacco (core CPI) |3.7 |3.8 |0.1 |0.2 Download this table Table 3: CPI annual and monthly inflation rates by division.xls .csv Figure 9: CPI goods annual inflation rate at its highest since October 2023 CPI goods, services and core annual inflation rates, UK, July 2015 to July 2025 Source: Consumer price inflation from the Office for National Statistics Download this chart Figure 9: CPI goods annual inflation rate at its highest since October 2023Image .csv .xls Figure 9 shows the 12-month inflation rates for the CPI all goods and all services series, together with CPI excluding energy, food, alcohol and tobacco (often referred to as core CPI). The headline CPI inflation rate is added for comparison. The CPI all goods index rose by 2.7% in the 12 months to July 2025, up from 2.4% in the 12 months to June. This is the ",
+        "start": 18839,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-08e5a959b6d72f74-19733-20632",
+        "end": 20632,
+        "text": "highest rate since October 2023 when it was 2.9%. The CPI all services index rose by 5.0% in the 12 months to July 2025, up from 4.7% in June. Core CPI rose by 3.8% in the 12 months to July 2025, up from 3.7% in the 12 months to June. As with the all-items annual inflation rates, the drivers of CPIH and CPI goods and services inflation are the same (except for owner occupiers’ housing (OOH) costs and Council Tax, which are excluded from CPI). The drivers are discussed in more detail in Section 4: Latest movements in CPIH inflation. Figure 10: Transport led the upward contributions to change in CPI annual inflation Contributions to change in the CPI annual inflation rate, UK, between June and July 2025 Source: Consumer price inflation from the Office for National Statistics Notes: - Individual contributions may not sum to the total because of rounding. - More information on the contents ",
+        "start": 19733,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2025-08-19"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/july2025",
+      "captured_at": "2026-10-05T13:24:37.373227+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- According to the Office for National Statistics, core CPI rose by 3.8% in the 12 months to July 2025, up slightly from 3.7% in the 12 months to June.\n- According to the Office for National Statistics, the Consumer Prices Index including owner occupiers' housing costs (CPIH) rose by 4.2% in the 12 months to July 2025, up from 4.1% in the 12 months to June.\n- According to the Office for National Statistics, the Consumer Prices Index (CPI) rose by 3.8% in the 12 months to July 2025, up from 3.6% in the 12 months to June.\n- According to the Office for National Statistics, overall motor fuel prices fell by 6.7% in the 12 months to July 2025, compared with a larger fall of 9.0% in the 12 months to June.\n- According to the Office for National Statistics, prices in the restaurants and hotels division rose overall by 3.4% in the 12 months to July 2025, up from 2.6% in the 12 months to June.\n- According to the Office for National Statistics, the 12-month inflation rate for food and non-alcoholic beverages was 4.9% in July 2025, up from 4.5% in the 12 months to June.\n- According to the Office for National Statistics, the CPI all goods index rose by 2.7% in the 12 months to July 2025, up from 2.4% in the 12 months to June.\n- According to the Office for National Statistics, the CPI all services index rose by 5.0% in the 12 months to July 2025, up from 4.7% in June.",
+      "original_snippet": "Figure 8 shows annual CPI inflation for the UK compared with the EU average and selected G7 countries. While the UK CPI is produced on a comparable basis with EU countries, the US Harmonised Index of Consumer Prices (HICP) differs in some respects (see Note 1 to Figure 8). The UK’s CPI inflation rate of 3. 8% was significantly higher than the first (or “flash”) estimate of inflation for France (0. Figure 8: UK inflation rate rises, whereas German rate falls CPI compared with selected G7 and EU annual inflation rates, July 2015 to July 2025 Source: Consumer price inflation from the Office for National Statistics, Eurostat, and the US Bureau of Labor Statistics Notes: There are some differences in the definition of the US HICP that may limit comparison; more information is available on the US Bureau of Labor Statistics R-HICP homepage",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "08e5a959b6d72f74bc5b1a6d7f31e790fae1010089d20bfcc83324b019206a0e",
+      "input_content_basis": "full",
+      "retained_characters": 7181,
+      "extraction_characters": 39791
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "fe71aa4a-7d6d-4a9b-96b3-c580ad97d891",
+     "evidenceId": "ev-45955cf2b7e4",
+     "source": "ft.com",
+     "url": "https://www.ft.com/content/7a75942f-9b40-4c49-b87f-e0ed3bed83f8?syn-25a6b1a6=1",
+     "title": "UK inflation rises more than expected to 3.8% in July",
+     "snippet": "UK inflation accelerated more than expected to 3.8 per cent in July on the back of higher food prices and airfares, deepening doubts over ...",
+     "publishedDate": "2025-08-19T00:00:00",
+     "relevanceScore": 0.5,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-1c1d9a94269a,ev-d6a8910bf114,ev-a83934c8ecac",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "snippet",
+     "textProvenance": null,
+     "dateBasis": "engine"
+    },
+    {
+     "id": "e9a7994f-b505-4e29-808e-0a33457d94e9",
+     "evidenceId": "ev-d6a8910bf114",
+     "source": "commonslibrary.parliament.uk",
+     "url": "https://commonslibrary.parliament.uk/research-briefings/cbp-11223/",
+     "title": "Economic update: Why has inflation gone up in 2025?",
+     "snippet": "In August 2025, inflation was 3.8%, the same as in July 2025, which was the highest since January 2024. UK consumer prices rose by 28.2%.",
+     "publishedDate": "2025-09-29T00:00:00",
+     "relevanceScore": 0.5,
+     "tier": "primary",
+     "evidenceType": "analysis",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-45955cf2b7e4",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "snippet",
+     "textProvenance": null,
+     "dateBasis": "engine"
+    },
+    {
+     "id": "d59720e3-ec77-4441-abfb-0c77a60b8481",
+     "evidenceId": "ev-71228181702d",
+     "source": "x.com",
+     "url": "https://x.com/ONS/status/1958046407987712172",
+     "title": "Office for National Statistics (ONS) (@ONS) on X",
+     "snippet": "8% in the 12 months to July 2025, up from 3",
+     "publishedDate": "2025-08-20T00:00:00",
+     "relevanceScore": 0.3333333333333333,
+     "tier": "commentary",
+     "evidenceType": "opinion",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-1c1d9a94269a,ev-9caaa07bea9c",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "social_media_floor",
+     "contentBasis": "full",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-037115bce7df7bf0-0-250",
+        "end": 250,
+        "text": "Office for National Statistics (ONS)@ONSThe Consumer Prices Index (CPI) rose by 3.8% in the 12 months to July 2025, up from 3.6% in the 12 months to June 2025. Read the full article ➡️ ons.gov.uk/economy/inflat…6:00 · 20 Aug 2025·215.1kViews267110012",
+        "start": 0,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2025-08-20"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "source_url": "https://x.com/ONS/status/1958046407987712172",
+      "captured_at": "2026-10-05T13:24:37.373227+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "original_snippet": "8% in the 12 months to July 2025, up from 3",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "037115bce7df7bf02a7a2ff88d7cdeab1786916c93487b0b8c185f4285222a92",
+      "input_content_basis": "full",
+      "retained_characters": 250,
+      "extraction_characters": 250
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "635f9dbd-c9c0-4e94-a4ca-2eb72d4fc2db",
+     "evidenceId": "ev-9171cfff8a3e",
+     "source": "theguardian.com",
+     "url": "https://www.theguardian.com/business/2026/aug/19/uk-inflation-rise-iran-war-energy-consumer-prices-index-interest-rates",
+     "title": "UK inflation rises to 2.9% as Iran war drives up energy bills",
+     "snippet": "- According to the Guardian, UK inflation rose to 2.9% in July.\n- According to the Office for National Statistics, inflation rose from a 15-month low of 2.6% in June.\n- According to the Guardian, inflation had also shown signs of cooling from a peak of 3.8% last year.",
+     "publishedDate": "2026-08-19T00:00:00",
+     "relevanceScore": 0.375,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-5dd5e9b381597330-0-896",
+        "end": 896,
+        "text": "UK inflation rose to 2.9% in July as the impact of the Iran war on energy prices triggered a renewed cost of living squeeze for British households. The Office for National Statistics said inflation rose from a 15-month low of 2.6% in June, driven by the rising price of gas and electricity. Matching City economists’ forecasts, it was the first rise in the annual rate as measured by the consumer prices index since March. Underscoring the challenge for Andy Burnham’s government to give “breathing space” to hard-pressed households, the acceleration in price rises comes after consumers in Great Britain faced the sharpest summer increase in energy bills in four years in July after the US-Israel war on Iran sent shock waves through global energy markets. The 13% increase in the cap on energy bills at the start of July led to a rise in gas and electricity bills. The ONS said consumers faced ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-5dd5e9b381597330-896-1788",
+        "end": 1788,
+        "text": "other pressures alongside the biggest jump in gas prices since Russia’s invasion of Ukraine in 2022, including furniture prices falling by less than usual for this time of year, and a smaller fall in clothing prices because of reduced discounting. However, the prices of raw materials and goods leaving factories slowed, driven by a drop in crude oil and refined petroleum prices in July. Against a volatile backdrop in the Middle East, the Bank of England is considering whether to raise interest rates from as early as next month in response to fears over stubbornly high inflation becoming entrenched in the economy. It comes as the chancellor, John Healey, prepares for a tough October budget as rising inflation and higher borrowing costs complicate the task of funding Burnham’s policy priorities. Burnham used his first week as prime minister to announce a series of “breathing space” ",
+        "start": 896,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-5dd5e9b381597330-1788-2688",
+        "end": 2688,
+        "text": "measures to ease the cost of living, including cutting VAT to reduce consumer electricity bills by an average of £45 a year from October. However, cost of living pressures could intensify in October when the energy price cap is next adjusted. The consultancy Cornwall Insight has predicted the cap will rise by 4% in the next quarter, taking average bills to a three-year high. Healey said the UK economy was resilient despite “Iran war inflation” driving up prices for British households. “There is more to do to restore hope and build a stronger economy where prosperity is shared more fairly across Britain.” Official figures show Britain’s economy overcame gloomy forecasts to grow at the fastest rate in the G7 in the first half of this year. Inflation had also shown signs of cooling from a peak of 3.8% last year. The headline rate had been on track to fall close to 2% before the outbreak of ",
+        "start": 1788,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-5dd5e9b381597330-2688-3587",
+        "end": 3587,
+        "text": "the Iran war in late February. Economists said the Bank could “look through” the latest energy price shock as a cooling jobs market limited the risk of inflation sticking at higher levels. Separate figures on Tuesday showed wage growth in the UK slowed in June and vacancies hit a five-year low. Ruth Gregory, the deputy chief UK economist at the consultancy Capital Economics, said: “As the latest rebound in energy prices doesn’t go much further, we still think the weak labour market will prevent second-round effects, meaning inflation falls to 2% next year.” However, concerns are mounting as the fighting in the Middle East and extreme weather hitting food production worldwide rekindle fears of a sharp inflation increase around the globe. Threadneedle Street kept borrowing costs unchanged last month as it warned that a worst-case scenario – involving further escalation in the war – could ",
+        "start": 2688,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-5dd5e9b381597330-3587-4211",
+        "end": 4211,
+        "text": "drive UK inflation to a peak of 4.5% by the middle of 2027. The latest figures showed core inflation – which excludes volatile items including energy and food – remained unchanged at 2.6%, slightly higher than City economists’ forecasts for a reading of 2.5%. Services inflation eased from 3.6% to 3.4%. James Smith, the chief economist at the Resolution Foundation, said: “The good news is that underlying pressures are still easing, with services inflation continuing to fall. The bad news is that this fresh bout of inflation is being driven by events in the Middle East that are largely beyond the government’s control.”",
+        "start": 3587,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-08-19"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.theguardian.com/business/2026/aug/19/uk-inflation-rise-iran-war-energy-consumer-prices-index-interest-rates",
+      "captured_at": "2026-10-05T13:24:37.373735+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- According to the Guardian, UK inflation rose to 2.9% in July.\n- According to the Office for National Statistics, inflation rose from a 15-month low of 2.6% in June.\n- According to the Guardian, inflation had also shown signs of cooling from a peak of 3.8% last year.",
+      "original_snippet": "UK inflation rose to 2. 9% in July as the impact of the Iran war on energy prices triggered a renewed cost of living squeeze for British households. The Office for National Statistics said inflation rose from a 15-month low of 2",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "5dd5e9b38159733043c08c89060420ada323000ff21f155543a26c57617de95f",
+      "input_content_basis": "full",
+      "retained_characters": 4211,
+      "extraction_characters": 4211
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "89dc5a26-301a-4398-bbb8-b3748fb7bab5",
+     "evidenceId": "ev-d86de3047823",
+     "source": "bbc.co.uk",
+     "url": "https://www.bbc.co.uk/news/live/cx2lej4x7j9t",
+     "title": "As it happened: UK inflation climbs to 3.4% as tobacco and airfares drive rising prices",
+     "snippet": "- According to the Office for National Statistics, the rate of inflation in the UK rose to 3.4% in the year to December.\n- According to the BBC, the inflation rate for the year to December was lower, at 3.2%, if volatile elements including tobacco, food and energy are stripped out.",
+     "publishedDate": "2026-01-21T00:00:00",
+     "relevanceScore": 0.5895348837209302,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-f7e25497d4d2ca7f-0-892",
+        "end": 892,
+        "text": "UK inflation rises to 3.4%, driven by tobacco and airfarespublished at 09:03 GMT 21 January Caitlin Doherty Live reporter The rate of inflation in the UK rose to 3.4% in the year to December, according to fresh figures from the Office for National Statistics. Rising prices were driven in part by higher tobacco prices and airfares over the Christmas and New Year break. Chancellor Rachel Reeves says that her \"number one focus is to cut the cost of living,\" but her Conservative counterpart, Mel Stride, blames the rising rate on what he calls the government's \"economic mismanagement\". If you strip out volatile elements - including tobacco, food and energy - then the inflation rate for the year to December was lower, at 3.2%. With that in mind, focus now shifts to the Bank of England's next meeting to set interest rates, which will be happening in February. We are now ending our live ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-01-21"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.bbc.co.uk/news/live/cx2lej4x7j9t",
+      "captured_at": "2026-10-05T13:24:37.373735+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- According to the Office for National Statistics, the rate of inflation in the UK rose to 3.4% in the year to December.\n- According to the BBC, the inflation rate for the year to December was lower, at 3.2%, if volatile elements including tobacco, food and energy are stripped out.",
+      "original_snippet": "UK inflation rises to 3. 4%, driven by tobacco and airfarespublished at 09:03 GMT 21 January Caitlin Doherty Live reporter The rate of inflation in the UK rose to 3. 4% in the year to December, according to fresh figures from the Office for National Statistics",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "f7e25497d4d2ca7f16c4e42ffe258f8a37dfc11e8375cc8b048d68679ebb09ea",
+      "input_content_basis": "full",
+      "retained_characters": 892,
+      "extraction_characters": 963
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "bb82239e-0cdf-48d3-8991-c7293f92e9e5",
+     "evidenceId": "ev-a5f9e5c113c1",
+     "source": "bbc.co.uk",
+     "url": "https://www.bbc.co.uk/news/articles/c741wkngndqo",
+     "title": "UK inflation: Air fares and food prices push rate up to 3.8% in July",
+     "snippet": "- According to Office for National Statistics data, prices in the UK rose by 3.8% in the year to July.\n- July's rise in the Consumer Prices Index measure of inflation compares with a rise of 3.6% in the year to June.\n- The Bank of England's latest forecast expects inflation to peak at 4% in September.\n- ONS chief economist Grant Fitzner stated that air fares increased by 30.2% between June and July.\n- The cost of food and non-alcoholic beverages rose 4.9% in the year to July, up from 4.5% in the year to June.\n- The Retail Prices Index rose to 4.8% in the year to July, up from 4.4% in June.",
+     "publishedDate": "2025-08-20T00:00:00",
+     "relevanceScore": 0.1184931506849315,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-a1bbf040975b6e88-0-898",
+        "end": 898,
+        "text": "Air fares and food prices push up inflation to 3.8% in July Prices in the UK rose by 3.8% in the year to July, driven mainly by a jump in the price of air fares and food. That means inflation is at its highest level since January 2024 and still far above the Bank of England's target of 2%, according to the Office for National Statistics (ONS) data. While the timing of school holidays likely caused the jump in air fares, higher food prices were driven by increases to the cost of beef, chocolate and confectionery, instant coffee, and fresh orange juice. The slightly higher-than-expected increase to inflation strengthens economists' expectations that the Bank of England will slow the pace of interest rate cuts. July's rise in the Consumer Prices Index (CPI) measure of inflation compares with a rise of 3.6% in the year to June. The Bank's latest forecast expects inflation to peak at 4% in ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-a1bbf040975b6e88-898-1797",
+        "end": 1797,
+        "text": "September. ONS chief economist Grant Fitzner said the \"hefty\" increase of 30.2% in air fares between June and July was the biggest jump for that period since the collection of monthly data began in 2001. He said it was \"likely due to the timing of this year's school holidays\". This year, the collection day for the ONS data overlapped with the start of the school holidays in a way they didn't last year. The price of petrol and diesel had also increased, compared with a drop this time last year, he added. The cost of food and non-alcoholic beverages rose 4.9% in the year to July, up from 4.5% in the year to June. It was the fourth month in a row in which food and drink inflation had risen, bringing prices to their highest since February 2024. 'Cost of my weekly shop has gone up so much' Rising food and fuel prices are \"stretching\" Michelle Birkenhead's finances. \"It's so expensive,\" says ",
+        "start": 898,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-a1bbf040975b6e88-1797-2697",
+        "end": 2697,
+        "text": "Michelle. \"It's gone up so much, it's ridiculous. What used to cost us, two years ago, a weekly shop of £100, you're looking at £150.\" Another measure of inflation, the Retail Prices Index (RPI) rose to 4.8% in the year to July, up from 4.4% in June. RPI differs from CPI in that it includes things like mortgage interest payments and buildings insurance. It is also used to determine upcoming hikes in train fares in England. This year's rise in the price of rail fares of 4.6% was one percentage point above RPI in July 2024, meaning that if the same pattern was adopted, fares in 2026 would rise by 5.8%. However, the Department for Transport has said that no decisions have been made yet on next year's fares. Why are food prices still going up? - Published20 August 2025 Why is UK inflation still rising? - Published16 September What are interest rates and will they fall further? - Published17 ",
+        "start": 1797,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-a1bbf040975b6e88-2697-3596",
+        "end": 3596,
+        "text": "September 'Close call' on rate cut Policy makers at the Bank of England take into account inflation and other economic data when deciding what to do about interest rates. When inflation is high they can use higher interest rates as a tool to bear down on prices. When the economy is slow then they can cut interest rates to boost growth. Earlier this month, they narrowly voted to cut rates to 4%, down from 4.25%, taking rates to their lowest for more than two years. Monica George Michail, associate economist at the National Institute of Economic and Social Research (Niesr), said that some of the recent drivers of inflation have been one-off policy changes. Those changes include the April increase in employers' National Insurance Contributions and the National Living Wage rise. \"The Bank faces a difficult balancing act between lowering inflation and boosting a sluggish economy,\" she said. ",
+        "start": 2697,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-a1bbf040975b6e88-3596-4495",
+        "end": 4495,
+        "text": "While Niesr expects one more rate cut this year, Ms Michail added the Bank will have to \"remain cautious\" if food prices remain high. Ruth Gregory, deputy chief economist at Capital Economics, said while she also expects a rate cut, in November, that decision \"will be a close call and will depend on the data released over the next few months\". Bank of England governor Andrew Bailey told the BBC earlier this month that interest rates were \"still on a downward path,\" but added that \"any future rate cuts will need to be made gradually and carefully.\" Reacting to the latest figures, Chancellor Rachel Reeves said the government had \"taken the decisions needed to stabilise the public finances, and we're a long way from the double-digit inflation we saw under the previous government\". But she added: \"There's more to do to ease the cost of living.\" Shadow chancellor Mel Stride said the news on ",
+        "start": 3596,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-a1bbf040975b6e88-4495-5117",
+        "end": 5117,
+        "text": "inflation was \"deeply worrying for families\". \"Labour's choices to tax jobs and ramp up borrowing are pushing up costs and stoking inflation - making everyday essentials more expensive.\" Liberal Democrat treasury spokesperson Daisy Cooper said rising inflation was \"grim news for families, pensioners and businesses still struggling with the cost-of-living crisis\". She said the chancellor needed to take \"far bolder action, starting with the Liberal Democrat plan to halve energy bills by 2035\". Get in touch How are you managing with the rising cost of living as a consumer or as a business owner? Share your experience.",
+        "start": 4495,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2025-08-20"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.bbc.co.uk/news/articles/c741wkngndqo",
+      "captured_at": "2026-10-05T13:24:37.374253+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- According to Office for National Statistics data, prices in the UK rose by 3.8% in the year to July.\n- July's rise in the Consumer Prices Index measure of inflation compares with a rise of 3.6% in the year to June.\n- The Bank of England's latest forecast expects inflation to peak at 4% in September.\n- ONS chief economist Grant Fitzner stated that air fares increased by 30.2% between June and July.\n- The cost of food and non-alcoholic beverages rose 4.9% in the year to July, up from 4.5% in the year to June.\n- The Retail Prices Index rose to 4.8% in the year to July, up from 4.4% in June.",
+      "original_snippet": "However, the Department for Transport has said that no decisions have been made yet on next year's fares. Why are food prices still going up. - Published20 August 2025 Why is UK inflation still rising. - Published16 September What are interest rates and will they fall further. - Published17 September 'Close call' on rate cut Policy makers at the Bank of England take into account inflation and other economic data when deciding what to do about interest rates",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "a1bbf040975b6e884d636e59bdd9a040facaa27fbc988416c44625043812c314",
+      "input_content_basis": "full",
+      "retained_characters": 5117,
+      "extraction_characters": 5117
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "9dc064e6-7fa0-4c6b-9da8-83c5100890e8",
+     "evidenceId": "ev-66a9af95f837",
+     "source": "bbc.co.uk",
+     "url": "https://www.bbc.co.uk/news/live/ce840jp99rrt",
+     "title": "UK inflation rate stays at 3.8% but food costs continue to rise steeply - follow latest",
+     "snippet": "- The UK inflation rate stays at 3.8% while food costs continue to rise steeply.",
+     "publishedDate": "2025-09-17T00:00:00",
+     "relevanceScore": 0.29523809523809524,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-4f0c97ec8b2ea4ad-0-898",
+        "end": 898,
+        "text": "Low income households continue to face inflation painpublished at 09:14 BST 17 September 2025 Dharshini David Deputy economics editor No surprises here for analysts but this morning's figures underscore the frustration many households feel. Wages for many have risen at a faster pace than inflation - but even for those people, they are frustrated that their money is stretching a bit less further than hoped. It’s particularly painful for those on lower incomes, as the resurgence of inflation has been rooted in staple products. There’s anxiety too for homeowners or landlords, who hope that interest rate cuts later this year may be looming. But much of the recent rise in inflation has been spurred by global commodity prices - energy and food - and many of those pressures are subsiding. One factor that has led to food inflation outstripping rates in Europe is government policy. The Bank of ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1"
+        ]
+       },
+       {
+        "id": "p-4f0c97ec8b2ea4ad-898-1505",
+        "end": 1505,
+        "text": "England are among economists who’ve suggested that measures such as higher National Insurance Contributions and minimum wages may have added more than 1% to food prices, while adding to cost pressures elsewhere. Those too should pass - but could there be more? The boss of Aldi has warned that more price rises may loom, depending on Budget measures. The government says the Budget will help to ease the cost of living pressures on consumers and businesses - we will have to wait to see exactly what that means. We're ending our live coverage of today's inflation news but you can read our full report here.",
+        "start": 898,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2025-09-17"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.bbc.co.uk/news/live/ce840jp99rrt",
+      "captured_at": "2026-10-05T13:24:37.374768+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- The UK inflation rate stays at 3.8% while food costs continue to rise steeply.",
+      "original_snippet": "Low income households continue to face inflation painpublished at 09:14 BST 17 September 2025 Dharshini David Deputy economics editor No surprises here for analysts but this morning's figures underscore the frustration many households feel",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "4f0c97ec8b2ea4adaa8a6cdeab51458cb1aaa134823c99dbc13a98c39438b945",
+      "input_content_basis": "full",
+      "retained_characters": 1505,
+      "extraction_characters": 1505
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "6afafa9f-c4d2-42e2-ab07-3ad9db308fa7",
+     "evidenceId": "ev-948c553d5d1c",
+     "source": "ONS Economic Statistics",
+     "url": "https://api.beta.ons.gov.uk/v1/datasets/wellbeing-quarterly",
+     "title": "Quarterly personal well-being estimates",
+     "snippet": "Quarterly personal well-being estimates — ONS dataset updated 2023-11-28. Seasonally and non seasonally-adjusted quarterly estimates of life satisfaction, feeling that the things done in life are worthwhile, happiness and anxiety in the UK.",
+     "publishedDate": "2023-11-28T00:00:00",
+     "relevanceScore": 0.0,
+     "tier": "primary",
+     "evidenceType": "data",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": "ONS Economic Statistics",
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 1,
+     "classificationMethod": "llm",
+     "contentBasis": "api",
+     "textProvenance": null,
+     "dateBasis": "api_adapter"
+    }
+   ]
+  }
+ ],
+ "createdAt": "2026-10-05T13:24:15.096720",
+ "completedAt": "2026-10-05T13:25:04.242470",
+ "currentStage": null,
+ "progress": null,
+ "progressMessage": null,
+ "reportIdentity": {
+  "basis": "evidence_snapshot_v1",
+  "contentHash": "4b824f1c20b683e59c75562b882cf554a9e347bc2c769edfa22e33fdd5f93b48",
+  "revisionId": null,
+  "status": "unretained"
+ }
+}

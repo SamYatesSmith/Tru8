@@ -1,0 +1,1959 @@
+{
+ "id": "676ffb49-f701-440e-937e-042d5fee5ebf",
+ "inputType": "text",
+ "inputContent": {
+  "content": "A team from University of Galway, with colleagues from France, placed 23 3D-printed reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France.",
+  "url": null,
+  "file_path": null
+ },
+ "inputUrl": null,
+ "status": "completed",
+ "creditsUsed": 0,
+ "processingTimeMs": 86135,
+ "errorMessage": null,
+ "entryMode": "focused",
+ "selectedClaimsCount": 1,
+ "articleDomain": "Animals",
+ "articleSecondaryDomains": [
+  "Science",
+  "Climate"
+ ],
+ "articleJurisdiction": "EU",
+ "articleClassificationSource": "llm_primary",
+ "userQuery": null,
+ "queryResponse": null,
+ "queryConfidence": null,
+ "querySources": null,
+ "queryRelatedClaims": null,
+ "claims": [
+  {
+   "id": "436dea5f-0881-433e-a655-bae07a793283",
+   "text": "A team from University of Galway, with colleagues from France, placed 23 3D-printed reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France.",
+   "position": 0,
+   "claimMap": {
+    "claimId": "0",
+    "elements": [
+     {
+      "basis": {
+       "evidence_count": 8,
+       "tier_breakdown": {
+        "primary": 1,
+        "reporting": 6,
+        "commentary": 1
+       },
+       "state_derivation": {
+        "caveat": null,
+        "rule_applied": "all_challenges",
+        "context_count": 7,
+        "supports_count": 0,
+        "challenges_count": 1,
+        "weighted_supports": 0,
+        "weighted_challenges": 2
+       },
+       "support_structure": {
+        "count": 0,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 0,
+         "reporting": 0,
+         "commentary": 0
+        },
+        "distinct_domains": 0
+       },
+       "relationship_scope": {
+        "scoped": [
+         {
+          "quote": "- A team from University of Galway, with colleagues from France, placed 23 artificial reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France.",
+          "status": "scoped",
+          "block_id": "mapping-text",
+          "decision": "mismatch",
+          "dimension": "measure",
+          "reasoning": "The element asserts that all 23 structures were placed on the seabed of the Porcupine Bank, whereas the source reports that the total of 23 structures was placed across two locations: the Porcupine Bank and the Bay of Biscay.",
+          "element_id": "e1",
+          "excerpt_id": "line-0",
+          "claim_scope": "23 3D-printed reef structures placed on the Porcupine Bank",
+          "evidence_id": "ev-6ebc457863b8",
+          "quote_basis": "selected_exact_excerpt",
+          "input_sha256": "a6b195cb01b3bd031162d77430911f78a80e15333d2cc48034e0a0f1adf9f91f",
+          "original_ref": {
+           "reasoning": "Reports that a team from University of Galway and French colleagues placed 23 artificial reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast.",
+           "evidence_id": "ev-6ebc457863b8",
+           "relationship": "supports"
+          },
+          "source_scope": "23 reef structures placed across both the Porcupine Bank and the Bay of Biscay combined",
+          "content_basis": "distilled",
+          "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+         },
+         {
+          "quote": "- A team from University of Galway, along with French scientists, have placed 23 structures on the seabed of the Porcupine Bank, 200 kilometres off the Kerry coast, and in the Bay of Biscay off France.",
+          "status": "scoped",
+          "block_id": "mapping-text",
+          "decision": "mismatch",
+          "dimension": "measure",
+          "reasoning": "The element specifies a count of 23 structures placed on the Porcupine Bank, but the source states the 23 structures were divided between the Porcupine Bank and the Bay of Biscay.",
+          "element_id": "e1",
+          "excerpt_id": "line-0",
+          "claim_scope": "23 3D-printed reef structures placed on the Porcupine Bank",
+          "evidence_id": "ev-3d471b06d658",
+          "quote_basis": "selected_exact_excerpt",
+          "input_sha256": "24cfa007d47fac3b7545827a5a25084301f1a621c98df1c93ab922e09eb077a4",
+          "original_ref": {
+           "reasoning": "Confirms University of Galway researchers and French scientists placed 23 3D-printed structures at the Porcupine Bank 200km off Kerry.",
+           "evidence_id": "ev-3d471b06d658",
+           "relationship": "supports"
+          },
+          "source_scope": "23 structures placed across both the Porcupine Bank and the Bay of Biscay combined",
+          "content_basis": "distilled",
+          "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+         },
+         {
+          "quote": "- Researchers from the University of Galway, Sorbonne University and the French oceanographic institution Ifremer are testing 23 artificial reefs placed on the seabed off the south-west Porcupine Bank – 200km off the west coast of Ireland – and in the Bay of Biscay, France.",
+          "status": "scoped",
+          "block_id": "mapping-text",
+          "decision": "mismatch",
+          "dimension": "measure",
+          "reasoning": "The element asserts 23 structures were placed at the Porcupine Bank, whereas the text clarifies the 23 reefs were placed across two separate locations (Porcupine Bank and Bay of Biscay).",
+          "element_id": "e1",
+          "excerpt_id": "line-0",
+          "claim_scope": "23 3D-printed reef structures placed on the Porcupine Bank",
+          "evidence_id": "ev-52e609a34cea",
+          "quote_basis": "selected_exact_excerpt",
+          "input_sha256": "764c026ff8cef600fd0b64c5ad2e79c74a5146b7450bd29fa2ccdc37c89cabd0",
+          "original_ref": {
+           "reasoning": "States researchers from University of Galway, Sorbonne University, and Ifremer placed 3D-printed reefs on the Porcupine Bank seabed 200km off Ireland's west coast.",
+           "evidence_id": "ev-52e609a34cea",
+           "relationship": "supports"
+          },
+          "source_scope": "23 artificial reefs placed across both the Porcupine Bank and the Bay of Biscay combined",
+          "content_basis": "distilled",
+          "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+         },
+         {
+          "quote": "University of Galway researchers are testing whether 3D-printed structures can restore damaged Atlantic coral reefs. 200km off Kerry,",
+          "status": "scoped",
+          "block_id": "mapping-text",
+          "decision": "unknown",
+          "dimension": "result",
+          "reasoning": "The source snippet is cut off and does not confirm that 23 structures were placed, the collaboration with French colleagues, or placement on the Porcupine Bank specifically.",
+          "element_id": "e1",
+          "excerpt_id": "line-0",
+          "claim_scope": "A team from University of Galway, with colleagues from France, placed 23 3D-printed reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast.",
+          "evidence_id": "ev-4d729a23b6f1",
+          "quote_basis": "selected_exact_excerpt",
+          "input_sha256": "f65e134f43cbc883ec58730b44ca90c0638e0cec58d7eb2b850794f548e76068",
+          "original_ref": {
+           "reasoning": "Reports University of Galway researchers tested 3D-printed reef structures 200km off Kerry.",
+           "evidence_id": "ev-4d729a23b6f1",
+           "relationship": "supports"
+          },
+          "source_scope": "University of Galway researchers testing 3D-printed structures 200km off Kerry",
+          "content_basis": "snippet",
+          "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+         },
+         {
+          "quote": ", placed 23 of the structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France.",
+          "status": "scoped",
+          "block_id": "p-4a8862b5ca2b84c5-0-900",
+          "decision": "mismatch",
+          "dimension": "measure",
+          "reasoning": "The source states that 23 structures in total were placed across both the Porcupine Bank and the Bay of Biscay combined, rather than 23 structures placed solely on the Porcupine Bank.",
+          "element_id": "e1",
+          "claim_scope": "23 3D-printed reef structures placed on the Porcupine Bank",
+          "evidence_id": "ev-96e9bdcb0afc",
+          "input_sha256": "4858d2af7a556767a63d4f45218f6ba5742888e02bdd7141e415d3881a783684",
+          "original_ref": {
+           "reasoning": "Confirms an Irish team placed 23 3D-printed reef structures 1,000 metres below water at the Porcupine Bank.",
+           "evidence_id": "ev-96e9bdcb0afc",
+           "relationship": "supports"
+          },
+          "source_scope": "23 3D-printed reef structures placed across both the Porcupine Bank and Bay of Biscay combined",
+          "content_basis": "retained_extraction",
+          "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+         },
+         {
+          "quote": "Did you know: Ireland has cold water coral reefs too 👀🌊 Scientists from University of Galway are testing 3D printed artificial reefs to help damaged deep sea coral recover. Twenty three structures have been placed on the Porcupine Bank, around 200 km off Kerry, and in the Bay of Biscay. Some sit around 1 km beneath the surface and early signs are encouraging ☘️ Read more 👇",
+          "status": "scoped",
+          "block_id": "mapping-text",
+          "decision": "mismatch",
+          "dimension": "measure",
+          "reasoning": "The claim states that 23 reef structures were placed on the Porcupine Bank, but the text states that 23 structures were placed across both the Porcupine Bank and the Bay of Biscay.",
+          "element_id": "e1",
+          "excerpt_id": "line-0",
+          "claim_scope": "23 3D-printed reef structures placed on the Porcupine Bank",
+          "evidence_id": "ev-0988cf9f4e70",
+          "quote_basis": "selected_exact_excerpt",
+          "input_sha256": "05a066a2486da1e068b55f3d2d4f2a49bfd12dc23bbc4430ac1f6374b52e68cf",
+          "original_ref": {
+           "reasoning": "This commentary explicitly confirms that 23 structures were placed on the Porcupine Bank around 200 km off Kerry by University of Galway scientists.",
+           "evidence_id": "ev-0988cf9f4e70",
+           "relationship": "supports"
+          },
+          "source_scope": "23 structures placed across the Porcupine Bank and Bay of Biscay combined",
+          "content_basis": "full",
+          "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+         }
+        ],
+        "scoped_count": 6
+       },
+       "challenge_structure": {
+        "count": 1,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "3druck.com",
+        "tier_counts": {
+         "primary": 0,
+         "reporting": 1,
+         "commentary": 0
+        },
+        "distinct_domains": 1
+       },
+       "relationship_breakdown": {
+        "context": 7,
+        "challenges": 1
+       },
+       "content_basis_breakdown": {
+        "full": 1,
+        "snippet": 2,
+        "distilled": 5
+       },
+       "classification_breakdown": {
+        "llm": 7,
+        "social_media_floor": 1
+       }
+      },
+      "state": "disputed",
+      "elementId": "e1",
+      "description": "A team from University of Galway, with colleagues from France, placed 23 3D-printed reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast.",
+      "scopeReach": "Porcupine Bank and Bay of Biscay combined",
+      "uncertainty": "Some evidence has different or unestablished applicability to this element and is retained as context; see the relationship explanations.",
+      "evidenceRefs": [
+       {
+        "reasoning": "Context after scope review: The element asserts that all 23 structures were placed on the seabed of the Porcupine Bank, whereas the source reports that the total of 23 structures was placed across two locations: the Porcupine Bank and the Bay of Biscay.",
+        "evidenceId": "ev-6ebc457863b8",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "Context after scope review: The element specifies a count of 23 structures placed on the Porcupine Bank, but the source states the 23 structures were divided between the Porcupine Bank and the Bay of Biscay.",
+        "evidenceId": "ev-3d471b06d658",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "Context after scope review: The element asserts 23 structures were placed at the Porcupine Bank, whereas the text clarifies the 23 reefs were placed across two separate locations (Porcupine Bank and Bay of Biscay).",
+        "evidenceId": "ev-52e609a34cea",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "Context: applicability to this element is unestablished. The source snippet is cut off and does not confirm that 23 structures were placed, the collaboration with French colleagues, or placement on the Porcupine Bank specifically.",
+        "evidenceId": "ev-4d729a23b6f1",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "Context after scope review: The source states that 23 structures in total were placed across both the Porcupine Bank and the Bay of Biscay combined, rather than 23 structures placed solely on the Porcupine Bank.",
+        "evidenceId": "ev-96e9bdcb0afc",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "Indicates the figure of 23 structures was the combined total deployed across both Porcupine Bank and the Bay of Biscay, rather than all 23 at Porcupine Bank alone.",
+        "evidenceId": "ev-b926e97f2bcf",
+        "relationship": "challenges"
+       },
+       {
+        "reasoning": "Provides official mission details from University of Galway confirming the collaborative deployment of 23 reefs across Porcupine Bank and the Bay of Biscay.",
+        "evidenceId": "ev-34a03e56313a",
+        "relationship": "context"
+       },
+       {
+        "reasoning": "Context after scope review: The claim states that 23 reef structures were placed on the Porcupine Bank, but the text states that 23 structures were placed across both the Porcupine Bank and the Bay of Biscay.",
+        "evidenceId": "ev-0988cf9f4e70",
+        "relationship": "context"
+       }
+      ]
+     },
+     {
+      "basis": {
+       "evidence_count": 5,
+       "tier_breakdown": {
+        "reporting": 4,
+        "commentary": 1
+       },
+       "state_derivation": {
+        "caveat": null,
+        "llm_state": "supported",
+        "rule_applied": "all_supports",
+        "context_count": 0,
+        "supports_count": 5,
+        "challenges_count": 0,
+        "weighted_supports": 9,
+        "weighted_challenges": 0
+       },
+       "support_structure": {
+        "count": 5,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 0,
+         "reporting": 4,
+         "commentary": 1
+        },
+        "distinct_domains": 5
+       },
+       "challenge_structure": {
+        "count": 0,
+        "derivation": {
+         "originals": 0,
+         "derivative_count": 0
+        },
+        "repetition": {
+         "distinct_domains": 0,
+         "max_cluster_on_side": 0
+        },
+        "sole_domain": "",
+        "tier_counts": {
+         "primary": 0,
+         "reporting": 0,
+         "commentary": 0
+        },
+        "distinct_domains": 0
+       },
+       "relationship_breakdown": {
+        "supports": 5
+       },
+       "content_basis_breakdown": {
+        "full": 1,
+        "distilled": 4
+       },
+       "classification_breakdown": {
+        "llm": 4,
+        "social_media_floor": 1
+       }
+      },
+      "state": "supported",
+      "elementId": "e2",
+      "description": "The same team placed 3D-printed reef structures on the seabed in the Bay of Biscay off France.",
+      "scopeReach": "Guilvinec Canyon, Bay of Biscay",
+      "uncertainty": null,
+      "evidenceRefs": [
+       {
+        "reasoning": "Confirms the Franco-Irish research team deployed 3D-printed artificial reefs in the Guilvinec Canyon in France's Bay of Biscay.",
+        "evidenceId": "ev-29dfc22a8ecd",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Reports that the Galway and Ifremer team deployed 3D-printed reefs at depths between 900m and 1,100m in the Guilvinec Canyon, Bay of Biscay.",
+        "evidenceId": "ev-6cb45ba34f51",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "Confirms the international team from University of Galway, Ifremer, and Sorbonne University placed artificial reefs in the Bay of Biscay.",
+        "evidenceId": "ev-bd60bd65c270",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "States researchers from University of Galway, Ifremer, and Sorbonne University placed artificial reefs on the seabed in the Bay of Biscay.",
+        "evidenceId": "ev-7681650b780a",
+        "relationship": "supports"
+       },
+       {
+        "reasoning": "This source explicitly confirms that structures were also placed in the Bay of Biscay as part of the same deployment.",
+        "evidenceId": "ev-0988cf9f4e70",
+        "relationship": "supports"
+       }
+      ]
+     }
+    ],
+    "metadata": {
+     "subjects": [
+      "university of galway"
+     ],
+     "claimText": "A team from University of Galway, with colleagues from France, placed 23 3D-printed reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France.",
+     "echoLinks": {
+      "totals": {
+       "calls": 1,
+       "pairs": 2,
+       "seconds": 8.99,
+       "contract": "v1",
+       "confirmed": 1,
+       "call_seconds": [
+        8.99
+       ],
+       "not_inspected": 1,
+       "join_wait_seconds": 0.0
+      },
+      "records": [
+       {
+        "cue": "collaboration between researchers from the University of Galway, Ifremer and the Sorbonne University in France",
+        "rank": 0,
+        "extent": "whole",
+        "status": "confirmed",
+        "cue_kind": "attribution",
+        "original_id": "ev-34a03e56313a",
+        "derivative_id": "ev-7681650b780a"
+       },
+       {
+        "rank": 1,
+        "detail": "no_verbatim_text",
+        "status": "not_inspected",
+        "original_id": "ev-34a03e56313a",
+        "derivative_id": "ev-8c950bc4b899"
+       }
+      ]
+     },
+     "queryPlan": {
+      "queries": [
+       "University of Galway 3D-printed reef structures Porcupine Bank Kerry coast",
+       "University of Galway 3D-printed reef structures Porcupine Bank Kerry coast",
+       "University of Galway France 3D-printed reef structures Porcupine Bank Bay of Biscay",
+       "University of Galway 3D-printed reef structures Porcupine Bank Kerry coast site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+       "University of Galway 23 3D printed reef structures Porcupine Bank Kerry",
+       "University of Galway Porcupine Bank seabed 3D printed reefs Kerry coast",
+       "University of Galway 3D printed reefs Bay of Biscay France",
+       "colleagues from France 3D printed reef structures Bay of Biscay seabed"
+      ],
+      "freshness": [
+       "py",
+       "none",
+       "none",
+       "py",
+       "py",
+       "none",
+       "py",
+       "none"
+      ],
+      "element_ids": [
+       "c0",
+       "c0",
+       "c0",
+       "c0",
+       "e1",
+       "e1",
+       "e2",
+       "e2"
+      ]
+     },
+     "completedAt": "2026-10-05T13:24:14.837894+00:00",
+     "jurisdiction": "EU",
+     "scopeReview": {
+      "calls": [
+       {
+        "pairs": 6,
+        "status": "ok",
+        "seconds": 10.889999999999418
+       },
+       {
+        "pairs": 5,
+        "status": "ok",
+        "seconds": 7.172000000002299
+       }
+      ],
+      "pairs": [
+       {
+        "quote": "- A team from University of Galway, with colleagues from France, placed 23 artificial reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France.",
+        "status": "scoped",
+        "block_id": "mapping-text",
+        "decision": "mismatch",
+        "dimension": "measure",
+        "reasoning": "The element asserts that all 23 structures were placed on the seabed of the Porcupine Bank, whereas the source reports that the total of 23 structures was placed across two locations: the Porcupine Bank and the Bay of Biscay.",
+        "element_id": "e1",
+        "excerpt_id": "line-0",
+        "claim_scope": "23 3D-printed reef structures placed on the Porcupine Bank",
+        "evidence_id": "ev-6ebc457863b8",
+        "quote_basis": "selected_exact_excerpt",
+        "input_sha256": "a6b195cb01b3bd031162d77430911f78a80e15333d2cc48034e0a0f1adf9f91f",
+        "original_ref": {
+         "reasoning": "Reports that a team from University of Galway and French colleagues placed 23 artificial reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast.",
+         "evidence_id": "ev-6ebc457863b8",
+         "relationship": "supports"
+        },
+        "source_scope": "23 reef structures placed across both the Porcupine Bank and the Bay of Biscay combined",
+        "content_basis": "distilled",
+        "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+       },
+       {
+        "quote": "The structures were deployed in August from L’Atalante, a research vessel of the French Oceanographic Fleet, at two protected sites: the south-west Porcupine Bank off the west coast of Ireland, and the Guilvinec Canyon in France’s Bay of Biscay. The deployment is the latest campaign of REDECOR (REstauration DEs CORaux d’eau froide), a three-year mission run by researchers from University of Galway, the French ocean research institute Ifremer, and Sorbonne University.",
+        "status": "compatible",
+        "block_id": "p-fa0e0ed3b58b3feb-0-890",
+        "dimension": "result",
+        "reasoning": "The source explicitly affirms that the Franco-Irish research team (University of Galway, Ifremer, and Sorbonne University) deployed 3D-printed artificial reefs to the seabed in France's Bay of Biscay.",
+        "element_id": "e2",
+        "claim_scope": "The team from University of Galway and France placed 3D-printed reef structures on the seabed in the Bay of Biscay off France",
+        "evidence_id": "ev-29dfc22a8ecd",
+        "input_sha256": "121f4ff43bdfac8979b9881f0d3947d90d39864d5280cf5cccbb89232c84df0e",
+        "source_scope": "Researchers from University of Galway, Ifremer, and Sorbonne University deployed 3D-printed artificial reefs in the Guilvinec Canyon in France's Bay of Biscay",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "- A team from University of Galway, along with French scientists, have placed 23 structures on the seabed of the Porcupine Bank, 200 kilometres off the Kerry coast, and in the Bay of Biscay off France.",
+        "status": "scoped",
+        "block_id": "mapping-text",
+        "decision": "mismatch",
+        "dimension": "measure",
+        "reasoning": "The element specifies a count of 23 structures placed on the Porcupine Bank, but the source states the 23 structures were divided between the Porcupine Bank and the Bay of Biscay.",
+        "element_id": "e1",
+        "excerpt_id": "line-0",
+        "claim_scope": "23 3D-printed reef structures placed on the Porcupine Bank",
+        "evidence_id": "ev-3d471b06d658",
+        "quote_basis": "selected_exact_excerpt",
+        "input_sha256": "24cfa007d47fac3b7545827a5a25084301f1a621c98df1c93ab922e09eb077a4",
+        "original_ref": {
+         "reasoning": "Confirms University of Galway researchers and French scientists placed 23 3D-printed structures at the Porcupine Bank 200km off Kerry.",
+         "evidence_id": "ev-3d471b06d658",
+         "relationship": "supports"
+        },
+        "source_scope": "23 structures placed across both the Porcupine Bank and the Bay of Biscay combined",
+        "content_basis": "distilled",
+        "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+       },
+       {
+        "quote": "It involves collaboration between researchers from the University of Galway, Ifremer and the Sorbonne University in France. The university states that the expedition took place on board L'Atalante, a vessel of the French Oceanographic Fleet, during August. Reefs were placed at depths between 900 and 1,100m off the Porcupine Bank and in the Guilvinec Canyon, Bay of Biscay",
+        "status": "compatible",
+        "block_id": "p-1c73b39bce695022-896-1796",
+        "dimension": "result",
+        "reasoning": "The text confirms that the team from University of Galway and French institutions installed 3D-printed artificial reefs on the seabed in the Bay of Biscay.",
+        "element_id": "e2",
+        "claim_scope": "The team from University of Galway and France placed 3D-printed reef structures on the seabed in the Bay of Biscay off France",
+        "evidence_id": "ev-6cb45ba34f51",
+        "input_sha256": "f77ec993c6b4a8fc467733f83445d03d8d3ee0f5066800f7f9ad018dc235a3d8",
+        "source_scope": "Collaboration between researchers from University of Galway, Ifremer, and Sorbonne University placed 3D-printed reefs in the Bay of Biscay",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "- Researchers from the University of Galway, Sorbonne University and the French oceanographic institution Ifremer are testing 23 artificial reefs placed on the seabed off the south-west Porcupine Bank – 200km off the west coast of Ireland – and in the Bay of Biscay, France.",
+        "status": "scoped",
+        "block_id": "mapping-text",
+        "decision": "mismatch",
+        "dimension": "measure",
+        "reasoning": "The element asserts 23 structures were placed at the Porcupine Bank, whereas the text clarifies the 23 reefs were placed across two separate locations (Porcupine Bank and Bay of Biscay).",
+        "element_id": "e1",
+        "excerpt_id": "line-0",
+        "claim_scope": "23 3D-printed reef structures placed on the Porcupine Bank",
+        "evidence_id": "ev-52e609a34cea",
+        "quote_basis": "selected_exact_excerpt",
+        "input_sha256": "764c026ff8cef600fd0b64c5ad2e79c74a5146b7450bd29fa2ccdc37c89cabd0",
+        "original_ref": {
+         "reasoning": "States researchers from University of Galway, Sorbonne University, and Ifremer placed 3D-printed reefs on the Porcupine Bank seabed 200km off Ireland's west coast.",
+         "evidence_id": "ev-52e609a34cea",
+         "relationship": "supports"
+        },
+        "source_scope": "23 artificial reefs placed across both the Porcupine Bank and the Bay of Biscay combined",
+        "content_basis": "distilled",
+        "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+       },
+       {
+        "quote": "Researchers from University of Galway are part of the international team testing the restoration of coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs – part of a three-year mission known as REDECOR, which has also involved researchers from Ifremer and Sorbonne University. The expedition to deploy the artificial reefs took place onboard L’Atalante, a vessel of the French Oceanographic Fleet, during August. Reefs were placed at depths between 900m and 1,100m off the Porcupine Bank, and in the Guilvinec Canyon, Bay of Biscay,",
+        "status": "compatible",
+        "block_id": "p-d2b9deb9da60298a-0-898",
+        "dimension": "result",
+        "reasoning": "The source supports the claim that the collaborative team from University of Galway, Ifremer, and Sorbonne University placed 3D-printed artificial reefs in the Bay of Biscay.",
+        "element_id": "e2",
+        "claim_scope": "The team from University of Galway and France placed 3D-printed reef structures on the seabed in the Bay of Biscay off France",
+        "evidence_id": "ev-bd60bd65c270",
+        "input_sha256": "e03eaf194a4d952252c788e3d20b319710037b4d0b416fe9e88554e309bba37d",
+        "source_scope": "Researchers from University of Galway, Ifremer, and Sorbonne University placed 3D-printed artificial reefs in the Bay of Biscay",
+        "content_basis": "retained_extraction"
+       },
+       {
+        "quote": "University of Galway researchers are testing whether 3D-printed structures can restore damaged Atlantic coral reefs. 200km off Kerry,",
+        "status": "scoped",
+        "block_id": "mapping-text",
+        "decision": "unknown",
+        "dimension": "result",
+        "reasoning": "The source snippet is cut off and does not confirm that 23 structures were placed, the collaboration with French colleagues, or placement on the Porcupine Bank specifically.",
+        "element_id": "e1",
+        "excerpt_id": "line-0",
+        "claim_scope": "A team from University of Galway, with colleagues from France, placed 23 3D-printed reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast.",
+        "evidence_id": "ev-4d729a23b6f1",
+        "quote_basis": "selected_exact_excerpt",
+        "input_sha256": "f65e134f43cbc883ec58730b44ca90c0638e0cec58d7eb2b850794f548e76068",
+        "original_ref": {
+         "reasoning": "Reports University of Galway researchers tested 3D-printed reef structures 200km off Kerry.",
+         "evidence_id": "ev-4d729a23b6f1",
+         "relationship": "supports"
+        },
+        "source_scope": "University of Galway researchers testing 3D-printed structures 200km off Kerry",
+        "content_basis": "snippet",
+        "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+       },
+       {
+        "status": "invalid",
+        "element_id": "e2",
+        "evidence_id": "ev-7681650b780a",
+        "invalid_reason": "quote_length"
+       },
+       {
+        "quote": ", placed 23 of the structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France.",
+        "status": "scoped",
+        "block_id": "p-4a8862b5ca2b84c5-0-900",
+        "decision": "mismatch",
+        "dimension": "measure",
+        "reasoning": "The source states that 23 structures in total were placed across both the Porcupine Bank and the Bay of Biscay combined, rather than 23 structures placed solely on the Porcupine Bank.",
+        "element_id": "e1",
+        "claim_scope": "23 3D-printed reef structures placed on the Porcupine Bank",
+        "evidence_id": "ev-96e9bdcb0afc",
+        "input_sha256": "4858d2af7a556767a63d4f45218f6ba5742888e02bdd7141e415d3881a783684",
+        "original_ref": {
+         "reasoning": "Confirms an Irish team placed 23 3D-printed reef structures 1,000 metres below water at the Porcupine Bank.",
+         "evidence_id": "ev-96e9bdcb0afc",
+         "relationship": "supports"
+        },
+        "source_scope": "23 3D-printed reef structures placed across both the Porcupine Bank and Bay of Biscay combined",
+        "content_basis": "retained_extraction",
+        "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+       },
+       {
+        "quote": "Scientists from University of Galway are testing 3D printed artificial reefs to help damaged deep sea coral recover. Twenty three structures have been placed on the Porcupine Bank, around 200 km off Kerry, and in the Bay of Biscay.",
+        "status": "compatible",
+        "block_id": "mapping-text",
+        "dimension": "result",
+        "reasoning": "The text directly affirms that the scientists testing 3D-printed artificial reefs placed structures on the seabed in the Bay of Biscay.",
+        "element_id": "e2",
+        "claim_scope": "The same team placed 3D-printed reef structures on the seabed in the Bay of Biscay off France.",
+        "evidence_id": "ev-0988cf9f4e70",
+        "input_sha256": "05a066a2486da1e068b55f3d2d4f2a49bfd12dc23bbc4430ac1f6374b52e68cf",
+        "source_scope": "Scientists from University of Galway placed 3D-printed structures in the Bay of Biscay",
+        "content_basis": "full"
+       },
+       {
+        "quote": "Did you know: Ireland has cold water coral reefs too 👀🌊 Scientists from University of Galway are testing 3D printed artificial reefs to help damaged deep sea coral recover. Twenty three structures have been placed on the Porcupine Bank, around 200 km off Kerry, and in the Bay of Biscay. Some sit around 1 km beneath the surface and early signs are encouraging ☘️ Read more 👇",
+        "status": "scoped",
+        "block_id": "mapping-text",
+        "decision": "mismatch",
+        "dimension": "measure",
+        "reasoning": "The claim states that 23 reef structures were placed on the Porcupine Bank, but the text states that 23 structures were placed across both the Porcupine Bank and the Bay of Biscay.",
+        "element_id": "e1",
+        "excerpt_id": "line-0",
+        "claim_scope": "23 3D-printed reef structures placed on the Porcupine Bank",
+        "evidence_id": "ev-0988cf9f4e70",
+        "quote_basis": "selected_exact_excerpt",
+        "input_sha256": "05a066a2486da1e068b55f3d2d4f2a49bfd12dc23bbc4430ac1f6374b52e68cf",
+        "original_ref": {
+         "reasoning": "This commentary explicitly confirms that 23 structures were placed on the Porcupine Bank around 200 km off Kerry by University of Galway scientists.",
+         "evidence_id": "ev-0988cf9f4e70",
+         "relationship": "supports"
+        },
+        "source_scope": "23 structures placed across the Porcupine Bank and Bay of Biscay combined",
+        "content_basis": "full",
+        "original_uncertainty": "Sources differ on whether 23 structures were deployed at Porcupine Bank alone or divided between Porcupine Bank and the Bay of Biscay."
+       }
+      ],
+      "method": "model_scope_review_not_entailment_proof",
+      "status": "needs_review",
+      "version": 3,
+      "assessed_pairs": 10,
+      "selected_pairs": 11,
+      "candidate_pairs": 11,
+      "uninspected_pairs": 1
+     },
+     "elementCount": 2,
+     "mappingModel": "gemini-3.7-flash",
+     "subjectKinds": {
+      "university of galway": "org"
+     },
+     "decompositionModel": "gemini-3.5-flash-lite",
+     "sourceConcentration": {
+      "basis": "mapped_documents_by_domain",
+      "domains": [
+       {
+        "domain": "3dprintingindustry.com",
+        "documents": 1
+       },
+       {
+        "domain": "3druck.com",
+        "documents": 1
+       },
+       {
+        "domain": "connachttribune.ie",
+        "documents": 1
+       },
+       {
+        "domain": "fishingnews.co.uk",
+        "documents": 1
+       },
+       {
+        "domain": "ie.headtopics.com",
+        "documents": 1
+       },
+       {
+        "domain": "irishmirror.ie",
+        "documents": 1
+       },
+       {
+        "domain": "irishtimes.com",
+        "documents": 1
+       },
+       {
+        "domain": "rte.ie",
+        "documents": 1
+       },
+       {
+        "domain": "siliconrepublic.com",
+        "documents": 1
+       },
+       {
+        "domain": "threads.com",
+        "documents": 1
+       },
+       {
+        "domain": "timesofindia.indiatimes.com",
+        "documents": 1
+       },
+       {
+        "domain": "universityofgalway.ie",
+        "documents": 1
+       }
+      ],
+      "independence": "not_established",
+      "mapped_documents": 12
+     }
+    },
+    "claimType": "empirical",
+    "orientation": "Of 2 elements examined, evidence is mixed: 1 challenged with none supporting, 1 predominantly supported.",
+    "normalisedClaim": "A team from University of Galway, with colleagues from France, placed 23 3D-printed reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France.",
+    "orientationBasis": {
+     "total_elements": 2,
+     "state_distribution": {
+      "disputed": 1,
+      "supported": 1,
+      "contextual": 0,
+      "unresolved": 0
+     }
+    }
+   },
+   "claimType": "empirical",
+   "isSelected": true,
+   "significanceRank": 1,
+   "subjectContext": "3D-printed reef deployment",
+   "keyEntities": [
+    {
+     "text": "University of Galway",
+     "type": "ORG"
+    },
+    {
+     "text": "France",
+     "type": "LOCATION"
+    },
+    {
+     "text": "23",
+     "type": "AMOUNT"
+    },
+    {
+     "text": "Porcupine Bank",
+     "type": "LOCATION"
+    },
+    {
+     "text": "200km",
+     "type": "AMOUNT"
+    },
+    {
+     "text": "Kerry",
+     "type": "LOCATION"
+    },
+    {
+     "text": "Bay of Biscay",
+     "type": "LOCATION"
+    }
+   ],
+   "sourceTitle": null,
+   "sourceUrl": null,
+   "sourcesReviewedCount": 33,
+   "evidence": [
+    {
+     "id": "fcdc1366-7a8e-47ad-b8ea-09d48949646a",
+     "evidenceId": "ev-0988cf9f4e70",
+     "source": "threads.com",
+     "url": "https://www.threads.com/@sam.coastal/post/DdmjRpnjA5i/did-you-know-ireland-has-cold-water-coral-reefs-too-scientists-from-university/",
+     "title": "Sam | Coastal Catch Ups (@sam.coastal) on Threads",
+     "snippet": "Did you know: Ireland has cold water coral reefs too 👀🌊 Scientists from University of Galway are testing 3D printed artificial reefs to help damaged deep sea coral recover. Twenty three structures have been placed on the Porcupine Bank, around 200 km off Kerry, and in the Bay of Biscay. Some sit around 1 km beneath the surface and early signs are encouraging ☘️ Read more 👇",
+     "publishedDate": "2026-09-22T00:00:00",
+     "relevanceScore": 0.26216216216216215,
+     "tier": "commentary",
+     "evidenceType": "opinion",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-3d471b06d658,ev-8c950bc4b899,ev-52e609a34cea,ev-b926e97f2bcf",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "social_media_floor",
+     "contentBasis": "full",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-05a066a2486da1e0-0-375",
+        "end": 375,
+        "text": "Did you know: Ireland has cold water coral reefs too 👀🌊 Scientists from University of Galway are testing 3D printed artificial reefs to help damaged deep sea coral recover. Twenty three structures have been placed on the Porcupine Bank, around 200 km off Kerry, and in the Bay of Biscay. Some sit around 1 km beneath the surface and early signs are encouraging ☘️ Read more 👇",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-09-22"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "source_url": "https://www.threads.com/@sam.coastal/post/DdmjRpnjA5i/did-you-know-ireland-has-cold-water-coral-reefs-too-scientists-from-university/",
+      "captured_at": "2026-10-05T13:23:33.631811+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "original_snippet": "Did you know: Ireland has cold water coral reefs too 👀🌊 Scientists from University of Galway are testing 3D printed artificial reefs to help damaged deep sea coral recover. Twenty three structures have been placed on the Porcupine Bank, around 200 km off Kerry, and in the Bay of Biscay. Some sit around 1 km beneath the surface and early signs are encouraging ☘️ Read more 👇",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "05a066a2486da1e068b55f3d2d4f2a49bfd12dc23bbc4430ac1f6374b52e68cf",
+      "input_content_basis": "full",
+      "retained_characters": 375,
+      "extraction_characters": 375
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "9365af5c-fa45-498b-9325-fe4fe895639d",
+     "evidenceId": "ev-34a03e56313a",
+     "source": "universityofgalway.ie",
+     "url": "https://www.universityofgalway.ie/about-us/news-and-events/news-archive/2026/september/university-of-galway-part-of-international-mission-to-restore-deep-sea-coral-reefs.html",
+     "title": "September - University of Galway",
+     "snippet": "- Researchers from University of Galway are part of an international team installing 3D-printed artificial reefs to restore deep-sea coral habitats damaged by bottom trawling.\n- Twenty-three artificial reefs have been placed on the deep seabed off the south-west Porcupine Bank, off the west coast of Ireland and in the Bay of Biscay, France.\n- The mission involves collaboration between researchers from University of Galway, Ifremer and the Sorbonne University in France.\n- The expedition to deploy the artificial reefs took place on board L’Atalante, a vessel of the French Oceanographic Fleet, during August.\n- Each 3D-printed structure is approximately 80cm high and 100cm in diameter, weighing around 600kg.\n- The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material.\n- Some reefs were equipped with oyster shells, ceramic plates and tiles, while others were fitted with fragments of living coral.\n- The team is focusing its research on the two principal reef-forming species of cold-water coral, Lophelia pertusa and Madrepora oculata.",
+     "publishedDate": "2026-09-20T00:00:00",
+     "relevanceScore": 0.16071428571428573,
+     "tier": "primary",
+     "evidenceType": "official_statement",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-8c950bc4b899",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 3,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-92ea414510eefaaa-1796-2694",
+        "end": 2694,
+        "text": "restore deep-sea coral reefs University of Galway part of international mission to restore deep-sea coral reefs Researchers from University of Galway are part of an international team testing the feasibility of restoring deep-sea coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs. Twenty-three artificial reefs have been placed on the deep seabed off the south-west Porcupine Bank, off the west coast of Ireland and in the Bay of Biscay, France, as a contribution to the Horizon Europe project ‘REDRESS’ (Restoration of deep-sea habitats to rebuild European Seas). The current campaign is part of, a three-year mission known as the REDECOR (REstauration DEs CORaux d'eau froide), involving collaboration between researchers from University of Galway, Ifremer and the Sorbonne University in France. The expedition to deploy the artificial reefs took place on board ",
+        "start": 1796,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-92ea414510eefaaa-2694-3593",
+        "end": 3593,
+        "text": "L’Atalante, a vessel of the French Oceanographic Fleet, during August. Reefs were placed at depths between 900 and 1100m off the Porcupine Bank, and in the Guilvinec Canyon, Bay of Biscay, where other reefs installed during the 2025 expedition were also monitored. Monitoring of both Irish and French restoration sites is planned next year on board an Irish research vessel. Dr Anthony Grehan, a deep-sea ecologist at University of Galway and co-leader of the mission to the Porcupine Bank, said: “These deep-sea coral reefs provide vital habitat for a diversity of marine life, but many have been damaged over many years. Because these corals grow by only a few millimetres each year, natural recovery of lost reefs can take decades to centuries. With this project, we are testing whether we can actively accelerate that recovery by creating new starter structures for corals to grow on which also ",
+        "start": 2694,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-92ea414510eefaaa-3593-4491",
+        "end": 4491,
+        "text": "mimic reef structure to help re-establish functioning reef habitats. The early results are very encouraging, and if we can show that these approaches work, it could open up new possibilities to scale up the restoration of damaged coral reefs elsewhere in the Atlantic and beyond.” While cold-water coral reefs are regarded as being less well-known than their tropical cousins, they provide important habitats for marine life and support biodiversity in the deep-sea including fish. The corals however are quite fragile and easily damaged by deep-sea trawling. While recent fisheries and conservation regulations prohibit trawling in many areas where corals are found, the issue now is how to return damaged areas to full health. Marie-Claire Fabri, a research engineer in deep-sea benthic ecology at Ifremer and co-leader of the Bay of Biscay region expedition, said: “Preserving these areas alone ",
+        "start": 3593,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-92ea414510eefaaa-4491-5389",
+        "end": 5389,
+        "text": "is not enough; the active restoration of cold-water corals is urgently needed. The ban on bottom trawling has helped stop the direct pressure on these habitats, but to go further - given the slow growth of these corals in the Atlantic - just a few millimeters per year—we cannot simply wait for them to recover on their own.” The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material. Each 3D-printed structure is approximately 80cm high and 100cm in diameter, weighing around 600kg. They provide structurally complex physical microhabitats including tunnels, ledges and overhangs, that offer shelter and provide surfaces for corals and other marine life to colonise. The reefs are placed individually on the seabed, rather than together to form a single connected structure covering an area of about half a hectare. Researchers will monitor the ",
+        "start": 4491,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-92ea414510eefaaa-5389-6285",
+        "end": 6285,
+        "text": "sites over the coming years through photography, video and 3D mapping to assess how the coral and other marine life develop on and around the reefs. Different approaches are being tested as part of the research. Some reefs were equipped with oyster shells, ceramic plates and tiles to encourage coral larvae to settle naturally, while others were fitted with fragments (‘nubbins’) of living coral. The living coral fragments were collected from the ocean in depths of around 950 metres. Once brought to the surface, they were kept in seawater tanks under conditions designed to replicate their natural environment. Small branches were then taken from the colonies and attached to oyster shells before being anchored on the artificial reefs. The team is focusing its research on the two principal reef-forming species of cold-water coral, Lophelia pertusa and Madrepora oculata. The aim is to see ",
+        "start": 5389,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-92ea414510eefaaa-6285-7180",
+        "end": 7180,
+        "text": "whether the coral can survive and establish new colonies or enhance the attractiveness of the artificial reefs for colonisation by coral larvae. Encouragingly, researchers found that the coral fragments, known as nubbins, which were placed on the artificial reefs during the REDECOR 2025 mission are still alive. The reefs have also been colonised by a range of marine species, including sea urchins, fish, crabs and crinoids. The research will also monitor seawater conditions, sediment and chemical contaminants. This will help improve understanding of the conditions needed for healthy coral growth and assess the potential impact of climate change and ocean acidification on restoration efforts. Both restoration sites are now protected from further damage by bottom trawling. The SW Porcupine Bank restoration site is protected under the European Common Fisheries Policy, where trawling is ",
+        "start": 6285,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-92ea414510eefaaa-7180-8079",
+        "end": 8079,
+        "text": "prohibited at depths greater than 800 metres. The Guilvinec Canyon in the Bay of Biscay is a Natura 2000 site where trawling is also prohibited. REDECOR forms part of the European REDRESS (Restoration of deep-sea habitats to rebuild European Seas) project, which is bringing together 27 partners from 15 countries to investigate the restoration of damaged deep-sea habitats across Europe. The research is funded by the European Union through the REDRESS project, the French Oceanographic Fleet, Ifremer and the Sorbonne University. REDRESS partners from the UK, Iceland and Italy have also installed the same artificial reef modules in their restoration sites in the Atlantic and the Mediterranean which will provide a pan-European perspective on the feasibility of using these reefs to actively promote restoration of areas where coral habitat has been damaged. The researchers expect that results ",
+        "start": 7180,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-92ea414510eefaaa-8079-8710",
+        "end": 8710,
+        "text": "from REDECOR and REDRESS will help inform implementation of the new European Nature Restoration Law which provides targets to restore damaged areas of sponge, coral, and coralligenous algae. Ends Related News 5 October 2026 Venomous snakes evolved striking colours to stand out 30 September 2026 University of Galway recognised with RTPI Accredited Planning School status 29 September 2026 Galway to host Atlantic Summit on the ocean knowledge shaping Europe’s future 28 September 2026 Visitor levy in Ireland could raise more than €200m - research shows 23 September 2026 New exhibition celebrating the work of John McGahern opens",
+        "start": 8079,
+        "matched_element_ids": [
+         "e1"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "unknown",
+        "date_basis": "engine",
+        "representation": "supplied_string",
+        "supplied_value": "Sep 20, 2026"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.universityofgalway.ie/about-us/news-and-events/news-archive/2026/september/university-of-galway-part-of-international-mission-to-restore-deep-sea-coral-reefs.html",
+      "captured_at": "2026-10-05T13:23:33.632327+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Researchers from University of Galway are part of an international team installing 3D-printed artificial reefs to restore deep-sea coral habitats damaged by bottom trawling.\n- Twenty-three artificial reefs have been placed on the deep seabed off the south-west Porcupine Bank, off the west coast of Ireland and in the Bay of Biscay, France.\n- The mission involves collaboration between researchers from University of Galway, Ifremer and the Sorbonne University in France.\n- The expedition to deploy the artificial reefs took place on board L’Atalante, a vessel of the French Oceanographic Fleet, during August.\n- Each 3D-printed structure is approximately 80cm high and 100cm in diameter, weighing around 600kg.\n- The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material.\n- Some reefs were equipped with oyster shells, ceramic plates and tiles, while others were fitted with fragments of living coral.\n- The team is focusing its research on the two principal reef-forming species of cold-water coral, Lophelia pertusa and Madrepora oculata.",
+      "original_snippet": "That's why many of our courses include work placements or community projects. September University of Galway part of international mission to restore deep-sea coral reefs University of Galway part of international mission to restore deep-sea coral reefs Researchers from University of Galway are part of an international team testing the feasibility of restoring deep-sea coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs. Twenty-three artificial reefs have been placed on the deep seabed off the south-west Porcupine Bank, off the west coast of Ireland and in the Bay of Biscay, France, as a contribution to the Horizon Europe project ‘REDRESS’ (Restoration of deep-sea habitats to rebuild European Seas). The current campaign is part of, a three-year mission known as the REDECOR (REstauration DEs CORaux d'eau froide), involving collaboration between researchers from University of Galway, Ifremer and the Sorbonne University in France. The expedition to deploy the artificial reefs took place on board L’Atalante, a vessel of the French Oceanographic Fleet, during August",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "92ea414510eefaaa72efd8c88d5d5747a9d8e3492bb172e202a67811ecda961f",
+      "input_content_basis": "full",
+      "retained_characters": 6914,
+      "extraction_characters": 8710
+     },
+     "dateBasis": "engine",
+     "originatorReview": {
+      "cue": "Since 1845, University of Galway has been sharing the highest quality teaching and research with Ireland and the world.",
+      "role": "originates",
+      "status": "reviewed",
+      "to_tier": "primary",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "page_opening",
+      "originator": "University of Galway",
+      "cue_verified": true,
+      "original_type": "official_statement"
+     }
+    },
+    {
+     "id": "11caf353-e757-4515-8793-e6a918a018b6",
+     "evidenceId": "ev-29dfc22a8ecd",
+     "source": "3dprintingindustry.com",
+     "url": "https://3dprintingindustry.com/news/university-of-galway-and-ifremer-test-3d-printed-reefs-for-cold-water-coral-recovery-255078/",
+     "title": "University of Galway and Ifremer Test 3D Printed Reefs for Cold-Water Coral Recovery - 3D Printing Industry",
+     "snippet": "- Twenty-three 3D printed artificial reefs now sit on the Atlantic seabed at depths of up to 1,100 metres, placed by a Franco-Irish research team.\n- The structures were deployed in August from L’Atalante at two protected sites: the south-west Porcupine Bank off Ireland, and the Guilvinec Canyon in France’s Bay of Biscay.\n- The deployment is part of REDECOR, a three-year mission run by researchers from University of Galway, Ifremer, and Sorbonne University.\n- Each reef is an eco-designed, 3D printed cylinder made from low-carbon concrete that incorporates volcanic material, measuring roughly 80 centimetres tall and 100 centimetres across, weighing about 600 kilograms.\n- The modules were set down individually, spread across an area of roughly half a hectare.\n- Some modules carry oyster shells, ceramic plates, and tiles, while others were fitted with nubbins, small fragments of living coral.\n- The work focuses on the two main reef-building cold-water species, Lophelia pertusa and Madrepora oculata.\n- Coral nubbins placed on reefs in the Guilvinec Canyon during the 2025 campaign were found to be still alive during the August voyage.",
+     "publishedDate": "2026-09-26T00:00:00",
+     "relevanceScore": 0.3037735849056604,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 3,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-fa0e0ed3b58b3feb-0-890",
+        "end": 890,
+        "text": "Twenty-three 3D printed artificial reefs now sit on the Atlantic seabed at depths of up to 1,100 metres, placed there by a Franco-Irish research team testing whether additive manufacturing can speed the recovery of cold-water coral habitats damaged by bottom trawling. The structures were deployed in August from L’Atalante, a research vessel of the French Oceanographic Fleet, at two protected sites: the south-west Porcupine Bank off the west coast of Ireland, and the Guilvinec Canyon in France’s Bay of Biscay. The deployment is the latest campaign of REDECOR (REstauration DEs CORaux d’eau froide), a three-year mission run by researchers from University of Galway, the French ocean research institute Ifremer, and Sorbonne University. It feeds into REDRESS (Restoration of deep-sea habitats to rebuild European Seas), a Horizon Europe project that brings together 27 partners from 15 ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-fa0e0ed3b58b3feb-890-1790",
+        "end": 1790,
+        "text": "countries. Printed Concrete Built for the Deep Each reef is an eco-designed, 3D printed cylinder made from low-carbon concrete that incorporates volcanic material. The modules measure roughly 80 centimetres tall and 100 centimetres across, and each weighs about 600 kilograms. Printing allowed the team to build complex internal geometry into every unit, including tunnels, ledges, and overhangs that create sheltered microhabitats and surfaces for corals and other organisms to colonise. Rather than being joined into one continuous structure, the modules were set down individually, spread across an area of roughly half a hectare. On the Porcupine Bank they were placed between 900 and 1,100 metres below the surface, with the installed reef pictured at around 950 metres. The researchers are testing two ways of seeding the structures. Some modules carry oyster shells, ceramic plates, and tiles ",
+        "start": 890,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-fa0e0ed3b58b3feb-1790-2689",
+        "end": 2689,
+        "text": "intended to encourage free-swimming coral larvae to settle on their own. Others were fitted with “nubbins,” small fragments of living coral. To prepare these, the team collected coral from around 950 metres, kept the colonies in seawater tanks set up to mimic deep-sea conditions, then cut small branches, attached them to oyster shells, and anchored them to the printed reefs. The work focuses on the two main reef-building cold-water species, Lophelia pertusa and Madrepora oculata. The goal is to find out whether transplanted fragments can survive and form new colonies, and whether they make the artificial reefs more attractive to settling larvae. Early Signs From the 2025 Reefs The August voyage also revisited modules installed in the Guilvinec Canyon during the 2025 campaign. Coral nubbins placed on those reefs a year earlier were found to be still alive, and the structures had drawn a ",
+        "start": 1790,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-fa0e0ed3b58b3feb-2689-3587",
+        "end": 3587,
+        "text": "range of marine life, including sea urchins, fish, crabs, and crinoids. Dr Anthony Grehan, a deep-sea ecologist at University of Galway who co-led the Porcupine Bank mission, said: “With this project, we are testing whether we can actively accelerate that recovery by creating new starter structures for corals to grow on which also mimic reef structure to help re-establish functioning reef habitats. The early results are very encouraging, and if we can show that these approaches work, it could open up new possibilities to scale up the restoration of damaged coral reefs elsewhere in the Atlantic and beyond.” Over the coming years, the team will track both sites using photography, video, and 3D mapping to follow how coral and other species develop on and around the reefs. Monitoring of the Irish and French sites is planned for next year aboard an Irish research vessel. The programme will ",
+        "start": 2689,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-fa0e0ed3b58b3feb-3587-4483",
+        "end": 4483,
+        "text": "also measure seawater conditions, sediment, and chemical contaminants, to better understand what healthy coral growth requires and how climate change and ocean acidification might affect restoration. Why Waiting Is Not an Option Cold-water corals are less familiar than tropical reefs, but they support deep-sea biodiversity, including fish populations. They are also fragile and easily destroyed by bottom trawling. Because they grow only a few millimetres a year, a damaged reef can take decades or even centuries to recover naturally. Both REDECOR sites are now closed to trawling. The Porcupine Bank site falls under the EU Common Fisheries Policy, which bans trawling below 800 metres, and the Guilvinec Canyon is a Natura 2000 site where trawling is also prohibited. For the researchers, however, protection alone does not go far enough. Marie-Claire Fabri, a research engineer in deep-sea ",
+        "start": 3587,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-fa0e0ed3b58b3feb-4483-5381",
+        "end": 5381,
+        "text": "benthic ecology at Ifremer who co-led the Bay of Biscay expedition, said: “Preserving these areas alone is not enough; the active restoration of cold-water corals is urgently needed.” The same printed reef modules have also been installed by REDRESS partners in the UK, Iceland, and Italy, at sites in the Atlantic and the Mediterranean. That gives the project a Europe-wide view of whether standardised 3D printed structures can reliably support coral restoration across different environments. The findings are expected to help guide implementation of the new European Nature Restoration Law, which sets targets for restoring damaged sponge, coral, and coralligenous algae habitats. Funding comes from the European Union through REDRESS, along with the French Oceanographic Fleet, Ifremer, and Sorbonne University. From Tropical Lagoons to the Deep Atlantic REDECOR’s strategy targets a gap that ",
+        "start": 4483,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-fa0e0ed3b58b3feb-5381-6278",
+        "end": 6278,
+        "text": "trawling bans alone cannot close. Protection stops new damage, but cold-water corals grow only a few millimetres a year, so a destroyed reef may take decades or centuries to come back on its own. The team’s answer is to give recovery a physical head start: 3D printed low-carbon concrete modules with tunnels, ledges and overhangs that mimic reef structure, some fitted with settlement surfaces and others seeded with living coral fragments. What sets the project apart is where it operates. Most printed-reef work to date, from 3D printed concrete reefs in the Gulf of Mexico to 3D printed terracotta tiles in Hong Kong, has focused on shallow waters. REDECOR installs its modules at 900 to 1,100 metres. Because partners in the UK, Iceland and Italy are using the same design, the project can also test whether one standardised printed unit works across very different European seabeds. In June ",
+        "start": 5381,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-fa0e0ed3b58b3feb-6278-7177",
+        "end": 7177,
+        "text": "2026, Anantara Dhigu Maldives Resort and Swiss company rrreefs placed 13 flower-shaped reef structures on the resort’s lagoon floor. The project was covered as 3D printed reef structures installed in the Maldives. The modules are 3D printed from fired terracotta clay and designed to help coral larvae settle, with part of the funding coming from Edelweiss Air and help alliance, both Lufthansa Group companies. In Jordan, the Aqaba Development Corporation, Voyacy Regen and Sperra deployed 3D printed concrete reef structures, a project showcased at the 2025 UN Ocean Conference in Nice. It was reported as the latest 3D printed coral reef restoration effort in Aqaba. Separately, the Environment Agency of Abu Dhabi signed an MoU with Archireef to restore Abu Dhabi’s coral reefs using 3D printing with structures made from natural materials. 3D printing is now a proven tool for reef restoration ",
+        "start": 6278,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-09-26"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://3dprintingindustry.com/news/university-of-galway-and-ifremer-test-3d-printed-reefs-for-cold-water-coral-recovery-255078/",
+      "captured_at": "2026-10-05T13:23:33.633412+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Twenty-three 3D printed artificial reefs now sit on the Atlantic seabed at depths of up to 1,100 metres, placed by a Franco-Irish research team.\n- The structures were deployed in August from L’Atalante at two protected sites: the south-west Porcupine Bank off Ireland, and the Guilvinec Canyon in France’s Bay of Biscay.\n- The deployment is part of REDECOR, a three-year mission run by researchers from University of Galway, Ifremer, and Sorbonne University.\n- Each reef is an eco-designed, 3D printed cylinder made from low-carbon concrete that incorporates volcanic material, measuring roughly 80 centimetres tall and 100 centimetres across, weighing about 600 kilograms.\n- The modules were set down individually, spread across an area of roughly half a hectare.\n- Some modules carry oyster shells, ceramic plates, and tiles, while others were fitted with nubbins, small fragments of living coral.\n- The work focuses on the two main reef-building cold-water species, Lophelia pertusa and Madrepora oculata.\n- Coral nubbins placed on reefs in the Guilvinec Canyon during the 2025 campaign were found to be still alive during the August voyage.",
+      "original_snippet": "Printing allowed the team to build complex internal geometry into every unit, including tunnels, ledges, and overhangs that create sheltered microhabitats and surfaces for corals and other organisms to colonise. Rather than being joined into one continuous structure, the modules were set down individually, spread across an area of roughly half a hectare. On the Porcupine Bank they were placed between 900 and 1,100 metres below the surface, with the installed reef pictured at around 950 metres. The researchers are testing two ways of seeding the structures. Some modules carry oyster shells, ceramic plates, and tiles intended to encourage free-swimming coral larvae to settle on their own",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "fa0e0ed3b58b3feb52aea84140ec369302e7ac33001a85485fb129dae2d7a296",
+      "input_content_basis": "full",
+      "retained_characters": 7177,
+      "extraction_characters": 7542
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "f56271b5-c4cf-4add-8943-8766c7f1a0f5",
+     "evidenceId": "ev-3fdd1b5fa33f",
+     "source": "redress-project.eu",
+     "url": "https://redress-project.eu/wp-content/uploads/2026/02/REDRESS-NEWSLETTER-4.pdf",
+     "title": "Restoration of deep-sea habitats to rebuild European Seas (p. 2)",
+     "snippet": "REDRESS NEWSLETTER 4 1 AUGUST 2025 – 31 JANUARY 2026\nRoberto Danovaro [UNIVPM]\nEditorial\nREDRESS coordinator\nOver the past six months, (1 August 2025 – 31 January 2026), REDRESS has\nmoved decisively from planning to action.  Across the Northeast Atlantic and\nthe Mediterranean, our teams have deploye...",
+     "publishedDate": "2026-01-31T00:00:00",
+     "relevanceScore": 0.3684210526315789,
+     "tier": "primary",
+     "evidenceType": "official_statement",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 2,
+     "classificationMethod": "llm",
+     "contentBasis": "pdf",
+     "textProvenance": null,
+     "dateBasis": "engine",
+     "originatorReview": {
+      "cue": "",
+      "role": "unclear",
+      "status": "reviewed",
+      "to_tier": "primary",
+      "contract": "v2",
+      "from_tier": "primary",
+      "input_kind": "snippet",
+      "originator": "unknown",
+      "cue_verified": false,
+      "original_type": "official_statement"
+     }
+    },
+    {
+     "id": "e0a40e09-1782-4585-ae81-30d24ddde8bf",
+     "evidenceId": "ev-3d471b06d658",
+     "source": "rte.ie",
+     "url": "https://www.rte.ie/news/newslens/2026/0921/1592315-3d-printed-coral-reefs/",
+     "title": "Irish scientists help damaged coral with 3D-printed reefs",
+     "snippet": "- A team from University of Galway, along with French scientists, have placed 23 structures on the seabed of the Porcupine Bank, 200 kilometres off the Kerry coast, and in the Bay of Biscay off France.\n- According to Dr Anthony Grehan, cold-water coral reefs occur between 500m and 1km deep.\n- Dr Grehan stated that the reefs are one metre high and one metre wide, weigh 600kg, are made from eco-concrete, and are lowered over the side of the boat to a depth of 1km.\n- Half of the reefs already have small pieces of live coral attached to help promote new settlement.",
+     "publishedDate": "2026-09-21T00:00:00",
+     "relevanceScore": 0.41506849315068495,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-0988cf9f4e70,ev-6ebc457863b8,ev-52e609a34cea,ev-b926e97f2bcf",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-7a38a5d79e2789ff-0-898",
+        "end": 898,
+        "text": "Irish scientists have been using 3D-printed coral reefs to help damaged coral recover off the Irish and French coasts. The team from University of Galway, along with French scientists, have placed 23 structures on the seabed of the Porcupine Bank - 200 kilometres off the Kerry coast - and in the Bay of Biscay off France. Team member, and deep-sea ecologist, Dr Anthony Grehan said scientists are looking to restore Ireland's cold water coral reefs. Speaking on RTÉ’s Morning Ireland, Dr Grehan said: \"Everybody knows about tropical coral reefs like the Great Barrier Reef. \"But not everybody knows that Ireland is actually home to spectacular cold-water coral reefs which are much deeper.\" He said cold-water coral reefs occur between 500m and 1km deep. \"They are hotspots of biodiversity, they are good for fish nurseries, sequester carbon, they are carbon sinks,\" he said. Dr Grehan said there ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7a38a5d79e2789ff-898-1796",
+        "end": 1796,
+        "text": "are two main 're-forming' corals and they create a 3D intricate structure on the sea floor that are home to lots of animals that use the gaps in corals but also settle onto the dead coral framework. He described it as \"an oasis in the deep sea\", with sponges, crabs and fish among what is found there. However, he said trawling has been damaging the coral reefs. \"Fishing is very heavily regulated now … we are not so concerned about damage taking place now, it is really to address some of the damage that has occurred in the past.\" Dr Grehan said they have just started to use the 3D-printed coral reefs in shallow water. The reefs are one metre high and one metre wide, weigh 600kg, are made from eco-concrete and are \"very heavy\". Dr Grehan said the reefs are lowered over the side of the boat to a depth of 1km, with acoustic positioning on the lines so they know where they are releasing it. ",
+        "start": 898,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-7a38a5d79e2789ff-1796-2183",
+        "end": 2183,
+        "text": "The reef is then rested on the sea floor. Half of the reefs already have small pieces of live coral attached to help promote new settlement. He said they are already seeing signs of success and their plan is to go back out next year with an Irish research vessel to the Irish and French sites. \"The functioning of the reefs is returning with the addition of these artificial structures.\"",
+        "start": 1796,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-09-21"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.rte.ie/news/newslens/2026/0921/1592315-3d-printed-coral-reefs/",
+      "captured_at": "2026-10-05T13:23:33.633929+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- A team from University of Galway, along with French scientists, have placed 23 structures on the seabed of the Porcupine Bank, 200 kilometres off the Kerry coast, and in the Bay of Biscay off France.\n- According to Dr Anthony Grehan, cold-water coral reefs occur between 500m and 1km deep.\n- Dr Grehan stated that the reefs are one metre high and one metre wide, weigh 600kg, are made from eco-concrete, and are lowered over the side of the boat to a depth of 1km.\n- Half of the reefs already have small pieces of live coral attached to help promote new settlement.",
+      "original_snippet": "Irish scientists have been using 3D-printed coral reefs to help damaged coral recover off the Irish and French coasts. The team from University of Galway, along with French scientists, have placed 23 structures on the seabed of the Porcupine Bank - 200 kilometres off the Kerry coast - and in the Bay of Biscay off France. Team member, and deep-sea ecologist, Dr Anthony Grehan said scientists are looking to restore Ireland's cold water coral reefs. Speaking on RTÉ’s Morning Ireland, Dr Grehan said: \"Everybody knows about tropical coral reefs like the Great Barrier Reef",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "7a38a5d79e2789ff1cf6977cf184982da974959f01d4511c5dfb54adb360fbd6",
+      "input_content_basis": "full",
+      "retained_characters": 2183,
+      "extraction_characters": 2183
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "33e857b7-cd7c-4c3a-816c-c40ddc33614c",
+     "evidenceId": "ev-6ebc457863b8",
+     "source": "irishtimes.com",
+     "url": "https://www.irishtimes.com/environment/2026/09/20/irish-scientists-lay-3d-printed-reefs-in-pioneering-bid-to-restore-deep-sea-coral/",
+     "title": "Irish scientists lay 3D-printed reefs in pioneering bid to restore deep-sea coral",
+     "snippet": "- A team from University of Galway, with colleagues from France, placed 23 artificial reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France.\n- Each 600kg reef is 3D-printed in Italy using concrete and volcanic rock to create irregular shapes like naturally forming reefs.\n- According to Dr Anthony Grehan, the aim was to speed up restoration because these corals grow by only a few millimetres each year.\n- The reefs were laid over several weeks in August in waters 1,000 metres deep.\n- Each reef was lowered to the seabed secured to lines that also carried cables for signals and GPS co-ordinates to within a few metres.\n- The EU-backed Redress expedition is part of a wider project between University of Galway, the French Institute for Ocean Science and the Sorbonne University in France.",
+     "publishedDate": "2026-09-20T00:00:00",
+     "relevanceScore": 0.40897435897435896,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-3d471b06d658,ev-96e9bdcb0afc,ev-52e609a34cea,ev-b926e97f2bcf",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 5,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-68691bc35149623d-0-896",
+        "end": 896,
+        "text": "A team of scientists from Ireland have laid artificial reefs deep underwater to help coral recover after decades of being pulverised by bottom-trawling fishing ships. The team from University of Galway, with colleagues from France, placed 23 of the structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France. Each 600kg reef is 3D-printed in Italy using concrete and volcanic rock to create irregular shapes like naturally forming reefs. Nooks and crannies are part of the design to enable coral to take hold and provide shelter for fish and other sea life. READ MORE Dr Anthony Grehan, a deep-sea ecologist and co-leader of the mission, said the aim was to speed up restoration of the vital marine habitats. “Because these corals grow by only a few millimetres each year, natural recovery of lost reefs can take decades to centuries,” he said. ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-68691bc35149623d-896-1788",
+        "end": 1788,
+        "text": "“With this project, we are testing whether we can actively accelerate that recovery by creating new starter structures for corals to grow on.” The reefs were laid over several weeks in August in waters 1,000 metres deep – a first for coral recovery efforts which normally focus on shallow waters. Each reef was lowered to the seabed secured to lines that also carried cables so signals could be sent to the equipment to record the progress, capture the location and unhook from the structure. A kilometre down is too deep for divers without manned submersibles, so ensuring the reefs can be found again is essential. “We have the GPS co-ordinates to within a few metres, so we’ll be able to go back and inspect them remotely,” said Grehan. “We were able to locate some reefs laid last year in the Bay of Biscay and what we found was very encouraging.” Cold-water and deep-water coral is less ",
+        "start": 896,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-68691bc35149623d-1788-2685",
+        "end": 2685,
+        "text": "well-known than its warm-water cousins, but it is believed there was once an entire coral belt running between Ireland and France. Coral can form extensive reefs over centuries of slow growth but they have been decimated in places by deep-sea commercial fishing. “I liken it to cutting down a giant redwood forest in California,” said Grehan. “You could replant but it won’t be the same forest. It would take hundreds of years to get back to something resembling what it was.” The EU-backed Redress (Restoration of deep-sea habitats to rebuild European Seas) expedition is part of a wider project between University of Galway, the French Institute for Ocean Science and the Sorbonne University in France. Grehan believes there is scope for it to inspire similar efforts in many other places. “We’re still at the beginning of this. This was a feasibility study to see can we do it, and we can,” he ",
+        "start": 1788,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-68691bc35149623d-2685-3511",
+        "end": 3511,
+        "text": "said. Coral is being lost worldwide as seas heat and storms intensify with climate change while fishing, oil and gas extraction, seabed mining and cable-laying inflict more damage. “A lot of different approaches to restoration are being tried,” said Grehan. “One of our partners in the UK harvest corals that have grown on oil rigs in the North Sea that are being removed. They rehabilitate them and bring them back to sea.” He said every effort should be made to save and restore coral reefs. “They are an oasis in the deep sea. They provide this very complex microhabitat for lots of different species. “You find fish nurseries in them and they help to sequester carbon. They may also have pharmaceutical uses. “So they are very important quite apart from the fact that they are spectacular examples of our natural history.”",
+        "start": 2685,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-09-20"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.irishtimes.com/environment/2026/09/20/irish-scientists-lay-3d-printed-reefs-in-pioneering-bid-to-restore-deep-sea-coral/",
+      "captured_at": "2026-10-05T13:23:33.634469+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- A team from University of Galway, with colleagues from France, placed 23 artificial reef structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France.\n- Each 600kg reef is 3D-printed in Italy using concrete and volcanic rock to create irregular shapes like naturally forming reefs.\n- According to Dr Anthony Grehan, the aim was to speed up restoration because these corals grow by only a few millimetres each year.\n- The reefs were laid over several weeks in August in waters 1,000 metres deep.\n- Each reef was lowered to the seabed secured to lines that also carried cables for signals and GPS co-ordinates to within a few metres.\n- The EU-backed Redress expedition is part of a wider project between University of Galway, the French Institute for Ocean Science and the Sorbonne University in France.",
+      "original_snippet": "A team of scientists from Ireland have laid artificial reefs deep underwater to help coral recover after decades of being pulverised by bottom-trawling fishing ships. The team from University of Galway, with colleagues from France, placed 23 of the structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France. Each 600kg reef is 3D-printed in Italy using concrete and volcanic rock to create irregular shapes like naturally forming reefs. Nooks and crannies are part of the design to enable coral to take hold and provide shelter for fish and other sea life",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "68691bc35149623d46c7bf7420829af360fdfa0edd011a77674adc484322e705",
+      "input_content_basis": "full",
+      "retained_characters": 3511,
+      "extraction_characters": 3511
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "552b518a-554a-423f-8536-2f99ee2e8281",
+     "evidenceId": "ev-96e9bdcb0afc",
+     "source": "ie.headtopics.com",
+     "url": "https://ie.headtopics.com/news/irish-scientists-deploy-deep-sea-artificial-reefs-to-speed-87937386",
+     "title": "Irish Scientists Deploy Deep‑Sea Artificial Reefs to Speed Coral Recovery",
+     "snippet": "- A team from Ireland has placed 23 3D-printed concrete and volcanic rock reef structures 1,000 metres below water at the Porcupine Bank and Bay of Biscay.\n- Each 600kg reef is 3D-printed in Italy using concrete and volcanic rock.\n- Dr Anthony Grehan stated that natural recovery of lost reefs can take decades to centuries because these corals grow by only a few millimetres each year.\n- The reefs were laid over several weeks in August in waters 1,000 metres deep using GPS-linked cables.\n- The project is part of a European restoration partnership involving the University of Galway, the French Institute for Ocean Science (Ifremer), and the Sorbonne University.",
+     "publishedDate": "2026-09-20T00:00:00",
+     "relevanceScore": 0.31470588235294117,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-6ebc457863b8,ev-52e609a34cea,ev-b926e97f2bcf",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-4a8862b5ca2b84c5-0-900",
+        "end": 900,
+        "text": "A team from Ireland has placed 23 3D‑printed concrete and volcanic rock reef structures 1,000 metres below water at the Porcupine Bank and Bay of Biscay to accelerate the regrowth of coral devastated by deep‑sea trawling. The project, part of a European restoration partnership, uses GPS‑linked cables to monitor coral attachment and plan future inspections. Artificial reef project aims to speed up recovery process after decades of damage by commercial fishing shipsA team of scientists from Ireland have laid artificial reefs deep underwater to help coral recover after decades of being pulverised by bottom-trawling fishing ships. , placed 23 of the structures on the seabed of the Porcupine Bank 200km off the Kerry coast, and in the Bay of Biscay off France. Each 600kg reef is 3D-printed in Italy using concrete and volcanic rock to create irregular shapes like naturally forming reefs. Nooks ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-4a8862b5ca2b84c5-900-1797",
+        "end": 1797,
+        "text": "and crannies are part of the design to enable coral to take hold and provide shelter for fish and other sea life. My train fare may go up by €606 and that doesn’t include the seatInside Galway’s oldest department store: ‘We’re not Brown Thomas and we don’t want to be’ Dr Anthony Grehan, a deep-sea ecologist and co-leader of the mission, said the aim was to speed up restoration of the vital marine habitats. “Because these corals grow by only a few millimetres each year, natural recovery of lost reefs can take decades to centuries,” he said. “With this project, we are testing whether we can actively accelerate that recovery by creating new starter structures for corals to grow on. ” The reefs were laid over several weeks in August in waters 1,000 metres deep – a first for coral recovery efforts which normally focus on shallow waters. Each reef was lowered to the seabed secured to lines ",
+        "start": 900,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-4a8862b5ca2b84c5-1797-2696",
+        "end": 2696,
+        "text": "that also carried cables so signals could be sent to the equipment to record the progress, capture the location and unhook from the structure. A kilometre down is too deep for divers without manned submersibles, so ensuring the reefs can be found again is essential. “We have the GPS co-ordinates to within a few metres, so we’ll be able to go back and inspect them remotely,” said Grehan. “We were able to locate some reefs laid last year in the Bay of Biscay and what we found was very encouraging. ”Cold-water and deep-water coral is less well-known than its warm-water cousins, but it is believed there was once an entire coral belt running between Ireland and France. Coral can form extensive reefs over centuries of slow growth but they have been decimated in places by deep-sea commercial fishing. ,” said Grehan. “You could replant but it won’t be the same forest. It would take hundreds of ",
+        "start": 1797,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-4a8862b5ca2b84c5-2696-3592",
+        "end": 3592,
+        "text": "years to get back to something resembling what it was. ” Dr Sophie Arnaud-Haond of the French Institute for Ocean Science , Prof Franck Lartaud of the Sorbonne University, Marie-Claire Fabri, Ifremer, and Dr Anthony Grehan, University of Galway. Photograph: Ifremer-backed Redress expedition is part of a wider project between University of Galway, the French Institute for Ocean Science and the Sorbonne University in France. “We’re still at the beginning of this. This was a feasibility study to see can we do it, and we can,” he said. Coral is being lost worldwide as seas heat and storms intensify with climate change while fishing, oil and gas extraction, seabed mining and cable-laying inflict more damage. “A lot of different approaches to restoration are being tried,” said Grehan. “One of our partners in the UK harvest corals that have grown on oil rigs in the North Sea that are being ",
+        "start": 2696,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-09-20"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://ie.headtopics.com/news/irish-scientists-deploy-deep-sea-artificial-reefs-to-speed-87937386",
+      "captured_at": "2026-10-05T13:23:33.634469+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- A team from Ireland has placed 23 3D-printed concrete and volcanic rock reef structures 1,000 metres below water at the Porcupine Bank and Bay of Biscay.\n- Each 600kg reef is 3D-printed in Italy using concrete and volcanic rock.\n- Dr Anthony Grehan stated that natural recovery of lost reefs can take decades to centuries because these corals grow by only a few millimetres each year.\n- The reefs were laid over several weeks in August in waters 1,000 metres deep using GPS-linked cables.\n- The project is part of a European restoration partnership involving the University of Galway, the French Institute for Ocean Science (Ifremer), and the Sorbonne University.",
+      "original_snippet": "A team from Ireland has placed 23 3D‑printed concrete and volcanic rock reef structures 1,000 metres below water at the Porcupine Bank and Bay of Biscay to accelerate the regrowth of coral devastated by deep‑sea trawling. The project, part of a European restoration partnership, uses GPS‑linked cables to monitor coral attachment and plan future inspections. Artificial reef project aims to speed up recovery process after decades of damage by commercial fishing shipsA team of scientists from Ireland have laid artificial reefs deep underwater to help coral recover after decades of being pulverised by bottom-trawling fishing ships",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "4a8862b5ca2b84c5995c07d1361ba5410c1ad5e41f5a2e95a01aff0596f9ff53",
+      "input_content_basis": "full",
+      "retained_characters": 3592,
+      "extraction_characters": 4383
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "9c0517e0-39fa-4595-8b31-d339033f9471",
+     "evidenceId": "ev-bd60bd65c270",
+     "source": "fishingnews.co.uk",
+     "url": "https://fishingnews.co.uk/this-weeks-issue/3d-printed-reefs-deployed-to-help-restore-deep-sea-coral/",
+     "title": "3D-printed reefs deployed to help restore deep-sea coral - Fishing News",
+     "snippet": "- Twenty-three artificial reefs have been placed off the southwest Porcupine Bank and the west coast of Ireland, and in the Bay of Biscay.\n- Researchers from University of Galway are part of the international team testing the restoration of coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs.\n- The project is a three-year mission known as REDECOR, which has also involved researchers from Ifremer and Sorbonne University.\n- The expedition to deploy the artificial reefs took place onboard L’Atalante, a vessel of the French Oceanographic Fleet, during August.\n- Reefs were placed at depths between 900m and 1,100m off the Porcupine Bank, and in the Guilvinec Canyon, Bay of Biscay.\n- Dr Anthony Grehan is a deep-sea ecologist at the University of Galway and co-leader of the mission to the Porcupine Bank.\n- The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material.\n- The reefs are placed individually on the seabed to form a single connected structure covering an area of about half a hectare.",
+     "publishedDate": "2026-09-28T00:00:00",
+     "relevanceScore": 0.17582417582417584,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-8c950bc4b899",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 3,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-d2b9deb9da60298a-0-898",
+        "end": 898,
+        "text": "Concrete structures offer new hope for trawler-damaged habitats A project to restore deep-sea coral off the Irish southwest coast and off France has involved placing artificial reefs on the seabed. Twenty-three artificial reefs have been placed off the southwest Porcupine Bank and the west coast of Ireland, and in the Bay of Biscay. Researchers from University of Galway are part of the international team testing the restoration of coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs – part of a three-year mission known as REDECOR, which has also involved researchers from Ifremer and Sorbonne University. The expedition to deploy the artificial reefs took place onboard L’Atalante, a vessel of the French Oceanographic Fleet, during August. Reefs were placed at depths between 900m and 1,100m off the Porcupine Bank, and in the Guilvinec Canyon, Bay of Biscay, ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-d2b9deb9da60298a-898-1798",
+        "end": 1798,
+        "text": "where other reefs installed during the 2025 expedition were also monitored. Monitoring of both Irish and French restoration sites is planned next year onboard an Irish research vessel. Dr Anthony Grehan, a deep-sea ecologist at the University of Galway and co-leader of the mission to the Porcupine Bank, explained that ‘these deep-sea coral reefs provide vital habitat for a diversity of marine life, but many have been damaged over many years.’ “Because these corals grow by only a few millimetres each year, natural recovery of lost reefs can take decades to centuries. With this project, we are testing whether we can actively accelerate that recovery by creating new starter structures for corals to grow on which also mimic reef structure to help re-establish functioning reef habitats,” he said. “The early results are very encouraging, and if we can show that these approaches work, it could ",
+        "start": 898,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-d2b9deb9da60298a-1798-2695",
+        "end": 2695,
+        "text": "open up new possibilities to scale up the restoration of damaged coral reefs elsewhere in the Atlantic and beyond.” While cold-water coral reefs are less well-known than their tropical cousins, they provide important habitats for marine life. They are, however, easily damaged by deep-sea trawling. While recent fisheries and conservation regulations prohibit trawling in many areas where corals are found, the issue is how to return damaged areas to full health. The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material. They provide structurally complex physical microhabitats including tunnels, ledges and overhangs that offer shelter and provide surfaces for corals and other marine life to colonise. The reefs are placed individually on the seabed to form a single connected structure covering an area of about half a hectare. Researchers ",
+        "start": 1798,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-d2b9deb9da60298a-2695-3588",
+        "end": 3588,
+        "text": "will monitor the sites over the coming years through photography, video and 3D mapping to assess how the coral and other marine life develop on and around the reefs. Encouragingly, researchers found that the coral fragments – known as nubbins – placed on the artificial reefs during the REDECOR 2025 mission are still alive. The reefs have also been colonised by a range of marine species, including sea urchins, fish, crabs and crinoids. The research will also monitor seawater conditions, sediment and chemical contaminants. This will improve understanding of the conditions needed for healthy coral growth and assess the potential impact of climate change and ocean acidification on restoration efforts. This story was taken from the latest issue of Fishing News. For all of this week’s news from the UK and Irish commercial fishing industry, as well as the week’s fish prices and in-depth ",
+        "start": 2695,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-09-28"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://fishingnews.co.uk/this-weeks-issue/3d-printed-reefs-deployed-to-help-restore-deep-sea-coral/",
+      "captured_at": "2026-10-05T13:23:33.634469+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Twenty-three artificial reefs have been placed off the southwest Porcupine Bank and the west coast of Ireland, and in the Bay of Biscay.\n- Researchers from University of Galway are part of the international team testing the restoration of coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs.\n- The project is a three-year mission known as REDECOR, which has also involved researchers from Ifremer and Sorbonne University.\n- The expedition to deploy the artificial reefs took place onboard L’Atalante, a vessel of the French Oceanographic Fleet, during August.\n- Reefs were placed at depths between 900m and 1,100m off the Porcupine Bank, and in the Guilvinec Canyon, Bay of Biscay.\n- Dr Anthony Grehan is a deep-sea ecologist at the University of Galway and co-leader of the mission to the Porcupine Bank.\n- The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material.\n- The reefs are placed individually on the seabed to form a single connected structure covering an area of about half a hectare.",
+      "original_snippet": "Concrete structures offer new hope for trawler-damaged habitats A project to restore deep-sea coral off the Irish southwest coast and off France has involved placing artificial reefs on the seabed. Twenty-three artificial reefs have been placed off the southwest Porcupine Bank and the west coast of Ireland, and in the Bay of Biscay. Researchers from University of Galway are part of the international team testing the restoration of coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs – part of a three-year mission known as REDECOR, which has also involved researchers from Ifremer and Sorbonne University. The expedition to deploy the artificial reefs took place onboard L’Atalante, a vessel of the French Oceanographic Fleet, during August",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "d2b9deb9da60298a557db5201cbcd0c9184efbd6a2beab680306a7ab4def7655",
+      "input_content_basis": "full",
+      "retained_characters": 3588,
+      "extraction_characters": 3668
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "8d60b05c-c0e1-4aed-8452-7d8d656abd8a",
+     "evidenceId": "ev-6cb45ba34f51",
+     "source": "timesofindia.indiatimes.com",
+     "url": "https://timesofindia.indiatimes.com/science/nature/scientists-placed-23-3d-printed-reefs-up-to-1100-metres-underwater-to-test-whether-damaged-coral-habitats-can-recover/articleshow/134587393.cms",
+     "title": "Scientists placed 23 3D-printed reefs up to 1,100 metres underwater to test whether damaged coral habitats can recover",
+     "snippet": "- Twenty-three of these structures have been placed off the south-west Porcupine Bank, off Ireland's west coast, and in the Bay of Biscay, France.\n- The work forms part of the Horizon Europe project REDRESS, which stands for Restoration of deep-sea habitats to rebuild European Seas.\n- The current campaign is part of a three-year mission known as REDECOR, short for REstauration DEs CORaux d'eau froide.\n- The expedition took place on board L'Atalante, a vessel of the French Oceanographic Fleet, during August.\n- Reefs were placed at depths between 900 and 1,100m off the Porcupine Bank and in the Guilvinec Canyon, Bay of Biscay.\n- Dr Anthony Grehan is a deep-sea ecologist at University of Galway and co-leader of the mission to the Porcupine Bank.\n- Marie-Claire Fabri is a research engineer in deep-sea benthic ecology at Ifremer and co-leader of the Bay of Biscay region expedition.\n- Each 3D-printed structure is approximately 80cm high and 100cm in diameter, weighing around 600kg.",
+     "publishedDate": "2026-09-30T00:00:00",
+     "relevanceScore": 0.33611111111111114,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-1c73b39bce695022-0-896",
+        "end": 896,
+        "text": "Researchers are installing 3D-printed artificial reefs on the deep seabed to see whether damaged cold-water coral habitats can be restored. Twenty-three of these structures have been placed off the south-west Porcupine Bank, off Ireland's west coast, and in the Bay of Biscay, France. The work forms part of the Horizon Europe project REDRESS, which stands for Restoration of deep-sea habitats to rebuild European Seas. According to the University of Galway, researchers are part of the international team behind the effort. The team wants to learn whether the structures can give corals a place to settle and grow in areas harmed by bottom trawling. How are scientists testing 3D-printed reefs underwater The twenty-three artificial reefs were installed as a contribution to REDRESS. The current campaign is part of a three-year mission known as REDECOR, short for REstauration DEs CORaux d'eau ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-1c73b39bce695022-896-1796",
+        "end": 1796,
+        "text": "froide. It involves collaboration between researchers from the University of Galway, Ifremer and the Sorbonne University in France. The university states that the expedition took place on board L'Atalante, a vessel of the French Oceanographic Fleet, during August. Reefs were placed at depths between 900 and 1,100m off the Porcupine Bank and in the Guilvinec Canyon, Bay of Biscay, where other reefs installed during the 2025 expedition were also monitored. Monitoring of both Irish and French restoration sites is planned next year on board an Irish research vessel. Why are cold-water coral reefs important for deep-sea biodiversity Cold-water coral reefs are regarded as less well known than their tropical cousins, but they provide important habitats for marine life and support biodiversity in the deep sea, including fish. The corals are quite fragile and easily damaged by deep-sea trawling. ",
+        "start": 896,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-1c73b39bce695022-1796-2691",
+        "end": 2691,
+        "text": "The university notes that recent fisheries and conservation regulations prohibit trawling in many areas where corals are found, and that the issue now is how to return damaged areas to full health. Dr Anthony Grehan, a deep-sea ecologist at University of Galway and co-leader of the mission to the Porcupine Bank, said: \"These deep-sea coral reefs provide vital habitat for a diversity of marine life, but many have been damaged over many years. Because these corals grow by only a few millimetres each year, natural recovery of lost reefs can take decades to centuries.\" Marie-Claire Fabri, a research engineer in deep-sea benthic ecology at Ifremer and co-leader of the Bay of Biscay region expedition, said: \"Preserving these areas alone is not enough; the active restoration of cold-water corals is urgently needed.\" Image AI generated How are the 3D-printed reefs designed to support coral ",
+        "start": 1796,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-1c73b39bce695022-2691-3588",
+        "end": 3588,
+        "text": "growth The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material. Each 3D-printed structure is approximately 80cm high and 100cm in diameter, weighing around 600kg. They provide structurally complex physical microhabitats, including tunnels, ledges and overhangs, that offer shelter and provide surfaces for corals and other marine life to colonise. The reefs are placed individually on the seabed. The university explains that different approaches are being tested. Some reefs were equipped with oyster shells, ceramic plates and tiles to encourage coral larvae to settle naturally, while others were fitted with fragments, known as nubbins, of living coral. These fragments were collected from the ocean at depths of around 950 metres and kept in seawater tanks under conditions designed to replicate their natural environment. Small branches ",
+        "start": 2691,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-1c73b39bce695022-3588-4477",
+        "end": 4477,
+        "text": "were then taken from the colonies and attached to oyster shells before being anchored on the artificial reefs. The team is focusing on the two principal reef-forming species of cold-water coral, Lophelia pertusa and Madrepora oculata. What marine species have colonised the artificial reefs Researchers found that the coral nubbins placed on the artificial reefs during the REDECOR 2025 mission are still alive. The reefs have also been colonised by a range of marine species, including sea urchins, fish, crabs and crinoids. Researchers will monitor the sites over the coming years through photography, video and 3D mapping, and will also monitor seawater conditions, sediment and chemical contaminants. The university says this will help improve understanding of the conditions needed for healthy coral growth and assess the potential impact of climate change and ocean acidification on ",
+        "start": 3588,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-1c73b39bce695022-4477-5325",
+        "end": 5325,
+        "text": "restoration efforts. Dr Grehan said: \"The early results are very encouraging, and if we can show that these approaches work, it could open up new possibilities to scale up the restoration of damaged coral reefs elsewhere in the Atlantic and beyond.\" According to the university, both restoration sites are now protected from bottom trawling. The SW Porcupine Bank site is protected under the European Common Fisheries Policy, where trawling is prohibited at depths greater than 800 metres, and the Guilvinec Canyon is a Natura 2000 site where trawling is also prohibited. REDRESS brings together 27 partners from 15 countries, and partners from the UK, Iceland and Italy have installed the same reef modules in their own restoration sites. The researchers expect the results to help inform implementation of the new European Nature Restoration Law.",
+        "start": 4477,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-09-30"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://timesofindia.indiatimes.com/science/nature/scientists-placed-23-3d-printed-reefs-up-to-1100-metres-underwater-to-test-whether-damaged-coral-habitats-can-recover/articleshow/134587393.cms",
+      "captured_at": "2026-10-05T13:23:33.635504+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Twenty-three of these structures have been placed off the south-west Porcupine Bank, off Ireland's west coast, and in the Bay of Biscay, France.\n- The work forms part of the Horizon Europe project REDRESS, which stands for Restoration of deep-sea habitats to rebuild European Seas.\n- The current campaign is part of a three-year mission known as REDECOR, short for REstauration DEs CORaux d'eau froide.\n- The expedition took place on board L'Atalante, a vessel of the French Oceanographic Fleet, during August.\n- Reefs were placed at depths between 900 and 1,100m off the Porcupine Bank and in the Guilvinec Canyon, Bay of Biscay.\n- Dr Anthony Grehan is a deep-sea ecologist at University of Galway and co-leader of the mission to the Porcupine Bank.\n- Marie-Claire Fabri is a research engineer in deep-sea benthic ecology at Ifremer and co-leader of the Bay of Biscay region expedition.\n- Each 3D-printed structure is approximately 80cm high and 100cm in diameter, weighing around 600kg.",
+      "original_snippet": "Researchers are installing 3D-printed artificial reefs on the deep seabed to see whether damaged cold-water coral habitats can be restored. Twenty-three of these structures have been placed off the south-west Porcupine Bank, off Ireland's west coast, and in the Bay of Biscay, France. The work forms part of the Horizon Europe project REDRESS, which stands for Restoration of deep-sea habitats to rebuild European Seas. According to the University of Galway, researchers are part of the international team behind the effort",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "1c73b39bce695022966c6f1c00fd74ec7b2ea960224c5e841e3ec54f29b32118",
+      "input_content_basis": "full",
+      "retained_characters": 5325,
+      "extraction_characters": 5325
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "a4a74a8a-8052-4dae-8c68-e62c17b703e2",
+     "evidenceId": "ev-8c950bc4b899",
+     "source": "independent.ie",
+     "url": "https://www.independent.ie/irish-news/university-of-galway-team-hopes-to-restore-coral-habitats-using-3d-printed-artificial-reefs/a/161718871.html",
+     "title": "University of Galway team hopes to restore coral habitats ...",
+     "snippet": "University of Galway team hopes to restore coral habitats using 3D-printed artificial reefs. Twenty-three artificial reefs have been placed on the deep seabed ...",
+     "publishedDate": "2026-09-21T00:00:00",
+     "relevanceScore": 0.5,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "unmapped",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-0988cf9f4e70,ev-34a03e56313a,ev-bd60bd65c270,ev-99813aa111de,ev-4d729a23b6f1",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 3,
+     "classificationMethod": "llm",
+     "contentBasis": "snippet",
+     "textProvenance": null,
+     "dateBasis": "engine"
+    },
+    {
+     "id": "f4a36025-9b69-47d3-af20-df67062f03f4",
+     "evidenceId": "ev-52e609a34cea",
+     "source": "siliconrepublic.com",
+     "url": "https://www.siliconrepublic.com/innovation/scientists-bet-on-3d-printed-coral-reefs-to-revitalise-marine-life",
+     "title": "Galway scientists bet on 3D-printed coral reefs to revitalise marine life",
+     "snippet": "- Researchers from the University of Galway, Sorbonne University and the French oceanographic institution Ifremer are testing 23 artificial reefs placed on the seabed off the south-west Porcupine Bank – 200km off the west coast of Ireland – and in the Bay of Biscay, France.\n- The tests are a part of a three-year joint collaboration between the three institutions called Restauration Des Coraux d’eau froide (Redecor).\n- Scientists were deployed on an expedition aboard a vessel from the French Oceanographic Fleet this August, where they placed 3D-printed reefs at depths of between 900m and 1,100m off the Porcupine Bank and in the Guilvinec Canyon, Bay of Biscay.\n- Dr Anthony Grehan is a deep-sea ecologist at University of Galway and the co-leader of the mission to Porcupine Bank.\n- The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material, University of Galway explained.\n- The reefs are placed individually on the seabed to form a single connected structure covering an area of about half a hectare.\n- Each 3D-printed structure is around 80cm high and 100cm in diameter and weighs around 600kg.\n- Marie-Claire Fabri is a research engineer in deep-sea benthic ecology at Ifremer and the co-leader of the Bay of Biscay region expedition.",
+     "publishedDate": "2026-09-21T00:00:00",
+     "relevanceScore": 0.29047619047619044,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-0988cf9f4e70,ev-3d471b06d658,ev-6ebc457863b8,ev-96e9bdcb0afc,ev-b926e97f2bcf",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-d95877e242533cfd-0-894",
+        "end": 894,
+        "text": "‘We cannot simply wait for them to recover on their own,’ says Ifremer expert Marie-Claire Fabri. Scientists are hoping 3D-printed coral reefs can help revive deep-sea habitats destroyed by bottom trawling. Researchers from the University of Galway, Sorbonne University and the French oceanographic institution Ifremer, are testing 23 artificial reefs placed on the seabed off the south-west Porcupine Bank – 200km off the west coast of Ireland – and in the Bay of Biscay, France. The tests are a part of a three-year joint collaboration between the three institutions called Restauration Des Coraux d’eau froide (Redecor). As part of the mission, scientists were deployed on an expedition aboard a vessel from the French Oceanographic Fleet this August, where they placed 3D-printed reefs at depths of between 900m and 1,100m off the Porcupine Bank and in the Guilvinec Canyon, Bay of Biscay. ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-d95877e242533cfd-894-1793",
+        "end": 1793,
+        "text": "Despite being considered lesser known than their tropical counterparts, cold-water coral reefs provide important habitats for marine life and support biodiversity in the deep sea. However, these coral reefs are easily damaged by deep sea trawling. And despite a ban on trawling in many coral-rich areas, the fragile habitat requires additional efforts to revive to full health. “These deep-sea coral reefs provide vital habitat for a diversity of marine life, but many have been damaged over many years,” said Dr Anthony Grehan, a deep-sea ecologist at University of Galway and the co-leader of the mission to Porcupine Bank. “Because these corals grow by only a few millimetres each year, natural recovery of lost reefs can take decades to centuries. “With this project, we are testing whether we can actively accelerate that recovery by creating new starter structures for corals to grow on which ",
+        "start": 894,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-d95877e242533cfd-1793-2689",
+        "end": 2689,
+        "text": "also mimic reef structure to help re-establish functioning reef habitats.” Testing artificial reefs as a viable method to revitalise sea life is one of the ways scientists in the bloc are attempting to tackle marine degradation as part of a four-year Horizon Europe project called ‘Restoration of deep-sea habitats to rebuild European Seas’, or Redress. The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material, University of Galway explained. They are placed individually on the seabed to form a single connected structure covering an area of about half a hectare. Each 3D-printed structure is around 80cm high and 100cm in diameter and weighs around 600kg. It provides physical microhabitats such as tunnels, ledges and overhangs for corals and other marine life to colonise. “The early results are very encouraging, and if we can show that ",
+        "start": 1793,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-d95877e242533cfd-2689-3584",
+        "end": 3584,
+        "text": "these approaches work, it could open up new possibilities to scale up the restoration of damaged coral reefs elsewhere in the Atlantic and beyond,” said Grehan. The scientists are using different approaches to bring the seabed back to life as part of the research. Some of the seabeds being tested are equipped with oyster shells, ceramic plates and tiles to encourage coral larvae to settle naturally, while others were fitted with fragments of living coral. These live coral fragments were collected from the ocean at a similar depth to the artificial ones and kept in seawater tanks under conditions designed to replicate their natural environment. Small branches were then taken from the colonies and attached to oyster shells before being anchored on the artificial reefs. The researchers found that the fragments placed on artificial reefs last year are alive and have been colonised by a ",
+        "start": 2689,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-d95877e242533cfd-3584-4484",
+        "end": 4484,
+        "text": "range of marine species, including sea urchins, fish and crabs. Both restoration sites are protected from any further damage by bottom trawling, but that is not enough, said Marie-Claire Fabri, a research engineer in deep-sea benthic ecology at Ifremer and the co-leader of the Bay of Biscay region expedition, who called for active restoration efforts. “The ban on bottom trawling has helped stop the direct pressure on these habitats, but to go further – given the slow growth of these corals in the Atlantic – just a few millimetres per year – we cannot simply wait for them to recover on their own.” Scientists will continue to monitor these sites over the coming years, and work on better understanding their exact marine conditions to help better replicate the lost habitats. Redress brings 27 partner organisations from 15 countries to investigate the restoration of damaged deep-sea habitats ",
+        "start": 3584,
+        "matched_element_ids": [
+         "e2"
+        ]
+       },
+       {
+        "id": "p-d95877e242533cfd-4484-4764",
+        "end": 4764,
+        "text": "across Europe. The EU-funded project also has similar artificial reef modules in restoration sites across the Atlantic and the Mediterranean. Don’t miss out on the knowledge you need to succeed. Sign up for the Daily Brief, Silicon Republic’s digest of need-to-know sci-tech news.",
+        "start": 4484,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-09-21"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.siliconrepublic.com/innovation/scientists-bet-on-3d-printed-coral-reefs-to-revitalise-marine-life",
+      "captured_at": "2026-10-05T13:23:33.636039+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- Researchers from the University of Galway, Sorbonne University and the French oceanographic institution Ifremer are testing 23 artificial reefs placed on the seabed off the south-west Porcupine Bank – 200km off the west coast of Ireland – and in the Bay of Biscay, France.\n- The tests are a part of a three-year joint collaboration between the three institutions called Restauration Des Coraux d’eau froide (Redecor).\n- Scientists were deployed on an expedition aboard a vessel from the French Oceanographic Fleet this August, where they placed 3D-printed reefs at depths of between 900m and 1,100m off the Porcupine Bank and in the Guilvinec Canyon, Bay of Biscay.\n- Dr Anthony Grehan is a deep-sea ecologist at University of Galway and the co-leader of the mission to Porcupine Bank.\n- The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material, University of Galway explained.\n- The reefs are placed individually on the seabed to form a single connected structure covering an area of about half a hectare.\n- Each 3D-printed structure is around 80cm high and 100cm in diameter and weighs around 600kg.\n- Marie-Claire Fabri is a research engineer in deep-sea benthic ecology at Ifremer and the co-leader of the Bay of Biscay region expedition.",
+      "original_snippet": "‘We cannot simply wait for them to recover on their own,’ says Ifremer expert Marie-Claire Fabri. Scientists are hoping 3D-printed coral reefs can help revive deep-sea habitats destroyed by bottom trawling. Researchers from the University of Galway, Sorbonne University and the French oceanographic institution Ifremer, are testing 23 artificial reefs placed on the seabed off the south-west Porcupine Bank – 200km off the west coast of Ireland – and in the Bay of Biscay, France. The tests are a part of a three-year joint collaboration between the three institutions called Restauration Des Coraux d’eau froide (Redecor). As part of the mission, scientists were deployed on an expedition aboard a vessel from the French Oceanographic Fleet this August, where they placed 3D-printed reefs at depths of between 900m and 1,100m off the Porcupine Bank and in the Guilvinec Canyon, Bay of Biscay",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "d95877e242533cfd4dd05be74221a6b7ae073f2ed68cce372d07390c99dcf9a8",
+      "input_content_basis": "full",
+      "retained_characters": 4764,
+      "extraction_characters": 4764
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "f7f3eae5-0b47-411d-94ff-664462bfd076",
+     "evidenceId": "ev-7681650b780a",
+     "source": "irishmirror.ie",
+     "url": "https://www.irishmirror.ie/news/irish-news/galway-university-coral-artificial-reefs-37682444",
+     "title": "'Encouraging' results from bid to restore coral habitats using artificial reefs",
+     "snippet": "- A team from the University of Galway are part of an international group testing the feasibility of restoring deep-sea coral habitats damaged by bottom trawling.\n- Twenty-three artificial reefs have been placed on the deep seabed off the south-west Porcupine Bank, off the west coast of Ireland, and in the Bay of Biscay, France.\n- The current campaign is part of a three-year mission involving collaboration between researchers from the University of Galway, Ifremer and the Sorbonne University in France.\n- The expedition to deploy the artificial reefs took place on board L’Atalante, a vessel of the French Oceanographic Fleet, during August.\n- Reefs were placed at depths of between 900 and 1,100m off the Porcupine Bank, and in the Guilvinec Canyon, Bay of Biscay.\n- Dr Anthony Grehan is a deep-sea ecologist at the University of Galway and co-leader of the mission to the Porcupine Bank.\n- Marie-Claire Fabri is a research engineer in deep-sea benthic ecology at Ifremer and co-leader of the Bay of Biscay region expedition.\n- Each 3D-printed structure is approximately 80cm high and 100cm in diameter, weighing around 600kg.",
+     "publishedDate": "2026-09-20T00:00:00",
+     "relevanceScore": 0.1827956989247312,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": null,
+     "corroboratingEvidenceIds": null,
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 3,
+     "classificationMethod": "llm",
+     "contentBasis": "distilled",
+     "textProvenance": {
+      "version": 1,
+      "passages": [
+       {
+        "id": "p-957176a9098d5951-0-900",
+        "end": 900,
+        "text": "Researchers seeking to restore deep-sea coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs said they have been colonised by a range of marine species. A team from the University of Galway are part of an international group testing the feasibility of restoring deep-sea coral habitats damaged by bottom trawling. Twenty-three artificial reefs have been placed on the deep seabed off the south-west Porcupine Bank, off the west coast of Ireland, and in the Bay of Biscay, France . It is part of a contribution to the Horizon Europe project Redress, which focuses on restoring deep-sea ecosystems and rebuilding marine biodiversity across European seas. The current campaign is part of a three-year mission, involving collaboration between researchers from the University of Galway, Ifremer and the Sorbonne University in France. The expedition to deploy the artificial ",
+        "start": 0,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-957176a9098d5951-900-1799",
+        "end": 1799,
+        "text": "reefs took place on board L’Atalante, a vessel of the French Oceanographic Fleet, during August. Reefs were placed at depths of between 900 and 1,100m off the Porcupine Bank, and in the Guilvinec Canyon, Bay of Biscay, where other reefs installed during the 2025 expedition were also monitored. Monitoring of both Irish and French restoration sites is planned next year on board an Irish research vessel. Researchers found that the coral fragments, known as nubbins, which were placed on the artificial reefs during the 2025 mission are still alive. The reefs have also been colonised by a range of marine species, including sea urchins, fish, crabs and crinoids. Dr Anthony Grehan, a deep-sea ecologist at the University of Galway and co-leader of the mission to the Porcupine Bank, said: “These deep-sea coral reefs provide vital habitat for a diversity of marine life, but many have been damaged ",
+        "start": 900,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-957176a9098d5951-1799-2697",
+        "end": 2697,
+        "text": "over many years. “Because these corals grow by only a few millimetres each year, natural recovery of lost reefs can take decades to centuries. With this project, we are testing whether we can actively accelerate that recovery by creating new starter structures for corals to grow on which also mimic reef structure to help re-establish functioning reef habitats. “The early results are very encouraging, and if we can show that these approaches work, it could open up new possibilities to scale up the restoration of damaged coral reefs elsewhere in the Atlantic and beyond.” While cold-water coral reefs are regarded as being less well-known than their tropical cousins, they provide important habitats for marine life and support biodiversity in the deep-sea, including fish . The corals however are quite fragile and easily damaged by deep-sea trawling . While recent fisheries and conservation ",
+        "start": 1799,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-957176a9098d5951-2697-3591",
+        "end": 3591,
+        "text": "regulations prohibit trawling in many areas where corals are found, the issue now is how to return damaged areas to full health. Marie-Claire Fabri, a research engineer in deep-sea benthic ecology at Ifremer and co-leader of the Bay of Biscay region expedition, said: “Preserving these areas alone is not enough. The active restoration of cold-water corals is urgently needed. “The ban on bottom trawling has helped stop the direct pressure on these habitats, but to go further – given the slow growth of these corals in the Atlantic – just a few millimetres per year — we cannot simply wait for them to recover on their own.” The artificial reefs are eco-designed cylinders made from low-carbon concrete incorporating volcanic material. Each 3D-printed structure is approximately 80cm high and 100cm in diameter, weighing around 600kg. They provide structurally complex physical microhabitats ",
+        "start": 2697,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-957176a9098d5951-3591-4489",
+        "end": 4489,
+        "text": "including tunnels, ledges and overhangs, that offer shelter and provide surfaces for corals and other marine life to colonise. The reefs are placed individually on the seabed, rather than together, to form a single connected structure covering an area of about half a hectare. Researchers will monitor the sites over the coming years through photography, video and 3D mapping to assess how the coral and other marine life develop on and around the reefs. Different approaches are being tested as part of the research. Some reefs were equipped with oyster shells, ceramic plates and tiles to encourage coral larvae to settle naturally, while others were fitted with fragments (nubbins) of living coral. The living coral fragments were collected from the ocean in depths of around 950 metres. Once brought to the surface, they were kept in seawater tanks under conditions designed to replicate their ",
+        "start": 3591,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-957176a9098d5951-4489-5385",
+        "end": 5385,
+        "text": "natural environment. Small branches were then taken from the colonies and attached to oyster shells before being anchored on the artificial reefs. The team is focusing its research on the two principal reef-forming species of cold-water coral, Lophelia pertusa and Madrepora oculata. The aim is to see whether the coral can survive and establish new colonies or enhance the attractiveness of the artificial reefs for colonisation by coral larvae. The research will also monitor seawater conditions, sediment and chemical contaminants. Researchers said this will help improve understanding of the conditions needed for healthy coral growth and assess the potential impact of climate change and ocean acidification on restoration efforts. Both restoration sites are now protected from further damage by bottom trawling. The SW Porcupine Bank restoration site is protected under the European Common ",
+        "start": 4489,
+        "matched_element_ids": [
+         "e1",
+         "e2"
+        ]
+       },
+       {
+        "id": "p-957176a9098d5951-5385-5565",
+        "end": 5565,
+        "text": "Fisheries Policy, where trawling is prohibited at depths greater than 800 metres. The Guilvinec Canyon in the Bay of Biscay is a Natura 2000 site where trawling is also prohibited.",
+        "start": 5385,
+        "matched_element_ids": [
+         "e2"
+        ]
+       }
+      ],
+      "temporal": {
+       "version": 1,
+       "scan_scope": "retained_passages",
+       "statements": [],
+       "publication": {
+        "precision": "day",
+        "date_basis": "page_metadata",
+        "representation": "supplied_string",
+        "supplied_value": "2026-09-20"
+       },
+       "candidate_count": 0,
+       "applicability_status": "unestablished",
+       "unretained_candidates": 0
+      },
+      "derivation": "model_generated_facts",
+      "source_url": "https://www.irishmirror.ie/news/irish-news/galway-university-coral-artificial-reefs-37682444",
+      "captured_at": "2026-10-05T13:23:33.636587+00:00",
+      "offset_unit": "unicode_code_points",
+      "capture_kind": "extracted_text",
+      "derived_text": "- A team from the University of Galway are part of an international group testing the feasibility of restoring deep-sea coral habitats damaged by bottom trawling.\n- Twenty-three artificial reefs have been placed on the deep seabed off the south-west Porcupine Bank, off the west coast of Ireland, and in the Bay of Biscay, France.\n- The current campaign is part of a three-year mission involving collaboration between researchers from the University of Galway, Ifremer and the Sorbonne University in France.\n- The expedition to deploy the artificial reefs took place on board L’Atalante, a vessel of the French Oceanographic Fleet, during August.\n- Reefs were placed at depths of between 900 and 1,100m off the Porcupine Bank, and in the Guilvinec Canyon, Bay of Biscay.\n- Dr Anthony Grehan is a deep-sea ecologist at the University of Galway and co-leader of the mission to the Porcupine Bank.\n- Marie-Claire Fabri is a research engineer in deep-sea benthic ecology at Ifremer and co-leader of the Bay of Biscay region expedition.\n- Each 3D-printed structure is approximately 80cm high and 100cm in diameter, weighing around 600kg.",
+      "original_snippet": "Researchers seeking to restore deep-sea coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs said they have been colonised by a range of marine species. A team from the University of Galway are part of an international group testing the feasibility of restoring deep-sea coral habitats damaged by bottom trawling. Twenty-three artificial reefs have been placed on the deep seabed off the south-west Porcupine Bank, off the west coast of Ireland, and in the Bay of Biscay, France. It is part of a contribution to the Horizon Europe project Redress, which focuses on restoring deep-sea ecosystems and rebuilding marine biodiversity across European seas. The current campaign is part of a three-year mission, involving collaboration between researchers from the University of Galway, Ifremer and the Sorbonne University in France",
+      "selection_method": "lexical_element_windows_v1",
+      "extraction_sha256": "957176a9098d5951f9d8e6214e19dc763057c02cbfaf8f87bc2fd623ea12daf9",
+      "input_content_basis": "full",
+      "retained_characters": 5565,
+      "extraction_characters": 5565
+     },
+     "dateBasis": "page_metadata"
+    },
+    {
+     "id": "6a4eae3f-4fe1-489c-b280-29e5a20766c0",
+     "evidenceId": "ev-4d729a23b6f1",
+     "source": "connachttribune.ie",
+     "url": "https://www.connachttribune.ie/news/galway-scientists-helping-to-bring-atlantic-reefs-back-to-life-9198829",
+     "title": "Galway Scientists Helping To Bring Atlantic Reefs Back To ...",
+     "snippet": "University of Galway researchers are testing whether 3D-printed structures can restore damaged Atlantic coral reefs. 200km off Kerry,",
+     "publishedDate": null,
+     "relevanceScore": 0.5,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-8c950bc4b899",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 3,
+     "classificationMethod": "llm",
+     "contentBasis": "snippet",
+     "textProvenance": null,
+     "dateBasis": "engine"
+    },
+    {
+     "id": "8549fbcf-933b-485c-941b-7e60cfb85a83",
+     "evidenceId": "ev-b926e97f2bcf",
+     "source": "3druck.com",
+     "url": "https://3druck.com/en/case-studies/3d-printed-reefs-are-designed-to-support-damaged-cold-water-corals-in-the-atlantic-45163212/",
+     "title": "3D-printed reefs are intended to help damaged cold-water ...",
+     "snippet": "A total of 23 structures were deployed off Ireland's Porcupine Bank and in France's Bay of Biscay. The work is part of the REDECOR and ...",
+     "publishedDate": "2026-09-23T00:00:00",
+     "relevanceScore": 0.5,
+     "tier": "reporting",
+     "evidenceType": "news_reporting",
+     "receiptStatus": "shown",
+     "corroborationGroupId": 1,
+     "corroboratingEvidenceIds": "ev-0988cf9f4e70,ev-3d471b06d658,ev-6ebc457863b8,ev-96e9bdcb0afc,ev-52e609a34cea,ev-50900e84b49e,ev-8abd4bd57451",
+     "isFactcheck": false,
+     "externalSourceProvider": null,
+     "sourceType": null,
+     "archivedUrl": null,
+     "llmRelevanceScore": 4,
+     "classificationMethod": "llm",
+     "contentBasis": "snippet",
+     "textProvenance": null,
+     "dateBasis": "engine"
+    }
+   ]
+  }
+ ],
+ "createdAt": "2026-10-05T13:22:48.440398",
+ "completedAt": "2026-10-05T13:24:14.843618",
+ "currentStage": null,
+ "progress": null,
+ "progressMessage": null,
+ "reportIdentity": {
+  "basis": "evidence_snapshot_v1",
+  "contentHash": "ba5f6cf18809636a5bf77a11e926dffcb16c3a9ed410009000405323144a990c",
+  "revisionId": null,
+  "status": "unretained"
+ }
+}
