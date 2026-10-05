@@ -81,6 +81,11 @@ class ClaimMapMetadata(TypedDict):
     # time. [{element_id, removed: [str], was: str}]. Absent when nothing fired.
     precision_stripped: NotRequired[list]
     direction_restored: NotRequired[list]
+    # Echo link confirmation (2026-10-05): {records: [{original_id,
+    # derivative_id, status, rank, extent?, cue_kind?, cue?, detail?}], totals}.
+    # The cue is verbatim source text; model reasons are never stored (public
+    # on /r/). Absent when the stage is off.
+    echo_links: NotRequired[dict]
 
 
 class ClaimMap(TypedDict):

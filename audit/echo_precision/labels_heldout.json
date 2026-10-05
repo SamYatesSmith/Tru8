@@ -1,0 +1,1738 @@
+[
+ {
+  "id": "h001",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "EBSCO research starter gives general JWST facts with no attribution to the NASA page."
+ },
+ {
+  "id": "h002",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites different EA counts (221 closures to Nov 2025); the 2013/14 50-closure figure is a common fact."
+ },
+ {
+  "id": "h003",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B draws specs from ODIN and its own experts, not from Sutton's page."
+ },
+ {
+  "id": "h004",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports the July inflation release; June's 2.6% is a common figure, not taken from this release."
+ },
+ {
+  "id": "h005",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B critiques the Innovation Center generally; nothing in B derives from the strategy refresh document."
+ },
+ {
+  "id": "h006",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites TASS and general reporting, not Sutton's page."
+ },
+ {
+  "id": "h007",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2023) predates A (2026) and cites TASS."
+ },
+ {
+  "id": "h008",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a WMO post about its own State of Climate report, not NOAA's."
+ },
+ {
+  "id": "h009",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an OBR outlook, unrelated to the insurance-broker article."
+ },
+ {
+  "id": "h010",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B shares a different author's chart, not the Nature study."
+ },
+ {
+  "id": "h011",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports the July release; the June 2.6% is a common figure."
+ },
+ {
+  "id": "h012",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B gives Mauna Loa figures; pre-industrial 280 ppm is a common fact."
+ },
+ {
+  "id": "h013",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "A's text is only a bot-check page, so what A said cannot be told."
+ },
+ {
+  "id": "h014",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "HSBC Holdings plc reported 1Q26 profit before tax of $9.4bn, slightly below 1Q25",
+  "why": "B is a summary of HSBC's 1Q26 earnings filing with A's figures."
+ },
+ {
+  "id": "h015",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a general opinion piece on alcohol; no reference to the VA guidance."
+ },
+ {
+  "id": "h016",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is ITIF's own analysis of the Act citing its own footnotes, not the explainer."
+ },
+ {
+  "id": "h017",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Jupiter's age is a common fact; no attribution to NASA."
+ },
+ {
+  "id": "h018",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "The Ministry of Internal Affairs and Communications estimated that Japan’s total population was 123,802,000, as of October 1, 2024",
+  "why": "B reports the same October 2024 population estimate release with identical figures."
+ },
+ {
+  "id": "h019",
+  "label": "relay",
+  "extent": "part",
+  "cue": "Without the barrier, frequent tidal flooding of the Thames would submerge buildings along the river as well as the underground.",
+  "why": "B copies A's sentences on 2013/14 and flooding risk but adds its own cost and construction material."
+ },
+ {
+  "id": "h020",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "B's text is only a site banner/menu."
+ },
+ {
+  "id": "h021",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Statista CO2 series is not derived from the textbook page."
+ },
+ {
+  "id": "h022",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Launch date is a common fact; STScI does not draw on the NASA launch page."
+ },
+ {
+  "id": "h023",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a different (Swedish) study, not A's NHS study."
+ },
+ {
+  "id": "h024",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports WRI/GLAD forest loss data, not the Nature study."
+ },
+ {
+  "id": "h025",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2014) predates A (2021) and cites different EA data."
+ },
+ {
+  "id": "h026",
+  "label": "relay",
+  "extent": "part",
+  "cue": "the highest level in almost five years, according to the latest figures from the Office for National Statistics (ONS)",
+  "why": "B reports the ONS February 2026 labour market release, adding economists' comment."
+ },
+ {
+  "id": "h027",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is about the Canadian UBI pilot, not A's essay."
+ },
+ {
+  "id": "h028",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is FactCheck.org's own reporting on Moderna, not drawn from Wikipedia."
+ },
+ {
+  "id": "h029",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B shown text does not cite the meta-analysis."
+ },
+ {
+  "id": "h030",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both report the same match and record; B does not take it from Guinness World Records."
+ },
+ {
+  "id": "h031",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "B shows only a headline citing unnamed 'expert analysis'."
+ },
+ {
+  "id": "h032",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B's tracker gives common JWST facts from JPL/STScI, not the NASA page."
+ },
+ {
+  "id": "h033",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "Researchers from University of Galway are part of the international team testing the restoration of coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs",
+  "why": "B is a close rewrite of the University of Galway release."
+ },
+ {
+  "id": "h034",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is Guardian reporting on the match; nothing from the Wikipedia page."
+ },
+ {
+  "id": "h035",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2014) predates A (2015 blog)."
+ },
+ {
+  "id": "h036",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an opinion essay with no content from Climate Central."
+ },
+ {
+  "id": "h037",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites MIT MIRAI and a Norwegian study, not A's study."
+ },
+ {
+  "id": "h038",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Statista CO2 series is not derived from the textbook page."
+ },
+ {
+  "id": "h039",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Unrelated topics."
+ },
+ {
+  "id": "h040",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "Cook Political Report: “A new Battleground District Project poll of the most competitive House districts in the country finds Democrats in a strong position",
+  "why": "B quotes Cook's Battleground District poll write-up, including the 49% to 47% topline."
+ },
+ {
+  "id": "h041",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites Reuters and National Security Journal, not Sutton's page."
+ },
+ {
+  "id": "h042",
+  "label": "relay",
+  "extent": "part",
+  "cue": "|Mar 26\n|3.3%\n|Feb 26\n|3%\n|Jan 26\n|3%",
+  "why": "B's CPI series reproduces A's CPI 12-month rates (Mar 2025-Mar 2026) and extends with later releases."
+ },
+ {
+  "id": "h043",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a Wikipedia article on Gemini; nothing taken from the LLM survey."
+ },
+ {
+  "id": "h044",
+  "label": "relay",
+  "extent": "part",
+  "cue": "The Consumer Prices Index increased by 2.9% in the year to July 2026, up from 2.6% in June.",
+  "why": "B restates ONS's July 2026 CPI figure shown on A, alongside many other sources."
+ },
+ {
+  "id": "h045",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both summarise the SELECT trial from its original publication; B does not draw on the ACC page."
+ },
+ {
+  "id": "h046",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a different (Swedish) AI screening study, not A's iCAD audit."
+ },
+ {
+  "id": "h047",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B shares well-known Thames Barrier facts with no attribution to the EA release."
+ },
+ {
+  "id": "h048",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports the Lancet adiposity analysis of SELECT, not A's liver fibrosis analysis."
+ },
+ {
+  "id": "h049",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers a different Italian remote-work study."
+ },
+ {
+  "id": "h050",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is STScI's own JWST page; shared facts are common knowledge."
+ },
+ {
+  "id": "h051",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "B is an index of unrelated consultancy papers; nothing shown to judge derivation."
+ },
+ {
+  "id": "h052",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "When compared with the US system, the AI produced 5.7% fewer false positives and 9.4% fewer false negatives.",
+  "why": "B is a news story built on the Nature paper's findings and figures."
+ },
+ {
+  "id": "h053",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "Read the study, Adapted Large Language Models can Outperform Medical Experts in Clinical Text Summarization",
+  "why": "B is the Stanford news write-up of A's study, naming it and its figures."
+ },
+ {
+  "id": "h054",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is Climate Central's 2025 review, unrelated to the 1941/2021 heatwave paper."
+ },
+ {
+  "id": "h055",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B attributes NatWest's own statement, not the StockTitan filing summary; both relay NatWest."
+ },
+ {
+  "id": "h056",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "A is a later August 2026 dataset announcement; B's July figures cannot derive from it."
+ },
+ {
+  "id": "h057",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B's digest text shown uses Begbies Traynor and other data, not ONS Q4 GDP."
+ },
+ {
+  "id": "h058",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a separate survey preprint on vaccine trials, not from the Wikipedia article."
+ },
+ {
+  "id": "h059",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an earlier Department of Finance story, not the Central Bank Q3 2026 bulletin."
+ },
+ {
+  "id": "h060",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and states common Online Safety Act facts without drawing on Ofcom's explainer."
+ },
+ {
+  "id": "h061",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "A's text is a bot-check page, so A's content is unknown."
+ },
+ {
+  "id": "h062",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "B is a paywall and A is a tracker shell; no content to compare."
+ },
+ {
+  "id": "h063",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B repeats the common 50-closures fact with no attribution to the EA blog."
+ },
+ {
+  "id": "h064",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports Eurostat EU spending data, not Irish sectoral expenditure."
+ },
+ {
+  "id": "h065",
+  "label": "relay",
+  "extent": "part",
+  "cue": "down from 5.1% in the 12 months to June, according to the ONS",
+  "why": "B reports ONS's July CPI figures with attribution, plus its own explanatory material."
+ },
+ {
+  "id": "h066",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and reports earlier monthly GDP data."
+ },
+ {
+  "id": "h067",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a Global News video index about Gaza, unrelated to the UK Ukraine factsheet."
+ },
+ {
+  "id": "h068",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B relays the Official Journal text of the AI Act, not the Commission's policy page."
+ },
+ {
+  "id": "h069",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "Twenty-three of the structures have been deployed off the west coast of Ireland and in the Bay of Biscay, France",
+  "why": "B's report reproduces the University of Galway release's story and figures."
+ },
+ {
+  "id": "h070",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "Twenty-three artificial reefs have been placed on the deep seabed off the south-west Porcupine Bank",
+  "why": "B copies the University of Galway release nearly verbatim, including its quotes."
+ },
+ {
+  "id": "h071",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a different CICERO/Exeter overshoot paper, not the NHM tipping points article."
+ },
+ {
+  "id": "h072",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and uses earlier SIPRI data to 2024, not the 2025 release."
+ },
+ {
+  "id": "h073",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a Mauna Loa CO2 table, not EEA's CO2e indicator."
+ },
+ {
+  "id": "h074",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2015) predates A (2024) and uses its own sources."
+ },
+ {
+  "id": "h075",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both summarise SELECT from the original trial; B does not derive from Wiki Journal Club."
+ },
+ {
+  "id": "h076",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B relays a Guardian article and EA guidance, not the EA blog post."
+ },
+ {
+  "id": "h077",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "A shows no figure; B is TD's own analysis of a later BLS jobs report."
+ },
+ {
+  "id": "h078",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B states sea-level facts from its own references, without drawing on the NASA visualisation."
+ },
+ {
+  "id": "h079",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports Eurostat EU spending data, unrelated to the Central Bank bulletin."
+ },
+ {
+  "id": "h080",
+  "label": "relay",
+  "extent": "part",
+  "cue": "Today's inflation figures saw the UK's rate rise to 2.9% in the year up to July, up from 2.6% the month before.",
+  "why": "B reports the ONS July 2026 CPI release and quotes it, plus political reaction."
+ },
+ {
+  "id": "h081",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and cites PREDIMED directly, not the Harvard podcast."
+ },
+ {
+  "id": "h082",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an EV advocacy guide, unrelated to the non-exhaust emissions paper."
+ },
+ {
+  "id": "h083",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a history of CO2 with a common current-level figure, no attribution to NASA."
+ },
+ {
+  "id": "h084",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites NOAA and the Global Carbon Budget, not NASA's indicator page."
+ },
+ {
+  "id": "h085",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a paywalled FT headline on Trump's disclosures; both relay the filings, B shows no use of the Guardian piece."
+ },
+ {
+  "id": "h086",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites NOAA Mauna Loa data; 280 ppm pre-industrial is a common fact."
+ },
+ {
+  "id": "h087",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an annual multi-dataset review; nothing attributes Copernicus's October 2025 bulletin."
+ },
+ {
+  "id": "h088",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Reddit post relays a Guardian article; the 50 closures figure is a common fact."
+ },
+ {
+  "id": "h089",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B discusses the new US dietary guidelines, not the VA page."
+ },
+ {
+  "id": "h090",
+  "label": "relay",
+  "extent": "part",
+  "cue": "protects 125 square kilometres of central London, 1.42 million people and £321 billion of residential property",
+  "why": "B repeats A's protection figure set verbatim alongside later EA counts and other material."
+ },
+ {
+  "id": "h091",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "A is a 2013 Lords bill page; B is a 2026 live blog on a different bill."
+ },
+ {
+  "id": "h092",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "In a study published in the Journal of American College Health on February 15",
+  "why": "B reports the same study A is."
+ },
+ {
+  "id": "h093",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers the same bill and vote but shows no attribution to the Library briefing."
+ },
+ {
+  "id": "h094",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Statista government finance data, unrelated to the bulletin."
+ },
+ {
+  "id": "h095",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Different explainers on ages in astronomy."
+ },
+ {
+  "id": "h096",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "YouTube video on a different black hole topic."
+ },
+ {
+  "id": "h097",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B relies on TASS; its Sutton link is to a different article on the submarine class."
+ },
+ {
+  "id": "h098",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B attributes vote shares to the BBC; 14.3% is a common figure."
+ },
+ {
+  "id": "h099",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Different AI-in-oncology material."
+ },
+ {
+  "id": "h100",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers US guidelines, not the Australian ones."
+ },
+ {
+  "id": "h101",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "Neither page shows its content."
+ },
+ {
+  "id": "h102",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Statista CO2 table; common figures only."
+ },
+ {
+  "id": "h103",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and relies on TASS and other reports."
+ },
+ {
+  "id": "h104",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Medium post shows no attribution to the CDC page."
+ },
+ {
+  "id": "h105",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Quora answer cites a Norwegian intelligence slide and a TV screenshot, not A's findings."
+ },
+ {
+  "id": "h106",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B synthesises eight datasets; no NASA attribution shown."
+ },
+ {
+  "id": "h107",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports Q1 2026 results, a different release."
+ },
+ {
+  "id": "h108",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Reddit post relays a Guardian piece; nothing from the IEA chart."
+ },
+ {
+  "id": "h109",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "YouGov's own MRP poll."
+ },
+ {
+  "id": "h110",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both relay ONS CPI figures; B does not take them from Trading Economics."
+ },
+ {
+  "id": "h111",
+  "label": "relay",
+  "extent": "part",
+  "cue": "On Tuesday, another judge made a similar ruling in the case of Ghislaine Maxwell",
+  "why": "B mentions A's Maxwell ruling in a story about a different judge's ruling."
+ },
+ {
+  "id": "h112",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a different SIPRI release (arms producers, Dec 2025)."
+ },
+ {
+  "id": "h113",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates the study and discusses NAION generally."
+ },
+ {
+  "id": "h114",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "B shows only a paywalled headline; cannot tell if it draws on the GCG statement."
+ },
+ {
+  "id": "h115",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers Q1 2026 earnings, not the FY25 call."
+ },
+ {
+  "id": "h116",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a Q1 2026 consensus preview."
+ },
+ {
+  "id": "h117",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "BBC attributes to the ONS, not Trading Economics."
+ },
+ {
+  "id": "h118",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Unrelated Trump hush money appeal story."
+ },
+ {
+  "id": "h119",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Launch date is a common fact."
+ },
+ {
+  "id": "h120",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B discusses WHO smallpox research policy."
+ },
+ {
+  "id": "h121",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2014) predates A and cites older EA data."
+ },
+ {
+  "id": "h122",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "A is a subscription index page and B a paywall."
+ },
+ {
+  "id": "h123",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Eurostat government spending data, unrelated."
+ },
+ {
+  "id": "h124",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Guardian relays ONS figures, not Trading Economics."
+ },
+ {
+  "id": "h125",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Different Medicare policy material."
+ },
+ {
+  "id": "h126",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Climate Central reports its own 2025 database."
+ },
+ {
+  "id": "h127",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and relays Putin/Newsweek, not the USNI article."
+ },
+ {
+  "id": "h128",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B dates from 2014, before A's 2021 release; different closure figures."
+ },
+ {
+  "id": "h129",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "A is a paywalled report index with no content to compare."
+ },
+ {
+  "id": "h130",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a Mass General study, not NHS inform guidelines."
+ },
+ {
+  "id": "h131",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a later SFC annual report, not A's 2024 article."
+ },
+ {
+  "id": "h132",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an Instagram caption about UW Health, not A's study."
+ },
+ {
+  "id": "h133",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "A's page text did not load."
+ },
+ {
+  "id": "h134",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2023) predates A and covers North Korea/Poseidon from other sources."
+ },
+ {
+  "id": "h135",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "On May 9, the U.S. Copyright Office issued a prepublication version of Part 3 of its multipart report",
+  "why": "B is a client alert summarising A's report."
+ },
+ {
+  "id": "h136",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (March 2024) predates A's Nature paper and is a WWF statement on bleaching."
+ },
+ {
+  "id": "h137",
+  "label": "relay",
+  "extent": "part",
+  "cue": "the figures from the Office for National Statistics (ONS) due on Wednesday are forecast to show a jump from a rate of 2.6% in June",
+  "why": "B cites A's June 2.6% figure but is mainly a forecast preview with economists."
+ },
+ {
+  "id": "h138",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (Oct 2025) predates A; its own Poseidon analysis."
+ },
+ {
+  "id": "h139",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a NOAA-style CO2 ppm series, not EEA's CO2e indicator."
+ },
+ {
+  "id": "h140",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (June 2025) reports the AHA statement, predating A."
+ },
+ {
+  "id": "h141",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B uses later EA figures (221 closures), not A's 200th-closure release."
+ },
+ {
+  "id": "h142",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "From July 25, 2025, the UK’s media regulator Ofcom is enforcing the Online Safety Act 2023",
+  "why": "B reports Ofcom's age-check rules as set out in A."
+ },
+ {
+  "id": "h143",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A; both report the AJCN study from its authors."
+ },
+ {
+  "id": "h144",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an Instagram caption about UW Health, not A's NHS study."
+ },
+ {
+  "id": "h145",
+  "label": "relay",
+  "extent": "part",
+  "cue": "It means that 2025 joins 2022 and 2023 in the top three warmest years and it's only the second year where the mean annual temperature has exceeded 10C.",
+  "why": "B relays Met Office wording matching A, though its headline figure is from a later confirmation."
+ },
+ {
+  "id": "h146",
+  "label": "relay",
+  "extent": "part",
+  "cue": "found that the AI summaries were preferred 36% of the time, physician summaries were preferred 19% of the time",
+  "why": "B summarises A's study results as one item in a wider critique."
+ },
+ {
+  "id": "h147",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is general zinc advice, not the Cochrane critique."
+ },
+ {
+  "id": "h148",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "A is an archive.org stub with no content."
+ },
+ {
+  "id": "h149",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is UBS's own bubble index, unrelated to CMHC."
+ },
+ {
+  "id": "h150",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2015) predates A's 2021 release."
+ },
+ {
+  "id": "h151",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a CO2 data table, not from the textbook page."
+ },
+ {
+  "id": "h152",
+  "label": "relay",
+  "extent": "part",
+  "cue": "The Consumer Prices Index increased by 2.9% in the year to July 2026, up from 2.6% in June.",
+  "why": "B relays the July 2026 CPI release among other statistics."
+ },
+ {
+  "id": "h153",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a Reddit poem post, unrelated to the court opinion."
+ },
+ {
+  "id": "h154",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B relays Putin/Newsweek, not the 2019 H I Sutton page."
+ },
+ {
+  "id": "h155",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a Reddit question citing news articles, not the Nordic report."
+ },
+ {
+  "id": "h156",
+  "label": "relay",
+  "extent": "part",
+  "cue": "The Cholesterol Treatment Trialists’ meta-analysis showed about a 22% proportional",
+  "why": "B cites the CTT meta-analysis as one point among other trials."
+ },
+ {
+  "id": "h157",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports the Ez-PAVE trial, not CTT."
+ },
+ {
+  "id": "h158",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is YouGov's own MRP, predating A."
+ },
+ {
+  "id": "h159",
+  "label": "relay",
+  "extent": "part",
+  "cue": "the highest level in almost five years, according to the latest figures from the Office for National Statistics (ONS)",
+  "why": "B reports ONS unemployment figures plus economists' comment."
+ },
+ {
+  "id": "h160",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a WMO post, not Copernicus monthly data."
+ },
+ {
+  "id": "h161",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both A and B relay ONS CPI; B did not take it from Statista."
+ },
+ {
+  "id": "h162",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a CO2 ppm series, not EEA's CO2e indicator."
+ },
+ {
+  "id": "h163",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "A's page text did not load."
+ },
+ {
+  "id": "h164",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is the BCC's own forecast."
+ },
+ {
+  "id": "h165",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a general CO2 history piece, not EEA's indicator."
+ },
+ {
+  "id": "h166",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites climate.gov/NOAA, not the JPL animation."
+ },
+ {
+  "id": "h167",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a fact-check citing a BBC graphic and an expert, not Wikipedia."
+ },
+ {
+  "id": "h168",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B uses later EA plan material; the 50-closure fact is common."
+ },
+ {
+  "id": "h169",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an academic history of JWST; no derivation from NASA's launch page."
+ },
+ {
+  "id": "h170",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both relay ONS CPI data; B attributes to ONS, not to Statista."
+ },
+ {
+  "id": "h171",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers Poseidon with other sources (TASS); no derivation from A."
+ },
+ {
+  "id": "h172",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and reports Russia's budget announcement, not SIPRI's analysis."
+ },
+ {
+  "id": "h173",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2023) predates A (2024) and draws on the EA's 2023 plan and its own experts."
+ },
+ {
+  "id": "h174",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "The SELECT trial established semaglutide",
+  "why": "B reports results of the SELECT trial, the study A registers."
+ },
+ {
+  "id": "h175",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "A's text is a JavaScript loading stub; nothing to compare."
+ },
+ {
+  "id": "h176",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B shares widely cited Poseidon specs in common words, no attribution to A."
+ },
+ {
+  "id": "h177",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "B's shown text is mostly site furniture with no substantive content to compare."
+ },
+ {
+  "id": "h178",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers SELECT broadly from ADA presentations; it does not name A's weight-loss paper."
+ },
+ {
+  "id": "h179",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a NASA analysis, a different source from NOAA's page."
+ },
+ {
+  "id": "h180",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports Tax Policy Associates' analysis, not the SFC article."
+ },
+ {
+  "id": "h181",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B relays a Guardian article, not the 2021 EA release."
+ },
+ {
+  "id": "h182",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A; no derivation."
+ },
+ {
+  "id": "h183",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B's law-firm FAQ uses common dates from the Act itself; no attribution to A."
+ },
+ {
+  "id": "h184",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Wikipedia drug page vs SELECT trial news; no derivation."
+ },
+ {
+  "id": "h185",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both relay ONS figures; B does not take them from Statista."
+ },
+ {
+  "id": "h186",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "The UK is breaking heat and rainfall records increasingly frequently as its climate continues to warm, the Met Office has warned.",
+  "why": "B reports the Met Office's State of the UK Climate report."
+ },
+ {
+  "id": "h187",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers European housing (Deloitte), not CMHC's outlook."
+ },
+ {
+  "id": "h188",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "A's text is a JavaScript error stub; nothing to compare."
+ },
+ {
+  "id": "h189",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a different study on blood CO2, not the EEA indicator."
+ },
+ {
+  "id": "h190",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a planetary time table; no derivation from A."
+ },
+ {
+  "id": "h191",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2025) predates A (2026); no derivation."
+ },
+ {
+  "id": "h192",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2014) predates A (2021); it uses EA data generally."
+ },
+ {
+  "id": "h193",
+  "label": "relay",
+  "extent": "part",
+  "cue": "Cook’s September Battleground District Project poll found Democrats with a 49% to 47% advantage",
+  "why": "B reports A's poll toplines alongside Cook ratings and other sources."
+ },
+ {
+  "id": "h194",
+  "label": "relay",
+  "extent": "part",
+  "cue": "although the ONS says the UK has seen",
+  "why": "B reports the ONS July 2026 CPI figures A lists, plus political reaction."
+ },
+ {
+  "id": "h195",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is Statista citing the BBC for vote shares; not from A."
+ },
+ {
+  "id": "h196",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports the later July release; June figures appear only as comparison."
+ },
+ {
+  "id": "h197",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both relay ONS figures; B does not take them from Trading Economics."
+ },
+ {
+  "id": "h198",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B states sea-level figures citing climate.gov, not NASA's page."
+ },
+ {
+  "id": "h199",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Different topic (great white fossils) from A."
+ },
+ {
+  "id": "h200",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and shows different Statista data."
+ },
+ {
+  "id": "h201",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both relay ONS CPI; B does not take it from Statista."
+ },
+ {
+  "id": "h202",
+  "label": "relay",
+  "extent": "part",
+  "cue": "The Consumer Prices Index increased by 2.9% in the year to July 2026, up from 2.6% in June.",
+  "why": "B restates A's CPI figures among other statistics."
+ },
+ {
+  "id": "h203",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and relays Reuters/Putin."
+ },
+ {
+  "id": "h204",
+  "label": "relay",
+  "extent": "part",
+  "cue": "would offset around 85% of that, leaving only £8 million in additional revenue",
+  "why": "B cites the SFC's forecast of an £8m yield from the top rate, alongside other sources."
+ },
+ {
+  "id": "h205",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both relay Trump's disclosure; B is Bloomberg's own analysis."
+ },
+ {
+  "id": "h206",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B's law-firm tracker uses the Act's own timeline; no attribution to A."
+ },
+ {
+  "id": "h207",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a different study (GRL)."
+ },
+ {
+  "id": "h208",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a WMO post; not Berkeley Earth's report."
+ },
+ {
+  "id": "h209",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers GBR bleaching generally; does not cite A's study."
+ },
+ {
+  "id": "h210",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates the release and relays economists' forecasts."
+ },
+ {
+  "id": "h211",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a Facebook post on Hawaii storm damage, unrelated to A's disaster-cost study."
+ },
+ {
+  "id": "h212",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both relay ONS CPI data; B cites the ONS directly, not Statista."
+ },
+ {
+  "id": "h213",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both relay ONS inflation figures; B attributes to the ONS, not Statista."
+ },
+ {
+  "id": "h214",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a new alcohol study, not the VA drinking limits."
+ },
+ {
+  "id": "h215",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "B names the CDC but the sentence is cut off, so what it takes from the CDC cannot be seen."
+ },
+ {
+  "id": "h216",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "A is a bot-check page; B is an older Reddit thread with its own discussion."
+ },
+ {
+  "id": "h217",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports Brazilian satellite measurements, not Wikipedia's figures."
+ },
+ {
+  "id": "h218",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a Lanzhou University paper, a different source; A shows only a bot-check page."
+ },
+ {
+  "id": "h219",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an opinion blog, dated before A, with no reference to the Copernicus report."
+ },
+ {
+  "id": "h220",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a fact-check about Moderna remarks, unrelated to the Canada pandemic article."
+ },
+ {
+  "id": "h221",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is the author's own analysis of 2025 temperatures, no reference to A's graphics."
+ },
+ {
+  "id": "h222",
+  "label": "relay",
+  "extent": "part",
+  "cue": "data from both the Stockholm International Peace Research Institute (SIPRI)",
+  "why": "B uses SIPRI data alongside budget documents and IISS data for its own analysis."
+ },
+ {
+  "id": "h223",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B summarises sea-level history from its own sources; a common NASA satellite fact."
+ },
+ {
+  "id": "h224",
+  "label": "relay",
+  "extent": "part",
+  "cue": "|Oct 25\n|3.6%\n|Sep 25\n|3.8%\n|Aug 25\n|3.8%",
+  "why": "B's table reproduces A's CPI annual rates for Oct 2024-Oct 2025 alongside months from other releases."
+ },
+ {
+  "id": "h225",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a general explainer on Moon composition, not drawn from A."
+ },
+ {
+  "id": "h226",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a new 2026 study, not A's 2011 meta-analysis."
+ },
+ {
+  "id": "h227",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (May) covers stock trades before A's July piece; no derivation."
+ },
+ {
+  "id": "h228",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a separate blood-CO2 study; 280 ppm is a common fact."
+ },
+ {
+  "id": "h229",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a planetary age calculator, not drawn from NASA's Jupiter page."
+ },
+ {
+  "id": "h230",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B quotes its own experts and the EA's updated plan; 50 closures is a common fact."
+ },
+ {
+  "id": "h231",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a Zelensky BBC interview, not the Wikipedia article."
+ },
+ {
+  "id": "h232",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers US Dietary Guidelines, not NHS Scotland's unit guidance."
+ },
+ {
+  "id": "h233",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports the later July figures; no use of A's June release shown."
+ },
+ {
+  "id": "h234",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B attributes to an NIH study, not the Harvard podcast."
+ },
+ {
+  "id": "h235",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a tracker page with common JWST launch facts."
+ },
+ {
+  "id": "h236",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and cites CDC and other studies, not WHO/Europe."
+ },
+ {
+  "id": "h237",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a paywalled FT page dated before A's press release."
+ },
+ {
+  "id": "h238",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers 1.5C generally; no attribution to A's benchmark paper shown."
+ },
+ {
+  "id": "h239",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a match report on the AO final, not drawn from Britannica."
+ },
+ {
+  "id": "h240",
+  "label": "relay",
+  "extent": "part",
+  "cue": "The most comprehensive data come from the Cholesterol Treatment Trialists’ (CTT) Collaboration, published in The Lancet in 2016.",
+  "why": "B cites CTT findings for one point among other trials and sources."
+ },
+ {
+  "id": "h241",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a 2021 pre-launch feature with its own interviews."
+ },
+ {
+  "id": "h242",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an encyclopedia entry with common JWST facts, not from eoPortal."
+ },
+ {
+  "id": "h243",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a match report, not drawn from Britannica."
+ },
+ {
+  "id": "h244",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a Reddit thread about the 100m, not the relay article."
+ },
+ {
+  "id": "h245",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an unrelated vaccine-trial survey paper."
+ },
+ {
+  "id": "h246",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "the United States Copyright Office (the USCO) released a 108-page report on whether the unauthorized use of copyrighted materials",
+  "why": "B is a summary of the Copyright Office's Part 3 report."
+ },
+ {
+  "id": "h247",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a history of JWST, not drawn from A's orbit determination paper."
+ },
+ {
+  "id": "h248",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is Mayo Clinic's own diet content; no reference to A's review."
+ }
+]

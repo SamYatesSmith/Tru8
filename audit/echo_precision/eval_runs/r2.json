@@ -1,0 +1,1652 @@
+{
+ "tag": "r2",
+ "model": "gemini-3.7-flash",
+ "contract": "v1",
+ "at": "2026-10-05T12:36:19.487335+00:00",
+ "pairs": 247,
+ "usage": {
+  "input_tokens": 423848,
+  "output_tokens": 15471,
+  "calls": 99,
+  "thinking_tokens": 27687
+ },
+ "cost": {
+  "usd_now": 0.4797285,
+  "usd_2027": 0.959457
+ },
+ "call_seconds": [
+  1.61,
+  1.62,
+  1.66,
+  1.67,
+  1.75,
+  1.81,
+  1.81,
+  1.84,
+  1.98,
+  2.02,
+  2.08,
+  2.08,
+  2.09,
+  2.12,
+  2.14,
+  2.17,
+  2.22,
+  2.22,
+  2.28,
+  2.36,
+  2.41,
+  2.44,
+  2.47,
+  2.56,
+  2.59,
+  2.59,
+  2.69,
+  2.77,
+  2.84,
+  2.84,
+  2.86,
+  2.86,
+  2.88,
+  2.97,
+  3.03,
+  3.06,
+  3.11,
+  3.19,
+  3.2,
+  3.2,
+  3.23,
+  3.25,
+  3.33,
+  3.34,
+  3.38,
+  3.55,
+  3.59,
+  3.61,
+  3.64,
+  3.67,
+  3.81,
+  3.86,
+  3.89,
+  3.97,
+  4.02,
+  4.03,
+  4.05,
+  4.17,
+  4.17,
+  4.22,
+  4.24,
+  4.33,
+  4.36,
+  4.44,
+  4.5,
+  4.64,
+  4.83,
+  4.83,
+  4.88,
+  4.92,
+  4.95,
+  5.16,
+  5.2,
+  5.23,
+  5.25,
+  5.36,
+  5.44,
+  5.62,
+  5.81,
+  5.81,
+  5.92,
+  5.92,
+  6.08,
+  6.14,
+  6.34,
+  6.56,
+  6.64,
+  6.89,
+  7.16,
+  7.28,
+  7.69,
+  9.05,
+  9.72,
+  10.17,
+  12.53,
+  15.75,
+  16.53,
+  23.77,
+  23.86
+ ],
+ "results": {
+  "h005": {
+   "original_id": "ev-347ff8533a88",
+   "derivative_id": "ev-rec-e2_1_bb064c93",
+   "status": "rejected",
+   "reason": "B is an independent policy article about CMS Innovation Center reforms and does not reference or relay KFF's Medicare overview."
+  },
+  "h125": {
+   "original_id": "ev-rec-e2_5_62d6ed92",
+   "derivative_id": "ev-rec-e2_1_bb064c93",
+   "status": "rejected",
+   "reason": "B is an independent policy article about CMS Innovation Center reforms and does not reference or relay KFF's Medicare overview."
+  },
+  "h008": {
+   "original_id": "ev-rec-1_6_6ab8bfa6",
+   "derivative_id": "ev-rec-1_1_e1ffd40e",
+   "status": "rejected",
+   "reason": "B is a social media post from the World Meteorological Organization promoting its own State of Climate report, not reporting on NOAA's data."
+  },
+  "h010": {
+   "original_id": "ev-rec-3_1_e71fdcbd",
+   "derivative_id": "ev-rec-3_0_c68daaff",
+   "status": "rejected",
+   "reason": "B discusses an analysis and image created by Eliot Jacobson rather than A's study."
+  },
+  "h238": {
+   "original_id": "ev-rec-3_1_e71fdcbd",
+   "derivative_id": "ev-rec-3_2_bc282779",
+   "status": "rejected",
+   "reason": "B is an explanatory article on the 1.5C climate target discussing general facts and reports without referencing A's study."
+  },
+  "h009": {
+   "original_id": "ev-ccf45c3b6bd5",
+   "derivative_id": "ev-rpf-1_1",
+   "status": "rejected",
+   "reason": "Document B is an official Office for Budget Responsibility report and does not derive from the insurance trade article in Document A."
+  },
+  "h002": {
+   "original_id": "ev-8e4f1f884efa",
+   "derivative_id": "ev-b9b112c096af",
+   "status": "rejected",
+   "reason": "B is an independent informational overview published in 2025 citing updated closure figures (221 closures) from the Environment Agency."
+  },
+  "h019": {
+   "original_id": "ev-218de8daf05f",
+   "derivative_id": "ev-009e6ba97819",
+   "status": "rejected",
+   "reason": "B is a general civil engineering overview that does not derive from A's personal blog post on winter forecasting."
+  },
+  "h025": {
+   "original_id": "ev-3e2ab742dbf7",
+   "derivative_id": "ev-cf559cbc30ef",
+   "status": "rejected",
+   "reason": "B was published in 2014 and predates source A by a decade."
+  },
+  "h035": {
+   "original_id": "ev-8e4f1f884efa",
+   "derivative_id": "ev-cf559cbc30ef",
+   "status": "rejected",
+   "reason": "B was published in 2014 and predates source A by a decade."
+  },
+  "h047": {
+   "original_id": "ev-3e2ab742dbf7",
+   "derivative_id": "ev-009e6ba97819",
+   "status": "rejected",
+   "reason": "B is a general civil engineering overview that does not derive from A's personal blog post on winter forecasting."
+  },
+  "h063": {
+   "original_id": "ev-8e4f1f884efa",
+   "derivative_id": "ev-009e6ba97819",
+   "status": "rejected",
+   "reason": "B is a general civil engineering overview that does not derive from A's personal blog post on winter forecasting."
+  },
+  "h074": {
+   "original_id": "ev-218de8daf05f",
+   "derivative_id": "ev-ce1880794b70",
+   "status": "rejected",
+   "reason": "B was published in 2015, years before the 2021 press release in A."
+  },
+  "h076": {
+   "original_id": "ev-8e4f1f884efa",
+   "derivative_id": "ev-c6c9ee6829e4",
+   "status": "rejected",
+   "reason": "B is a Reddit discussion summarizing a Guardian article on Thames Barrier upgrades rather than relaying A's 2021 closure press release."
+  },
+  "h088": {
+   "original_id": "ev-218de8daf05f",
+   "derivative_id": "ev-c6c9ee6829e4",
+   "status": "rejected",
+   "reason": "B is a Reddit discussion summarizing a Guardian article on Thames Barrier upgrades rather than relaying A's 2021 closure press release."
+  },
+  "h090": {
+   "original_id": "ev-218de8daf05f",
+   "derivative_id": "ev-b9b112c096af",
+   "status": "rejected",
+   "reason": "B is an independent informational overview published in 2025 citing updated closure figures (221 closures) from the Environment Agency."
+  },
+  "h121": {
+   "original_id": "ev-218de8daf05f",
+   "derivative_id": "ev-cf559cbc30ef",
+   "status": "rejected",
+   "reason": "B was published in 2014 and predates source A by a decade."
+  },
+  "h128": {
+   "original_id": "ev-3e2ab742dbf7",
+   "derivative_id": "ev-cf3107aff956",
+   "status": "rejected",
+   "reason": "B covers events in 2014 and predates A's 2021 announcement of the 200th closure."
+  },
+  "h141": {
+   "original_id": "ev-3e2ab742dbf7",
+   "derivative_id": "ev-b9b112c096af",
+   "status": "rejected",
+   "reason": "B is an independent informational overview published in 2025 citing updated closure figures (221 closures) from the Environment Agency."
+  },
+  "h150": {
+   "original_id": "ev-3e2ab742dbf7",
+   "derivative_id": "ev-ce1880794b70",
+   "status": "rejected",
+   "reason": "B was published in 2015, years before the 2021 press release in A."
+  },
+  "h168": {
+   "original_id": "ev-8e4f1f884efa",
+   "derivative_id": "ev-00b7d9ffa70e",
+   "status": "rejected",
+   "reason": "The Guardian article is an independent feature on the future of the Thames Barrier and does not report on the 2021 press release regarding the 200th closure."
+  },
+  "h173": {
+   "original_id": "ev-218de8daf05f",
+   "derivative_id": "ev-00b7d9ffa70e",
+   "status": "rejected",
+   "reason": "The Guardian article is an independent feature on the future of the Thames Barrier and does not report on the 2021 press release regarding the 200th closure."
+  },
+  "h181": {
+   "original_id": "ev-3e2ab742dbf7",
+   "derivative_id": "ev-c6c9ee6829e4",
+   "status": "rejected",
+   "reason": "B is a Reddit discussion summarizing a Guardian article on Thames Barrier upgrades rather than relaying A's 2021 closure press release."
+  },
+  "h192": {
+   "original_id": "ev-3e2ab742dbf7",
+   "derivative_id": "ev-85a924b32fc0",
+   "status": "rejected",
+   "reason": "B is an independent article published in 2014, long before A's 2021 press release."
+  },
+  "h230": {
+   "original_id": "ev-3e2ab742dbf7",
+   "derivative_id": "ev-00b7d9ffa70e",
+   "status": "rejected",
+   "reason": "The Guardian article is an independent feature on the future of the Thames Barrier and does not report on the 2021 press release regarding the 200th closure."
+  },
+  "h013": {
+   "original_id": "ev-rec-e2_5_a62cbece",
+   "derivative_id": "ev-rec-e3_0_eae34d4b",
+   "status": "rejected",
+   "reason": "B is an independent Reddit forum discussion that does not cite or reference A."
+  },
+  "h061": {
+   "original_id": "ev-rec-e2_5_a62cbece",
+   "derivative_id": "ev-f5c15107ce34",
+   "status": "rejected",
+   "reason": "B is an independent user query on Reddit with no reference to A."
+  },
+  "h096": {
+   "original_id": "ev-b8971f3f202b",
+   "derivative_id": "ev-rec-e2_1_410467c1",
+   "status": "rejected",
+   "reason": "B is a YouTube video discussing cosmological theories and Webb observations, independent of NASA's black hole anatomy page."
+  },
+  "h216": {
+   "original_id": "ev-rec-e2_5_a62cbece",
+   "derivative_id": "ev-26854756c405",
+   "status": "rejected",
+   "reason": "B is an independent Reddit question about cosmic expansion and black holes."
+  },
+  "h218": {
+   "original_id": "ev-rec-e2_5_a62cbece",
+   "derivative_id": "ev-107be00902ad",
+   "status": "rejected",
+   "reason": "B reports on research by Chen Tan and Yong-Qiang Wang from Lanzhou University, not referencing A."
+  },
+  "h014": {
+   "original_id": "ev-bbd6a95c811b",
+   "derivative_id": "ev-98db9cb881b3",
+   "status": "confirmed",
+   "extent": "whole",
+   "cue_kind": "attribution",
+   "cue": "HSBC Holdings plc reported 1Q26 profit before tax of $9.4bn",
+   "reason": "B summarizes HSBC's Q1 2026 earnings release and attributes the financial results directly to HSBC Holdings plc."
+  },
+  "h012": {
+   "original_id": "ev-2f088cefc6ea",
+   "derivative_id": "ev-9f52bf6c5cf7",
+   "status": "rejected",
+   "reason": "B independently provides atmospheric CO2 statistics without referencing or deriving text from A's educational material."
+  },
+  "h021": {
+   "original_id": "ev-2f088cefc6ea",
+   "derivative_id": "ev-rec-e2_0_ca4dde2f",
+   "status": "rejected",
+   "reason": "B provides observational atmospheric data independently without referencing the European Environment Agency's report."
+  },
+  "h038": {
+   "original_id": "ev-2f088cefc6ea",
+   "derivative_id": "ev-rec-e2_0_36c66dc6",
+   "status": "rejected",
+   "reason": "B is a statistical dataset of yearly atmospheric CO2 concentrations and does not derive from A's educational material."
+  },
+  "h073": {
+   "original_id": "ev-rec-e2_7_ff2fd458",
+   "derivative_id": "ev-241244e2af98",
+   "status": "rejected",
+   "reason": "B contains independent tabular data on atmospheric CO2 levels and does not relay A's European Environment Agency indicator."
+  },
+  "h083": {
+   "original_id": "ev-06e7a13b41e7",
+   "derivative_id": "ev-a8a586135930",
+   "status": "rejected",
+   "reason": "B is an educational article on Earth's geological CO2 history published earlier than and independent of A."
+  },
+  "h084": {
+   "original_id": "ev-06e7a13b41e7",
+   "derivative_id": "ev-3afe207d023c",
+   "status": "rejected",
+   "reason": "B is an independent climate tracking page that does not reference or copy from NASA's indicator."
+  },
+  "h086": {
+   "original_id": "ev-2f088cefc6ea",
+   "derivative_id": "ev-19711021c749",
+   "status": "rejected",
+   "reason": "B is an independent assessment referencing historical climate datasets and Arrhenius without deriving from A."
+  },
+  "h102": {
+   "original_id": "ev-cf1531e1c5e8",
+   "derivative_id": "ev-rec-e2_0_ca4dde2f",
+   "status": "rejected",
+   "reason": "B provides observational atmospheric data independently without referencing the European Environment Agency's report."
+  },
+  "h139": {
+   "original_id": "ev-rec-e2_7_ff2fd458",
+   "derivative_id": "ev-rec-e2_0_36c66dc6",
+   "status": "rejected",
+   "reason": "B is a statistical dataset of yearly atmospheric CO2 concentrations and does not derive from A's educational material."
+  },
+  "h151": {
+   "original_id": "ev-cf1531e1c5e8",
+   "derivative_id": "ev-rec-e2_0_36c66dc6",
+   "status": "rejected",
+   "reason": "B is a statistical dataset of yearly atmospheric CO2 concentrations and does not derive from A's educational material."
+  },
+  "h162": {
+   "original_id": "ev-rec-e2_7_ff2fd458",
+   "derivative_id": "ev-rec-e2_0_ca4dde2f",
+   "status": "rejected",
+   "reason": "B provides observational atmospheric data independently without referencing the European Environment Agency's report."
+  },
+  "h165": {
+   "original_id": "ev-rec-e2_7_ff2fd458",
+   "derivative_id": "ev-a8a586135930",
+   "status": "rejected",
+   "reason": "B is an educational article on Earth's geological CO2 history published earlier than and independent of A."
+  },
+  "h189": {
+   "original_id": "ev-rec-e2_7_ff2fd458",
+   "derivative_id": "ev-cb4b85be4870",
+   "status": "rejected",
+   "reason": "B reports on a medical study published in Air Quality, Atmosphere & Health, independent of the educational textbook chapter in A."
+  },
+  "h228": {
+   "original_id": "ev-2f088cefc6ea",
+   "derivative_id": "ev-cb4b85be4870",
+   "status": "rejected",
+   "reason": "B reports on a medical study published in Air Quality, Atmosphere & Health, independent of the educational textbook chapter in A."
+  },
+  "h015": {
+   "original_id": "ev-rec-e1_2_a2623bc2",
+   "derivative_id": "ev-ef7e9e85374c",
+   "status": "rejected",
+   "reason": "B focuses on an American Heart Association statement rather than deriving its content from the CDC page."
+  },
+  "h029": {
+   "original_id": "ev-e0b15d0b30d6",
+   "derivative_id": "ev-ef7e9e85374c",
+   "status": "rejected",
+   "reason": "B focuses on an American Heart Association statement rather than deriving its content from the CDC page."
+  },
+  "h089": {
+   "original_id": "ev-rec-e1_2_a2623bc2",
+   "derivative_id": "ev-rec-e1_1_46f57789",
+   "status": "rejected",
+   "reason": "B discusses the US 2025-2030 Dietary Guidelines for Americans, not NHS Scotland's unit guidelines."
+  },
+  "h100": {
+   "original_id": "ev-rec-e1_7_7a96c60b",
+   "derivative_id": "ev-rec-e1_1_46f57789",
+   "status": "rejected",
+   "reason": "B discusses the US 2025-2030 Dietary Guidelines for Americans, not NHS Scotland's unit guidelines."
+  },
+  "h104": {
+   "original_id": "ev-d818932f83f5",
+   "derivative_id": "ev-ef7e9e85374c",
+   "status": "rejected",
+   "reason": "B focuses on an American Heart Association statement rather than deriving its content from the CDC page."
+  },
+  "h130": {
+   "original_id": "ev-rec-e1_5_0731fe74",
+   "derivative_id": "ev-83af8570e2e5",
+   "status": "rejected",
+   "reason": "B reports on a new study by Massachusetts General Hospital researchers rather than relaying NHS drinking guidelines."
+  },
+  "h214": {
+   "original_id": "ev-rec-e1_2_a2623bc2",
+   "derivative_id": "ev-rec-e1_4_3315ea70",
+   "status": "rejected",
+   "reason": "B reports on a new June 1 study analyzing 843 studies across 20 health outcomes, which is distinct from A's meta-analysis of 84 studies."
+  },
+  "h215": {
+   "original_id": "ev-d818932f83f5",
+   "derivative_id": "ev-rec-e1_4_3315ea70",
+   "status": "rejected",
+   "reason": "B reports on a new June 1 study analyzing 843 studies across 20 health outcomes, which is distinct from A's meta-analysis of 84 studies."
+  },
+  "h226": {
+   "original_id": "ev-e0b15d0b30d6",
+   "derivative_id": "ev-rec-e1_4_3315ea70",
+   "status": "rejected",
+   "reason": "B reports on a new June 1 study analyzing 843 studies across 20 health outcomes, which is distinct from A's meta-analysis of 84 studies."
+  },
+  "h232": {
+   "original_id": "ev-rec-e1_5_0731fe74",
+   "derivative_id": "ev-rec-e1_1_46f57789",
+   "status": "rejected",
+   "reason": "B discusses the US 2025-2030 Dietary Guidelines for Americans, not NHS Scotland's unit guidelines."
+  },
+  "h017": {
+   "original_id": "ev-2c3d659451c9",
+   "derivative_id": "ev-0638a96d3050",
+   "status": "rejected",
+   "reason": "B independently lists the oldest known planets using standard astronomical facts without deriving its content from NASA's fact sheet."
+  },
+  "h095": {
+   "original_id": "ev-ac8706f1c573",
+   "derivative_id": "ev-1dc37767643f",
+   "status": "rejected",
+   "reason": "B is an independent blog post discussing how astronomers determine the ages of celestial bodies."
+  },
+  "h190": {
+   "original_id": "ev-ac8706f1c573",
+   "derivative_id": "ev-3cb20e0f058a",
+   "status": "rejected",
+   "reason": "B independently presents planetary day and year lengths, covering a different topic than A's article on planetary formation."
+  },
+  "h229": {
+   "original_id": "ev-2c3d659451c9",
+   "derivative_id": "ev-308f94cc88f5",
+   "status": "rejected",
+   "reason": "B is an interactive calculator website about age on various planets and does not derive from A's fact sheet on Jupiter."
+  },
+  "h018": {
+   "original_id": "ev-9c7cd54fbdf6",
+   "derivative_id": "ev-104abd875acb",
+   "status": "cue_not_found",
+   "cue_kind": "attribution",
+   "detail": "attribution_does_not_name_a",
+   "reason": "B reports the population estimates as of October 1, 2024, published by the Statistics Bureau of the Ministry of Internal Affairs and Communications."
+  },
+  "h004": {
+   "original_id": "ev-baf20ed7d19a",
+   "derivative_id": "ev-a9780da2f19f",
+   "status": "rejected",
+   "reason": "Both sources independently report on official inflation figures without B deriving from Trading Economics."
+  },
+  "h011": {
+   "original_id": "ev-baf20ed7d19a",
+   "derivative_id": "ev-302d21406fa6",
+   "status": "rejected",
+   "reason": "B reports on the UK inflation data published by the Office for National Statistics and cites the agency."
+  },
+  "h044": {
+   "original_id": "ev-efc293f52127",
+   "derivative_id": "ev-99a71b775d0c",
+   "status": "rejected",
+   "reason": "B reports inflation figures alongside other economic statistics without citing the ONS release or copying text from it."
+  },
+  "h056": {
+   "original_id": "ev-4aea16044519",
+   "derivative_id": "ev-99a71b775d0c",
+   "status": "rejected",
+   "reason": "B reports inflation figures alongside other economic statistics without citing the ONS release or copying text from it."
+  },
+  "h065": {
+   "original_id": "ev-efc293f52127",
+   "derivative_id": "ev-f2290371388d",
+   "status": "confirmed",
+   "extent": "part",
+   "cue_kind": "attribution",
+   "cue": "tracked by the Office for National Statistics (ONS)",
+   "reason": "B reports on subsequent inflation data for July and August rather than the June 2026 release."
+  },
+  "h080": {
+   "original_id": "ev-82ab8399c1d6",
+   "derivative_id": "ev-302d21406fa6",
+   "status": "confirmed",
+   "extent": "part",
+   "cue_kind": "attribution",
+   "cue": "the ONS says the UK has seen \"the largest rise in gas prices for almost four years\"",
+   "reason": "B reports on the UK inflation data published by the Office for National Statistics and cites the agency."
+  },
+  "h110": {
+   "original_id": "ev-9b667d7ddea1",
+   "derivative_id": "ev-99a71b775d0c",
+   "status": "rejected",
+   "reason": "B reports inflation figures alongside other economic statistics without citing the ONS release or copying text from it."
+  },
+  "h117": {
+   "original_id": "ev-9b667d7ddea1",
+   "derivative_id": "ev-302d21406fa6",
+   "status": "rejected",
+   "reason": "B reports on the UK inflation data published by the Office for National Statistics and cites the agency."
+  },
+  "h124": {
+   "original_id": "ev-9b667d7ddea1",
+   "derivative_id": "ev-a9780da2f19f",
+   "status": "rejected",
+   "reason": "Both sources independently report on official inflation figures without B deriving from Trading Economics."
+  },
+  "h137": {
+   "original_id": "ev-baf20ed7d19a",
+   "derivative_id": "ev-1099337b117b",
+   "status": "rejected",
+   "reason": "B is an independent forecast article published before the official data release and does not derive from A."
+  },
+  "h152": {
+   "original_id": "ev-1c8cfc351c27",
+   "derivative_id": "ev-99a71b775d0c",
+   "status": "cue_not_found",
+   "cue_kind": "named_document",
+   "detail": "document_not_in_a",
+   "reason": "B reports inflation figures alongside other economic statistics without citing the ONS release or copying text from it."
+  },
+  "h161": {
+   "original_id": "ev-321c0790b07a",
+   "derivative_id": "ev-99a71b775d0c",
+   "status": "rejected",
+   "reason": "B reports inflation figures alongside other economic statistics without citing the ONS release or copying text from it."
+  },
+  "h170": {
+   "original_id": "ev-bf7ad025a88d",
+   "derivative_id": "ev-302d21406fa6",
+   "status": "rejected",
+   "reason": "B reports on the UK inflation data published by the Office for National Statistics and cites the agency."
+  },
+  "h185": {
+   "original_id": "ev-321c0790b07a",
+   "derivative_id": "ev-302d21406fa6",
+   "status": "rejected",
+   "reason": "B reports on the UK inflation data published by the Office for National Statistics and cites the agency."
+  },
+  "h194": {
+   "original_id": "ev-efc293f52127",
+   "derivative_id": "ev-302d21406fa6",
+   "status": "confirmed",
+   "extent": "part",
+   "cue_kind": "attribution",
+   "cue": "the ONS calculates the UK's monthly inflation rate",
+   "reason": "B reports on the UK inflation data published by the Office for National Statistics and cites the agency."
+  },
+  "h196": {
+   "original_id": "ev-baf20ed7d19a",
+   "derivative_id": "ev-99a71b775d0c",
+   "status": "rejected",
+   "reason": "B reports inflation figures alongside other economic statistics without citing the ONS release or copying text from it."
+  },
+  "h197": {
+   "original_id": "ev-9b667d7ddea1",
+   "derivative_id": "ev-f2290371388d",
+   "status": "rejected",
+   "reason": "B reports on subsequent inflation data for July and August rather than the June 2026 release."
+  },
+  "h201": {
+   "original_id": "ev-bf7ad025a88d",
+   "derivative_id": "ev-99a71b775d0c",
+   "status": "rejected",
+   "reason": "B reports inflation figures alongside other economic statistics without citing the ONS release or copying text from it."
+  },
+  "h202": {
+   "original_id": "ev-82ab8399c1d6",
+   "derivative_id": "ev-99a71b775d0c",
+   "status": "rejected",
+   "reason": "B reports inflation figures alongside other economic statistics without citing the ONS release or copying text from it."
+  },
+  "h210": {
+   "original_id": "ev-9b667d7ddea1",
+   "derivative_id": "ev-1099337b117b",
+   "status": "rejected",
+   "reason": "B is an independent forecast article published before the official data release and does not derive from A."
+  },
+  "h212": {
+   "original_id": "ev-bf7ad025a88d",
+   "derivative_id": "ev-f2290371388d",
+   "status": "rejected",
+   "reason": "B reports on subsequent inflation data for July and August rather than the June 2026 release."
+  },
+  "h233": {
+   "original_id": "ev-baf20ed7d19a",
+   "derivative_id": "ev-f2290371388d",
+   "status": "rejected",
+   "reason": "B reports on subsequent inflation data for July and August rather than the June 2026 release."
+  },
+  "h016": {
+   "original_id": "ev-829019605de2",
+   "derivative_id": "ev-36e38dec6f76",
+   "status": "rejected",
+   "reason": "B independently analyses the statutory requirements of the Online Safety Act without referencing the GOV.UK explainer document."
+  },
+  "h060": {
+   "original_id": "ev-ae568247acaa",
+   "derivative_id": "ev-7dc62189f6e1",
+   "status": "rejected",
+   "reason": "B is an independent blog post explaining the regulatory obligations rather than relaying Ofcom's user guide."
+  },
+  "h142": {
+   "original_id": "ev-ae568247acaa",
+   "derivative_id": "ev-08bf43633e6c",
+   "status": "rejected",
+   "reason": "B reports independently on the regulatory enforcement date without citing or deriving from Ofcom's user explainer."
+  },
+  "h001": {
+   "original_id": "ev-41ff11e48baa",
+   "derivative_id": "ev-87185d430e78",
+   "status": "rejected",
+   "reason": "B provides its own general reference overview of the James Webb Space Telescope without relying on A."
+  },
+  "h022": {
+   "original_id": "ev-4a795b1ef4d5",
+   "derivative_id": "ev-f73c7d33784a",
+   "status": "rejected",
+   "reason": "A is a technical engineering paper on orbit determination, whereas B is the STScI science operations portal."
+  },
+  "h032": {
+   "original_id": "ev-41ff11e48baa",
+   "derivative_id": "ev-992db65965fc",
+   "status": "rejected",
+   "reason": "B is an independent tracking tool summarizing widely known public facts about the JWST launch and mission."
+  },
+  "h050": {
+   "original_id": "ev-b61aeb311534",
+   "derivative_id": "ev-f73c7d33784a",
+   "status": "rejected",
+   "reason": "A is a technical engineering paper on orbit determination, whereas B is the STScI science operations portal."
+  },
+  "h119": {
+   "original_id": "ev-1b55a5d966d2",
+   "derivative_id": "ev-f73c7d33784a",
+   "status": "rejected",
+   "reason": "A is a technical engineering paper on orbit determination, whereas B is the STScI science operations portal."
+  },
+  "h169": {
+   "original_id": "ev-4a795b1ef4d5",
+   "derivative_id": "ev-425daece3b1d",
+   "status": "rejected",
+   "reason": "B is an independent historical paper on the origins and instrument design of the JWST, unrelated to A's orbit determination paper."
+  },
+  "h235": {
+   "original_id": "ev-4a795b1ef4d5",
+   "derivative_id": "ev-992db65965fc",
+   "status": "rejected",
+   "reason": "B is an independent tracking tool summarizing widely known public facts about the JWST launch and mission."
+  },
+  "h241": {
+   "original_id": "ev-41ff11e48baa",
+   "derivative_id": "ev-337ed0802687",
+   "status": "rejected",
+   "reason": "B is an independent journalistic feature article written prior to the publication date of A."
+  },
+  "h242": {
+   "original_id": "ev-b61aeb311534",
+   "derivative_id": "ev-87185d430e78",
+   "status": "rejected",
+   "reason": "B provides its own general reference overview of the James Webb Space Telescope without relying on A."
+  },
+  "h247": {
+   "original_id": "ev-1b55a5d966d2",
+   "derivative_id": "ev-425daece3b1d",
+   "status": "rejected",
+   "reason": "B is an independent historical paper on the origins and instrument design of the JWST, unrelated to A's orbit determination paper."
+  },
+  "h027": {
+   "original_id": "ev-3b2546fa6b76",
+   "derivative_id": "ev-73f262f4895c",
+   "status": "rejected",
+   "reason": "B discusses findings from a Canadian basic income experiment, which is entirely independent of A's student article on US basic income policies."
+  },
+  "h023": {
+   "original_id": "ev-rec-3_2_42a5d537",
+   "derivative_id": "ev-rec-3_4_fb155d70",
+   "status": "rejected",
+   "reason": "B covers a Swedish mammography study involving over 100,000 women, which is entirely separate from A's study."
+  },
+  "h037": {
+   "original_id": "ev-rec-3_1_59b30b9e",
+   "derivative_id": "ev-rec-3_0_09cabb70",
+   "status": "rejected",
+   "reason": "B reports on MIT's MIRAI model and a Norwegian study rather than the iCAD evaluation published in A."
+  },
+  "h046": {
+   "original_id": "ev-rec-3_1_59b30b9e",
+   "derivative_id": "ev-rec-3_4_fb155d70",
+   "status": "rejected",
+   "reason": "B covers a Swedish mammography study involving over 100,000 women, which is entirely separate from A's study."
+  },
+  "h132": {
+   "original_id": "ev-rec-3_1_59b30b9e",
+   "derivative_id": "ev-rec-3_3_cb7f2da0",
+   "status": "rejected",
+   "reason": "B discusses AI mammography tools used at UW Health, which is independent of the UK NHS study in A."
+  },
+  "h144": {
+   "original_id": "ev-rec-3_2_42a5d537",
+   "derivative_id": "ev-rec-3_3_cb7f2da0",
+   "status": "rejected",
+   "reason": "B discusses AI mammography tools used at UW Health, which is independent of the UK NHS study in A."
+  },
+  "h024": {
+   "original_id": "ev-rec-3_5_24757032",
+   "derivative_id": "ev-rec-3_1_5a6e5f52",
+   "status": "rejected",
+   "reason": "B is an annual forest loss report based on University of Maryland data, completely independent of the academic study in A."
+  },
+  "h020": {
+   "original_id": "ev-b5a760b98fba",
+   "derivative_id": "ev-a245f4e30684",
+   "status": "rejected",
+   "reason": "B does not mention or derive content from A."
+  },
+  "h049": {
+   "original_id": "ev-8b56f740eb47",
+   "derivative_id": "ev-1dafd51b1790",
+   "status": "rejected",
+   "reason": "B discusses an entirely separate study on remote work in Italy by different authors."
+  },
+  "h030": {
+   "original_id": "ev-8c1bfd74cbda",
+   "derivative_id": "ev-cdd0e33a8f8a",
+   "status": "rejected",
+   "reason": "B independently reports on the Australian Open final and post-match ceremony without referencing Britannica."
+  },
+  "h034": {
+   "original_id": "ev-99ff6a8a599c",
+   "derivative_id": "ev-f185f20300e4",
+   "status": "rejected",
+   "reason": "B is an independent news commentary covering Alcaraz's post-match remarks to Eurosport and does not derive from Wikipedia."
+  },
+  "h239": {
+   "original_id": "ev-315ff1a14618",
+   "derivative_id": "ev-c05606599cc8",
+   "status": "rejected",
+   "reason": "B is an independent match report covering post-match quotes from Djokovic rather than relying on Britannica."
+  },
+  "h243": {
+   "original_id": "ev-315ff1a14618",
+   "derivative_id": "ev-cdd0e33a8f8a",
+   "status": "rejected",
+   "reason": "B independently reports on the Australian Open final and post-match ceremony without referencing Britannica."
+  },
+  "h031": {
+   "original_id": "ev-06916ae162f7",
+   "derivative_id": "ev-0c3c5f02917e",
+   "status": "rejected",
+   "reason": "B discusses an analysis showing a £22m revenue loss rather than relaying the Scottish Fiscal Commission's 2024 forecast article."
+  },
+  "h131": {
+   "original_id": "ev-06916ae162f7",
+   "derivative_id": "ev-fb8ac8364620",
+   "status": "rejected",
+   "reason": "B reports on a later SFC annual report regarding a £720m budget cut rather than relaying this specific 2024 article."
+  },
+  "h180": {
+   "original_id": "ev-06916ae162f7",
+   "derivative_id": "ev-c5193fb5d894",
+   "status": "rejected",
+   "reason": "B reports on a report by Dan Neidle and Tax Policy Associates rather than relaying A's article."
+  },
+  "h204": {
+   "original_id": "ev-06916ae162f7",
+   "derivative_id": "ev-6a7dded8ced5",
+   "status": "rejected",
+   "reason": "B reports on comments and an analysis by Dan Neidle of Tax Policy Associates rather than relaying A."
+  },
+  "h003": {
+   "original_id": "ev-f965912dda40",
+   "derivative_id": "ev-b719c041a53a",
+   "status": "rejected",
+   "reason": "B was published prior to A's 2026 article and independently analyzes the Poseidon UUV."
+  },
+  "h006": {
+   "original_id": "ev-f965912dda40",
+   "derivative_id": "ev-432aa16e605c",
+   "status": "rejected",
+   "reason": "Page B was published prior to Source A and draws from separate reporting."
+  },
+  "h007": {
+   "original_id": "ev-ba01868213b5",
+   "derivative_id": "ev-c07a3268fb7d",
+   "status": "rejected",
+   "reason": "Page B cites TASS and Russian media reports independently of Source A."
+  },
+  "h041": {
+   "original_id": "ev-f965912dda40",
+   "derivative_id": "ev-038add73f6d9",
+   "status": "rejected",
+   "reason": "B was published prior to A and relies on separate reporting from Reuters and other analysts."
+  },
+  "h097": {
+   "original_id": "ev-f965912dda40",
+   "derivative_id": "ev-c07a3268fb7d",
+   "status": "rejected",
+   "reason": "Page B cites TASS and Russian media reports independently of Source A."
+  },
+  "h103": {
+   "original_id": "ev-ba01868213b5",
+   "derivative_id": "ev-432aa16e605c",
+   "status": "rejected",
+   "reason": "Page B was published prior to Source A and draws from separate reporting."
+  },
+  "h105": {
+   "original_id": "ev-f965912dda40",
+   "derivative_id": "ev-e0391637bb27",
+   "status": "cue_not_found",
+   "cue_kind": "attribution",
+   "detail": "attribution_does_not_name_a",
+   "reason": "B explicitly credits Covert Shores (H.I. Sutton's site) for its imagery and information on the Poseidon drone."
+  },
+  "h127": {
+   "original_id": "ev-ba01868213b5",
+   "derivative_id": "ev-452e7bb09d69",
+   "status": "rejected",
+   "reason": "B reports on a 2025 Russian test statement citing Newsweek rather than A."
+  },
+  "h134": {
+   "original_id": "ev-ba01868213b5",
+   "derivative_id": "ev-0d4929aa60c2",
+   "status": "rejected",
+   "reason": "B independently discusses naval legal issues and weapons developments without attributing or deriving from A."
+  },
+  "h138": {
+   "original_id": "ev-ba01868213b5",
+   "derivative_id": "ev-b719c041a53a",
+   "status": "rejected",
+   "reason": "B was published prior to A's 2026 article and independently analyzes the Poseidon UUV."
+  },
+  "h154": {
+   "original_id": "ev-f965912dda40",
+   "derivative_id": "ev-452e7bb09d69",
+   "status": "rejected",
+   "reason": "B reports on a 2025 Russian test statement citing Newsweek rather than A."
+  },
+  "h171": {
+   "original_id": "ev-f965912dda40",
+   "derivative_id": "ev-0d4929aa60c2",
+   "status": "rejected",
+   "reason": "B independently discusses naval legal issues and weapons developments without attributing or deriving from A."
+  },
+  "h176": {
+   "original_id": "ev-f965912dda40",
+   "derivative_id": "ev-1d0ffdac1cf2",
+   "status": "rejected",
+   "reason": "B was published prior to A and does not reference or derive content from A."
+  },
+  "h182": {
+   "original_id": "ev-ba01868213b5",
+   "derivative_id": "ev-1d0ffdac1cf2",
+   "status": "rejected",
+   "reason": "B was published prior to A and does not reference or derive content from A."
+  },
+  "h203": {
+   "original_id": "ev-ba01868213b5",
+   "derivative_id": "ev-038add73f6d9",
+   "status": "rejected",
+   "reason": "B was published prior to A and relies on separate reporting from Reuters and other analysts."
+  },
+  "h040": {
+   "original_id": "ev-4c29c41dacdf",
+   "derivative_id": "ev-5bfa8ba96742",
+   "status": "confirmed",
+   "extent": "whole",
+   "cue_kind": "attribution",
+   "cue": "Cook Political Report: “A new Battleground District Project poll",
+   "reason": "B directly quotes and attributes the Battleground District Project survey published by the Cook Political Report."
+  },
+  "h193": {
+   "original_id": "ev-4c29c41dacdf",
+   "derivative_id": "ev-6a4a53a81c17",
+   "status": "cue_not_found",
+   "cue_kind": "attribution",
+   "detail": "attribution_does_not_name_a",
+   "reason": "B cites specific poll numbers directly from Cook's Battleground District Project survey as part of its reporting."
+  },
+  "h036": {
+   "original_id": "ev-5960a0855219",
+   "derivative_id": "ev-11258cf1a0e9",
+   "status": "rejected",
+   "reason": "B is an opinion post discussing climate policy and the Paris Agreement target without referencing the Copernicus report."
+  },
+  "h219": {
+   "original_id": "ev-67df7c06b2ca",
+   "derivative_id": "ev-11258cf1a0e9",
+   "status": "rejected",
+   "reason": "B is an opinion post discussing climate policy and the Paris Agreement target without referencing the Copernicus report."
+  },
+  "h221": {
+   "original_id": "ev-2f8d472225ed",
+   "derivative_id": "ev-812f76327bd9",
+   "status": "rejected",
+   "reason": "B is an explanatory article by an earth scientist discussing temperature factors independently of Zachary Labe's indicator graphics."
+  },
+  "h039": {
+   "original_id": "ev-972407ab6187",
+   "derivative_id": "ev-rpf-4_0",
+   "status": "rejected",
+   "reason": "The two documents discuss completely unrelated topics."
+  },
+  "h043": {
+   "original_id": "ev-f1bd945ba0a0",
+   "derivative_id": "ev-2988ce8b150a",
+   "status": "rejected",
+   "reason": "The Wikipedia article on Google Gemini provides general background on the AI chatbot independently without referencing or relying on the academic survey paper."
+  },
+  "h028": {
+   "original_id": "ev-71c55a631ece",
+   "derivative_id": "ev-dd37c8c377b1",
+   "status": "rejected",
+   "reason": "B is an independent fact-checking report focusing on Moderna's vaccine production timeline, with no reliance on the Canadian pandemic Wikipedia article."
+  },
+  "h058": {
+   "original_id": "ev-71c55a631ece",
+   "derivative_id": "ev-990d81f57105",
+   "status": "rejected",
+   "reason": "B is an academic research study with independent data and analysis unrelated to the Wikipedia article on COVID-19 in Canada."
+  },
+  "h220": {
+   "original_id": "ev-b31ee05602b0",
+   "derivative_id": "ev-dd37c8c377b1",
+   "status": "rejected",
+   "reason": "B is an independent fact-checking report focusing on Moderna's vaccine production timeline, with no reliance on the Canadian pandemic Wikipedia article."
+  },
+  "h245": {
+   "original_id": "ev-b31ee05602b0",
+   "derivative_id": "ev-990d81f57105",
+   "status": "rejected",
+   "reason": "B is an academic research study with independent data and analysis unrelated to the Wikipedia article on COVID-19 in Canada."
+  },
+  "h048": {
+   "original_id": "ev-fff6745c98a3",
+   "derivative_id": "ev-8ad63180db92",
+   "status": "rejected",
+   "reason": "B reports on a different prespecified analysis of the SELECT trial published in The Lancet regarding adiposity measurements, not A's study in Nature Medicine on liver fibrosis."
+  },
+  "h042": {
+   "original_id": "ev-48fd09fb670b",
+   "derivative_id": "ev-5c13d9bccc79",
+   "status": "rejected",
+   "reason": "B is a general statistical table sharing historical inflation figures without citing or relaying A's publication."
+  },
+  "h224": {
+   "original_id": "ev-758395cebbc1",
+   "derivative_id": "ev-5c13d9bccc79",
+   "status": "rejected",
+   "reason": "B is a general statistical table sharing historical inflation figures without citing or relaying A's publication."
+  },
+  "h033": {
+   "original_id": "ev-9bef0fab35f2",
+   "derivative_id": "ev-bd60bd65c270",
+   "status": "cue_not_found",
+   "cue_kind": "copied_text",
+   "detail": "copied_text_not_in_a",
+   "reason": "B reports on the deep-sea coral reef mission using details and text directly sourced from the University of Galway press release."
+  },
+  "h069": {
+   "original_id": "ev-9bef0fab35f2",
+   "derivative_id": "ev-cc7d596e2c70",
+   "status": "confirmed",
+   "extent": "whole",
+   "cue_kind": "attribution",
+   "cue": "University of Galway team hopes to restore coral habitats using 3D-printed artificial reefs",
+   "reason": "B reports on the University of Galway research team's project to restore deep-sea coral habitats."
+  },
+  "h070": {
+   "original_id": "ev-9bef0fab35f2",
+   "derivative_id": "ev-d6f0448181b2",
+   "status": "cue_not_found",
+   "cue_kind": "copied_text",
+   "detail": "copied_text_not_in_a",
+   "reason": "B summarizes and copies extensive text from the University of Galway press release."
+  },
+  "h051": {
+   "original_id": "ev-rpf-1_0",
+   "derivative_id": "ev-rpf-1_1",
+   "status": "rejected",
+   "reason": "B is a consulting firm's catalogue of training courses and articles with no reference to the ECB working paper."
+  },
+  "h057": {
+   "original_id": "ev-89df4d5af482",
+   "derivative_id": "ev-4540aaac02f4",
+   "status": "rejected",
+   "reason": "B discusses business distress and insolvency figures from Begbies Traynor rather than the ONS GDP estimate."
+  },
+  "h066": {
+   "original_id": "ev-89df4d5af482",
+   "derivative_id": "ev-e7f8283d475f",
+   "status": "rejected",
+   "reason": "B was published prior to A's release date and discusses earlier monthly GDP data for November 2025."
+  },
+  "h054": {
+   "original_id": "ev-e8399151ddb4",
+   "derivative_id": "ev-rpf-3_0",
+   "status": "rejected",
+   "reason": "B is an annual temperature review for 2025 from Climate Central and does not cite or reference the paper comparing the 1941 and 2021 heatwaves."
+  },
+  "h052": {
+   "original_id": "ev-bf1bb73ab06b",
+   "derivative_id": "ev-823d23c4b8d5",
+   "status": "unclear",
+   "reason": "The news text reports on the Google Health study results, but the excerpt does not name Nature or the published paper directly."
+  },
+  "h055": {
+   "original_id": "ev-rpf-2_2",
+   "derivative_id": "ev-rpf-2_1",
+   "status": "rejected",
+   "reason": "B reports on NatWest's Q1 2026 financial results, whereas A is NatWest's full-year 2025 earnings release."
+  },
+  "h107": {
+   "original_id": "ev-rpf-2_0",
+   "derivative_id": "ev-rpf-2_1",
+   "status": "rejected",
+   "reason": "B reports on NatWest's Q1 2026 financial results, whereas A is NatWest's full-year 2025 earnings release."
+  },
+  "h053": {
+   "original_id": "ev-44043c9dfd5f",
+   "derivative_id": "ev-b1aeb1b728e8",
+   "status": "cue_not_found",
+   "cue_kind": "named_document",
+   "detail": "document_not_in_a",
+   "reason": "B reports on the study published in A and names the study title and lead authors."
+  },
+  "h146": {
+   "original_id": "ev-44043c9dfd5f",
+   "derivative_id": "ev-3b74a0d0bd2e",
+   "status": "rejected",
+   "reason": "B discusses a JAMA perspective piece reviewing broader AI medical literature rather than relaying A directly."
+  },
+  "h067": {
+   "original_id": "ev-rec-11_8_bf337086",
+   "derivative_id": "ev-rec-11_1_ce4cf161",
+   "status": "rejected",
+   "reason": "Page B consists of unrelated news video listings concerning US politics, Gaza reconstruction, and other events."
+  },
+  "h062": {
+   "original_id": "ev-4feaffb5028f",
+   "derivative_id": "ev-9090cc9de933",
+   "status": "rejected",
+   "reason": "B is a news report covering Donald Trump's official financial disclosure filing rather than Quiver Quantitative's tracker."
+  },
+  "h085": {
+   "original_id": "ev-07e574e548fb",
+   "derivative_id": "ev-239f2eb6a0dd",
+   "status": "rejected",
+   "reason": "B is an earlier news article reporting on Trump's disclosures and does not derive from the subsequent congressional press release."
+  },
+  "h205": {
+   "original_id": "ev-07e574e548fb",
+   "derivative_id": "ev-rec-e2_7_d888ac08",
+   "status": "rejected",
+   "reason": "Both pages are independent news reports covering Donald Trump's federal financial disclosures."
+  },
+  "h227": {
+   "original_id": "ev-07e574e548fb",
+   "derivative_id": "ev-bf9d9f0c9ff0",
+   "status": "rejected",
+   "reason": "Both are independent news reports covering Donald Trump's financial filings and stock trades."
+  },
+  "h237": {
+   "original_id": "ev-8dab2a9071a2",
+   "derivative_id": "ev-239f2eb6a0dd",
+   "status": "rejected",
+   "reason": "B is an earlier news article reporting on Trump's disclosures and does not derive from the subsequent congressional press release."
+  },
+  "h071": {
+   "original_id": "ev-ea00500a4d40",
+   "derivative_id": "ev-622f5b98c4ca",
+   "status": "rejected",
+   "reason": "Both articles cover climate tipping points and related research, but B does not derive its reporting from A."
+  },
+  "h191": {
+   "original_id": "ev-3bb1965b26a0",
+   "derivative_id": "ev-dbcad55a7e76",
+   "status": "rejected",
+   "reason": "B was published prior to A and independently explains the 1.5 degrees Celsius warming target."
+  },
+  "h059": {
+   "original_id": "ev-rec-e1_3_23f03c40",
+   "derivative_id": "ev-41f70d623608",
+   "status": "rejected",
+   "reason": "B reports on warnings from the Department of Finance regarding government spending, which is independent of the Central Bank bulletin."
+  },
+  "h064": {
+   "original_id": "ev-a263977bc6e5",
+   "derivative_id": "ev-rec-e2_3_ea126dbb",
+   "status": "rejected",
+   "reason": "B covers overall EU government spending data from Eurostat rather than Irish economic analysis from the Central Bank."
+  },
+  "h079": {
+   "original_id": "ev-rec-e1_3_23f03c40",
+   "derivative_id": "ev-rec-e2_3_ea126dbb",
+   "status": "rejected",
+   "reason": "B covers overall EU government spending data from Eurostat rather than Irish economic analysis from the Central Bank."
+  },
+  "h094": {
+   "original_id": "ev-rec-e1_5_ef863ee4",
+   "derivative_id": "ev-dc282908558a",
+   "status": "rejected",
+   "reason": "B is an earlier statistical summary covering historical data through 2023, independent of the 2026 CSO release."
+  },
+  "h123": {
+   "original_id": "ev-rec-e1_5_ef863ee4",
+   "derivative_id": "ev-rec-e2_3_ea126dbb",
+   "status": "rejected",
+   "reason": "B covers overall EU government spending data from Eurostat rather than Irish economic analysis from the Central Bank."
+  },
+  "h200": {
+   "original_id": "ev-rec-e1_3_300ef22b",
+   "derivative_id": "ev-dc282908558a",
+   "status": "rejected",
+   "reason": "B is an earlier statistical summary covering historical data through 2023, independent of the 2026 CSO release."
+  },
+  "h075": {
+   "original_id": "ev-3307641904ff",
+   "derivative_id": "ev-89c4bc6ba1da",
+   "status": "rejected",
+   "reason": "Both sources independently summarize the results of the SELECT clinical trial."
+  },
+  "h026": {
+   "original_id": "ev-adb3d57ef293",
+   "derivative_id": "ev-4a36fa7fa9f9",
+   "status": "confirmed",
+   "extent": "part",
+   "cue_kind": "attribution",
+   "cue": "according to the latest figures from the Office for National Statistics (ONS)",
+   "reason": "B covers the February 2026 ONS labour market statistics rather than the September 2026 release presented in A."
+  },
+  "h159": {
+   "original_id": "ev-808038d270e1",
+   "derivative_id": "ev-4a36fa7fa9f9",
+   "status": "rejected",
+   "reason": "B covers the February 2026 ONS labour market statistics rather than the September 2026 release presented in A."
+  },
+  "h164": {
+   "original_id": "ev-808038d270e1",
+   "derivative_id": "ev-64a051d417df",
+   "status": "rejected",
+   "reason": "B presents the British Chambers of Commerce's own economic forecast rather than reporting ONS data from A."
+  },
+  "h068": {
+   "original_id": "ev-3e3389e92deb",
+   "derivative_id": "ev-337a816a887d",
+   "status": "rejected",
+   "reason": "B is an independent legal analysis tracking the publication and timeline of the EU AI Act directly from the Official Journal of the European Union."
+  },
+  "h183": {
+   "original_id": "ev-63e60eb0072b",
+   "derivative_id": "ev-a69d5d9235ad",
+   "status": "rejected",
+   "reason": "B is an independent legal guide discussing the EU AI Act timeline and implementation rather than relaying the Commission's news release."
+  },
+  "h206": {
+   "original_id": "ev-3e3389e92deb",
+   "derivative_id": "ev-fa8dfeae1b77",
+   "status": "rejected",
+   "reason": "B is an independent law firm briefing outlining the regulatory timeline and guidance under the EU AI Act."
+  },
+  "h077": {
+   "original_id": "ev-7a0019cb0a13",
+   "derivative_id": "ev-6edd7cb7b75b",
+   "status": "rejected",
+   "reason": "TD Economics provides its own economic analysis based on official government employment data rather than relaying Statista."
+  },
+  "h072": {
+   "original_id": "ev-rec-1_3_4b1b269f",
+   "derivative_id": "ev-rec-1_4_5f75f249",
+   "status": "rejected",
+   "reason": "B was published before A and analyzes military expenditure data up to 2024 rather than A's 2025 data."
+  },
+  "h112": {
+   "original_id": "ev-rec-1_3_4b1b269f",
+   "derivative_id": "ev-rec-1_2_ea9a146f",
+   "status": "rejected",
+   "reason": "B reports on a different SIPRI release concerning top arms manufacturers and revenues rather than A's military expenditure report."
+  },
+  "h081": {
+   "original_id": "ev-65e7e1e62f18",
+   "derivative_id": "ev-2ab27e0ad4dd",
+   "status": "rejected",
+   "reason": "B is an independent blog post by Mayo Clinic discussing the general health benefits of the Mediterranean diet and predates A."
+  },
+  "h234": {
+   "original_id": "ev-65e7e1e62f18",
+   "derivative_id": "ev-8222ef873d83",
+   "status": "rejected",
+   "reason": "B reports independently on a National Institutes of Health study and a local cooking demonstration rather than deriving from Harvard's podcast."
+  },
+  "h082": {
+   "original_id": "ev-rec-e2_5_d3c8086d",
+   "derivative_id": "ev-0cff47961e22",
+   "status": "rejected",
+   "reason": "B is an independent informational guide about electric cars and does not cite or reference A's position paper."
+  },
+  "h108": {
+   "original_id": "ev-f68b21895672",
+   "derivative_id": "ev-58c1f0d5d0af",
+   "status": "rejected",
+   "reason": "B discusses Guardian reporting and online debates regarding EV life-cycle emissions without referencing A's chart."
+  },
+  "h148": {
+   "original_id": "ev-3f72264ad82f",
+   "derivative_id": "ev-7711818fe12c",
+   "status": "rejected",
+   "reason": "B is a Reddit discussion on electric vehicle emissions that is completely unrelated to the Internet Archive media item in A."
+  },
+  "h087": {
+   "original_id": "ev-rec-0_1_7f1f7f47",
+   "derivative_id": "ev-rec-0_4_8ad08c06",
+   "status": "rejected",
+   "reason": "B is Carbon Brief's broad annual synthesis of multiple datasets and does not attribute its content to A's specific indicator page."
+  },
+  "h106": {
+   "original_id": "ev-rec-0_7_c602b8f3",
+   "derivative_id": "ev-rec-0_4_8ad08c06",
+   "status": "rejected",
+   "reason": "B is Carbon Brief's broad annual synthesis of multiple datasets and does not attribute its content to A's specific indicator page."
+  },
+  "h160": {
+   "original_id": "ev-rec-0_1_7f1f7f47",
+   "derivative_id": "ev-rec-0_3_3b5ad848",
+   "status": "rejected",
+   "reason": "B is a promotional post by the WMO about its own 2025 report and does not derive from Berkeley Earth's 2024 analysis."
+  },
+  "h208": {
+   "original_id": "ev-rec-0_6_61641550",
+   "derivative_id": "ev-rec-0_3_3b5ad848",
+   "status": "rejected",
+   "reason": "B is a promotional post by the WMO about its own 2025 report and does not derive from Berkeley Earth's 2024 analysis."
+  },
+  "h092": {
+   "original_id": "ev-4d396fa1ffa7",
+   "derivative_id": "ev-82cd14eaefa4",
+   "status": "cue_not_found",
+   "cue_kind": "attribution",
+   "detail": "attribution_does_not_name_a",
+   "reason": "B reports on the specific study published in the Journal of American College Health on February 15 regarding social media use and loneliness."
+  },
+  "h091": {
+   "original_id": "ev-4fa071c960fe",
+   "derivative_id": "ev-491f75687106",
+   "status": "rejected",
+   "reason": "Source A is a 2013 House of Lords bill page, while Source B reports on a 2026 House of Commons vote on a different bill."
+  },
+  "h093": {
+   "original_id": "ev-338b7f3caeb9",
+   "derivative_id": "ev-50e57ed6bf90",
+   "status": "rejected",
+   "reason": "Source B reports independently on the upcoming parliamentary vote and does not cite or reference the House of Commons Library research briefing."
+  },
+  "h078": {
+   "original_id": "ev-44d0aa038de9",
+   "derivative_id": "ev-48b43ac2d981",
+   "status": "rejected",
+   "reason": "B discusses sea-level rise trends without attributing or reproducing text from NASA's animation page."
+  },
+  "h166": {
+   "original_id": "ev-2de7548cb0b0",
+   "derivative_id": "ev-48b43ac2d981",
+   "status": "rejected",
+   "reason": "B discusses sea-level rise trends without attributing or reproducing text from NASA's animation page."
+  },
+  "h198": {
+   "original_id": "ev-bb7765324e28",
+   "derivative_id": "ev-48b43ac2d981",
+   "status": "rejected",
+   "reason": "B discusses sea-level rise trends without attributing or reproducing text from NASA's animation page."
+  },
+  "h223": {
+   "original_id": "ev-775375ae30ea",
+   "derivative_id": "ev-48b43ac2d981",
+   "status": "rejected",
+   "reason": "B discusses sea-level rise trends without attributing or reproducing text from NASA's animation page."
+  },
+  "h099": {
+   "original_id": "ev-rec-e2_0_aa1ff1f3",
+   "derivative_id": "ev-1b1847ac2d37",
+   "status": "rejected",
+   "reason": "B is an independent article featuring Johns Hopkins Kimmel Cancer Center researcher Dr. James Berger discussing their own work, with no connection to A's journal article."
+  },
+  "h098": {
+   "original_id": "ev-993aad8a3194",
+   "derivative_id": "ev-df945b4871ca",
+   "status": "rejected",
+   "reason": "Statista reports general election results data citing the BBC rather than Royal Holloway's research."
+  },
+  "h109": {
+   "original_id": "ev-4df2330d857b",
+   "derivative_id": "ev-ec52188c0d27",
+   "status": "rejected",
+   "reason": "YouGov reports its own original polling data and MRP projections rather than deriving from the research paper."
+  },
+  "h158": {
+   "original_id": "ev-993aad8a3194",
+   "derivative_id": "ev-ec52188c0d27",
+   "status": "rejected",
+   "reason": "YouGov reports its own original polling data and MRP projections rather than deriving from the research paper."
+  },
+  "h195": {
+   "original_id": "ev-c16e94e56d2f",
+   "derivative_id": "ev-df945b4871ca",
+   "status": "rejected",
+   "reason": "Statista reports general election results data citing the BBC rather than Royal Holloway's research."
+  },
+  "h118": {
+   "original_id": "ev-47d74cbea82c",
+   "derivative_id": "ev-50a42e3ccf19",
+   "status": "rejected",
+   "reason": "B reports independently on legal filings by the Manhattan District Attorney regarding Donald Trump's New York conviction, unrelated to California Governor Newsom's press release."
+  },
+  "h113": {
+   "original_id": "ev-f2ad83fc832a",
+   "derivative_id": "ev-80f254c35d89",
+   "status": "rejected",
+   "reason": "B is a general informative article discussing the link between semaglutide and NAION without referencing A's specific study."
+  },
+  "h101": {
+   "original_id": "ev-b056c05dd708",
+   "derivative_id": "ev-rec-e3_1_8527171b",
+   "status": "unclear",
+   "reason": "The text of both pages consists only of site metadata or technical error boilerplates."
+  },
+  "h114": {
+   "original_id": "ev-rec-e3_2_2a87086a",
+   "derivative_id": "ev-e510f07d731d",
+   "status": "unclear",
+   "reason": "Both pages contain only subscription landing text and paywalls rather than article contents."
+  },
+  "h122": {
+   "original_id": "ev-rec-e3_7_cf458608",
+   "derivative_id": "ev-e510f07d731d",
+   "status": "unclear",
+   "reason": "Both pages contain only subscription landing text and paywalls rather than article contents."
+  },
+  "h129": {
+   "original_id": "ev-rec-e3_7_cf458608",
+   "derivative_id": "ev-rec-e2_7_0305a0b4",
+   "status": "rejected",
+   "reason": "B is an independent market analysis from ING that does not reference A."
+  },
+  "h120": {
+   "original_id": "ev-7fcd4f23f67f",
+   "derivative_id": "ev-33ae40e2f421",
+   "status": "rejected",
+   "reason": "B is an independent policy commentary that shares only basic, well-known historical facts about smallpox eradication."
+  },
+  "h126": {
+   "original_id": "ev-b427b141c9e0",
+   "derivative_id": "ev-22cb5615466f",
+   "status": "rejected",
+   "reason": "B presents its own analysis of 2025 disaster figures rather than reporting from NOAA's page."
+  },
+  "h136": {
+   "original_id": "ev-9c5bb9f02e59",
+   "derivative_id": "ev-bb0be2a8560d",
+   "status": "rejected",
+   "reason": "B was published in March 2024, months before A's study was published in August 2024, and independently responds to the official bleaching declaration."
+  },
+  "h140": {
+   "original_id": "ev-ac6b32f9a6ef",
+   "derivative_id": "ev-07790ffd6bdb",
+   "status": "rejected",
+   "reason": "B independently reports on a scientific statement published by the American Heart Association rather than referencing Stanford Medicine's article."
+  },
+  "h133": {
+   "original_id": "ev-736ef12a668f",
+   "derivative_id": "ev-f6a56721001b",
+   "status": "rejected",
+   "reason": "B discusses a US tort liability verdict involving assault, which is completely separate from the UK employment law case."
+  },
+  "h163": {
+   "original_id": "ev-736ef12a668f",
+   "derivative_id": "ev-3fec79a8ecda",
+   "status": "rejected",
+   "reason": "B is an essay on tort law and vicarious liability that does not derive from or reference A."
+  },
+  "h188": {
+   "original_id": "ev-736ef12a668f",
+   "derivative_id": "ev-018e6a03202e",
+   "status": "rejected",
+   "reason": "B independently reports on the UK Supreme Court ruling without referencing or deriving from the Scribd upload."
+  },
+  "h143": {
+   "original_id": "ev-44c093716ec9",
+   "derivative_id": "ev-3c4e54845878",
+   "status": "rejected",
+   "reason": "Both articles independently cover a third-party study published in The American Journal of Clinical Nutrition."
+  },
+  "h147": {
+   "original_id": "ev-f4ef1f3cce29",
+   "derivative_id": "ev-b88b72782bd8",
+   "status": "rejected",
+   "reason": "B is a general health article on zinc supplements for colds and does not reference or derive from A's commentary on the Cochrane review."
+  },
+  "h145": {
+   "original_id": "ev-433d4dc21d23",
+   "derivative_id": "ev-8d748d1c8253",
+   "status": "rejected",
+   "reason": "B reports on the Met Office's official confirmation in January 2026 rather than this preliminary projection from December 2025."
+  },
+  "h186": {
+   "original_id": "ev-aa6933cef4c0",
+   "derivative_id": "ev-c541ec187fcd",
+   "status": "confirmed",
+   "extent": "whole",
+   "cue_kind": "attribution",
+   "cue": "Extreme weather is the UK's new normal, says Met Office",
+   "reason": "B reports directly on the Met Office's annual State of the UK Climate report and findings."
+  },
+  "h115": {
+   "original_id": "ev-rpf-1_0",
+   "derivative_id": "ev-rec-e4_2_75548693",
+   "status": "rejected",
+   "reason": "A is Barclays' FY 2025 results conference call script, whereas B reports on Barclays' Q1 2026 earnings results."
+  },
+  "h116": {
+   "original_id": "ev-rec-e3_3_a9f49314",
+   "derivative_id": "ev-rec-e3_0_e53300fa",
+   "status": "rejected",
+   "reason": "A is Barclays' FY 2025 results announcement, while B is an earnings preview discussing analyst estimates for Q1 2026."
+  },
+  "h135": {
+   "original_id": "ev-rpf-1_0",
+   "derivative_id": "ev-rpf-1_2",
+   "status": "cue_not_found",
+   "cue_kind": "named_document",
+   "detail": "document_not_in_a",
+   "reason": "B explicitly reviews and summarizes the US Copyright Office's newly released report on generative AI training."
+  },
+  "h246": {
+   "original_id": "ev-rpf-1_0",
+   "derivative_id": "ev-rpf-1_1",
+   "status": "confirmed",
+   "extent": "whole",
+   "cue_kind": "attribution",
+   "cue": "the United States Copyright Office (the USCO) released a 108-page report on whether the unauthorized use of copyrighted materials to train generative artificial intelligence",
+   "reason": "B summarizes and analyzes the key findings of the US Copyright Office's report on AI training."
+  },
+  "h149": {
+   "original_id": "ev-e6a0f00bb604",
+   "derivative_id": "ev-a1d47c17f8de",
+   "status": "rejected",
+   "reason": "B is an independent study by UBS on global real estate bubble risks published prior to and separate from CMHC's report."
+  },
+  "h187": {
+   "original_id": "ev-e6a0f00bb604",
+   "derivative_id": "ev-bbf91c40fcad",
+   "status": "rejected",
+   "reason": "B is an independent publication by Deloitte focusing on European property markets."
+  },
+  "h111": {
+   "original_id": "ev-7f48546f7f5f",
+   "derivative_id": "ev-8bf20bda3a57",
+   "status": "rejected",
+   "reason": "B reports on a different ruling by Judge Richard Berman rather than Judge Paul Engelmayer's decision in A."
+  },
+  "h153": {
+   "original_id": "ev-7f48546f7f5f",
+   "derivative_id": "ev-cd0af90a65a3",
+   "status": "rejected",
+   "reason": "B is a social media discussion about celebrities and does not derive from the court order in A."
+  },
+  "h155": {
+   "original_id": "ev-51b1d954bfa4",
+   "derivative_id": "ev-efd1a9a96d4a",
+   "status": "rejected",
+   "reason": "The Reddit post asks general questions about the consequences of AMOC collapse without citing or drawing from the Nordic Council report."
+  },
+  "h175": {
+   "original_id": "ev-437180d343b5",
+   "derivative_id": "ev-10f060cef63d",
+   "status": "rejected",
+   "reason": "B is an independent Reddit discussion about general geography of the Amazon and does not reference or derive from A."
+  },
+  "h174": {
+   "original_id": "ev-66c091d78ddd",
+   "derivative_id": "ev-24068daf504f",
+   "status": "rejected",
+   "reason": "B reports on conference findings from the SELECT clinical trial independently of the Wikipedia article."
+  },
+  "h178": {
+   "original_id": "ev-05402d275d6a",
+   "derivative_id": "ev-24068daf504f",
+   "status": "rejected",
+   "reason": "B reports on conference findings from the SELECT clinical trial independently of the Wikipedia article."
+  },
+  "h184": {
+   "original_id": "ev-63e1768a55a8",
+   "derivative_id": "ev-24068daf504f",
+   "status": "rejected",
+   "reason": "B reports on conference findings from the SELECT clinical trial independently of the Wikipedia article."
+  },
+  "h172": {
+   "original_id": "ev-rec-3_0_4d9f3958",
+   "derivative_id": "ev-rec-3_3_4091bea1",
+   "status": "rejected",
+   "reason": "B was published prior to A's report and discusses Russian budget figures independently without referencing SIPRI."
+  },
+  "h179": {
+   "original_id": "ev-e1fc5de57de7",
+   "derivative_id": "ev-bc81fc106cf5",
+   "status": "rejected",
+   "reason": "B reports on a new analysis and statement from NASA rather than NOAA."
+  },
+  "h167": {
+   "original_id": "ev-d7bcfbce3a0f",
+   "derivative_id": "ev-03197d0d6bee",
+   "status": "rejected",
+   "reason": "B is an independent fact-check discussing UK election results and citing a BBC report and an expert, with no derivation from the Wikipedia article."
+  },
+  "h177": {
+   "original_id": "ev-6c9c77022d86",
+   "derivative_id": "ev-ed17a1bf67ef",
+   "status": "rejected",
+   "reason": "Page B is a generic law firm blog post about immigration policy changes and does not relay the asylum information from Page A."
+  },
+  "h156": {
+   "original_id": "ev-d50914ca75b1",
+   "derivative_id": "ev-f696d1c902bf",
+   "status": "cue_not_found",
+   "cue_kind": "attribution",
+   "detail": "attribution_does_not_name_a",
+   "reason": "B cites and summarises findings from the Cholesterol Treatment Trialists' meta-analysis."
+  },
+  "h157": {
+   "original_id": "ev-d50914ca75b1",
+   "derivative_id": "ev-773a0050465e",
+   "status": "rejected",
+   "reason": "B discusses cholesterol lowering in general without referencing CTT or its publications."
+  },
+  "h240": {
+   "original_id": "ev-d50914ca75b1",
+   "derivative_id": "ev-d5c1aca30192",
+   "status": "confirmed",
+   "extent": "part",
+   "cue_kind": "attribution",
+   "cue": "Cholesterol Treatment Trialists’ (CTT) Collaboration",
+   "reason": "B explicitly cites and discusses pooled analysis findings from the CTT Collaboration."
+  },
+  "h199": {
+   "original_id": "ev-446696e19127",
+   "derivative_id": "ev-d87b39c13753",
+   "status": "rejected",
+   "reason": "B is an article about a palaeoecological study on North Sea whale fossils and prehistoric sharks, which does not derive from A's Wikipedia article on Pacific sleeper sharks."
+  },
+  "h213": {
+   "original_id": "ev-d71a34e87f70",
+   "derivative_id": "ev-231bcfe45cd3",
+   "status": "rejected",
+   "reason": "Both pages independently reference official Consumer Prices Index figures from the Office for National Statistics."
+  },
+  "h209": {
+   "original_id": "ev-2ce741846266",
+   "derivative_id": "ev-1daad15ef2d7",
+   "status": "rejected",
+   "reason": "B is an independent informational article about coral bleaching on the Great Barrier Reef that does not cite or rely on A's study."
+  },
+  "h207": {
+   "original_id": "ev-rec-0_1_42d48510",
+   "derivative_id": "ev-rec-0_0_fe91a27f",
+   "status": "rejected",
+   "reason": "B reports on a different study published in Geophysical Research Letters rather than the Nature Climate Change paper in A."
+  },
+  "h211": {
+   "original_id": "ev-rec-1_4_76a1a05c",
+   "derivative_id": "ev-rec-1_2_4f4c62e3",
+   "status": "rejected",
+   "reason": "B reports on recent flooding in Hawaii and does not reference or derive from A's study on multi-year US disaster costs."
+  },
+  "h217": {
+   "original_id": "ev-14fa302bde05",
+   "derivative_id": "ev-d133ea5be708",
+   "status": "rejected",
+   "reason": "B independently reports on satellite measurement studies conducted by Brazilian researchers and the National Institute for Space Research without referencing Wikipedia."
+  },
+  "h231": {
+   "original_id": "ev-f5aea7bcb546",
+   "derivative_id": "ev-5627938904b7",
+   "status": "rejected",
+   "reason": "B reports on a recent BBC interview with Volodymyr Zelenskyy independently of Wikipedia."
+  },
+  "h225": {
+   "original_id": "ev-05040fac7915",
+   "derivative_id": "ev-b774e7ff271c",
+   "status": "rejected",
+   "reason": "B discusses the composition and reflectivity of the Moon independently, citing a physics professor without referencing A."
+  },
+  "h222": {
+   "original_id": "ev-79bbed02745c",
+   "derivative_id": "ev-5e50bda7c929",
+   "status": "rejected",
+   "reason": "B conducts its own fact check citing multiple general data sources, including SIPRI, rather than relaying A's specific report."
+  },
+  "h248": {
+   "original_id": "ev-f6f41e4b1bb8",
+   "derivative_id": "ev-7beae380d6c1",
+   "status": "rejected",
+   "reason": "B is a general promotional article about Mediterranean diet benefits for heart health and does not cite or reference A's specific review paper."
+  },
+  "h244": {
+   "original_id": "ev-5bce7c608467",
+   "derivative_id": "ev-e7cf502c82bf",
+   "status": "rejected",
+   "reason": "B is an independent Reddit discussion about Sha'Carri Richardson's individual 100m win, not deriving from Wikipedia's 4x100m relay article."
+  },
+  "h236": {
+   "original_id": "ev-7cc6f3fffa10",
+   "derivative_id": "ev-74a2def1a531",
+   "status": "rejected",
+   "reason": "B independently analyzes Long COVID prevalence using US data and does not derive from WHO Europe's myth-busters campaign."
+  }
+ }
+}

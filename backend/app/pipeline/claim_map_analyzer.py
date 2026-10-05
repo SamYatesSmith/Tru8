@@ -1343,6 +1343,11 @@ def _compute_relationship_structure(
     derivative_count = 0
     # F4: on-side members of each unanchored-repetition cluster, by domain.
     repetition_domains: Dict[int, List[str]] = defaultdict(list)
+    side_ids = {
+        (r.get("evidence_id") if isinstance(r, dict) else getattr(r, "evidence_id", ""))
+        for r in rel_refs
+    }
+    copies_per_original: Dict[str, int] = defaultdict(int)
 
     for ref in rel_refs:
         eid = (
@@ -1369,11 +1374,23 @@ def _compute_relationship_structure(
         if tier == "primary" and (ev.get("derivation_chain") or []):
             originals += 1
         if eid and eid in derivative_ids:
-            derivative_count += 1
+            if isinstance(derivative_ids, dict):
+                # Plan rev 2 M5 + verification M3 (2026-10-05): copies are
+                # counted per original, and only for originals counted on this
+                # same side. The note says "repeat a single original", so
+                # derivative_count is the most copies any ONE on-side original
+                # has here; two originals with one copy each is not an echo.
+                for original in derivative_ids[eid] & side_ids:
+                    copies_per_original[original] += 1
+            else:
+                derivative_count += 1
 
         rep_id = ev.get("repetition_cluster_id")
         if rep_id:
             repetition_domains[rep_id].append(domain)
+
+    if copies_per_original:
+        derivative_count = max(copies_per_original.values())
 
     # Summarise the dominant repetition cluster on this side.
     max_cluster_on_side = 0
@@ -1434,11 +1451,13 @@ def _compute_element_basis(
 
     # Union of every derivation chain in the pool — an item whose id appears
     # here re-reports a primary source (echo), per the corroboration engine.
-    derivative_ids = set()
+    # derivative id → the originals whose chains list it (plan rev 2 M5).
+    derivative_ids: Dict[str, set] = defaultdict(set)
     for ev in evidence_list:
         for did in ev.get("derivation_chain") or []:
             if did:
-                derivative_ids.add(did)
+                derivative_ids[did].add(ev.get("evidence_id"))
+    derivative_ids = dict(derivative_ids)
 
     relationship_counts: Dict[str, int] = {}
     tier_counts: Dict[str, int] = {}
@@ -1521,17 +1540,19 @@ class _IndexedEvidence(NamedTuple):
     # chains (annotation runs once, post-classify), so there this is always
     # None and the gate is silent — the safe direction.
     #
-    # Only the FIRST original in pool order is kept, on purpose (2026-09-30).
-    # Keeping all of them lets the gate fire more often, and the links under it
-    # are weak: on corpus 0004 pages were "copies" of a UNCTAD page because they
-    # shared the date "August 16, 2022". Widening it waits until the link
-    # detector's precision is measured (audit/2026-09-30_echo_link_design.md).
+    # One original per copy, on purpose (2026-09-30, review H2 of that day):
+    # "any original" lets the gate fire more often. Since 2026-10-05 the links
+    # are model-confirmed (`confirmed_copies`) and the lowest-ranked confirmed
+    # original wins (audit/2026-10-05_echo_link_confirmation_build_plan.md).
     original_id: Optional[str] = None
     # Persistent identifier of the STUDY this item carries (doi:/pmid:/pmc:),
     # per app.utils.study_identity — None when the item carries none. The
     # same-study gate (2026-09-09) is the only reader.
     study_id: Optional[str] = None
-
+    # The verified cue (verbatim words of this copy) and its kind, from the
+    # confirmed link that set `original_id`. The echo receipt shows them.
+    echo_cue: Optional[str] = None
+    echo_cue_kind: Optional[str] = None
 
 
 def _counted_original_id(
@@ -1610,6 +1631,7 @@ def _restore_orphaned_echoes(
         elem["basis"]["state_derivation"] = derivation
     return restored
 
+
 class _ScopeGate(NamedTuple):
     """One mechanical reason a reference cannot speak to an element.
 
@@ -1670,9 +1692,7 @@ def _merge_scope_receipts(
                 + (new.get("scoped_count") or 0),
             }
             # Echo copies put back after their original stopped counting.
-            restored = list(old.get("restored") or []) + list(
-                new.get("restored") or []
-            )
+            restored = list(old.get("restored") or []) + list(new.get("restored") or [])
             if restored:
                 merged[key]["restored"] = restored
         elif old:
@@ -1696,18 +1716,30 @@ def _figure_text(item: _IndexedEvidence) -> str:
 
 def _index_evidence(evidence_list: List[Dict[str, Any]]) -> Dict[str, _IndexedEvidence]:
     """Index evidence by id with the fields the scope gates read."""
-    # Invert the pool's derivation chains once: derivative id → its primary's
-    # id. Computed here so ALL build sites (main pass, completion census,
-    # recovery) inherit it without separate wiring — a list without chains
-    # (recovery's new_evidence) simply yields an empty map.
-    original_of: Dict[str, str] = {}
+    # Invert the pool's CONFIRMED copy links once: derivative id → the
+    # original it copies. Computed here so ALL build sites (main pass,
+    # completion census, recovery) inherit it without separate wiring — a list
+    # without links (recovery's new_evidence) simply yields an empty map.
+    #
+    # Since 2026-10-05 the gate reads only `confirmed_copies`, written by
+    # echo link confirmation (a model confirmed the copy and a mechanical
+    # check verified its cue). The unconfirmed `derivation_chain` was right
+    # 14-32% of the time and is the grey note's field only. When a copy has
+    # several confirmed originals, the LOWEST rank wins, so the choice does not
+    # depend on pool order (Strengthen re-sorts the pool; plan rev 2 M3).
+    original_of: Dict[str, Tuple[int, str, Dict[str, Any]]] = {}
     for ev in evidence_list or []:
         oid = ev.get("evidence_id")
         if not oid:
             continue
-        for did in ev.get("derivation_chain") or []:
-            if did and did != oid:
-                original_of.setdefault(did, oid)
+        for copy in ev.get("confirmed_copies") or []:
+            did = copy.get("id") if isinstance(copy, dict) else None
+            if not did or did == oid:
+                continue
+            rank = copy.get("rank", 0)
+            held = original_of.get(did)
+            if held is None or (rank, oid) < held[:2]:
+                original_of[did] = (rank, oid, copy)
 
     index: Dict[str, _IndexedEvidence] = {}
     for ev in evidence_list or []:
@@ -1719,12 +1751,15 @@ def _index_evidence(evidence_list: List[Dict[str, Any]]) -> Dict[str, _IndexedEv
             for part in (ev.get("title"), ev.get("snippet") or ev.get("text"))
             if part
         )
+        held = original_of.get(eid)
         index[eid] = _IndexedEvidence(
             ev=ev,
             text=text,
             country=evidence_country(ev.get("url")),
-            original_id=original_of.get(eid),
+            original_id=held[1] if held else None,
             study_id=study_identifier(ev),
+            echo_cue=held[2].get("cue") if held else None,
+            echo_cue_kind=held[2].get("cue_kind") if held else None,
         )
     return index
 
@@ -1733,6 +1768,10 @@ class ClaimMapAnalyzer:
     """Decomposes claims into elements and maps evidence to them."""
 
     def __init__(self):
+        # Echo link confirmation (2026-10-05): the runner sets this to the
+        # check's EchoJoin before mapping. None everywhere else (re_search,
+        # tests), where the join is a no-op.
+        self.echo_join = None
         self.openai_api_key = settings.OPENAI_API_KEY
         self.google_ai_api_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
         self.decomposition_model = settings.DECOMPOSITION_MODEL
@@ -1904,6 +1943,9 @@ class ClaimMapAnalyzer:
         # different label — and therefore a different model — so reading it
         # later reported the COMPLETION model as the mapping model.
         mapping_model_used = self._last_model_used
+
+        # Echo links must be on the pool before the parse builds the gate index.
+        await self._join_echo_links()
 
         if parsed is not None:
             try:
@@ -2132,6 +2174,9 @@ class ClaimMapAnalyzer:
         # or the metadata reports whichever model spoke last.
         mapping_model_used = self._last_model_used
 
+        # Echo links must be on the pool before any parse builds a gate index.
+        await self._join_echo_links()
+
         failed_indices: List[int] = []
 
         if parsed is not None and isinstance(parsed.get("claims"), list):
@@ -2187,7 +2232,8 @@ class ClaimMapAnalyzer:
                 max(
                     50,
                     25
-                    + 2 * int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 25))
+                    + 2
+                    * int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 25))
                     + 5,
                 )
                 if (
@@ -2324,7 +2370,9 @@ class ClaimMapAnalyzer:
                     self.mapping_google_model
                     if is_mapping
                     else (
-                        getattr(settings, "RELATIONSHIP_REVIEW_MODEL", self.google_model)
+                        getattr(
+                            settings, "RELATIONSHIP_REVIEW_MODEL", self.google_model
+                        )
                         if is_review
                         else self.google_model
                     )
@@ -2421,6 +2469,30 @@ class ClaimMapAnalyzer:
 
         logger.error(f"[CLAIM_MAP] Both LLM providers failed for {label}")
         return None
+
+    async def call_echo_link(self, prompt: str) -> Optional[Dict[str, Any]]:
+        """Echo link confirmation's model call (plan rev 2 L6): Google only,
+        its own model, schema and timeout, tokens into this analyzer's usage.
+        No OpenAI fallback: only this model was evaluated, and no answer means
+        no link (fail closed). Never touches `_last_model_used`, which the
+        concurrent mapping call owns."""
+        from app.services import echo_link_confirmation as elc
+
+        if not self.google_ai_api_key:
+            return None
+        model = elc.model()
+        parsed, usage = await self._call_google(
+            prompt,
+            0,
+            elc.MAX_OUTPUT_TOKENS,
+            model=model,
+            timeout=int(elc.timeout_s()),
+            response_schema=elc.RESPONSE_SCHEMA,
+        )
+        if parsed is not None:
+            self._models_used["echo_link"] = model
+            self._accumulate(usage)
+        return parsed
 
     def _accumulate(self, usage: Optional[Dict[str, int]]) -> None:
         """Add usage to running total."""
@@ -2632,6 +2704,21 @@ class ClaimMapAnalyzer:
                 completed_at=None,
             ),
         )
+
+    async def _join_echo_links(self) -> None:
+        """Wait for the check's echo link confirmation (one shared future;
+        plan rev 2 H1). A no-op when there is no join (re_search, tests, the
+        stage off). Never raises: a failed run leaves no links, which is the
+        gate-off behaviour."""
+        join = self.echo_join
+        if join is None:
+            return
+        try:
+            await join.wait()
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:  # pragma: no cover - defensive
+            logger.warning("[ECHO LINK] join failed: %s", type(e).__name__)
 
     def _parse_mapping_response(
         self,
@@ -3330,7 +3417,9 @@ class ClaimMapAnalyzer:
                 orig = item.original_id
                 if not orig or orig == item.ev.get("evidence_id"):
                     return None
-                return _counted_original_id(elem, ref, [orig], getattr(rel, "value", rel))
+                return _counted_original_id(
+                    elem, ref, [orig], getattr(rel, "value", rel)
+                )
 
             gates.append(
                 _ScopeGate(
@@ -3339,7 +3428,14 @@ class ClaimMapAnalyzer:
                     pins="derivative of an original already counted on this side",
                     summary={},
                     fires=lambda item, ref: _counted_original(item, ref) is not None,
-                    entry=lambda item, _ref: {"original_id": item.original_id},
+                    entry=lambda item, _ref: {
+                        "original_id": item.original_id,
+                        **(
+                            {"cue": item.echo_cue, "cue_kind": item.echo_cue_kind}
+                            if item.echo_cue
+                            else {}
+                        ),
+                    },
                 )
             )
 
@@ -3441,7 +3537,9 @@ class ClaimMapAnalyzer:
                 if context:
                     reviewed = {**item.ev, "text": context, "snippet": context}
                     item = _index_evidence([reviewed])[ref["evidence_id"]]._replace(
-                        original_id=item.original_id
+                        original_id=item.original_id,
+                        echo_cue=item.echo_cue,
+                        echo_cue_kind=item.echo_cue_kind,
                     )
 
             for gate in pass_gates:
@@ -3574,7 +3672,9 @@ class ClaimMapAnalyzer:
         self, claim_map: ClaimMap, evidence_list: List[Dict[str, Any]]
     ) -> None:
         """Restore copies orphaned by a later stage, then review just those."""
-        review_on = settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW
+        review_on = (
+            settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW
+        )
         before = copy.deepcopy(claim_map["elements"]) if review_on else None
         restored = _restore_orphaned_echoes(claim_map, evidence_list)
         if not restored or not review_on:

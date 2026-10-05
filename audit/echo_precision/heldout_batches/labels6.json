@@ -1,0 +1,268 @@
+[
+ {
+  "id": "h211",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a Facebook post on Hawaii storm damage, unrelated to A's disaster-cost study."
+ },
+ {
+  "id": "h212",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both relay ONS CPI data; B cites the ONS directly, not Statista."
+ },
+ {
+  "id": "h213",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both relay ONS inflation figures; B attributes to the ONS, not Statista."
+ },
+ {
+  "id": "h214",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a new alcohol study, not the VA drinking limits."
+ },
+ {
+  "id": "h215",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "B names the CDC but the sentence is cut off, so what it takes from the CDC cannot be seen."
+ },
+ {
+  "id": "h216",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "A is a bot-check page; B is an older Reddit thread with its own discussion."
+ },
+ {
+  "id": "h217",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports Brazilian satellite measurements, not Wikipedia's figures."
+ },
+ {
+  "id": "h218",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a Lanzhou University paper, a different source; A shows only a bot-check page."
+ },
+ {
+  "id": "h219",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an opinion blog, dated before A, with no reference to the Copernicus report."
+ },
+ {
+  "id": "h220",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a fact-check about Moderna remarks, unrelated to the Canada pandemic article."
+ },
+ {
+  "id": "h221",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is the author's own analysis of 2025 temperatures, no reference to A's graphics."
+ },
+ {
+  "id": "h222",
+  "label": "relay",
+  "extent": "part",
+  "cue": "data from both the Stockholm International Peace Research Institute (SIPRI)",
+  "why": "B uses SIPRI data alongside budget documents and IISS data for its own analysis."
+ },
+ {
+  "id": "h223",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B summarises sea-level history from its own sources; a common NASA satellite fact."
+ },
+ {
+  "id": "h224",
+  "label": "relay",
+  "extent": "part",
+  "cue": "|Oct 25\n|3.6%\n|Sep 25\n|3.8%\n|Aug 25\n|3.8%",
+  "why": "B's table reproduces A's CPI annual rates for Oct 2024-Oct 2025 alongside months from other releases."
+ },
+ {
+  "id": "h225",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a general explainer on Moon composition, not drawn from A."
+ },
+ {
+  "id": "h226",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a new 2026 study, not A's 2011 meta-analysis."
+ },
+ {
+  "id": "h227",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (May) covers stock trades before A's July piece; no derivation."
+ },
+ {
+  "id": "h228",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a separate blood-CO2 study; 280 ppm is a common fact."
+ },
+ {
+  "id": "h229",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a planetary age calculator, not drawn from NASA's Jupiter page."
+ },
+ {
+  "id": "h230",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B quotes its own experts and the EA's updated plan; 50 closures is a common fact."
+ },
+ {
+  "id": "h231",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a Zelensky BBC interview, not the Wikipedia article."
+ },
+ {
+  "id": "h232",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers US Dietary Guidelines, not NHS Scotland's unit guidance."
+ },
+ {
+  "id": "h233",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports the later July figures; no use of A's June release shown."
+ },
+ {
+  "id": "h234",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B attributes to an NIH study, not the Harvard podcast."
+ },
+ {
+  "id": "h235",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a tracker page with common JWST launch facts."
+ },
+ {
+  "id": "h236",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B predates A and cites CDC and other studies, not WHO/Europe."
+ },
+ {
+  "id": "h237",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a paywalled FT page dated before A's press release."
+ },
+ {
+  "id": "h238",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B covers 1.5C generally; no attribution to A's benchmark paper shown."
+ },
+ {
+  "id": "h239",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a match report on the AO final, not drawn from Britannica."
+ },
+ {
+  "id": "h240",
+  "label": "relay",
+  "extent": "part",
+  "cue": "The most comprehensive data come from the Cholesterol Treatment Trialists’ (CTT) Collaboration, published in The Lancet in 2016.",
+  "why": "B cites CTT findings for one point among other trials and sources."
+ },
+ {
+  "id": "h241",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a 2021 pre-launch feature with its own interviews."
+ },
+ {
+  "id": "h242",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an encyclopedia entry with common JWST facts, not from eoPortal."
+ },
+ {
+  "id": "h243",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a match report, not drawn from Britannica."
+ },
+ {
+  "id": "h244",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a Reddit thread about the 100m, not the relay article."
+ },
+ {
+  "id": "h245",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an unrelated vaccine-trial survey paper."
+ },
+ {
+  "id": "h246",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "the United States Copyright Office (the USCO) released a 108-page report on whether the unauthorized use of copyrighted materials",
+  "why": "B is a summary of the Copyright Office's Part 3 report."
+ },
+ {
+  "id": "h247",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a history of JWST, not drawn from A's orbit determination paper."
+ },
+ {
+  "id": "h248",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is Mayo Clinic's own diet content; no reference to A's review."
+ }
+]

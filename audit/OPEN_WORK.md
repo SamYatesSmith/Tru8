@@ -12,7 +12,31 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## ▶ 2026-10-01 — ECHO SAFETY FIX DEPLOYED (`1b6a6a3` + cassette `c085894`) (START HERE)
+## ▶ 2026-10-05 — ECHO LINK CONFIRMATION: EVALUATED, WIRED, FLAG OFF (START HERE)
+**Records:** plan + rev 2 + eval result `audit/2026-10-05_echo_link_confirmation_build_plan.md` (§11–12); plan review `…_build_plan_review.md`; verification `…_verification.md`.
+- **Held-out eval (founder-approved, ≈ £0.72 in total):**
+  - **Data:** 248 pairs from 87 checks (local plus a read-only production export), blind-labelled by six fresh agents.
+  - **Input:** the model read production-shaped text (plan review H2).
+  - **Result:** in both runs, 0 of 137 independents confirmed; all 9 confirmations were real relays; recall 27%; flip 1.2%; $0.0019 per pair.
+  - **Verdict:** fails the pre-registered rule. The Wilson lower bound is 0.70 against 0.80 (9 confirmations cannot reach it), and recall is 27% against 60%.
+- **Founder (2026-10-05, "whatever's logical"): build the wiring anyway.** The confirmer never hid an independent source, and on A− #8 the missed copy is an "According to the University of Galway" attribution relay, the pattern it confirms. The gate has been off since 1 Oct, so #8 and #9 count every copy.
+- **Built, uncommitted, all three flags OFF:**
+  - `app/services/echo_link_confirmation.py`. The shared join is awaited before every mapping parse. A runner `finally` cancels the task. Join wait is capped at 15 s; `analyze_timeout` +15 s.
+  - The gate reads only `confirmed_copies`, ranked. The note reads `derivation_chain` (≥ 2 confirmed), counting same-side copies only (M5).
+  - Strengthen rebuilds the links from `metadata.echo_links`. Frozen replay skips with a receipt. Pairs are deduplicated per check. The legacy unconfirmed path is removed.
+  - The stage also runs on the quick tier.
+  - Tests: 4,457 unit tests pass; module 19/19 and seam 14/14 mutants killed.
+- **Next:**
+  1. The independent verifier's findings.
+  2. Bench `--all` with the flags off must equal the baseline.
+  3. Commit.
+  4. Then, each asked first (paid): bench flags-on `--record-missing`, and two local live checks.
+  5. Switch all three flags on together.
+  6. The founder label audit (≥ 40 labels; every confirmed pair in the gate stratum) is still owed.
+- **Data scripts:** `audit/echo_precision/` (`extract_heldout.py`, `pairs_from_prod.py`, `refetch_verbatim.py`, `refetch_browser.mjs`, `build_model_inputs.py`, `fix_strata.py`, `prep_blind_heldout.py`), labels `labels_heldout.json`, runs `eval_runs/`.
+- **Also decided 2026-10-05 (founder):** sends go record by record behind two automated gates (a blind A− grader, and an email fact-check against the record), with a separate agent lane for sub-A− records. Neither is built yet.
+
+## 2026-10-01 — ECHO SAFETY FIX DEPLOYED (`1b6a6a3` + cassette `c085894`)
 5647 re-recorded (`--record-missing`, ~1p): replays 19/5/1, its baseline. `--all` = 158/13/11/5 + 82CF drift only (93DD did not drift this run). Production healthy on `c085894`. Open: TRU-C1A0-0004 `jaccard:domain_set` 0.17 "likely regression" is not in the README's attributed list; its cassette and code are unchanged since 30 Sep, so it is not the echo fix. Attributed: same class as the 2026-08-13 "0004 `domain_set` 0.22 = record-time drift". The golden domain set dates from 10 Sep, and the cassette has been re-recorded five times since (Build C changed which pages get fetched). The pool itself is healthy: 12 unique domains, top share 0.08, every v3 floor passes. A fresh golden capture would clear it. That is optional, and it needs the curated pins restored.
 
 ## 2026-10-01 — OUTREACH LAW (from the ACE session, founder signed off)

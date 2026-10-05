@@ -1,0 +1,11 @@
+# Regenerable page-text caches from the 2026-10-05 held-out build (~13 MB of
+# third-party page text). Rebuild with the scripts in this folder; the
+# production pools come from a read-only export (see build_model_inputs.py).
+page_texts.json
+browser_texts.json
+model_inputs.json
+heldout_all.json
+heldout_prod.json
+heldout_candidates.json
+fetch_failed.json
+page_missing.json

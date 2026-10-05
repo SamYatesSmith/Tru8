@@ -99,7 +99,7 @@ ORDER_EVIDENCE = [
         "title": "Consumer price inflation: June 2024",
         "snippet": "The CPI rose by 1.9% in the 12 months to June 2024.",
         "tier": "primary",
-        "derivation_chain": ["ev-copy", "ev-other"],
+        "confirmed_copies": [{"id": "ev-copy", "rank": 0}, {"id": "ev-other", "rank": 1}],
     },
 ]
 
@@ -129,7 +129,7 @@ TWO_ORIGINALS = [
         "title": "Agency A",
         "snippet": "The figures were published this morning.",
         "tier": "primary",
-        "derivation_chain": ["ev-copy", "ev-x"],
+        "confirmed_copies": [{"id": "ev-copy", "rank": 2}, {"id": "ev-x", "rank": 3}],
     },
     {
         "evidence_id": "ev-b",
@@ -137,7 +137,7 @@ TWO_ORIGINALS = [
         "title": "Agency B",
         "snippet": "The figures were published this morning.",
         "tier": "primary",
-        "derivation_chain": ["ev-copy", "ev-y"],
+        "confirmed_copies": [{"id": "ev-copy", "rank": 4}, {"id": "ev-y", "rank": 5}],
     },
     {
         "evidence_id": "ev-copy",
@@ -169,7 +169,7 @@ ECHO_EVIDENCE = [
         "title": "Original",
         "snippet": "The figures were published this morning.",
         "tier": "primary",
-        "derivation_chain": ["ev-d1", "ev-d2"],
+        "confirmed_copies": [{"id": "ev-d1", "rank": 6}, {"id": "ev-d2", "rank": 7}],
     },
     {
         "evidence_id": "ev-d1",

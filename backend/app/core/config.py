@@ -759,14 +759,35 @@ class Settings(BaseSettings):
     # right. Blind labels found 12 relays among 38 decided pairs it scoped
     # (32%), so it hid about two independent sources per copy. Stays off
     # until a model-confirmed link is designed and evaluated.
-    # Record: audit/2026-10-01_echo_link_precision.md.
+    # Record: audit/2026-10-01_echo_link_precision.md. Since 2026-10-05 the
+    # gate reads only `confirmed_copies` (ENABLE_ECHO_LINK_CONFIRMATION).
     ENABLE_ECHO_SCOPE_GATE: bool = Field(False, env="ENABLE_ECHO_SCOPE_GATE")
-    # Derivation chains (post-classify `annotate_derivation_chains`): the
-    # primary -> re-reporter links behind the grey "echo" sourcing note and
-    # the echo gate. OFF 2026-10-01 (founder) for the same measured reason:
-    # 24% of links are real relays. With chains off, neither the note nor the
-    # gate can fire. Unrelated: F4 repetition clusters (shingle-based) stay on.
+    # The grey "echo" sourcing note's reader. OFF 2026-10-01 (founder): the
+    # unconfirmed links were real relays 24% of the time. Since 2026-10-05 the
+    # note reads ONLY confirmed links (`derivation_chain`, written at the
+    # mapping join by echo link confirmation when an original has >= 2
+    # confirmed copies); the post-classify mechanical chains are gone.
+    # Unrelated: F4 repetition clusters (shingle-based) stay on.
     ENABLE_DERIVATION_CHAINS: bool = Field(False, env="ENABLE_DERIVATION_CHAINS")
+    # Echo link confirmation (2026-10-05). Since this date the gate and the
+    # note read ONLY model-confirmed links: the detector proposes a pair, one
+    # gemini-3.7-flash call per <= 6 pairs judges it on verbatim text (never
+    # the claim), and a relay counts only with a cue verified mechanically in
+    # the source text. The unconfirmed legacy chains are gone: with this off,
+    # the gate and the note see no links at all. Runs only when a reader
+    # (ENABLE_DERIVATION_CHAINS or ENABLE_ECHO_SCOPE_GATE) is on. Held-out eval
+    # 2026-10-05: 0 of 137 independents confirmed (x2 runs), 9/9 confirmations
+    # real relays, recall 27%; the pre-registered lower bound (0.80) failed on
+    # sample size. Plan + result: audit/2026-10-05_echo_link_confirmation_build_plan.md.
+    # The three flags switch on together. ROLLBACK: all three False.
+    ENABLE_ECHO_LINK_CONFIRMATION: bool = Field(
+        False, env="ENABLE_ECHO_LINK_CONFIRMATION"
+    )
+    ECHO_LINK_MODEL: str = Field("gemini-3.7-flash", env="ECHO_LINK_MODEL")
+    # Per call. Eval p90 7 s, max 24 s (2026-10-05).
+    ECHO_LINK_TIMEOUT_S: int = Field(40, env="ECHO_LINK_TIMEOUT_S")
+    # Unique (A url, B url) pairs judged per check, strongest first.
+    ECHO_LINK_MAX_PAIRS: int = Field(24, env="ECHO_LINK_MAX_PAIRS")
 
     # Unreadable-text floor (A− M2, 2026-09-24). A directional ref whose source
     # text is a JavaScript/login wall or an empty shell becomes `context` with a

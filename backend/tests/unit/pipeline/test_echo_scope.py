@@ -40,7 +40,7 @@ EVIDENCE = [
         "title": "Original wire story",
         "snippet": "The figures were published this morning.",
         "tier": "primary",
-        "derivation_chain": ["ev-d1", "ev-d2"],
+        "confirmed_copies": [{"id": "ev-d1", "rank": 0}, {"id": "ev-d2", "rank": 1}],
     },
     {
         "evidence_id": "ev-d1",
@@ -62,7 +62,7 @@ EVIDENCE = [
         "title": "Second original, unreferenced",
         "snippet": "A separate account entirely.",
         "tier": "primary",
-        "derivation_chain": ["ev-d4"],
+        "confirmed_copies": [{"id": "ev-d4", "rank": 2}],
     },
     {
         "evidence_id": "ev-d4",

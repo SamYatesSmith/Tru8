@@ -130,10 +130,15 @@ async def research_claim(claim: dict, element_ids: list[str], progress):
         for e in claim["evidence"]
         if e.get("receipt_status") != "excluded"
     ]
+    # Echo links from the original run, rebuilt with no model call, so a copy
+    # the check confirmed stays a copy (echo link confirmation, plan rev 2 H3).
+    # This analyzer has no echo join: the mapping join is a no-op here.
+    from app.services.echo_link_confirmation import rebuild_after_research
+
+    pool = existing + candidates
+    rebuild_after_research(pool, cm, {c["evidence_id"] for c in candidates})
     await progress("mapping", "Mapping the combined evidence...")
-    updated = await ClaimMapAnalyzer().map_evidence_to_elements(
-        cm, existing + candidates
-    )
+    updated = await ClaimMapAnalyzer().map_evidence_to_elements(cm, pool)
     if {e["element_id"] for e in updated["elements"]} != {
         e["element_id"] for e in claim["claimMap"]["elements"]
     }:

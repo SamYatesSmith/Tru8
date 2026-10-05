@@ -83,8 +83,17 @@ def limitations_for_tier(tier: Optional[str]) -> List[str]:
         return []
 
     default, quick = _configs()
-    return sorted(
+    out = [
         slug
         for field, slug in _FIELD_SLUGS.items()
         if hasattr(default, field) and getattr(quick, field) != getattr(default, field)
-    )
+    ]
+    # Echo link confirmation (2026-10-05) is skipped on the quick tier, but
+    # it is a flag, not a config field, so it is declared only while the full
+    # tier actually runs it. With it off, neither tier runs it and claiming a
+    # quick-only omission would be a wrong receipt.
+    from app.services.echo_link_confirmation import should_run
+
+    if should_run():
+        out.append("no_echo_link_confirmation")
+    return sorted(out)

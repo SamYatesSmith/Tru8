@@ -1266,34 +1266,23 @@ async def run_pipeline_phase1(
 
 
 def annotate_post_classify_structure(evidence: Dict[str, List[Dict[str, Any]]]) -> None:
-    """Derivation chains (flagged) and F4 repetition clusters, after classify.
+    """F4 repetition clusters after classify, and no unconfirmed echo links.
 
-    Both need tiers. Chains are OFF by default since 2026-10-01
-    (`ENABLE_DERIVATION_CHAINS`, audit/2026-10-01_echo_link_precision.md);
-    when off, any chain an earlier pass wrote is removed so neither the echo
-    note nor the echo gate can read one."""
-    from app.utils.corroboration import (
-        annotate_derivation_chains,
-        annotate_repetition_clusters,
-    )
+    Since 2026-10-05 echo links (`derivation_chain`, `confirmed_copies`) are
+    written ONLY by echo link confirmation, at the mapping join
+    (app/services/echo_link_confirmation.py). The mechanical detector's
+    unconfirmed chains were right 14-32% of the time
+    (audit/2026-10-01_echo_link_precision.md), and the legacy path that wrote
+    them is gone (build plan rev 2 L4). Any link an earlier pass wrote is
+    removed here, so neither the echo note nor the echo gate can read one."""
+    from app.services.echo_link_confirmation import clear_links
+    from app.utils.corroboration import annotate_repetition_clusters
 
-    total_chains = 0
     total_repetition = 0
-    write_chains = getattr(settings, "ENABLE_DERIVATION_CHAINS", False)
     for ev_list in evidence.values():
-        if write_chains:
-            total_chains += annotate_derivation_chains(ev_list)
-        else:
-            # Off: no item may carry a chain from any earlier pass, or
-            # the echo note and gate would read it anyway.
-            for ev in ev_list:
-                ev.pop("derivation_chain", None)
+        clear_links(ev_list)
         # F4: unanchored talking-point repetition — same seam, needs tiers.
         total_repetition += annotate_repetition_clusters(ev_list)
-    if total_chains:
-        logger.info(
-            f"[DERIVATION] Wrote {total_chains} derivation chain(s) post-classify"
-        )
     if total_repetition:
         logger.info(
             f"[REPETITION] Wrote {total_repetition} unanchored cluster(s) post-classify"
@@ -2131,9 +2120,16 @@ async def run_pipeline_phase2(
         finalize_distilled_payload,
     )
 
+    from app.services import echo_link_confirmation as _elc
+
+    _echo_on = _elc.should_run()
     for claim in selected_claims:
         for item in (evidence or {}).get(str(claim.get("position", 0)), []):
             copy_page_opening(item)
+            if _echo_on:
+                # Claim-independent verbatim text for echo link confirmation,
+                # before distil pops `_full_text` (plan rev 2 H1 of 2026-10-01).
+                _elc.copy_page_opening(item)
             capture_text_provenance(
                 item,
                 claim.get("text", ""),
@@ -2341,6 +2337,13 @@ async def run_pipeline_phase2(
     if evidence:
         annotate_post_classify_structure(evidence)
 
+    # Echo link confirmation, planned now (tiers are final) and started at
+    # mapping so its calls overlap the mapping call (build plan §3).
+    _echo_quick = config.mode == "quick"
+    _echo_plan = _elc.plan_for_check(
+        evidence, frozen=_is_frozen_evidence_replay, quick=_echo_quick
+    )
+
     article_excerpt = content.get("content", "")[:5000]
 
     # =========================================================================
@@ -2460,6 +2463,24 @@ async def run_pipeline_phase2(
     # completion-pass LLM calls.
     analyze_timeout = 120
 
+    claim_maps_by_pos = {
+        str(c.get("position", 0)): c["claim_map"]
+        for c in selected_claims
+        if isinstance(c.get("claim_map"), dict)
+    }
+    echo_join = _elc.start_for_check(
+        _echo_plan,
+        evidence,
+        claim_maps_by_pos,
+        analyzer.call_echo_link,
+        frozen=_is_frozen_evidence_replay,
+        quick=_echo_quick,
+    )
+    # The join may hold mapping up to JOIN_WAIT_S; that time must not come
+    # out of mapping's own budget (plan rev 2 M2).
+    mapping_base_timeout = analyze_timeout
+    analyze_timeout = _elc.mapping_timeout(mapping_base_timeout, echo_join)
+
     try:
         batch_input = []
         for claim in selected_claims:
@@ -2478,9 +2499,9 @@ async def run_pipeline_phase2(
             f"[INLINE PIPELINE] Starting batch evidence mapping for "
             f"{len(batch_input)} claims with {analyze_timeout}s timeout"
         )
-        await asyncio.wait_for(
-            analyzer.map_evidence_batch(batch_input),
-            timeout=analyze_timeout,
+        # Attaches the echo join, and closes it whatever mapping does (M1).
+        await _elc.map_with_join(
+            analyzer, batch_input, echo_join, mapping_base_timeout, stage_timings
         )
         logger.info(f"[INLINE PIPELINE] Evidence mapping completed successfully")
     except asyncio.TimeoutError:

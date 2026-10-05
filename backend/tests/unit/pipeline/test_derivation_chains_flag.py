@@ -74,11 +74,36 @@ def test_off_removes_a_chain_written_earlier(monkeypatch):
     assert "derivation_chain" not in pool["0"][0]
 
 
-def test_on_still_writes_the_chain(monkeypatch):
+def test_on_no_longer_writes_unconfirmed_chains(monkeypatch):
+    """2026-10-05 (echo link confirmation, plan rev 2 L4): the unconfirmed
+    legacy path is gone. Only confirmed records write chains, at the mapping
+    join; the post-classify seam only clears."""
     monkeypatch.setattr(settings, "ENABLE_DERIVATION_CHAINS", True)
     pool = _pool()
+    pool["0"][0]["confirmed_copies"] = [{"id": "ev-r1", "rank": 0}]
     annotate_post_classify_structure(pool)
-    assert sorted(pool["0"][0]["derivation_chain"]) == ["ev-r1", "ev-r2"]
+    assert "derivation_chain" not in pool["0"][0]
+    assert "confirmed_copies" not in pool["0"][0]
+    assert _derivatives(pool) == {"originals": 0, "derivative_count": 0}
+
+
+def test_confirmed_records_write_the_chain_the_note_reads(monkeypatch):
+    from app.services import echo_link_confirmation as elc
+
+    monkeypatch.setattr(settings, "ENABLE_DERIVATION_CHAINS", True)
+    pool = _pool()
+    records = [
+        {
+            "original_id": "ev-p",
+            "derivative_id": d,
+            "status": "confirmed",
+            "rank": n,
+            "extent": "whole",
+        }
+        for n, d in enumerate(["ev-r1", "ev-r2"])
+    ]
+    elc.apply_records(pool["0"], records)
+    assert pool["0"][0]["derivation_chain"] == ["ev-r1", "ev-r2"]
     assert _derivatives(pool) == {"originals": 1, "derivative_count": 2}
 
 

@@ -75,6 +75,17 @@ async def warmup_ml_models():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Echo link confirmation (2026-10-05): a reader on with confirmation off
+    # reads no links at all, which is almost certainly not what was meant.
+    from app.services import echo_link_confirmation as _elc
+
+    if _elc.misconfigured():
+        logger.warning(
+            "[ECHO LINK] ENABLE_ECHO_SCOPE_GATE or ENABLE_DERIVATION_CHAINS is on "
+            "but ENABLE_ECHO_LINK_CONFIRMATION is off: the gate and the note see "
+            "no links. Switch the three flags together."
+        )
+
     # Phase 5: Initialize Government API adapters
     if settings.ENABLE_API_RETRIEVAL:
         from app.services.api_adapters import initialize_adapters

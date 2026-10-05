@@ -1,0 +1,62 @@
+{
+ "tag": "probe1",
+ "model": "gemini-3.7-flash",
+ "contract": "v1",
+ "at": "2026-10-05T12:29:37.877753+00:00",
+ "pairs": 6,
+ "usage": {
+  "input_tokens": 11423,
+  "output_tokens": 403,
+  "thinking_tokens": 780,
+  "calls": 5
+ },
+ "cost": {
+  "usd_now": 0.0130035,
+  "usd_2027": 0.026007
+ },
+ "call_seconds": [
+  2.12,
+  2.39,
+  2.48,
+  5.7,
+  5.72
+ ],
+ "results": {
+  "h003": {
+   "original_id": "ev-f965912dda40",
+   "derivative_id": "ev-b719c041a53a",
+   "status": "rejected",
+   "reason": "B independently reports on the Russian Poseidon underwater vehicle without citing or copying from A."
+  },
+  "h006": {
+   "original_id": "ev-f965912dda40",
+   "derivative_id": "ev-432aa16e605c",
+   "status": "rejected",
+   "reason": "B provides its own analysis of the Poseidon torpedo system without referencing or quoting A."
+  },
+  "h005": {
+   "original_id": "ev-347ff8533a88",
+   "derivative_id": "ev-rec-e2_1_bb064c93",
+   "status": "rejected",
+   "reason": "B is an independent policy analysis discussing the CMS Innovation Center and does not cite or relay CMS's Strategy Refresh white paper."
+  },
+  "h004": {
+   "original_id": "ev-baf20ed7d19a",
+   "derivative_id": "ev-a9780da2f19f",
+   "status": "rejected",
+   "reason": "Article B reports on the subsequent July inflation figures rather than relaying A's June release."
+  },
+  "h001": {
+   "original_id": "ev-41ff11e48baa",
+   "derivative_id": "ev-87185d430e78",
+   "status": "rejected",
+   "reason": "B is an independent reference overview of the James Webb Space Telescope and does not relay or cite A's specific mission webpage."
+  },
+  "h002": {
+   "original_id": "ev-8e4f1f884efa",
+   "derivative_id": "ev-b9b112c096af",
+   "status": "rejected",
+   "reason": "B is an overview of the Thames Barrier citing 2025 statistics rather than deriving from A's 2015 blog post."
+  }
+ }
+}

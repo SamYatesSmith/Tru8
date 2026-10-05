@@ -1,0 +1,296 @@
+[
+ {
+  "id": "h001",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "EBSCO research starter gives general JWST facts with no attribution to the NASA page."
+ },
+ {
+  "id": "h002",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites different EA counts (221 closures to Nov 2025); the 2013/14 50-closure figure is a common fact."
+ },
+ {
+  "id": "h003",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B draws specs from ODIN and its own experts, not from Sutton's page."
+ },
+ {
+  "id": "h004",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports the July inflation release; June's 2.6% is a common figure, not taken from this release."
+ },
+ {
+  "id": "h005",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B critiques the Innovation Center generally; nothing in B derives from the strategy refresh document."
+ },
+ {
+  "id": "h006",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites TASS and general reporting, not Sutton's page."
+ },
+ {
+  "id": "h007",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2023) predates A (2026) and cites TASS."
+ },
+ {
+  "id": "h008",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a WMO post about its own State of Climate report, not NOAA's."
+ },
+ {
+  "id": "h009",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an OBR outlook, unrelated to the insurance-broker article."
+ },
+ {
+  "id": "h010",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B shares a different author's chart, not the Nature study."
+ },
+ {
+  "id": "h011",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports the July release; the June 2.6% is a common figure."
+ },
+ {
+  "id": "h012",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B gives Mauna Loa figures; pre-industrial 280 ppm is a common fact."
+ },
+ {
+  "id": "h013",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "A's text is only a bot-check page, so what A said cannot be told."
+ },
+ {
+  "id": "h014",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "HSBC Holdings plc reported 1Q26 profit before tax of $9.4bn, slightly below 1Q25",
+  "why": "B is a summary of HSBC's 1Q26 earnings filing with A's figures."
+ },
+ {
+  "id": "h015",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is a general opinion piece on alcohol; no reference to the VA guidance."
+ },
+ {
+  "id": "h016",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is ITIF's own analysis of the Act citing its own footnotes, not the explainer."
+ },
+ {
+  "id": "h017",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Jupiter's age is a common fact; no attribution to NASA."
+ },
+ {
+  "id": "h018",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "The Ministry of Internal Affairs and Communications estimated that Japan’s total population was 123,802,000, as of October 1, 2024",
+  "why": "B reports the same October 2024 population estimate release with identical figures."
+ },
+ {
+  "id": "h019",
+  "label": "relay",
+  "extent": "part",
+  "cue": "Without the barrier, frequent tidal flooding of the Thames would submerge buildings along the river as well as the underground.",
+  "why": "B copies A's sentences on 2013/14 and flooding risk but adds its own cost and construction material."
+ },
+ {
+  "id": "h020",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "B's text is only a site banner/menu."
+ },
+ {
+  "id": "h021",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Statista CO2 series is not derived from the textbook page."
+ },
+ {
+  "id": "h022",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Launch date is a common fact; STScI does not draw on the NASA launch page."
+ },
+ {
+  "id": "h023",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports a different (Swedish) study, not A's NHS study."
+ },
+ {
+  "id": "h024",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B reports WRI/GLAD forest loss data, not the Nature study."
+ },
+ {
+  "id": "h025",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2014) predates A (2021) and cites different EA data."
+ },
+ {
+  "id": "h026",
+  "label": "relay",
+  "extent": "part",
+  "cue": "the highest level in almost five years, according to the latest figures from the Office for National Statistics (ONS)",
+  "why": "B reports the ONS February 2026 labour market release, adding economists' comment."
+ },
+ {
+  "id": "h027",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is about the Canadian UBI pilot, not A's essay."
+ },
+ {
+  "id": "h028",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is FactCheck.org's own reporting on Moderna, not drawn from Wikipedia."
+ },
+ {
+  "id": "h029",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B shown text does not cite the meta-analysis."
+ },
+ {
+  "id": "h030",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Both report the same match and record; B does not take it from Guinness World Records."
+ },
+ {
+  "id": "h031",
+  "label": "unclear",
+  "extent": null,
+  "cue": null,
+  "why": "B shows only a headline citing unnamed 'expert analysis'."
+ },
+ {
+  "id": "h032",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B's tracker gives common JWST facts from JPL/STScI, not the NASA page."
+ },
+ {
+  "id": "h033",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "Researchers from University of Galway are part of the international team testing the restoration of coral habitats damaged by bottom trawling by installing 3D-printed artificial reefs",
+  "why": "B is a close rewrite of the University of Galway release."
+ },
+ {
+  "id": "h034",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is Guardian reporting on the match; nothing from the Wikipedia page."
+ },
+ {
+  "id": "h035",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B (2014) predates A (2015 blog)."
+ },
+ {
+  "id": "h036",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B is an opinion essay with no content from Climate Central."
+ },
+ {
+  "id": "h037",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites MIT MIRAI and a Norwegian study, not A's study."
+ },
+ {
+  "id": "h038",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Statista CO2 series is not derived from the textbook page."
+ },
+ {
+  "id": "h039",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "Unrelated topics."
+ },
+ {
+  "id": "h040",
+  "label": "relay",
+  "extent": "whole",
+  "cue": "Cook Political Report: “A new Battleground District Project poll of the most competitive House districts in the country finds Democrats in a strong position",
+  "why": "B quotes Cook's Battleground District poll write-up, including the 49% to 47% topline."
+ },
+ {
+  "id": "h041",
+  "label": "independent",
+  "extent": null,
+  "cue": null,
+  "why": "B cites Reuters and National Security Journal, not Sutton's page."
+ },
+ {
+  "id": "h042",
+  "label": "relay",
+  "extent": "part",
+  "cue": "|Mar 26\n|3.3%\n|Feb 26\n|3%\n|Jan 26\n|3%",
+  "why": "B's CPI series reproduces A's CPI 12-month rates (Mar 2025-Mar 2026) and extends with later releases."
+ }
+]
