@@ -212,8 +212,25 @@ export default function ComparePage() {
               </div>
             </div>
 
+            {/* From the blog — contextual link for developers researching the API */}
+            <div className="mt-12 pt-8 border-t border-zinc-100">
+              <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
+                From the blog
+              </p>
+              <ul className="space-y-2.5">
+                <li>
+                  <Link
+                    href="/blog/evidence-research-for-agents"
+                    className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+                  >
+                    Evidence research for AI agents — how the structured pipeline works as an API and MCP server
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
             {/* Mono metadata footer */}
-            <div className="mt-12 pt-6 border-t border-zinc-100">
+            <div className="mt-8 pt-6 border-t border-zinc-100">
               <span className="font-mono text-[10px] tracking-widest uppercase text-zinc-400">
                 TRU8 — COMPARE — V1.0
               </span>

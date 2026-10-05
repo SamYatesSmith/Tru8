@@ -225,6 +225,30 @@ export default function FirstPublicReleasePage() {
             </Link>
           </div>
 
+          {/* Related */}
+          <div className="mt-8 pt-8 border-t border-zinc-100">
+            <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
+              Related
+            </p>
+            <ul className="space-y-2.5">
+              <li>
+                <Link href="/blog/evidence-research-for-agents" className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors">
+                  Evidence research for AI agents — how the pipeline works programmatically
+                </Link>
+              </li>
+              <li>
+                <Link href="/pricing" className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors">
+                  Console and API pricing
+                </Link>
+              </li>
+              <li>
+                <Link href="/compare" className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors">
+                  How Tru8 compares with alternative tools
+                </Link>
+              </li>
+            </ul>
+          </div>
+
           {/* Back to Blog */}
           <div className="mt-10 pt-8 border-t border-zinc-200">
             <Link
