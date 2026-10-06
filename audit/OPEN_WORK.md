@@ -12,6 +12,20 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-10-06 (end) — ARCHITECTURE REVIEW (START HERE)
+- **Record:** `audit/2026-10-06_architecture_review.md`.
+- **Findings:**
+  - 10 corrective layers and 13 gates between mapping and state.
+  - 14 separate source-independence mechanisms with no shared identity model; independence is the only fault class not falling.
+  - 7 default-off features and about 1,500 lines of dead code.
+  - Five correctness defects in coverage recovery and its neighbours (D1–D5).
+- **Plan, each phase approved first:**
+  - **0:** clean up and delete.
+  - **1:** one Independence component (counterfactual: 1 → 4 A−).
+  - **2:** fix D1–D5 and the 5× duplicated receipt/state sequence.
+  - **3:** reduce gate/review overlap.
+- **Measurement changes:** class counts across all 19 records, not single-record re-runs.
+
 ## ▶ 2026-10-06 (late) — RE-GRADE #7/#8/#13 AFTER S6 + DATE + SHARED-TOTAL (START HERE)
 - **Runs:** local pipeline on `2d6e949`, gap note on (`audit/cited_source/rerun_a_minus.py`, about 15p). Graded blind against the adapted brief (`audit/a_minus/2026-10-06_s6_rerun/`). Videos were not run, so they are out of scope.
 - **Grades:** #7 **B+** (S5 off-topic rows, S7 the claimant's Substack as support). #8 **B+** (S2 a context card with no reason, S4 press-release copies counted separately). #13 **B** (H1: one GRL study plus 2 write-ups lifts e1 to supported; S4 echoes; S6 truncated titles, a "Reddit" title, jargon in a card).
