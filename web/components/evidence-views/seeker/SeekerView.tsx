@@ -11,7 +11,8 @@ import { SeekerProvenanceNote } from './SeekerProvenanceNote';
 import { ExplorePanel } from './ExplorePanel';
 import { DiagnosticFlag } from '../DiagnosticFlag';
 import { PassageReviewNotice } from '../PassageReviewNotice';
-import { evidenceCoverage, hasMappedEvidence, needsEvidenceReview } from '@/lib/evidence-coverage';
+import { CitedSourceGaps, citedOriginalsPhrase } from './CitedSourceGaps';
+import { citedSourceGaps, evidenceCoverage, hasMappedEvidence, needsEvidenceReview } from '@/lib/evidence-coverage';
 
 interface SeekerViewProps {
   claim: Claim;
@@ -73,7 +74,9 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
     return () => { cancelled = true; };
   }, [readOnly, token]);
 
-  const metrics = useMemo(() => evidenceCoverage(elements), [elements]);
+  // Cited originals not in this record count as gaps (Build B gap note).
+  const citedGaps = useMemo(() => citedSourceGaps(claim.claimMap), [claim.claimMap]);
+  const metrics = useMemo(() => evidenceCoverage(elements, citedGaps), [elements, citedGaps]);
 
   // Determine if explore mode should activate
   const passageReview = claim.claimMap?.metadata?.passageReview;
@@ -81,7 +84,10 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
   // default-off candidate) and 'complete' do not.
   const reviewIncomplete = !!passageReview &&
     ['needs_review', 'partial', 'failed', 'interrupted', 'invalid_response'].includes(passageReview.status);
-  const hasUnknowns = metrics.gaps > 0 || metrics.needsReview > 0 || reviewIncomplete;
+  // Element-level unknowns decide the all-covered state and the explore
+  // panel, exactly as before the cited-source gap note: a cited original not
+  // in the record changes the all-covered wording only, never hides anything.
+  const hasUnknowns = metrics.elementGaps > 0 || metrics.needsReview > 0 || reviewIncomplete;
 
   // Fetch explore data when no unknowns remain
   useEffect(() => {
@@ -130,11 +136,15 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
   );
 
   if (elements.length === 0) {
+    // A note still renders, so the summary's gap link always lands on it.
     return (
-      <div className="py-12 text-center border border-dashed border-zinc-200 bg-zinc-50/30">
-        <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
-          No elements available for this claim
-        </p>
+      <div className="space-y-6">
+        <div className="py-12 text-center border border-dashed border-zinc-200 bg-zinc-50/30">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
+            No elements available for this claim
+          </p>
+        </div>
+        <CitedSourceGaps gaps={citedGaps} />
       </div>
     );
   }
@@ -183,6 +193,9 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
         </div>
       )}
 
+      {/* Cited originals not in this record (Build B gap note) */}
+      <CitedSourceGaps gaps={citedGaps} />
+
       {/* Unresolved */}
       {unresolvedElements.length > 0 && (
         <div className="space-y-3">
@@ -211,7 +224,10 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
       {!hasUnknowns && (
         <div className="space-y-4">
           <DiagnosticFlag label="Evidence mapped">
-            Each element has supporting evidence mapped. Review the source passages and limitations; coverage does not establish completeness or certainty.
+            {metrics.citedMissing > 0
+              ? `Each element has evidence mapped; ${citedOriginalsPhrase(metrics.citedMissing)} not in this record.`
+              : 'Each element has supporting evidence mapped.'}{' '}
+            Review the source passages and limitations; coverage does not establish completeness or certainty.
           </DiagnosticFlag>
         </div>
       )}

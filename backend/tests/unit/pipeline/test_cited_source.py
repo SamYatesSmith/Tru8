@@ -251,6 +251,8 @@ def test_guards():
     accepted, receipts = cs.validate_names(rows, chosen)
     assert [a["name"] for a in accepted] == ["Bloomberg"]
     assert accepted[0]["citing_id"] == "ev-1"
+    # The gap note keys on the receipt's citing_id (verification R2-LOW-1).
+    assert [r.get("citing_id") for r in receipts if r["status"] == "accepted"] == ["ev-1"]
     statuses = [r["status"] for r in receipts]
     assert statuses.count("accepted") == 1
     for s in ("name_not_in_cue", "cue_not_found", "self_outlet", "invalid"):

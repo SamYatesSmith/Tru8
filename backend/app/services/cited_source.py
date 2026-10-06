@@ -151,6 +151,16 @@ def enabled() -> bool:
     return bool(getattr(settings, "ENABLE_CITED_SOURCE_LANE", False))
 
 
+def gap_note_enabled() -> bool:
+    """Build B: the gap note alone (name call, no search). Design §§11.8, 17."""
+    return bool(getattr(settings, "ENABLE_CITED_SOURCE_GAP_NOTE", False))
+
+
+def names_wanted() -> bool:
+    """The name call runs for the lane OR the gap note."""
+    return enabled() or gap_note_enabled()
+
+
 def model() -> str:
     return getattr(settings, "CITED_SOURCE_MODEL", "gemini-3.7-flash")
 
@@ -417,6 +427,108 @@ def already_present(
     return None
 
 
+def _shown(items) -> List[Dict[str, Any]]:
+    return [
+        it
+        for it in items or []
+        if isinstance(it, dict) and it.get("receipt_status") != "excluded"
+    ]
+
+
+def missing_cited_sources(
+    accepted_names: List[Dict[str, Any]],
+    claim_items: List[Dict[str, Any]],
+    record_items: List[Dict[str, Any]],
+) -> List[Dict[str, str]]:
+    """Build B: the accepted names whose body is NOT in the record. The rule
+    is that the note must never call a source absent while the report shows
+    it, so in doubt there is no note (verification 2026-10-06):
+
+    - present = ANY shown (non-excluded) item of the WHOLE record whose host
+      identifies the body (§12.1). No stored-text or claim-content test: a
+      paywalled or snippet-only page of the body is still listed in the
+      report (MEDIUM-1), and URLs are deduplicated across claims, so the
+      body's page may sit under another claim (MEDIUM-2). The lane's
+      `already_present` keeps its stricter content test; this is the note's.
+    - a name is dropped unless its citing item (`citing_id`) is shown in this
+      claim, since the reader must be able to find the quoted cue (LOW-5).
+
+    Deduplicated by name; output is the verbatim, already-guarded strings."""
+    record = _shown(record_items)
+    citing_ids = {
+        it.get("evidence_id") for it in _shown(claim_items) if it.get("evidence_id")
+    }
+    out: List[Dict[str, str]] = []
+    seen = set()
+    for n in accepted_names or []:
+        if not isinstance(n, dict):
+            continue
+        name = n.get("name") if isinstance(n.get("name"), str) else ""
+        cue = n.get("cue") if isinstance(n.get("cue"), str) else ""
+        if not name.strip() or not cue.strip():
+            continue  # fail closed: nothing verbatim to show
+        key = name.strip().lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        if n.get("citing_id") not in citing_ids:
+            continue  # the cue's source is not shown: no note
+        if any(host_identifies(it.get("url") or "", name, cue) for it in record):
+            continue
+        out.append({"name": name, "cue": cue})
+    return out
+
+
+def record_items_of(evidence: Any) -> List[Dict[str, Any]]:
+    """Every item of every claim in the check (cross-claim URL dedup)."""
+    if not isinstance(evidence, dict):
+        return []
+    return [it for items in evidence.values() for it in (items or [])]
+
+
+# Name-step totals after which an empty `missing` is a true "none missing".
+# A failed / invalid call or a skip (`detail`) writes NO `missing` (LOW-1).
+_NOTE_STATUSES = ("ok", "no_attributions")
+
+
+def note_decidable(cited_sources: Any) -> bool:
+    totals = (
+        cited_sources.get("totals") if isinstance(cited_sources, dict) else None
+    ) or {}
+    return totals.get("status") in _NOTE_STATUSES and not totals.get("detail")
+
+
+# Receipt statuses of names that passed every guard (§11.4). The lane rewrites
+# "accepted" to the two others; the gap note counts all three.
+NAMED_STATUSES = ("accepted", "already_present", "over_query_cap")
+
+
+def accepted_names(cited_sources: Any) -> List[Dict[str, Any]]:
+    """The guard-passing names stored in `metadata.cited_sources.names`."""
+    if not isinstance(cited_sources, dict):
+        return []
+    return [
+        r
+        for r in cited_sources.get("names") or []
+        if isinstance(r, dict) and r.get("status") in NAMED_STATUSES
+    ]
+
+
+def recompute_missing(claim_map: Any, claim_items, record_items) -> bool:
+    """Rewrite `missing` against a new pool (re-search: a found original
+    clears its note). No model call: the stored names are reused. Touches only
+    a claim map that already carries a note field. `record_items` must hold
+    every claim's items (cross-claim dedup). Returns True if rewritten."""
+    md = claim_map.get("metadata") if isinstance(claim_map, dict) else None
+    cs = md.get("cited_sources") if isinstance(md, dict) else None
+    if not isinstance(cs, dict) or "missing" not in cs:
+        return False
+    cs["missing"] = missing_cited_sources(
+        accepted_names(cs), claim_items, record_items
+    )
+    return True
+
+
 def build_query(name: str, document: str, claim: str) -> str:
     """`{name} {document?} {claim key terms}`, unquoted: the probe's working
     shape (rev 2 §11.4). Content words in claim order, at most 12, and every
@@ -568,7 +680,10 @@ def validate_names(
                 "citing_id": item.get("evidence_id"),
             }
         )
-        receipts.append({**rec, "status": "accepted"})
+        # citing_id: the gap note shows a cue only while its source is shown.
+        receipts.append(
+            {**rec, "status": "accepted", "citing_id": item.get("evidence_id")}
+        )
     return accepted, receipts
 
 
@@ -933,3 +1048,99 @@ async def follow_for_check(
         logger.info(
             f"[CITED SOURCE] kept {stats['kept']} cited original(s) from {stats['queries']} queries"
         )
+
+
+# --------------------------------------------------------------------------
+# Runner seam: start, step 2, and the gap note at the end (Build B, §17)
+# --------------------------------------------------------------------------
+
+
+def start_names(claims, evidence, *, frozen: bool, quick: bool):
+    """The names task, started beside post-filter recovery, or None. Runs for
+    the lane or the gap note; never on the quick tier or a frozen replay."""
+    if not names_wanted() or not evidence or frozen or quick:
+        return None
+    return asyncio.ensure_future(name_cited_sources_default(claims, evidence))
+
+
+def record_names(claim_maps: Dict[str, Any], names: Dict[str, Any]) -> None:
+    """Gap note without the lane: the name receipts only, no queries."""
+    stats = dict(names.get("_stats") or {}) if isinstance(names, dict) else {}
+    stats["follow"] = "off"
+    receipts = {
+        pos: {
+            "names": list(((names or {}).get(pos) or {}).get("receipts") or []),
+            "queries": [],
+        }
+        for pos in claim_maps
+    }
+    write_receipts(claim_maps, receipts, stats)
+
+
+async def after_post_filter(
+    claims,
+    evidence,
+    claim_maps,
+    names_task,
+    source_url: Optional[str] = None,
+    *,
+    frozen: bool,
+    quick: bool,
+) -> None:
+    """Step 2. Lane on: follow the names (unchanged). Gap note alone: nothing
+    here, the names are awaited at the end (`finish_gap_note`) so the call
+    never adds to the check's wall clock. Skipped tiers and replays leave a
+    receipt. Any fault leaves no lane items, never a failed check."""
+    if names_task is not None and enabled():
+        try:
+            await follow_for_check(claims, evidence, claim_maps, names_task, source_url)
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            logger.warning(f"[CITED SOURCE] lane failed (non-critical): {e}")
+            skip(claim_maps, "failed")
+        finally:
+            if not names_task.done():
+                names_task.cancel()
+    elif names_task is None and names_wanted() and evidence:
+        skip(claim_maps, "frozen_replay" if frozen else "quick_tier")
+
+
+async def finish_gap_note(claims, evidence, names_task=None) -> None:
+    """At the END of the run, after coverage recovery and the B3 receipts:
+    write `metadata.cited_sources.missing` per claim (§12.2). Gap note alone:
+    the names task is awaited here (bounded) and its receipts recorded first.
+    Fails closed: any fault means no note."""
+    if not gap_note_enabled():
+        return
+    claim_maps = {
+        str(c.get("position", 0)): c["claim_map"]
+        for c in claims
+        if isinstance(c.get("claim_map"), dict)
+    }
+    if names_task is not None and not enabled():
+        try:
+            names = await asyncio.wait_for(names_task, timeout=name_timeout_s() + 5)
+            record_names(claim_maps, names)
+        except asyncio.CancelledError:
+            if not names_task.done():
+                names_task.cancel()
+            raise
+        except Exception as e:
+            logger.warning(f"[CITED SOURCE] names failed (non-critical): {e}")
+            skip(claim_maps, "failed")
+            return
+    record = record_items_of(evidence)
+    noted = 0
+    for c in claims:
+        pos = str(c.get("position", 0))
+        cm = claim_maps.get(pos)
+        cs = (cm.get("metadata") or {}).get("cited_sources") if cm else None
+        if not isinstance(cs, dict) or not note_decidable(cs):
+            continue  # failed, invalid or skipped: no `missing` at all
+        cs["missing"] = missing_cited_sources(
+            accepted_names(cs), (evidence or {}).get(pos) or [], record
+        )
+        noted += len(cs["missing"])
+    if noted:
+        logger.info(f"[CITED SOURCE] gap note: {noted} cited original(s) not in record")

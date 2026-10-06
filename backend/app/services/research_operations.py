@@ -286,6 +286,15 @@ async def execute_operation(operation_id):
         from app.pipeline.re_search import research_claim
 
         claim = next(c for c in op.baseline["claims"] if c["id"] == op.claim_id)
+        # The cited-source gap note decides presence across every claim of
+        # the check (URLs are deduplicated across claims). A shallow copy:
+        # the baseline itself is never changed.
+        claim = {
+            **claim,
+            "record_evidence": [
+                e for c in op.baseline["claims"] for e in c.get("evidence") or []
+            ],
+        }
 
         async def work():
             mapped, candidates = await research_claim(

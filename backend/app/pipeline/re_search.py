@@ -154,4 +154,15 @@ async def research_claim(claim: dict, element_ids: list[str], progress):
     updated.setdefault("metadata", {})["source_concentration"] = source_concentration(
         existing + candidates, updated
     )
+    # Cited-source gap note (Build B, design §17): re-decide it on the grown
+    # pool, so a found original clears its note. No new name call: the names
+    # stored on the claim map are reused. Presence looks across the WHOLE
+    # record (URLs are deduplicated across claims): the caller supplies every
+    # claim's stored evidence as `record_evidence`; without it, this claim's.
+    from app.services.cited_source import recompute_missing
+
+    record = claim.get("record_evidence")
+    if not isinstance(record, list):
+        record = claim["evidence"]
+    recompute_missing(updated, existing + candidates, list(record) + candidates)
     return updated, candidates

@@ -45,7 +45,7 @@ import { capture } from '@/lib/analytics';
 import { ElementList, TopUpCapability } from './ElementList';
 import { TopUpButton } from './TopUpButton';
 import { thinElementCount } from '@/lib/support-structure';
-import { evidenceCoverage } from '@/lib/evidence-coverage';
+import { citedSourceGaps, evidenceCoverage } from '@/lib/evidence-coverage';
 import { pickNotable } from '@/lib/notables';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -119,7 +119,8 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   // element with a supporting ref. The digest used to count an unresolved
   // element as a "gap" while the lens it links to said "Gaps 0" (A− S6,
   // 2026-09-24) — one page, two answers.
-  const coverage = evidenceCoverage(elements);
+  // A cited original not in this record counts as a gap there too (Build B).
+  const coverage = evidenceCoverage(elements, citedSourceGaps(claimMap));
   // Thin elements the signed-in user can top up (dashboard-only capability).
   const thinCount = topUp ? thinElementCount(elements) : 0;
 
@@ -152,7 +153,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   if (showCoverage) {
     statParts.push(`${directCount} ${directCount === 1 ? 'bears' : 'bear'} directly on the claim`);
   }
-  if (elements.length > 0 && coverage.gaps > 0) {
+  if (elements.length > 0 && coverage.elementGaps > 0) {
     statParts.push(`${coverage.withEvidence} of ${elements.length} elements have evidence`);
   }
   const statLine = statParts.length > 0 ? `${statParts.join(' · ')}.` : null;

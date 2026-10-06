@@ -2002,20 +2002,16 @@ async def run_pipeline_phase2(
     _capture_source_text()
 
     # Cited-source lane, step 1 (names), started beside post-filter recovery:
-    # it reads only the text captured above (design rev 2 M2).
+    # it reads only the text captured above (design rev 2 M2). It runs for the
+    # lane or for the gap note alone (Build B, design §17).
     from app.services import cited_source as _cs
 
-    _cs_on = (
-        _cs.enabled()
-        and bool(evidence)
-        and not _is_frozen_evidence_replay
-        and config.mode != "quick"
-    )
     _cs_started = datetime.now(timezone.utc)
-    _cs_names_task = (
-        asyncio.ensure_future(_cs.name_cited_sources_default(selected_claims, evidence))
-        if _cs_on
-        else None
+    _cs_names_task = _cs.start_names(
+        selected_claims,
+        evidence,
+        frozen=_is_frozen_evidence_replay,
+        quick=config.mode == "quick",
     )
 
     # =========================================================================
@@ -2167,27 +2163,20 @@ async def run_pipeline_phase2(
         for c in selected_claims
         if isinstance(c.get("claim_map"), dict)
     }
-    if _cs_names_task is not None:
-        try:
-            await _cs.follow_for_check(
-                selected_claims, evidence, _cs_claim_maps, _cs_names_task, source_url
-            )
-        except asyncio.CancelledError:
-            raise
-        except Exception as e:
-            logger.warning(f"[CITED SOURCE] lane failed (non-critical): {e}")
-            _cs.skip(_cs_claim_maps, "failed")
-        finally:
-            if not _cs_names_task.done():
-                _cs_names_task.cancel()
+    # The gap note alone does nothing here: its names are awaited at the end.
+    await _cs.after_post_filter(
+        selected_claims,
+        evidence,
+        _cs_claim_maps,
+        _cs_names_task,
+        source_url,
+        frozen=_is_frozen_evidence_replay,
+        quick=config.mode == "quick",
+    )
+    if _cs_names_task is not None and _cs.enabled():
         stage_timings["cited_source"] = (
             datetime.now(timezone.utc) - _cs_started
         ).total_seconds()
-    elif _cs.enabled() and evidence:
-        _cs.skip(
-            _cs_claim_maps,
-            "frozen_replay" if _is_frozen_evidence_replay else "quick_tier",
-        )
 
     # =========================================================================
     # Stage 4.5 + 4.6: Classification + Distillation (run concurrently)
@@ -2970,6 +2959,16 @@ async def run_pipeline_phase2(
         f"unmapped={receipt_summary['unmapped']} "
         f"excluded={receipt_summary['excluded']}"
     )
+
+    # Cited-source gap note (Build B, design §§12.2, 17): decided on the final
+    # record, after coverage recovery and the receipts above. Never fails a
+    # check: any fault means no note.
+    try:
+        await _cs.finish_gap_note(selected_claims, evidence, _cs_names_task)
+    except asyncio.CancelledError:
+        raise
+    except Exception as e:
+        logger.warning(f"[CITED SOURCE] gap note failed (non-critical): {e}")
 
     # Classifier roles describe documents; concentration describes the pool.
     # Do not overwrite roles after mapping merely because a host is common.

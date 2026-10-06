@@ -329,3 +329,65 @@ Provenance capture and both page-opening copies move above **post-filter recover
   - **16 kept items were the right body but the wrong page:** a dashboard, a report index or a login page (IISS, IEA, CBS, BP, OECD, IPCC, The Information).
 - **Reading:** the 5/5 probe was on hand-picked H3 failures, and it does not generalise. The lane stays OFF. Build B (the gap note: "this source cites X, which is not in the pool") needs only the names, which run at 84% precision, and no search.
 - An earlier attempt the same day was stopped at 0 names because Redis was down (extraction fell back to word overlap). It was rerun.
+
+## 17. Build B as built (2026-10-06), flag OFF
+**Flag:** `ENABLE_CITED_SOURCE_GAP_NOTE` (default False), next to `ENABLE_CITED_SOURCE_LANE`. `FLAGS.md` regenerated.
+
+**Rule for the note (founder and verifier, 2026-10-06):** the note must never say a source is absent while the report shows it. When in doubt, no note. Verification: `audit/2026-10-06_cited_source_gap_note_verification.md` (PASS WITH FIXES). Every fix below is taken.
+
+**Code:**
+- `app/services/cited_source.py`:
+  - `missing_cited_sources(accepted_names, claim_items, record_items)`:
+    - **Presence (replaces §12.2 for the note only):** a body is present if ANY shown (not excluded) item of the WHOLE record, across every claim, has a host that passes `host_identifies`. There is no stored-text or claim-content test.
+    - **Citing item:** a name is dropped unless its citing item (`citing_id`) is shown in this claim.
+    - **Output:** deduplicated case-insensitively; only the verbatim `{name, cue}`.
+    - **The lane is unchanged:** its `already_present` keeps the §12.2 content test.
+  - `accepted_names` reads the stored receipts. It takes `accepted`, `already_present` and `over_query_cap`, the three statuses a guard-passing name can hold. An accepted receipt now carries `citing_id`.
+  - `note_decidable` decides whether `missing` is written at all. It is written only when the name step's totals say `ok` or `no_attributions` and there is no skip `detail`.
+  - `recompute_missing` is used by re-search.
+  - The runner calls four functions here: `start_names`, `after_post_filter`, `record_names` and `finish_gap_note`.
+- `runner.py`:
+  - The name task starts where it did, for the lane OR the note.
+  - Step 2 goes through `after_post_filter`. With the lane on, behaviour is unchanged. Quick tier and frozen replay skip with receipts, now for either flag.
+  - `finish_gap_note` runs after coverage recovery and the B3 receipts.
+- `re_search.py` and `research_operations.py`:
+  - `execute_operation` hands `research_claim` every claim's stored evidence as `claim["record_evidence"]`. It uses a shallow copy, so the baseline is unchanged.
+  - `research_claim` then recomputes `missing` from the stored names, with no name call, on the whole record plus the new candidates.
+  - It only rewrites a note the run already wrote.
+- `tier_limitations.py`: `no_cited_source_gap_note` is declared for quick only while the flag is on.
+- Payloads: no change was needed. Both the owner and `/r/` builders pass `claim_map.metadata` whole through `_claim_map_to_camel_case`, so the note reaches them as `claimMap.metadata.citedSources.missing`. The receipts were already exposed by Build A. The only new key is `citing_id`, an evidence id that the report already shows.
+- Frontend:
+  - `shared/types` gains `CitedSourceGap` and `metadata.citedSources`.
+  - `web/lib/evidence-coverage.ts`:
+    - `citedSourceGaps(claimMap)` keeps only well-formed entries.
+    - `evidenceCoverage(elements, cited)` adds them to `gaps` and returns `elementGaps` and `citedMissing`. Coverage % stays an element measure.
+  - The new `seeker/CitedSourceGaps.tsx` is used in `SeekerView` on both the dashboard and `/r/`. It also renders for a claim with no elements.
+  - `ClaimSummaryPanel` counts the note in its Gaps link. Its "N of M elements have evidence" clause uses `elementGaps`.
+  - `UnknownsSummaryStrip` extends its legend only when a note exists.
+
+**Deviations and interpretations:**
+1. **"Shown" means not excluded.** `shown` and `unmapped` both count, because the Evidence lens lists unmapped sources. In re-search, new candidates carry `classified` and count too.
+2. **Note alone: the name task is awaited at the END** (bounded at the name timeout + 5 s). It runs beside classify, distil and mapping, so it adds no wall clock to the check. With the lane on, it is awaited at step 2 as before.
+3. **The note is gated on its own flag only.** Lane on with the note off writes no `missing`.
+4. **The all-covered state and "Adjacent investigations"** both depend on element unknowns only, exactly as before the build. A note changes the all-covered wording ("Each element has evidence mapped; one cited original is not in this record", or "two/three cited originals are") and hides nothing (LOW-3).
+5. **No note unless the name step succeeded (LOW-1).** These write no `missing` key, which is distinct from `missing: []` ("none missing"):
+   - a failed, timed-out or invalid name call (the production path: `name_cited_sources` catches the fault and reports `failed`/`invalid_response`);
+   - a raising name task;
+   - a quick-tier or frozen-replay skip.
+
+   Re-search never creates the key.
+6. **The content test was dropped for the note (MEDIUM-1), not kept.** The content test only ever applied to items already on the body's host, so it filtered nothing else. Dropping it is stricter for honesty: a paywalled, snippet-only or recovery-added page on the body's host now clears the note, whereas before it left a false note.
+
+**Known LOW (declared, not fixed):** if the check fails mid-run, the gap-note-only name task is orphaned. It is bounded by its own 25 s timeout. That path also records no `stage_timings["cited_source"]` and no tokens in `by_stage`.
+
+**Checks (no paid call):**
+- **New tests:**
+  - 35 gap-note unit tests (`tests/unit/pipeline/test_cited_source_gap_note.py`). With the 87 lane tests, 122 pass.
+  - 2 integration tests (`tests/integration/test_cited_source_gap_note_payload.py`, real PostgreSQL): owner and public payloads, and strengthen handing research every claim's evidence. Alongside the report-identity, research-operations and passage-mapping integration tests, 18 pass.
+- **Mutants:** R1, R2 and four new mutants (per-claim presence, citing filter off, note always decidable, re-search ignoring the record) were all killed. The tree was restored, with the same diff sha256.
+- **Unit suite:** 4,594 passed, 44 skipped.
+- **Web:** `tsc --noEmit` clean; vitest 39 files and 252 tests pass. `cited-source-gaps.test.tsx` covers both hosts, LOW-3 and LOW-4.
+- **Flags-off bench:**
+  - Two `--all` runs gave 144 ok / 12 warn / 10 fail / 5 unexercised, each with cassette drift on 82CF and on 93DD.
+  - 93DD drifting in `--all` only is the known flake (`.claude/CLAUDE.md`). Replayed alone, it gives 14 ok / 1 warn / 2 fail, exactly its baseline line.
+  - Every other claim's line is identical to the baseline run, so the total equals the baseline: 158 / 13 / 11 / 5 + 82CF.

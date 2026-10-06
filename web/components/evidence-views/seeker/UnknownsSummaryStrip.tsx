@@ -2,12 +2,15 @@ interface UnknownsSummaryStripProps {
   gaps: number;
   needsReview: number;
   coverage: number;
+  /** Cited originals not in this record, already counted in `gaps`. */
+  citedMissing?: number;
 }
 
 export function UnknownsSummaryStrip({
   gaps,
   needsReview,
   coverage,
+  citedMissing = 0,
 }: UnknownsSummaryStripProps) {
   return (
     <div className="border border-zinc-200 bg-[var(--surface-raised)] p-5">
@@ -26,7 +29,8 @@ export function UnknownsSummaryStrip({
         </div>
       </div>
       <p className="text-center font-mono text-[10px] text-zinc-400 mt-3 leading-relaxed">
-        <span className="font-bold">Gaps</span> have no mapped evidence.{' '}
+        <span className="font-bold">Gaps</span> have no mapped evidence
+        {citedMissing > 0 ? ', or are a cited original not in this record' : ''}.{' '}
         <span className="font-bold">Needs review</span> includes contextual, disputed and unresolved elements with evidence.{' '}
         The percentage measures evidence presence, not certainty or search completeness.
       </p>

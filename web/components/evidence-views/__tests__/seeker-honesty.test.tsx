@@ -19,7 +19,7 @@ function element(state: string, relationship?: string): ClaimElement {
 describe('evidence presence is not resolution', () => {
   it('keeps the Sweden causal uncertainty and disputed ranking visible at 100% coverage', () => {
     const elements = [element('supported', 'supports'), element('contextual', 'context'), element('disputed', 'challenges')];
-    expect(evidenceCoverage(elements)).toEqual({ gaps: 0, needsReview: 2, coverage: 100, withEvidence: 3 });
+    expect(evidenceCoverage(elements)).toEqual({ gaps: 0, elementGaps: 0, citedMissing: 0, needsReview: 2, coverage: 100, withEvidence: 3 });
     const claim = { claimMap: { elements }, evidence: [] } as unknown as Claim;
     const { container } = render(<SeekerView claim={claim} readOnly />);
     expect(container.textContent).toContain('contextual question');
@@ -39,7 +39,7 @@ describe('evidence presence is not resolution', () => {
 
   it('does not count empty evidence twice or treat a missing state as resolved', () => {
     expect(evidenceCoverage([element('unresolved'), element('', 'supports')])).toEqual({
-      gaps: 1, needsReview: 1, coverage: 50, withEvidence: 1,
+      gaps: 1, elementGaps: 1, citedMissing: 0, needsReview: 1, coverage: 50, withEvidence: 1,
     });
     expect(evidenceCoverage([]).coverage).toBe(0);
   });

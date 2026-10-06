@@ -364,7 +364,19 @@ export interface ClaimMap {
     // `isOrientationSuppressed`. Absent on factual claims and pre-decoupling
     // checks. Inner keys stay snake_case.
     grounds?: { applied: boolean; converged: boolean; element_count: number };
+    // Cited-source receipts (2026-10-05) and the gap note (Build B,
+    // 2026-10-06, audit/2026-10-05_cited_source_lane_design.md §17). Only
+    // `missing` is typed: the originals the pool's sources name that are not
+    // in this record. Absent unless the gap note ran. Inner keys snake_case.
+    citedSources?: { missing?: CitedSourceGap[]; [key: string]: unknown };
   };
+}
+
+// One cited original that is not in this record: the name and the attribution
+// cue are verbatim page text (guarded at extraction), never model prose.
+export interface CitedSourceGap {
+  name: string;
+  cue: string;
 }
 
 // --- COMPARE tab (2026-08-26) ---

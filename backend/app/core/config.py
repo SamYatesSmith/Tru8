@@ -801,6 +801,16 @@ class Settings(BaseSettings):
     CITED_SOURCE_MODEL: str = Field("gemini-3.7-flash", env="CITED_SOURCE_MODEL")
     CITED_SOURCE_NAME_TIMEOUT_S: int = Field(25, env="CITED_SOURCE_NAME_TIMEOUT_S")
     CITED_SOURCE_STAGE_DEADLINE_S: int = Field(30, env="CITED_SOURCE_STAGE_DEADLINE_S")
+    # Build B, the gap note (2026-10-06, design §§11.8, 12.2, 12.6, 17). Runs the
+    # name call alone (no search, no fetch) even while the lane is off, and at
+    # the end of the run writes `metadata.cited_sources.missing`: each accepted
+    # name with no shown item whose host is the body's own and whose stored
+    # text carries the claim. Surfaced in the Gaps lens as "Cited but not in
+    # this record". Names run at 84% precision (§15); the search lane failed
+    # at 9.5% (§16). Fails closed: no names, no note. ROLLBACK: False.
+    ENABLE_CITED_SOURCE_GAP_NOTE: bool = Field(
+        False, env="ENABLE_CITED_SOURCE_GAP_NOTE"
+    )
 
     # Unreadable-text floor (A− M2, 2026-09-24). A directional ref whose source
     # text is a JavaScript/login wall or an empty shell becomes `context` with a

@@ -99,7 +99,11 @@ def limitations_for_tier(tier: Optional[str]) -> List[str]:
     # The cited-source lane (2026-10-05) is skipped on quick for the same
     # reason and declared on the same terms.
     from app.services.cited_source import enabled as cited_source_on
+    from app.services.cited_source import gap_note_enabled
 
     if cited_source_on():
         out.append("no_cited_source_lane")
+    # Its gap note (Build B, 2026-10-06) is skipped on quick on the same terms.
+    if gap_note_enabled():
+        out.append("no_cited_source_gap_note")
     return sorted(out)

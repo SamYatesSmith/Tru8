@@ -13,7 +13,11 @@
 
 ---
 ## ▶ 2026-10-05 (late) — H3 CITED-SOURCE LANE: BUILT, FLAG OFF, EVAL NEXT (START HERE)
-- **Status 2026-10-06:** Build A committed `1c68cf2` (`ENABLE_CITED_SOURCE_LANE=False`; flags-off bench = baseline; 4,542 unit pass; 22/22 mutants). Design rev 2.1 reviewed three times; verification PASS WITH FIXES, all taken (design §13). **Next: eval step 1 (names, held-out, paid — ask).** 308 held-out pools send a name call; estimate £0.50–1.50 for all, so run in slices until ≥ 40 accepted names.
+- **Status 2026-10-06 (end): search lane FAILED eval, stays OFF; gap note (Build B) being built.**
+  - **Names step:** run 1 on 100 held-out pools scored 82.6%. Two guards were added (`7023dfd`: vague names, the citing page's own publisher). Run 2 on 208 unseen pools scored **84.0% (Wilson 0.79–0.88) against an 85% bar**: a narrow fail.
+  - **Retrieval step:** **9.5% (18/189 true origins) against a 60% bar.** On 120 names, every result was refused by the host filter; 16 more reached the right site but the wrong page.
+  - **Next:** Build B, the gap note "cited but not in this record". It needs names only and no search, behind `ENABLE_CITED_SOURCE_GAP_NOTE` (off). Independent verification follows.
+  - Records: design §14–17. Spend today ≈ £1.10.
 - **Design:** `audit/2026-10-05_cited_source_lane_design.md` (rev 2.1). Review: `…_design_review.md`.
 - **Evidence:** the pooled copies NAME the missing original on 4 of the 6 H3 failures (#1 Telegraph, #6 Bloomberg, #15 NHS England, #17 EFFIS). A search built from that name returned the original at rank 1–2 on 5/5. #4 needed a German query. Probe ≈ 1p (`audit/cited_source/`).
 - **Plan:** one model call names the cited originals, guarded by verbatim cue and name checks. That is followed by ≤ 3 queries per claim through the normal fetch path, plus a gap note when the original is still not found (that alone turns H3 from hard to soft). Mechanical-only extraction was tested and is too noisy.
