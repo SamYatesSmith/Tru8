@@ -1,5 +1,17 @@
 # Replay Bench Corpus
 
+> **2026-10-06 — full re-record (`--record` + `--record-missing`, ~£1) after two prompt changes: the mapping and completion prompts now open with today's date (A− #7), and both decomposition prompts carry KEEP A SHARED TOTAL WHOLE (A− #8). Pass state is now `152 ok / 18 warn / 15 fail / 2 unexercised` plus the known 82CF drift.**
+> - Improved: 0003, 0004 and 0005 each lost a fail (0005 is now 19/0/2).
+> - Unchanged: 93DD, A3E8, B4A3 and 0001.
+> - Worse: 018F (14/4/7) and 5647 (18/5/2).
+> - **A control arm** re-recorded 018F the same day with the prompt change reverted. It also failed: 17/1/4, with politifact and prio.org missing and url Jaccard 0.15. So the pool drift is today's search results, not the prompts.
+> - **018F's claim map was read directly (replay):** "Donald Trump stopped 6 wars". The count element is `disputed` (3 challenges, 0 supports), and the role element is `contextual`. The trap holds.
+>   - The recital gate now scopes 5 "Trump claimed…" refs (pinned 0±0). That is correct behaviour on the new two-element decomposition.
+>   - Interested-party "never fired" is the attributed comparator false alarm: the whitehouse.gov page is mapped `context`, so there is no directional ref to re-label.
+> - 5647's extra fail is a thin-pool v3 floor (factual_weight_share on claim 1).
+> - Goldens are NOT re-pinned. All new fails fall in the classes already attributed below.
+
+
 > ## ⚠️ A clean `--all` run reports **1 fail**, and that is EXPECTED (2026-07-30)
 >
 > **`TRU-82CF-2F81` is KNOWN-FLAKY and accepted as such (founder call).** The gate is

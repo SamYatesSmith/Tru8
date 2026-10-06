@@ -15,6 +15,7 @@ from app.pipeline.claim_map_analyzer import (
     GROUNDS_MAPPING_ADDENDUM,
     MAPPING_PROMPT,
     ClaimMapAnalyzer,
+    _date_context,
     _derive_element_state_with_authority,
     _grounds_applied,
     derive_orientation,
@@ -166,7 +167,8 @@ async def test_non_grounds_mapping_prompt_is_byte_identical():
     assert label == "mapping"
     assert GROUNDS_MAPPING_ADDENDUM not in prompt
     # Byte-identity with the pre-slice-3 construction:
-    assert prompt.startswith(f"{MAPPING_PROMPT}\n\nClaim: ")
+    # The date context (2026-10-06) leads every mapping prompt.
+    assert prompt.startswith(f"{_date_context()}{MAPPING_PROMPT}\n\nClaim: ")
 
 
 @pytest.mark.asyncio
@@ -175,7 +177,9 @@ async def test_grounds_mapping_prompt_carries_the_addendum():
     await analyzer.map_evidence_to_elements(_cm(True), list(EVIDENCE))
     _, prompt = analyzer.captured[0]
     assert GROUNDS_MAPPING_ADDENDUM in prompt
-    assert prompt.startswith(f"{MAPPING_PROMPT}{GROUNDS_MAPPING_ADDENDUM}\n\nClaim: ")
+    assert prompt.startswith(
+        f"{_date_context()}{MAPPING_PROMPT}{GROUNDS_MAPPING_ADDENDUM}\n\nClaim: "
+    )
 
 
 # ── batch partition ──────────────────────────────────────────────────────────

@@ -258,6 +258,23 @@ _BATCH_MAPPING_RESPONSE_SCHEMA = {
 
 # ── Prompts ─────────────────────────────────────────────────────────────────
 
+
+def _date_context() -> str:
+    """Today's date for the mapping/completion prompts (A− #7, 2026-10-06):
+    without it the model judged a September 2026 poll "a future date in
+    2026" from its training cutoff. The sentence matches the replay bench's
+    date normalisation (scripts/replay_bench/cassette.py), so cassette keys
+    do not change from one day to the next."""
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc)
+    return (
+        "CURRENT DATE CONTEXT:\n"
+        f"Today's date is {now.strftime('%Y-%m-%d')} (Year: {now.strftime('%Y')}).\n"
+        "A date on or before today is in the past, not the future.\n\n"
+    )
+
+
 DECOMPOSITION_PROMPT = """\
 You are an analytical decomposition engine. Given a claim, you must:
 
@@ -289,6 +306,7 @@ causal link itself as one element, alongside the cause and the effect.
 state that comparison baseline explicitly in its description.
 - Do NOT create an element for a trivially true prerequisite that the claim's truth does not turn on: that a quantity is measurable, that a substance can be taken, that a body or trial exists, that a method is valid. Elements are the CONTESTABLE parts — population, endpoint, comparator, effect size, time window, mechanism (only where the claim asserts one), ranking, causation.
 - MATCH THE CLAIM'S OWN SPECIFICITY. An element must never be stricter or more specific than the claim: do not add figures, thresholds, dates, ranges, absolutes ("all", "every", "no other", "under all circumstances"), qualifiers ("exactly", "consistently", "completely", "quantified"), mechanisms, populations or behaviours the claim does not state. A comparative claim with no figure ("X is cleaner than Y") decomposes into comparative elements with no figure. An intervention ("taking 5g daily") is not a behaviour of a population ("adults consume 5g daily"). Evidence is judged against the element AS WRITTEN, so every word you add that the claim lacks is a test the claim never set.
+- KEEP A SHARED TOTAL WHOLE. When one figure is a total across several places, groups or periods joined by "and" ("23 reefs on the Porcupine Bank and in the Bay of Biscay"), one element states that total across ALL of them. Never assign the whole figure to one of them ("23 reefs at the Porcupine Bank"): that element is false although the claim is true.
 - KEEP THE CLAIM'S DIRECTION. When the claim asserts a cause and an outcome with a direction ("caused it to have LOWER mortality", "drove prices HIGHER"), the causal element must state the outcome WITH that direction, in the claim's own words. "X was the primary driver of Y's mortality outcome" loses the direction and can be read either way; "X was the primary driver of Y's LOWER mortality" cannot.
 - Do NOT include evidence_refs, state, or uncertainty — those come later.
 """
@@ -587,6 +605,7 @@ causal link itself as one element, alongside the cause and the effect.
 state that comparison baseline explicitly in its description.
 - Do NOT create an element for a trivially true prerequisite that the claim's truth does not turn on: that a quantity is measurable, that a substance can be taken, that a body or trial exists, that a method is valid. Elements are the CONTESTABLE parts — population, endpoint, comparator, effect size, time window, mechanism (only where the claim asserts one), ranking, causation.
 - MATCH THE CLAIM'S OWN SPECIFICITY. An element must never be stricter or more specific than the claim: do not add figures, thresholds, dates, ranges, absolutes ("all", "every", "no other", "under all circumstances"), qualifiers ("exactly", "consistently", "completely", "quantified"), mechanisms, populations or behaviours the claim does not state. A comparative claim with no figure ("X is cleaner than Y") decomposes into comparative elements with no figure. An intervention ("taking 5g daily") is not a behaviour of a population ("adults consume 5g daily"). Evidence is judged against the element AS WRITTEN, so every word you add that the claim lacks is a test the claim never set.
+- KEEP A SHARED TOTAL WHOLE. When one figure is a total across several places, groups or periods joined by "and" ("23 reefs on the Porcupine Bank and in the Bay of Biscay"), one element states that total across ALL of them. Never assign the whole figure to one of them ("23 reefs at the Porcupine Bank"): that element is false although the claim is true.
 - KEEP THE CLAIM'S DIRECTION. When the claim asserts a cause and an outcome with a direction ("caused it to have LOWER mortality", "drove prices HIGHER"), the causal element must state the outcome WITH that direction, in the claim's own words. "X was the primary driver of Y's mortality outcome" loses the direction and can be read either way; "X was the primary driver of Y's LOWER mortality" cannot.
 - Do NOT include evidence_refs, state, or uncertainty — those come later.
 """
@@ -1923,6 +1942,7 @@ class ClaimMapAnalyzer:
         )
 
         prompt = (
+            f"{_date_context()}"
             f"{MAPPING_PROMPT}"
             f"{GROUNDS_MAPPING_ADDENDUM if _grounds_applied(claim_map) else ''}\n\n"
             f"Claim: {claim_map['normalised_claim']}\n\n"
@@ -2161,7 +2181,7 @@ class ClaimMapAnalyzer:
                 f"Evidence:\n{evidence_desc}"
             )
 
-        prompt = BATCH_MAPPING_PROMPT + "\n\n" + "\n\n".join(sections)
+        prompt = _date_context() + BATCH_MAPPING_PROMPT + "\n\n" + "\n\n".join(sections)
 
         parsed = await self._call_llm(
             prompt=prompt,
@@ -3814,6 +3834,7 @@ class ClaimMapAnalyzer:
             for ev in leftover
         )
         prompt = (
+            f"{_date_context()}"
             f"{COMPLETION_PROMPT}\n\n"
             f"Claim: {claim_map['normalised_claim']}\n\n"
             f"Elements:\n{elements_desc}\n\n"
@@ -4047,6 +4068,7 @@ class ClaimMapAnalyzer:
         evidence_desc = "\n".join(evidence_lines)
 
         prompt = (
+            f"{_date_context()}"
             f"{MAPPING_PROMPT}"
             f"{GROUNDS_MAPPING_ADDENDUM if _grounds_applied(claim_map) else ''}\n\n"
             f"Claim: {claim_map['normalised_claim']}\n\n"
