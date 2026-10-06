@@ -938,3 +938,205 @@ async def test_a_silent_percentage_still_demotes(monkeypatch):
     a._call_llm = AsyncMock(return_value={"pairs": [row]})
     await review_relationship_scope(a, cm, ev)
     assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "context"
+
+
+# ---------------------------------------------------------------------------
+# Cumulative receipt (2026-10-06, grader check S6): a later run with nothing
+# new to draw used to publish "0 of 0 directional relationships inspected"
+# above rows an earlier run had scoped (blind grades #3/#6/#7/#8, 2026-09-30).
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_an_empty_later_run_keeps_the_earlier_counts_and_rows():
+    cm, ev, row = fixture("supports")  # the fixture row is a mismatch -> scoped
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+    first = copy.deepcopy(cm["metadata"]["scope_review"])
+    assert (first["assessed_pairs"], first["candidate_pairs"]) == (1, 1)
+
+    # Echo re-review (nothing restored to review) and coverage recovery.
+    a._call_llm = AsyncMock(return_value={"pairs": []})
+    await review_relationship_scope(a, cm, ev, only=set())
+    await review_relationship_scope(a, cm, ev)
+    a._call_llm.assert_not_called()
+
+    receipt = cm["metadata"]["scope_review"]
+    assert receipt["assessed_pairs"] == 1
+    assert receipt["candidate_pairs"] == 1
+    assert receipt["uninspected_pairs"] == 0
+    assert receipt["status"] == first["status"] != "not_run"
+    assert [p["status"] for p in receipt["pairs"]] == ["scoped"]
+    # History is kept: each run's own receipt, earliest first.
+    assert receipt["runs"] == 3
+    assert [r["assessed_pairs"] for r in receipt["prior_runs"]] == [1, 0]
+    assert receipt["latest_run"]["candidate_pairs"] == 0
+    assert receipt["prior_runs"][0]["pairs"][0]["status"] == "scoped"
+
+
+@pytest.mark.asyncio
+async def test_later_runs_add_their_pairs_after_the_earlier_ones():
+    cm, ev, row = fixture("supports")
+    cm["elements"][0]["evidence_refs"].append(
+        {"evidence_id": "ev-b", "relationship": "context", "reasoning": "later"}
+    )
+    ev.append(dict(ev[0], evidence_id="ev-b", url="https://example.org/b"))
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+
+    # An echo restore turns ev-b directional; the restored-only run reviews it.
+    cm["elements"][0]["evidence_refs"][1]["relationship"] = "supports"
+    a._call_llm = AsyncMock(return_value={"pairs": [dict(row, pair_id="scope-0")]})
+    await review_relationship_scope(a, cm, ev, only={("e1", "ev-b")})
+
+    receipt = cm["metadata"]["scope_review"]
+    assert [p["evidence_id"] for p in receipt["pairs"]] == ["ev-a", "ev-b"]
+    assert (receipt["assessed_pairs"], receipt["candidate_pairs"]) == (2, 2)
+    assert receipt["latest_run"]["scope"] == "restored_only"
+
+
+@pytest.mark.asyncio
+async def test_a_failed_later_run_is_reported_but_keeps_the_earlier_work():
+    cm, ev, row = fixture("supports")
+    cm["elements"][0]["evidence_refs"].append(
+        {"evidence_id": "ev-b", "relationship": "context", "reasoning": "later"}
+    )
+    ev.append(dict(ev[0], evidence_id="ev-b", url="https://example.org/b"))
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev)
+
+    cm["elements"][0]["evidence_refs"][1]["relationship"] = "supports"
+    a._call_llm = AsyncMock(side_effect=RuntimeError("provider down"))
+    await review_relationship_scope(a, cm, ev)
+
+    receipt = cm["metadata"]["scope_review"]
+    assert receipt["status"] == "failed"
+    assert receipt["assessed_pairs"] == 1
+    assert receipt["uninspected_pairs"] == 1
+    assert receipt["candidate_pairs"] == 2
+    assert [p["status"] for p in receipt["pairs"]] == ["scoped"]
+
+
+@pytest.mark.asyncio
+async def test_a_cancelled_run_publishes_interrupted_over_the_earlier_runs():
+    import asyncio
+
+    cm, ev, row = fixture("supports")
+    cm["elements"][0]["evidence_refs"].append(
+        {"evidence_id": "ev-b", "relationship": "supports", "reasoning": "later"}
+    )
+    ev.append(dict(ev[0], evidence_id="ev-b", url="https://example.org/b"))
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": [row]})
+    await review_relationship_scope(a, cm, ev, only={("e1", "ev-a")})
+
+    a._call_llm = AsyncMock(side_effect=asyncio.CancelledError())
+    with pytest.raises(asyncio.CancelledError):
+        await review_relationship_scope(a, cm, ev)
+    receipt = cm["metadata"]["scope_review"]
+    assert receipt["status"] == "interrupted"
+    assert receipt["assessed_pairs"] == 1
+    assert [p["evidence_id"] for p in receipt["pairs"]] == ["ev-a"]
+
+
+@pytest.mark.asyncio
+async def test_a_stored_version_3_receipt_is_read_as_the_latest_run():
+    """A claim map stored before 2026-10-06 (re-search re-maps it) carries the
+    per-run v3 receipt at the top level; it must count as one earlier run."""
+    cm, ev, row = fixture("supports")
+    cm["metadata"]["scope_review"] = {
+        "version": 3,
+        "candidate_pairs": 1,
+        "selected_pairs": 1,
+        "assessed_pairs": 1,
+        "uninspected_pairs": 0,
+        "status": "complete",
+        "pairs": [{"element_id": "e1", "evidence_id": "ev-a", "status": "compatible"}],
+    }
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": []})
+    await review_relationship_scope(a, cm, ev)
+    a._call_llm.assert_not_called()
+    receipt = cm["metadata"]["scope_review"]
+    assert (receipt["assessed_pairs"], receipt["status"]) == (1, "complete")
+    assert receipt["prior_runs"][0]["version"] == 3
+
+
+def test_no_run_ever_ran_is_still_not_run():
+    from app.services.relationship_scope_review import cumulative_receipt
+
+    empty = {"scope": "all", "candidate_pairs": 0, "assessed_pairs": 0,
+             "uninspected_pairs": 0, "status": "not_run", "pairs": []}
+    receipt = cumulative_receipt([empty, dict(empty)])
+    assert receipt["status"] == "not_run"
+    assert (receipt["assessed_pairs"], receipt["candidate_pairs"]) == (0, 0)
+
+
+def test_a_full_rerun_supersedes_earlier_leftovers_but_an_echo_run_adds():
+    """A full-scope run re-plans every undecided ref, so an earlier failed
+    run's leftovers are not counted twice; a restored-only run after it plans
+    refs that were context during it, so its leftovers add."""
+    from app.services.relationship_scope_review import cumulative_receipt
+
+    failed = {"scope": "all", "candidate_pairs": 2, "assessed_pairs": 0,
+              "uninspected_pairs": 2, "status": "failed", "pairs": []}
+    redone = {"scope": "all", "candidate_pairs": 2, "assessed_pairs": 2,
+              "uninspected_pairs": 0, "status": "complete",
+              "pairs": [{"status": "compatible"}, {"status": "scoped"}]}
+    echo = {"scope": "restored_only", "candidate_pairs": 1, "assessed_pairs": 0,
+            "uninspected_pairs": 1, "status": "invalid_response", "pairs": []}
+    receipt = cumulative_receipt([failed, redone])
+    assert (receipt["candidate_pairs"], receipt["uninspected_pairs"]) == (2, 0)
+    assert receipt["status"] == "complete"
+    receipt = cumulative_receipt([failed, redone, echo])
+    assert (receipt["candidate_pairs"], receipt["uninspected_pairs"]) == (3, 1)
+    assert receipt["status"] == "invalid_response"
+
+
+def test_a_failed_echo_run_still_reads_failed_after_a_later_empty_echo_run():
+    """Verifier LOW-2 (mutant 2b): failures are read from every run since the
+    last full-scope run, not just the newest."""
+    from app.services.relationship_scope_review import cumulative_receipt
+
+    full = {"scope": "all", "candidate_pairs": 1, "assessed_pairs": 1,
+            "uninspected_pairs": 0, "status": "complete",
+            "pairs": [{"status": "compatible"}]}
+    echo_failed = {"scope": "restored_only", "candidate_pairs": 1,
+                   "assessed_pairs": 0, "uninspected_pairs": 1,
+                   "status": "failed", "pairs": []}
+    echo_empty = {"scope": "restored_only", "candidate_pairs": 0,
+                  "assessed_pairs": 0, "uninspected_pairs": 0,
+                  "status": "not_run", "pairs": []}
+    receipt = cumulative_receipt([full, echo_failed, echo_empty])
+    assert receipt["status"] == "failed"
+    assert receipt["uninspected_pairs"] == 1
+
+
+@pytest.mark.asyncio
+async def test_a_stored_version_3_echo_run_is_read_as_restored_only():
+    """Verifier LOW-4: a v3 run whose pairs are all restored echo copies was
+    the echo re-review; its leftovers must not supersede the main run's."""
+    cm, ev, row = fixture("supports")
+    cm["elements"][0]["basis"] = {
+        "echo_scope": {"restored": [{"evidence_id": "ev-a", "was": "supports"}]}
+    }
+    main_v3 = {"version": 3, "candidate_pairs": 3, "selected_pairs": 3,
+               "assessed_pairs": 1, "uninspected_pairs": 2,
+               "status": "needs_review",
+               "pairs": [{"element_id": "e1", "evidence_id": "ev-x", "status": "scoped"}]}
+    cm["metadata"]["scope_review"] = {
+        "version": 3, "candidate_pairs": 1, "selected_pairs": 1,
+        "assessed_pairs": 1, "uninspected_pairs": 0, "status": "complete",
+        "pairs": [{"element_id": "e1", "evidence_id": "ev-a", "status": "compatible"}],
+        "prior_runs": [main_v3],
+    }
+    a = ClaimMapAnalyzer()
+    a._call_llm = AsyncMock(return_value={"pairs": []})
+    await review_relationship_scope(a, cm, ev, only=set())
+    receipt = cm["metadata"]["scope_review"]
+    assert receipt["prior_runs"][1]["scope"] == "restored_only"
+    assert receipt["uninspected_pairs"] == 2
+    assert (receipt["assessed_pairs"], receipt["candidate_pairs"]) == (2, 4)

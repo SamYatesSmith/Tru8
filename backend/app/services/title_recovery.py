@@ -42,9 +42,9 @@ import re
 from typing import Any, Dict, List, Optional
 
 import httpx
-from bs4 import BeautifulSoup
 
 from app.utils.browser_headers import TRU8_USER_AGENT
+from app.utils.page_title import pick_page_title
 
 logger = logging.getLogger(__name__)
 
@@ -100,29 +100,11 @@ def _stub(title: str) -> str:
     return _TRUNCATED_RE.sub("", (title or "").strip()).strip()
 
 
-def _headline_from_html(html: str) -> Optional[str]:
-    """og:title → twitter:title → <title>, rejecting bot-wall interstitials."""
+def _headline_from_html(html: str, url: Optional[str] = None) -> Optional[str]:
+    """og:title → twitter:title → <title> (→ <h1> in place of a breadcrumb),
+    rejecting bot-wall interstitials. Shared with the evidence fetch."""
     try:
-        soup = BeautifulSoup(html, "html.parser")
-        candidates: List[str] = []
-        for prop in ("og:title", "twitter:title"):
-            tag = soup.find("meta", attrs={"property": prop}) or soup.find(
-                "meta", attrs={"name": prop}
-            )
-            content = tag.get("content") if tag else None
-            if content:
-                candidates.append(content)
-        if soup.title and soup.title.string:
-            candidates.append(soup.title.string)
-
-        for raw in candidates:
-            title = re.sub(r"\s+", " ", raw).strip()
-            if len(title) < 5:
-                continue
-            if any(m in title.lower() for m in _JUNK_TITLE_MARKERS):
-                continue
-            return title
-        return None
+        return pick_page_title(html, _JUNK_TITLE_MARKERS, url)
     except Exception as e:  # pragma: no cover - defensive
         logger.debug(f"[TITLE RECOVERY] parse failed: {e}")
         return None
@@ -160,7 +142,7 @@ async def _recover_one(
             if snap.status_code != 200 or not snap.text:
                 return False
 
-            headline = _headline_from_html(snap.text)
+            headline = _headline_from_html(snap.text, url)
             if not headline:
                 return False
 

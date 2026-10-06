@@ -15,6 +15,7 @@ from app.utils.browser_headers import browser_headers
 from app.utils.url_utils import extract_domain
 from app.utils.domain_status_tracker import get_domain_tracker, DomainStatus
 from app.utils.encoding import fix_mojibake
+from app.utils.page_title import pick_page_title
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -546,7 +547,9 @@ class EvidenceExtractor:
                     # Prefer the page's own (complete) title over the search
                     # provider's — which Google/Serper truncate with an ellipsis.
                     # HTML is already in memory; no extra fetch.
-                    page_title = self._extract_title_from_html(response.text)
+                    page_title = self._extract_title_from_html(
+                        response.text, search_result.url
+                    )
 
                     return EvidenceSnippet(
                         text=snippet_text,
@@ -701,7 +704,9 @@ class EvidenceExtractor:
         "wait for verification",
     )
 
-    def _extract_title_from_html(self, html: str) -> Optional[str]:
+    def _extract_title_from_html(
+        self, html: str, url: Optional[str] = None
+    ) -> Optional[str]:
         """Extract the page's own title from already-fetched HTML.
 
         We fetch and parse every evidence page anyway (for content + date), but
@@ -709,31 +714,14 @@ class EvidenceExtractor:
         ellipsis. The page's own title is complete. Prefer the clean social
         title, then the document ``<title>``.
 
-        Priority: ``og:title`` → ``twitter:title`` → ``<title>``. Returns None
+        Priority: ``og:title`` → ``twitter:title`` → ``<title>``; a breadcrumb
+        ("September - University of Galway") is skipped and the first ``<h1>``
+        tried in its place (``app.utils.page_title``, 2026-10-06). Returns None
         (caller keeps the search title) when nothing valid is found or the page
         served a bot-wall interstitial. No new fetch — HTML is already in memory.
         """
         try:
-            soup = BeautifulSoup(html, "html.parser")
-            candidates: list[str] = []
-            for prop in ("og:title", "twitter:title"):
-                tag = soup.find("meta", attrs={"property": prop}) or soup.find(
-                    "meta", attrs={"name": prop}
-                )
-                content = tag.get("content") if tag else None
-                if content:
-                    candidates.append(content)
-            if soup.title and soup.title.string:
-                candidates.append(soup.title.string)
-
-            for raw in candidates:
-                title = re.sub(r"\s+", " ", raw).strip()
-                if len(title) < 5:
-                    continue
-                if any(m in title.lower() for m in self._JUNK_TITLE_MARKERS):
-                    continue
-                return title
-            return None
+            return pick_page_title(html, self._JUNK_TITLE_MARKERS, url)
         except Exception as e:
             logger.debug(f"Title extraction failed: {e}")
             return None

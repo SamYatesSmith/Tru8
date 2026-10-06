@@ -12,6 +12,17 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-10-06 — S6 SURFACE FIXES (A− soft check) BUILT + VERIFIED (START HERE)
+- **Why:** the 30 Sep grades put S6 on #7, #8 and #13, three B+ records whose only other soft fail is a single check. Clearing S6 on them would make them A−.
+- **Built, verified (PASS after fixes, `audit/2026-10-06_s6_surface_fixes_verification.md`):**
+  - **Video entities (#13, #14, #16, #17):** YouTube text is decoded once at ingest. Migration `video_text_unescape` decodes rows stored earlier.
+  - **"Scope review: 0 of 0" (#3, #6):** the receipt is now cumulative across repeated review runs (v4).
+  - **Breadcrumb titles (#8, "September - University of Galway"):** `app/utils/page_title.py` adds an `<h1>` fallback with guards. 0 of 303 corpus titles change.
+- **Dropped:** a mechanical "stale future" filter for #7. It removed honest caveats. **#7's real fix is the mapper prompt carrying today's date.** That re-keys every mapping cassette, so bundle it with the parked shared-total decomposition rule and do one paid re-record.
+- **Checks:** unit 4,619 pass; flags-off bench equal to baseline (93DD replays 14/1/2 alone).
+- **Gap note:** the founder runs `railway variables --set ENABLE_CITED_SOURCE_GAP_NOTE=true` (the auto-mode classifier blocks flag writes).
+- **Not yet:** a re-grade of #8 and #13 on fresh runs.
+
 ## ▶ 2026-10-05 (late) — H3 CITED-SOURCE LANE: BUILT, FLAG OFF, EVAL NEXT (START HERE)
 - **Status 2026-10-06 (end): search lane FAILED eval, stays OFF; gap note (Build B) being built.**
   - **Names step:** run 1 on 100 held-out pools scored 82.6%. Two guards were added (`7023dfd`: vague names, the citing page's own publisher). Run 2 on 208 unseen pools scored **84.0% (Wilson 0.79–0.88) against an 85% bar**: a narrow fail.

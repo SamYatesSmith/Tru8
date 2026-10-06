@@ -2652,24 +2652,7 @@ async def get_check_videos(
 
     return {
         "checkId": check_id,
-        "videos": [
-            {
-                "id": v.id,
-                "claimId": v.claim_id,
-                "videoId": v.video_id,
-                "title": v.title,
-                "description": v.description,
-                "channelName": v.channel_name,
-                "channelId": v.channel_id,
-                "publishDate": (v.publish_date.isoformat() if v.publish_date else None),
-                "videoUrl": v.video_url,
-                "thumbnailUrl": v.thumbnail_url,
-                "duration": v.duration,
-                "tierLabel": v.tier_label,
-                "typeLabel": v.type_label,
-            }
-            for v in videos
-        ],
+        "videos": [_video_to_dict(v) for v in videos],
     }
 
 
@@ -3002,24 +2985,7 @@ async def get_public_check(
         "claims": claims_data,
         "reportIdentity": report_identity,
         # Video recommendations
-        "videos": [
-            {
-                "id": v.id,
-                "claimId": v.claim_id,
-                "videoId": v.video_id,
-                "title": v.title,
-                "description": v.description,
-                "channelName": v.channel_name,
-                "channelId": v.channel_id,
-                "publishDate": (v.publish_date.isoformat() if v.publish_date else None),
-                "videoUrl": v.video_url,
-                "thumbnailUrl": v.thumbnail_url,
-                "duration": v.duration,
-                "tierLabel": v.tier_label,
-                "typeLabel": v.type_label,
-            }
-            for v in videos
-        ],
+        "videos": [_video_to_dict(v) for v in videos],
     }
 
 
@@ -3048,24 +3014,7 @@ async def get_public_check_videos(
     videos = (await session.execute(query)).scalars().all()
     return {
         "checkId": check_id,
-        "videos": [
-            {
-                "id": v.id,
-                "claimId": v.claim_id,
-                "videoId": v.video_id,
-                "title": v.title,
-                "description": v.description,
-                "channelName": v.channel_name,
-                "channelId": v.channel_id,
-                "publishDate": (v.publish_date.isoformat() if v.publish_date else None),
-                "videoUrl": v.video_url,
-                "thumbnailUrl": v.thumbnail_url,
-                "duration": v.duration,
-                "tierLabel": v.tier_label,
-                "typeLabel": v.type_label,
-            }
-            for v in videos
-        ],
+        "videos": [_video_to_dict(v) for v in videos],
     }
 
 

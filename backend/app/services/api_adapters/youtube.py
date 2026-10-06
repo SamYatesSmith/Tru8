@@ -5,6 +5,7 @@ Fetches up to 5 relevant YouTube videos per claim.
 Graceful degradation if API key missing or quota exceeded.
 """
 
+import html
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -79,9 +80,9 @@ async def search_youtube_videos(
                 videos.append(
                     {
                         "video_id": vid_id,
-                        "title": snippet.get("title", ""),
-                        "description": snippet.get("description", ""),
-                        "channel_name": snippet.get("channelTitle", ""),
+                        "title": html.unescape(snippet.get("title", "")),
+                        "description": html.unescape(snippet.get("description", "")),
+                        "channel_name": html.unescape(snippet.get("channelTitle", "")),
                         "channel_id": snippet.get("channelId"),
                         "publish_date": _parse_youtube_date(snippet.get("publishedAt")),
                         "video_url": f"https://www.youtube.com/watch?v={vid_id}",
