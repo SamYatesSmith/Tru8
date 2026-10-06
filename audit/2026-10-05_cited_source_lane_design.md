@@ -391,3 +391,14 @@ Provenance capture and both page-opening copies move above **post-filter recover
   - Two `--all` runs gave 144 ok / 12 warn / 10 fail / 5 unexercised, each with cassette drift on 82CF and on 93DD.
   - 93DD drifting in `--all` only is the known flake (`.claude/CLAUDE.md`). Replayed alone, it gives 14 ok / 1 warn / 2 fail, exactly its baseline line.
   - Every other claim's line is identical to the baseline run, so the total equals the baseline: 158 / 13 / 11 / 5 + 82CF.
+
+## 18. Gap note, flag-on verification (2026-10-06): safe and correct on 4/4
+- **Bench with the note on** (`--record-missing`, 9 claims; 82CF excluded as known drift): every claim's ok/warn/fail line is unchanged. Nine cassettes gained the name call.
+  - The flags-off `--all` on the patched cassettes gives 144/12/10/5 with 82CF and 93DD drift. That is the same as the baseline (158/13/11/5 + 82CF), because 93DD replays 14/1/2 alone.
+- **Four local live checks** on the A− H3 inputs (`audit/cited_source/live_checks.py`; 2–8p each; the name call took 2.5–6.7 s, beside mapping):
+  - **#1 Reform £72m:** note on the *Daily Telegraph* (cue "Ben Delo wrote in the Daily Telegraph…"). No Telegraph page is in the record. **Correct.**
+  - **#6 Trump trades:** Bloomberg was named, and two bloomberg.com pages are in the record, so no note. **Correct.**
+  - **#15 NHS App triage:** notes on NHS England and the NHS Transformation Directorate. No england.nhs.uk page is in the record; the Surrey and Sussex ICB page is another body. **Correct.**
+  - **#17 Wildfires:** notes on EFFIS and CAMS. The record holds only climate.copernicus.eu (C3S), a different service. **Correct.**
+- **Effect on A− H3:** #1, #15 and #17 now carry a gap note that names the missing original, which is S9's soft form ("absent and a gap card names it"). #6 has its original in the pool.
+- Not checked: the rendered page with a real note. Tests cover both hosts.
