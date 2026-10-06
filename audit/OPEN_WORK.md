@@ -12,6 +12,13 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-10-06 (late) — RE-GRADE #7/#8/#13 AFTER S6 + DATE + SHARED-TOTAL (START HERE)
+- **Runs:** local pipeline on `2d6e949`, gap note on (`audit/cited_source/rerun_a_minus.py`, about 15p). Graded blind against the adapted brief (`audit/a_minus/2026-10-06_s6_rerun/`). Videos were not run, so they are out of scope.
+- **Grades:** #7 **B+** (S5 off-topic rows, S7 the claimant's Substack as support). #8 **B+** (S2 a context card with no reason, S4 press-release copies counted separately). #13 **B** (H1: one GRL study plus 2 write-ups lifts e1 to supported; S4 echoes; S6 truncated titles, a "Reddit" title, jargon in a card).
+- **What the fixes did:** #7 has no false "future" note; #8 keeps the 23-reef total whole, shows the real page title, and S6 passes. **A− count unchanged at 1/19.** Each record surfaced different soft fails on a fresh pool.
+- **Biggest common blocker:** copies and write-ups counted as independent (S4 on #8 and #13; H1 on #13). The echo gate is off pending a counting rule (2026-10-05 option 1).
+- **⚠️ GAP NOTE BUG, do NOT switch the flag on:** #13 lists "Geophysical Research Letters" as missing although the study is in the record on a publisher host (Wiley). Host identity misses journals on publisher platforms. Fix before activation.
+
 ## ▶ 2026-10-06 — S6 SURFACE FIXES (A− soft check) BUILT + VERIFIED (START HERE)
 - **Why:** the 30 Sep grades put S6 on #7, #8 and #13, three B+ records whose only other soft fail is a single check. Clearing S6 on them would make them A−.
 - **Built, verified (PASS after fixes, `audit/2026-10-06_s6_surface_fixes_verification.md`):**
