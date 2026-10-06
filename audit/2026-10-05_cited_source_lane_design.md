@@ -320,3 +320,12 @@ Provenance capture and both page-opening copies move above **post-filter recover
   - **Data supplier vs finding (about 4):** for example UK Biobank and ATUS.
   - **Relay outlets (10):** for example AP and Interfax.
 - Labels: `eval_runs/blind2_{0,1,2}/labels.json`; key `eval_runs/blind2_key.json`.
+
+## 16. Eval step 2, retrieval (2026-10-06): FAILS badly
+- **Run:** the 225 run-2 names, each followed alone through the production `follow_names` (exact query, host identity filter, production fetch, with Redis up). About 225 searches. Output: `audit/cited_source/eval_runs/retrieval_run2.json`.
+- **Result:** of the 189 blind-labelled true origins, an item was **kept for 34 (18%)**, and **the kept item carried the claim's figure or finding for 18 (9.5%), against a bar of 60%.**
+- **Where it was lost:**
+  - On **120 names, every search result was dropped by the host identity filter.** Either the search did not return the body's own site, or the filter refused it. The per-result URLs were not logged, so the two cannot yet be told apart.
+  - **16 kept items were the right body but the wrong page:** a dashboard, a report index or a login page (IISS, IEA, CBS, BP, OECD, IPCC, The Information).
+- **Reading:** the 5/5 probe was on hand-picked H3 failures, and it does not generalise. The lane stays OFF. Build B (the gap note: "this source cites X, which is not in the pool") needs only the names, which run at 84% precision, and no search.
+- An earlier attempt the same day was stopped at 0 names because Redis was down (extraction fell back to word overlap). It was rerun.
