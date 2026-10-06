@@ -721,8 +721,12 @@ def test_same_page_without_the_lane_mark_is_not_scoped():
 def test_shared_suffix_needs_whole_labels_not_prefixes():
     # "digital" starts the label "digitalservices", but on a shared public
     # suffix every token must be a whole label.
-    assert not cs.host_identifies("https://digitalservices.nhs.uk/x", "NHS Digital", "NHS Digital said")
-    assert cs.host_identifies("https://digital.nhs.uk/x", "NHS Digital", "NHS Digital said")
+    assert not cs.host_identifies(
+        "https://digitalservices.nhs.uk/x", "NHS Digital", "NHS Digital said"
+    )
+    assert cs.host_identifies(
+        "https://digital.nhs.uk/x", "NHS Digital", "NHS Digital said"
+    )
 
 
 @pytest.mark.unit
@@ -734,8 +738,14 @@ def test_acronym_must_be_the_site_name_or_leftmost_label():
 
 @pytest.mark.unit
 def test_squashed_name_matches_a_joined_host_only_off_shared_suffixes():
-    assert cs.host_identifies("https://www.bankofengland.co.uk/x", "Bank of England", "the Bank of England said")
-    assert not cs.host_identifies("https://bankofengland.gov.uk/x", "Bank of England", "the Bank of England said")
+    assert cs.host_identifies(
+        "https://www.bankofengland.co.uk/x",
+        "Bank of England",
+        "the Bank of England said",
+    )
+    assert not cs.host_identifies(
+        "https://bankofengland.gov.uk/x", "Bank of England", "the Bank of England said"
+    )
 
 
 @pytest.mark.unit
@@ -746,6 +756,8 @@ def test_figures_past_the_word_cap_are_still_queried():
     )
     q = cs.build_query("Health Authority", "", claim)
     assert "7,412" in q
+
+
 # ---------------------------------------------------------------------------
 # Verification fixes (2026-10-05): race, submitted page, host equality,
 # statement verbs, fetch conversion, runner seam
@@ -980,3 +992,69 @@ def test_follow_for_check_end_to_end_with_receipts(monkeypatch):
     assert rec["totals"]["kept"] == 1
     assert rec["queries"][0]["dropped_not_cited_body"] == 1
     assert [i["evidence_id"] for i in evidence["0"]] == ["ev-1", "ev-cs-0_0"]
+
+
+# ---------------------------------------------------------------------------
+# Vague names and the citing page's own publisher (eval step 1, 2026-10-06)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "name,expected",
+    [
+        ("government", True),
+        ("the company", True),
+        ("Australian government", True),
+        ("UK government", False),
+        ("Ministry of Health", False),
+        ("State Department", False),
+        ("Biden administration", False),
+        ("NHS England", False),
+        ("Climate Prediction Center", False),
+    ],
+)
+def test_is_vague_name(name, expected):
+    assert cs.is_vague_name(name) is expected
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "url,name,expected",
+    [
+        (
+            "https://www.gov.uk/government/news/cma-fines-pharma-companies-45-million",
+            "CMA",
+            True,
+        ),
+        (
+            "https://www.who.int/news/item/x",
+            "WHO global expert committee on vaccine safety",
+            True,
+        ),
+        (
+            "https://hsph.harvard.edu/news/ultra-processed-foods",
+            "Harvard T.H. Chan School of Public Health",
+            True,
+        ),
+        ("https://www.bbc.co.uk/news/cma-fines-pharma", "CMA", False),
+        ("https://www.gov.uk/government/news/ons-figures", "CMA", False),
+        ("https://www.ons.gov.uk/economy/x", "Office for National Statistics", False),
+        ("https://www.who.int/news/item/x", "Lancet", False),
+    ],
+)
+def test_published_by(url, name, expected):
+    assert cs.published_by(url, name) is expected
+
+
+@pytest.mark.unit
+def test_vague_and_self_publisher_names_are_refused_with_receipts():
+    cue = "The government said the CMA had fined the firms"
+    citer = _item("ev-1", "https://www.gov.uk/government/news/cma-fines-firms", cue)
+    rows = [
+        {"name": "government", "kind": "announcement", "cue": cue, "item": 0},
+        {"name": "CMA", "kind": "announcement", "cue": cue, "item": 0},
+    ]
+    accepted, receipts = cs.validate_names(rows, _chosen(citer))
+    assert accepted == []
+    assert [r["status"] for r in receipts] == ["vague_name", "self_outlet"]

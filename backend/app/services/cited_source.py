@@ -275,13 +275,78 @@ def host_identifies(url: str, name: str, cue: str = "") -> bool:
             return True
     elif site:
         squashed = "".join(
-            w.lower() for w in re.findall(r"[A-Za-z]+", name or "") if w.lower() != "the"
+            w.lower()
+            for w in re.findall(r"[A-Za-z]+", name or "")
+            if w.lower() != "the"
         )
         if site in toks or (toks and site == "".join(toks)) or site == squashed:
             return True
     acro = acronym_of(name, cue)
     if acro and acro in (site, leftmost):
         return True
+    return False
+
+
+# Vague names and the citing page's own publisher (eval step 1, 2026-10-06:
+# 6 of 15 misses on 86 held-out names). Both fail closed: a rejected name only
+# means no follow-up search.
+_VAGUE_HEADS = set(
+    "government governments company companies firm authorities authority "
+    "officials researchers scientists experts regulators regulator "
+    "administration ministry police".split()
+)
+_VAGUE_FILLER = {"the", "a", "an", "its", "their", "our", "his", "her"}
+_DEMONYM = re.compile(r"[A-Z][a-z]+(?:an|ian|ese|ish|ch|i)")
+
+
+def is_vague_name(name: str) -> bool:
+    """Too vague to search for: every word is a generic head ("the company",
+    "government") or a nationality adjective before one ("Australian
+    government"). A name with any other word ("Ministry of Health") is not."""
+    words = [
+        w
+        for w in re.findall(r"[A-Za-z]+", name or "")
+        if w.lower() not in _VAGUE_FILLER
+    ]
+    if not words or not any(w.lower() in _VAGUE_HEADS for w in words):
+        return False
+    return all(w.lower() in _VAGUE_HEADS or _DEMONYM.fullmatch(w) for w in words)
+
+
+def published_by(url: str, name: str, cue: str = "") -> bool:
+    """Is the citing page itself the named body's own? `host_identifies`,
+    plus two institutional-host cases it is too strict for:
+    - a distinctive name token, or the name's leading acronym, is a whole
+      label of a shared-suffix host (WHO … on who.int, Harvard … on
+      hsph.harvard.edu);
+    - on such a host, the page slug opens with that acronym (CMA on
+      gov.uk/government/news/cma-fines-…)."""
+    if host_identifies(url, name, cue):
+        return True
+    host = _host(url)
+    if not host or not any(
+        host == s or host.endswith("." + s) for s in SHARED_SUFFIXES
+    ):
+        return False
+    labels = set(host.split("."))
+    lead = re.match(r"\s*([A-Z]{2,8})", name or "")
+    acro = (lead.group(1).lower() if lead else None) or acronym_of(name, cue)
+    if acro and acro in labels:
+        return True
+    if any(
+        t in labels
+        for t in name_tokens(name)
+        if t not in {"gov", "edu", "int", "nhs", "europa"}
+    ):
+        return True
+    if acro:
+        try:
+            path = urlparse(url).path
+        except ValueError:
+            return False
+        slug = path.rstrip("/").rsplit("/", 1)[-1].lower()
+        if re.split(r"[-_.]", slug)[0] == acro:
+            return True
     return False
 
 
@@ -368,7 +433,9 @@ def build_query(name: str, document: str, claim: str) -> str:
             if len(words) < 12:
                 words.append(tok.strip(".,"))
             continue
-        if (bare in _QSTOP or bare in excl or len(bare) < 3) and not (tok.isupper() and len(tok) >= 2 and bare not in excl):
+        if (bare in _QSTOP or bare in excl or len(bare) < 3) and not (
+            tok.isupper() and len(tok) >= 2 and bare not in excl
+        ):
             continue
         if len(words) < 12:
             words.append(tok.strip(".,"))
@@ -480,7 +547,10 @@ def validate_names(
         if name not in cue:
             receipts.append({**rec, "status": "name_not_in_cue"})
             continue
-        if host_identifies(item.get("url") or "", name, cue):
+        if is_vague_name(name):
+            receipts.append({**rec, "status": "vague_name"})
+            continue
+        if published_by(item.get("url") or "", name, cue):
             receipts.append({**rec, "status": "self_outlet"})
             continue
         key = name.lower()
@@ -852,8 +922,14 @@ async def follow_for_check(
         source_url,
     )
     stats["follow_seconds"] = round(time.monotonic() - started, 2)
-    stats["kept"] = sum(len(q.get("kept") or []) for r in receipts.values() for q in r.get("queries") or [])
+    stats["kept"] = sum(
+        len(q.get("kept") or [])
+        for r in receipts.values()
+        for q in r.get("queries") or []
+    )
     stats["queries"] = sum(len(r.get("queries") or []) for r in receipts.values())
     write_receipts(claim_maps, receipts, stats)
     if stats["kept"]:
-        logger.info(f"[CITED SOURCE] kept {stats['kept']} cited original(s) from {stats['queries']} queries")
+        logger.info(
+            f"[CITED SOURCE] kept {stats['kept']} cited original(s) from {stats['queries']} queries"
+        )

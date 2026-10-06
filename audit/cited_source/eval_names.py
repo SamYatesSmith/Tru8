@@ -7,7 +7,7 @@ not among the 41 production pools read during design, with stored text in
 production shape (kept, or rebuilt by production's own capture).
 
 Run from backend/:
-  PYTHONPATH=. python ../audit/cited_source/eval_names.py POOLS.json OUT.json [--limit N]
+  PYTHONPATH=. python ../audit/cited_source/eval_names.py POOLS.json OUT.json [--offset N] [--limit N]
 """
 
 import asyncio, json, sys
@@ -15,6 +15,7 @@ from app.services import cited_source as cs
 
 POOLS, OUT = sys.argv[1], sys.argv[2]
 LIMIT = int(sys.argv[sys.argv.index("--limit") + 1]) if "--limit" in sys.argv else 0
+OFFSET = int(sys.argv[sys.argv.index("--offset") + 1]) if "--offset" in sys.argv else 0
 
 
 async def main():
@@ -25,6 +26,7 @@ async def main():
         if cs.select_items([{"position": 0, "text": p["text"]}], {"0": p["items"]})
     ]
     pools.sort(key=lambda p: p["claim_id"])
+    pools = pools[OFFSET:]
     if LIMIT:
         pools = pools[:LIMIT]
     print("pools that send a name call:", len(pools))

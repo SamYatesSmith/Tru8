@@ -295,3 +295,28 @@ Provenance capture and both page-opening copies move above **post-filter recover
 **Checks:** 70 lane tests; 22/22 applicable mutants killed; unit suite 4,542 pass; flags-off bench equals baseline (158/13/11/5 + 82CF).
 
 **Next:** eval step 1 (paid, awaiting approval). There are 308 held-out pools rebuilt in production shape (`audit/cited_source/build_heldout.py`).
+
+## 14. Eval step 1 result (2026-10-06): FAILS the bar, narrowly
+- **Run:** the first 100 of 308 held-out pools (sorted by claim id), prompt and guards frozen at `1c68cf2`. 100/100 calls ok, 86 names accepted, 50 pools with at least one. Cost $0.33. Output: `audit/cited_source/eval_runs/names_run1_100.json`.
+- **Blind labels** (one fresh agent, no knowledge of the lane): true_origin 71 · wrong 10 · outlet_only 3 · quoted_person 2. **Precision 82.6% (71/86), Wilson 95% interval 0.73–0.89, against the bar of ≥ 85%.** Labels: `eval_runs/blind1/labels.json`; key: `eval_runs/blind1_key.json`.
+- **Misses by class:**
+  - Too vague to search for (3): "Australian government", "the company", "government".
+  - The name is the citing page's own publisher (3): CMA on gov.uk, WHO on who.int, Harvard Chan on hsph.harvard.edu.
+  - Misattributed (4): NIH (PubMed indexing), Cancer Research UK (it supplied the dataset, but the finding is Google Health's), Supplemental Poverty Measure (a statistic, not a body), IPCC (only a time reference).
+  - Outlet only (3), including ScienceDirect, which is arguably acceptable.
+  - Quoted person (2): an individual's own estimate attributed to their institution.
+- **Not a pass and not lowered.** The first two classes are mechanical guard gaps. Fixing them now and re-scoring these same rows would be in-sample. Any fix must be measured on pools 101–308, which have not been read.
+
+## 15. Guards added, re-test on unseen pools (2026-10-06): 84.0%, still just under the bar
+- **Guards (`cited_source.py`):**
+  - `is_vague_name` refuses a name made only of generic heads ("government", "the company") or a nationality adjective before one ("Australian government").
+  - `published_by` widens the self-outlet check on shared-suffix hosts. It refuses a name whose acronym or distinctive token is a whole host label (WHO on who.int, Harvard on hsph.harvard.edu), or whose acronym opens the page slug (CMA on gov.uk/…/cma-fines-…).
+  - The 6 matching run-1 misses are refused, no run-1 true origin is refused, 87 lane tests pass, and the unit suite passes (4,559).
+- **Run 2:** pools 101–308, never read before. 208/208 calls ok, 225 names accepted, $0.73. Labelled blind by three fresh agents, each working in a private folder.
+- **Result:** true_origin 189 · wrong 18 · outlet_only 10 · quoted_person 8. **Precision 84.0% (189/225), Wilson 95% interval 0.79–0.88. The bar is 85%, so this fails, narrowly.**
+- **Residual misses:**
+  - **Self-publishers (about 8 of the 18 wrong):** university newsrooms (news.uchicago.edu for "University of Chicago", McGill, KUMC), a press release on a wire host (Royal LePage on newswire.ca), and Eurostat, ERA5, Ember and Kelley Blue Book on their own or a parent host. In the pipeline such a name usually costs nothing, because `already_present` skips the search when the citing page is the body's own and carries the claim. It is still counted as a miss here.
+  - **Quoted speech via an outlet (8):** for example "the BBC" for a Zelensky interview.
+  - **Data supplier vs finding (about 4):** for example UK Biobank and ATUS.
+  - **Relay outlets (10):** for example AP and Interfax.
+- Labels: `eval_runs/blind2_{0,1,2}/labels.json`; key `eval_runs/blind2_key.json`.
