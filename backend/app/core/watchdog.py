@@ -11,17 +11,15 @@ unbounded. Phase 2 and re-search tasks had no ceiling at all
 Principle: exactly ONE owner of a pipeline task's lifetime — the task itself.
 Streams only report; they never control.
 
-Two supervisors, matching the two background-task families:
-
 * ``supervise_pipeline_task`` — submission + phase-2 tasks. On ceiling breach,
   routes through the existing, tested ``handle_pipeline_failure`` (marks the
   check failed with a user-friendly message + idempotent refund). The message
   contains "timeout" so ``get_user_friendly_error`` maps it to the honest
   took-too-long copy.
-* ``supervise_re_search_task`` — element re-search/top-up tasks. These run on
-  COMPLETED checks and report via the Redis research-status channel, so a
-  breach must NOT touch check.status (it would fail a completed check); it
-  terminates the Redis status instead, which is what the Seeker UI polls.
+
+Re-search/top-up tasks carry their own ceiling (``RESEARCH_WATCHDOG_SECONDS``)
+inside ``services/research_operations.py``, which owns their lifecycle and
+refund since 2026-09-08; they are not routed through here.
 
 Agent async paths (``agent.py::_run_pipeline_background``) already carry their
 own ``asyncio.wait_for`` ceilings and are not routed through here.
@@ -85,35 +83,3 @@ def supervise_pipeline_task(
     return task
 
 
-def supervise_re_search_task(
-    coro: Coroutine, *, check_id: str, claim_id: str, element_id: str
-) -> asyncio.Task:
-    """Run an element re-search coroutine under its own (shorter) ceiling.
-
-    On breach: terminate the Redis research status the UI polls. The parent
-    check stays COMPLETED — a re-search timeout is not a check failure.
-    """
-    ceiling_s = settings.RESEARCH_WATCHDOG_SECONDS
-
-    async def _supervised() -> None:
-        try:
-            await asyncio.wait_for(coro, timeout=ceiling_s)
-        except asyncio.TimeoutError:
-            logger.error(
-                f"[WATCHDOG] re-search {check_id}/{claim_id}/{element_id} "
-                f"exceeded {ceiling_s}s ceiling — terminating status"
-            )
-            from app.pipeline.re_search import _update_status
-
-            try:
-                _update_status(
-                    check_id,
-                    claim_id,
-                    element_id,
-                    "error",
-                    "This research took too long and was stopped. Please try again.",
-                )
-            except Exception as e:  # noqa: BLE001 — watchdog must never raise
-                logger.error(f"[WATCHDOG] could not terminate re-search status: {e}")
-
-    return asyncio.create_task(_supervised())

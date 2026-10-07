@@ -254,14 +254,4 @@ class FactCheckAPI:
             "source_type": "factcheck",
         }
 
-    def get_cache_stats(self) -> Dict[str, Any]:
-        """Get cache statistics for monitoring"""
-        return {
-            "cache_size": len(self.cache),
-            "cache_ttl_hours": self.cache_ttl.total_seconds() / 3600,
-        }
 
-    def clear_cache(self):
-        """Clear the fact-check cache"""
-        self.cache.clear()
-        logger.info("Fact-check cache cleared")

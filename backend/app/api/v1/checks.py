@@ -15,7 +15,7 @@ from app.core.auth import (
 )
 from app.core.config import settings
 from app.core.inflight import inflight_register, inflight_unregister
-from app.core.watchdog import supervise_pipeline_task, supervise_re_search_task
+from app.core.watchdog import supervise_pipeline_task
 from app.core.pdf_assets import FONT_FACE_CSS
 from app.pipeline.support_structure import side_quality_note
 from app.models import User, Check, Claim, Evidence, RawEvidence, Subscription

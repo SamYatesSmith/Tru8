@@ -1,19 +1,14 @@
-"""Track L: Credit payment provider unit tests.
-
-Tests for CreditPaymentProvider (can_handle), plus the module-level
-helper functions: check_credit_balance, debit_credits, refund_credits.
+"""Track L: credit balance helper unit tests (debit_credits, refund_credits).
 
 debit_credits and refund_credits use atomic SQL UPDATE statements
 (not ORM attribute mutation), so tests verify rowcount-based logic.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from app.services.payments.credit_provider import (
-    CreditPaymentProvider,
-    check_credit_balance,
     debit_credits,
     refund_credits,
 )
@@ -22,11 +17,6 @@ from app.services.payments.credit_provider import (
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
-
-
-@pytest.fixture
-def provider():
-    return CreditPaymentProvider()
 
 
 def _make_request(headers: dict) -> MagicMock:
@@ -76,74 +66,9 @@ def _make_user(credit_balance_pence: int) -> MagicMock:
 # ---------------------------------------------------------------------------
 
 
-class TestCanHandle:
-    """Tests for CreditPaymentProvider.can_handle()."""
-
-    @pytest.mark.asyncio
-    async def test_can_handle_with_api_key(self, provider):
-        """Returns True when x-api-key header is present."""
-        request = _make_request({"x-api-key": "tru8_key_abc123"})
-
-        result = await provider.can_handle(request)
-
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_can_handle_without_api_key(self, provider):
-        """Returns False when x-api-key header is missing."""
-        request = _make_request({"authorization": "Bearer tok123"})
-
-        result = await provider.can_handle(request)
-
-        assert result is False
-
-
 # ---------------------------------------------------------------------------
 # check_credit_balance
 # ---------------------------------------------------------------------------
-
-
-class TestCheckCreditBalance:
-    """Tests for the check_credit_balance helper function."""
-
-    @pytest.mark.asyncio
-    async def test_check_balance_sufficient(self):
-        """Returns True when balance >= requested amount."""
-        user = _make_user(credit_balance_pence=500)
-        session = _make_mock_session(user=user)
-
-        result = await check_credit_balance("user-001", 200, session)
-
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_check_balance_exact(self):
-        """Returns True when balance equals the exact requested amount."""
-        user = _make_user(credit_balance_pence=200)
-        session = _make_mock_session(user=user)
-
-        result = await check_credit_balance("user-001", 200, session)
-
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_check_balance_insufficient(self):
-        """Returns False when balance < requested amount."""
-        user = _make_user(credit_balance_pence=50)
-        session = _make_mock_session(user=user)
-
-        result = await check_credit_balance("user-001", 200, session)
-
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_check_balance_user_not_found(self):
-        """Returns False when user does not exist."""
-        session = _make_mock_session(user=None)
-
-        result = await check_credit_balance("nonexistent-user", 100, session)
-
-        assert result is False
 
 
 # ---------------------------------------------------------------------------

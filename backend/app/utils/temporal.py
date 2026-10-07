@@ -1,6 +1,6 @@
 import re
-from typing import Dict, Any, Optional, List
-from datetime import datetime, timedelta
+from typing import Dict, Any, Optional
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -108,45 +108,6 @@ class TemporalAnalyzer:
         else:
             return "timeless_fact"
 
-    def filter_evidence_by_time(
-        self, evidence: List[Dict], temporal_analysis: Dict
-    ) -> List[Dict]:
-        """Filter evidence based on temporal requirements"""
-        if not temporal_analysis["is_time_sensitive"]:
-            return evidence
-
-        max_age_days = temporal_analysis["max_evidence_age_days"]
-        if max_age_days is None:
-            return evidence
-
-        cutoff_date = datetime.now() - timedelta(days=max_age_days)
-        filtered = []
-
-        for ev in evidence:
-            pub_date = ev.get("published_date")
-            if pub_date:
-                try:
-                    # Parse various date formats
-                    ev_date = self._parse_date(pub_date)
-                    if ev_date and ev_date >= cutoff_date:
-                        filtered.append(ev)
-                    else:
-                        logger.debug(
-                            f"Evidence too old: {pub_date} (cutoff: {cutoff_date})"
-                        )
-                except:
-                    # If can't parse, include it (benefit of doubt)
-                    filtered.append(ev)
-            else:
-                # No date = assume recent enough
-                filtered.append(ev)
-
-        logger.info(
-            f"Temporal filtering: {len(evidence)} -> {len(filtered)} "
-            f"(max age: {max_age_days} days)"
-        )
-
-        return filtered
 
     def _parse_date(self, date_str: str) -> Optional[datetime]:
         """Parse various date formats"""

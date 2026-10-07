@@ -181,27 +181,3 @@ class EvidenceDeduplicator:
 
         return unique
 
-    def get_dedup_metrics(
-        self, original_count: int, final_count: int
-    ) -> Dict[str, Any]:
-        """
-        Calculate deduplication metrics for monitoring.
-
-        Args:
-            original_count: Original evidence count
-            final_count: Count after deduplication
-
-        Returns:
-            Dictionary with deduplication metrics
-        """
-        if original_count == 0:
-            return {"duplicates_found": 0, "dedup_percentage": 0, "efficiency_gain": 0}
-
-        duplicates = original_count - final_count
-        dedup_percentage = (duplicates / original_count) * 100
-
-        return {
-            "duplicates_found": duplicates,
-            "dedup_percentage": round(dedup_percentage, 1),
-            "efficiency_gain": round(dedup_percentage / 100, 2),
-        }

@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime
 from app.utils.temporal import TemporalAnalyzer
 
 
@@ -109,58 +109,6 @@ class TestTemporalAnalyzer:
         assert analyzer._extract_year("During 2018") == "2018"
         assert analyzer._extract_year("No year here") is None
 
-    def test_evidence_filtering_recent(self, analyzer):
-        """Test: Filters evidence based on temporal requirements"""
-        # Create temporal analysis for present tense claim
-        temporal_analysis = {"is_time_sensitive": True, "max_evidence_age_days": 30}
-
-        # Create evidence with various dates
-        now = datetime.now()
-        evidence = [
-            {
-                "url": "a.com",
-                "published_date": (now - timedelta(days=10)).isoformat(),
-            },  # Recent
-            {
-                "url": "b.com",
-                "published_date": (now - timedelta(days=60)).isoformat(),
-            },  # Old
-            {
-                "url": "c.com",
-                "published_date": (now - timedelta(days=5)).isoformat(),
-            },  # Recent
-            {"url": "d.com", "published_date": None},  # No date
-        ]
-
-        filtered = analyzer.filter_evidence_by_time(evidence, temporal_analysis)
-
-        # Should keep: a.com (10 days), c.com (5 days), d.com (no date)
-        # Should filter: b.com (60 days)
-        assert len(filtered) == 3
-        urls = [e["url"] for e in filtered]
-        assert "a.com" in urls
-        assert "c.com" in urls
-        assert "d.com" in urls
-        assert "b.com" not in urls
-
-    def test_evidence_filtering_no_filtering_for_timeless(self, analyzer):
-        """Test: No filtering applied for timeless claims"""
-        temporal_analysis = {"is_time_sensitive": False, "max_evidence_age_days": None}
-
-        now = datetime.now()
-        evidence = [
-            {"url": "a.com", "published_date": (now - timedelta(days=10)).isoformat()},
-            {"url": "b.com", "published_date": (now - timedelta(days=365)).isoformat()},
-            {
-                "url": "c.com",
-                "published_date": (now - timedelta(days=1000)).isoformat(),
-            },
-        ]
-
-        filtered = analyzer.filter_evidence_by_time(evidence, temporal_analysis)
-
-        # All evidence should remain
-        assert len(filtered) == 3
 
     def test_date_parsing_formats(self, analyzer):
         """Test: Parses various date formats"""
@@ -205,23 +153,3 @@ class TestTemporalAnalyzer:
             result = analyzer.analyze_claim(claim)
             assert result["is_time_sensitive"] == True
 
-    def test_evidence_datetime_object_handling(self, analyzer):
-        """Test: Handles datetime objects in evidence published_date"""
-        temporal_analysis = {"is_time_sensitive": True, "max_evidence_age_days": 30}
-
-        now = datetime.now()
-        evidence = [
-            {
-                "url": "a.com",
-                "published_date": now - timedelta(days=10),
-            },  # datetime object
-            {
-                "url": "b.com",
-                "published_date": (now - timedelta(days=60)).isoformat(),
-            },  # ISO string
-        ]
-
-        filtered = analyzer.filter_evidence_by_time(evidence, temporal_analysis)
-
-        assert len(filtered) == 1
-        assert filtered[0]["url"] == "a.com"

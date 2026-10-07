@@ -1232,27 +1232,3 @@ async def classify_article(title: str, url: str, content: str) -> ArticleClassif
     )
 
 
-def classify_article_sync(title: str, url: str, content: str) -> ArticleClassification:
-    """
-    Synchronous wrapper for classify_article.
-    Uses URL pattern cache only (no async Redis/LLM calls).
-    Falls back to General if no pattern match.
-    """
-    # Check URL pattern cache (instant, no async required)
-    cached_pattern = _check_url_pattern_cache(url)
-    if cached_pattern:
-        return cached_pattern
-
-    # In sync context, we can't use Redis or LLM
-    # Return General fallback
-    return ArticleClassification(
-        primary_domain="General",
-        secondary_domains=[],
-        jurisdiction="Global",
-        confidence=0,
-        reasoning="Sync classification - URL pattern not matched",
-        source="fallback_general",
-        temporal_context="",
-        key_entities=[],
-        evidence_guidance="",
-    )

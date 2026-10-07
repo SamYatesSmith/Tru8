@@ -231,14 +231,6 @@ class DomainStatusTracker:
             return DomainStatus(record["status"])
         return None
 
-    def is_known_blocked(self, domain: str) -> bool:
-        """Quick check if domain is known to be blocked"""
-        status = self.get_status(domain)
-        return status in (DomainStatus.BOT_BLOCKED, DomainStatus.RATE_LIMITED)
-
-    def is_paywall(self, domain: str) -> bool:
-        """Quick check if domain is behind paywall"""
-        return self.get_status(domain) == DomainStatus.PAYWALL
 
     def get_domains_by_status(self, status: DomainStatus) -> List[Dict[str, Any]]:
         """
@@ -262,21 +254,6 @@ class DomainStatusTracker:
             status = record["status"]
             summary[status] = summary.get(status, 0) + 1
         return summary
-
-    def get_summary(self) -> Dict[str, Any]:
-        """Get summary of all tracked domains"""
-        summary = self._generate_summary()
-        return {
-            "total_domains": len(self._domains),
-            "by_status": summary,
-            "paywall_domains": len(self.get_domains_by_status(DomainStatus.PAYWALL)),
-            "blocked_domains": len(
-                self.get_domains_by_status(DomainStatus.BOT_BLOCKED)
-            ),
-            "js_required_domains": len(
-                self.get_domains_by_status(DomainStatus.JS_REQUIRED)
-            ),
-        }
 
 
 # Singleton instance

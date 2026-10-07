@@ -447,14 +447,6 @@ class TestDynamicFreshness:
             validated = planner._validate_plans(plans, 1)
             assert validated[0]["freshness"] == freshness
 
-    def test_default_freshness_function(self):
-        """Test get_freshness_for_claim_type returns default values."""
-        from app.utils.query_planner import get_freshness_for_claim_type
-
-        # All claim types should return the same DEFAULT_FRESHNESS now
-        result = get_freshness_for_claim_type("any_type")
-        assert result["brave_freshness"] == "py"
-        assert result["max_age_days"] == 365
 
     def test_check_evidence_staleness_with_freshness(self):
         """Test evidence staleness check uses freshness parameter."""

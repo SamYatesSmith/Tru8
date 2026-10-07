@@ -10,7 +10,6 @@ import pytest
 from app.utils.article_classifier import (
     ArticleClassification,
     _check_url_pattern_cache,
-    classify_article_sync,
     VALID_DOMAINS,
     VALID_JURISDICTIONS,
 )
@@ -307,35 +306,6 @@ class TestURLPatternCache:
         result = _check_url_pattern_cache(url)
 
         assert result is None
-
-
-class TestSyncClassification:
-    """Test suite for synchronous classification (URL pattern only)."""
-
-    def test_sync_sports_classification(self):
-        """Test sync classification for sports URL."""
-        result = classify_article_sync(
-            title="Arsenal transfer news",
-            url="https://www.skysports.com/football/arsenal",
-            content="Arsenal are looking to sign a new striker..."
-        )
-
-        assert result.primary_domain == "Sports"
-        assert result.jurisdiction == "UK"
-        assert result.source == "cache_pattern"
-
-    def test_sync_fallback_classification(self):
-        """Test sync classification falls back to General for unknown URLs."""
-        result = classify_article_sync(
-            title="Random article",
-            url="https://www.unknown-site.com/article",
-            content="Some random content..."
-        )
-
-        assert result.primary_domain == "General"
-        assert result.jurisdiction == "Global"
-        assert result.source == "fallback_general"
-        assert result.confidence == 0.0
 
 
 class TestDomainConstants:

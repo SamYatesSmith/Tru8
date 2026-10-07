@@ -152,18 +152,4 @@ class TestDeduplication:
         assert len(result) == 1
         assert stats["duplicates_removed"] == 0
 
-    def test_dedup_metrics_calculation(self, deduplicator):
-        """Test: Dedup metrics calculated correctly"""
-        metrics = deduplicator.get_dedup_metrics(original_count=10, final_count=7)
 
-        assert metrics["duplicates_found"] == 3
-        assert metrics["dedup_percentage"] == 30.0
-        assert metrics["efficiency_gain"] == 0.3
-
-    def test_dedup_metrics_no_duplicates(self, deduplicator):
-        """Test: Metrics correct when no duplicates"""
-        metrics = deduplicator.get_dedup_metrics(original_count=5, final_count=5)
-
-        assert metrics["duplicates_found"] == 0
-        assert metrics["dedup_percentage"] == 0.0
-        assert metrics["efficiency_gain"] == 0.0

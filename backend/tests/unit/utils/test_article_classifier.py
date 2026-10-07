@@ -5,7 +5,6 @@ Covers pure-logic paths only: URL pattern cache, dataclass serialization,
 constants, and synchronous classification.  No async LLM / Redis tests.
 """
 
-import pytest
 
 from app.utils.article_classifier import (
     ArticleClassification,
@@ -14,7 +13,6 @@ from app.utils.article_classifier import (
     URL_PATTERN_CACHE,
     _check_url_pattern_cache,
     _inject_mechanical_secondaries,
-    classify_article_sync,
     enrich_classification_with_entities,
 )
 
@@ -281,81 +279,6 @@ class TestConstants:
 
 
 # ── classify_article_sync ───────────────────────────────────────────────
-
-
-class TestClassifyArticleSync:
-
-    def test_known_url_returns_classification(self):
-        """BBC politics URL should be classified without LLM."""
-        result = classify_article_sync(
-            title="PM faces questions on budget",
-            url="https://www.bbc.co.uk/news/politics-789",
-            content="The Prime Minister faced tough questions...",
-        )
-        assert result.primary_domain == "Politics"
-        assert result.jurisdiction == "UK"
-        assert result.source == "cache_pattern"
-        assert result.confidence == 95
-
-    def test_unknown_url_returns_general(self):
-        """Unknown URL should fall back to General domain."""
-        result = classify_article_sync(
-            title="Something obscure",
-            url="https://random-blog.com/post",
-            content="Some random content",
-        )
-        assert result.primary_domain == "General"
-        assert result.jurisdiction == "Global"
-        assert result.source == "fallback_general"
-        assert result.confidence == 0
-        assert (
-            result.classification_failed is False
-        )  # Not an error, just sync limitation
-
-    def test_empty_url_returns_general(self):
-        result = classify_article_sync(
-            title="No URL article",
-            url="",
-            content="Content without URL",
-        )
-        assert result.primary_domain == "General"
-        assert result.source == "fallback_general"
-
-    def test_none_url_returns_general(self):
-        result = classify_article_sync(
-            title="None URL",
-            url=None,
-            content="Content",
-        )
-        assert result.primary_domain == "General"
-        assert result.source == "fallback_general"
-
-    def test_sky_sports_returns_sports(self):
-        result = classify_article_sync(
-            title="Transfer news",
-            url="https://www.skysports.com/football/transfer-news",
-            content="Latest transfer rumours...",
-        )
-        assert result.primary_domain == "Sports"
-        assert result.jurisdiction == "UK"
-
-    def test_congress_gov_returns_politics_us(self):
-        result = classify_article_sync(
-            title="New bill introduced",
-            url="https://www.congress.gov/bill/118th-congress/hr-1234",
-            content="A new bill was introduced...",
-        )
-        assert result.primary_domain == "Politics"
-        assert result.jurisdiction == "US"
-
-    def test_arxiv_returns_science_global(self):
-        result = classify_article_sync(
-            title="Quantum paper",
-            url="https://arxiv.org/abs/2401.12345",
-            content="We present a novel quantum computing approach...",
-        )
-        assert result.primary_domain == "Science"
-        assert result.jurisdiction == "Global"
 
 
 # ── B1a: mechanical secondary injection from typed entities ─────────────

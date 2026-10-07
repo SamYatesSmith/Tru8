@@ -15,7 +15,6 @@ honest message and a refund. These lock the four layers:
 """
 
 import asyncio
-from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
@@ -24,7 +23,7 @@ import pytest
 
 from app.core.config import settings
 from app.core.inflight import STALE_ERROR_MSG, sweep_stale_checks
-from app.core.watchdog import supervise_pipeline_task, supervise_re_search_task
+from app.core.watchdog import supervise_pipeline_task
 
 
 def _naive_now():
@@ -113,51 +112,6 @@ class TestPipelineWatchdog:
 
 
 # ── W1: re-search watchdog ───────────────────────────────────────────────────
-
-
-class TestReSearchWatchdog:
-    @pytest.mark.asyncio
-    async def test_breach_terminates_redis_status_not_check(self, monkeypatch):
-        monkeypatch.setattr(settings, "RESEARCH_WATCHDOG_SECONDS", 0.05)
-        import app.pipeline.re_search as rs_mod
-
-        status = MagicMock()
-        monkeypatch.setattr(rs_mod, "_update_status", status)
-        # The check-failure path must NOT be touched: a re-search runs on a
-        # COMPLETED check.
-        import app.pipeline.runner as runner_mod
-
-        handler = AsyncMock()
-        monkeypatch.setattr(runner_mod, "handle_pipeline_failure", handler)
-
-        async def slow_research():
-            await asyncio.sleep(5)
-
-        await supervise_re_search_task(
-            slow_research(), check_id="c1", claim_id="cl1", element_id="e1"
-        )
-
-        status.assert_called_once()
-        args = status.call_args.args
-        assert args[:3] == ("c1", "cl1", "e1")
-        assert args[3] == "error"
-        handler.assert_not_awaited()
-
-    @pytest.mark.asyncio
-    async def test_fast_research_untouched(self, monkeypatch):
-        monkeypatch.setattr(settings, "RESEARCH_WATCHDOG_SECONDS", 5)
-        import app.pipeline.re_search as rs_mod
-
-        status = MagicMock()
-        monkeypatch.setattr(rs_mod, "_update_status", status)
-
-        async def fast_research():
-            pass
-
-        await supervise_re_search_task(
-            fast_research(), check_id="c1", claim_id="cl1", element_id="e1"
-        )
-        status.assert_not_called()
 
 
 # ── W2: boot-time stale sweep ────────────────────────────────────────────────

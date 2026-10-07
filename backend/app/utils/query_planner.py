@@ -717,23 +717,6 @@ def get_query_planner() -> LLMQueryPlanner:
     return _query_planner
 
 
-def get_freshness_for_claim_type(claim_type: str = "") -> Dict[str, Any]:
-    """
-    Get default freshness requirements.
-
-    NOTE: This function is deprecated. Freshness is now determined dynamically
-    by the LLM query planner based on article context. This function returns
-    default values for backward compatibility and fallback scenarios.
-
-    Args:
-        claim_type: Unused, kept for backward compatibility
-
-    Returns:
-        Dictionary with default freshness values
-    """
-    return DEFAULT_FRESHNESS
-
-
 def check_evidence_staleness(
     evidence_date: Optional[str],
     freshness: Optional[str] = None,

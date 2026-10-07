@@ -1,4 +1,4 @@
-"""Prepaid credit payment provider — API key agents with GBP balance.
+"""Prepaid credit balance helpers — API key agents with GBP balance.
 
 Agents with API keys can use prepaid GBP balance (stored as integer pence).
 On pipeline failure, the caller (agent.py) refunds by incrementing
@@ -10,41 +10,12 @@ to prevent race conditions on concurrent requests.
 
 import logging
 
-from fastapi import Request
-from sqlalchemy import select, update as sa_update
+from sqlalchemy import update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 
-from .base import PaymentProvider, PaymentVerification
-
 logger = logging.getLogger(__name__)
-
-
-class CreditPaymentProvider(PaymentProvider):
-    """Prepaid GBP balance via API key."""
-
-    async def can_handle(self, request: Request) -> bool:
-        return "x-api-key" in request.headers
-
-    async def verify_and_charge(
-        self, request: Request, amount_pence: int, description: str
-    ) -> PaymentVerification:
-        raise NotImplementedError(
-            "Credit charges are handled via AgentPaymentContext.charge(). "
-            "This method is not used directly."
-        )
-
-
-async def check_credit_balance(
-    user_id: str, amount_pence: int, session: AsyncSession
-) -> bool:
-    """Check if user has sufficient credit balance. Returns True if sufficient."""
-    result = await session.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    if not user:
-        return False
-    return user.credit_balance_pence >= amount_pence
 
 
 async def debit_credits(user_id: str, amount_pence: int, session: AsyncSession) -> bool:

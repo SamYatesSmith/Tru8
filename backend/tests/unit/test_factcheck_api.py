@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import AsyncMock, patch
 from app.services.factcheck_api import FactCheckAPI
 
 
@@ -74,23 +73,6 @@ class TestFactCheckAPI:
         assert evidence["factcheck_rating"] == "False"
         assert evidence["source_type"] == "factcheck"
 
-    def test_cache_stats(self, api):
-        """Test: Cache stats calculation"""
-        stats = api.get_cache_stats()
-
-        assert "cache_size" in stats
-        assert "cache_ttl_hours" in stats
-        assert stats["cache_ttl_hours"] == 24
-
-    def test_clear_cache(self, api):
-        """Test: Cache clearing"""
-        # Add something to cache
-        api.cache["test_key"] = ("test_value", "test_time")
-        assert len(api.cache) == 1
-
-        # Clear cache
-        api.clear_cache()
-        assert len(api.cache) == 0
 
     def test_parse_fact_check(self, api):
         """Test: Fact-check parsing"""

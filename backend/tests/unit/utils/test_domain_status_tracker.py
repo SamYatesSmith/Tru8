@@ -1,7 +1,6 @@
 """Tests for DomainStatusTracker and DomainStatus enum."""
 
 import json
-import pytest
 from pathlib import Path
 
 from app.utils.domain_status_tracker import DomainStatus, DomainStatusTracker
@@ -99,21 +98,6 @@ class TestStatusQueries:
         tracker = DomainStatusTracker(storage_path=tmp_path / "ds.json")
         assert tracker.get_status("never-seen.dev") is None
 
-    def test_is_known_blocked(self, tmp_path: Path):
-        """BOT_BLOCKED -> True, ACCESSIBLE -> False."""
-        tracker = DomainStatusTracker(storage_path=tmp_path / "ds.json")
-        tracker.record_access_result("blocked.io", DomainStatus.BOT_BLOCKED)
-        tracker.record_access_result("open.io", DomainStatus.ACCESSIBLE)
-        assert tracker.is_known_blocked("blocked.io") is True
-        assert tracker.is_known_blocked("open.io") is False
-
-    def test_is_paywall(self, tmp_path: Path):
-        """PAYWALL -> True, ACCESSIBLE -> False."""
-        tracker = DomainStatusTracker(storage_path=tmp_path / "ds.json")
-        tracker.record_access_result("pay.io", DomainStatus.PAYWALL)
-        tracker.record_access_result("free.io", DomainStatus.ACCESSIBLE)
-        assert tracker.is_paywall("pay.io") is True
-        assert tracker.is_paywall("free.io") is False
 
     def test_get_domains_by_status(self, tmp_path: Path):
         """Returns only matching domains, sorted by encounter_count desc."""
@@ -143,20 +127,6 @@ class TestStatusQueries:
 class TestSummaryAndExport:
     """Verify summary generation and pre-seeded domains."""
 
-    def test_get_summary(self, tmp_path: Path):
-        """Summary includes total_domains and by_status counts."""
-        tracker = DomainStatusTracker(storage_path=tmp_path / "ds.json")
-        tracker.record_access_result("s1.com", DomainStatus.ACCESSIBLE)
-        tracker.record_access_result("s2.com", DomainStatus.ACCESSIBLE)
-        tracker.record_access_result("s3.com", DomainStatus.TIMEOUT)
-
-        summary = tracker.get_summary()
-        assert "total_domains" in summary
-        assert "by_status" in summary
-        # At minimum: pre-seeded paywalls + bot_blocked + the 3 we just added
-        assert summary["total_domains"] >= 3
-        assert summary["by_status"].get("accessible", 0) >= 2
-        assert summary["by_status"].get("timeout", 0) >= 1
 
     def test_seeded_domains(self, tmp_path: Path):
         """KNOWN_PAYWALLS and KNOWN_BOT_BLOCKED are pre-populated on init."""
