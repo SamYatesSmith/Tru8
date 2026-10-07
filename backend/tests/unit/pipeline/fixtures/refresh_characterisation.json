@@ -1,0 +1,843 @@
+{
+ "B_completion": {
+  "claim_id": "c1",
+  "claim_type": "empirical",
+  "elements": [
+   {
+    "basis": {
+     "challenge_structure": {
+      "count": 1,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 1,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "example.org",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 1,
+       "reporting": 0
+      }
+     },
+     "classification_breakdown": {},
+     "content_basis_breakdown": {},
+     "evidence_count": 4,
+     "relationship_breakdown": {
+      "challenges": 1,
+      "supports": 3
+     },
+     "state_derivation": {
+      "caveat": "1 source disagrees: example.org",
+      "challenges_count": 1,
+      "context_count": 0,
+      "llm_state": "disputed",
+      "rule_applied": "supports_dominant_2x",
+      "supports_count": 3,
+      "weighted_challenges": 3,
+      "weighted_supports": 8
+     },
+     "support_structure": {
+      "count": 3,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 1,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "example.org",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 2,
+       "reporting": 1
+      }
+     },
+     "temporal_scope": {
+      "scoped": [
+       {
+        "evidence_id": "ev-old",
+        "was": "supports"
+       }
+      ],
+      "scoped_count": 1
+     },
+     "tier_breakdown": {
+      "primary": 3,
+      "reporting": 1
+     }
+    },
+    "description": "Element e1 about the figures in 2024.",
+    "element_id": "e1",
+    "evidence_refs": [
+     {
+      "evidence_id": "ev-a",
+      "reasoning": "test reasoning",
+      "relationship": "supports"
+     },
+     {
+      "evidence_id": "ev-b",
+      "reasoning": "test reasoning",
+      "relationship": "challenges"
+     },
+     {
+      "evidence_id": "ev-c",
+      "reasoning": "test reasoning",
+      "relationship": "supports"
+     },
+     {
+      "evidence_id": "ev-d",
+      "reasoning": "test reasoning",
+      "relationship": "supports"
+     }
+    ],
+    "state": "supported",
+    "uncertainty": null
+   },
+   {
+    "basis": {
+     "challenge_structure": {
+      "count": 0,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 0,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 0,
+       "reporting": 0
+      }
+     },
+     "classification_breakdown": {},
+     "content_basis_breakdown": {},
+     "evidence_count": 1,
+     "relationship_breakdown": {
+      "context": 1
+     },
+     "state_derivation": {
+      "caveat": null,
+      "challenges_count": 0,
+      "context_count": 1,
+      "rule_applied": "context_only",
+      "supports_count": 0,
+      "weighted_challenges": 0,
+      "weighted_supports": 0
+     },
+     "support_structure": {
+      "count": 0,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 0,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 0,
+       "reporting": 0
+      }
+     },
+     "tier_breakdown": {
+      "primary": 1
+     }
+    },
+    "description": "Element e2 about the figures in 2024.",
+    "element_id": "e2",
+    "evidence_refs": [
+     {
+      "evidence_id": "ev-c",
+      "reasoning": "test reasoning",
+      "relationship": "context"
+     }
+    ],
+    "state": "contextual",
+    "uncertainty": null
+   }
+  ],
+  "metadata": {
+   "completed_at": null,
+   "decomposition_model": "test",
+   "element_count": 2,
+   "mapping_model": "test"
+  },
+  "normalised_claim": "The figures rose in 2024."
+ },
+ "C_review": {
+  "claim_id": "x",
+  "claim_type": "empirical",
+  "elements": [
+   {
+    "basis": {
+     "challenge_structure": {
+      "count": 0,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 0,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 0,
+       "reporting": 0
+      }
+     },
+     "classification_breakdown": {},
+     "content_basis_breakdown": {
+      "snippet": 2
+     },
+     "evidence_count": 2,
+     "recital_scope": {
+      "scoped": [
+       {
+        "evidence_id": "ev-old",
+        "was": "supports"
+       }
+      ],
+      "scoped_count": 1
+     },
+     "relationship_breakdown": {
+      "context": 1,
+      "supports": 1
+     },
+     "relationship_scope": {
+      "scoped": [
+       {
+        "block_id": "mapping-text",
+        "claim_scope": "new diagnoses",
+        "content_basis": "snippet",
+        "decision": "mismatch",
+        "dimension": "outcome",
+        "element_id": "e1",
+        "evidence_id": "ev-a",
+        "input_sha256": "8144c563199c2ac388a6635b27afe6fdf355fdff1087e20f8ec9b937528adce6",
+        "original_ref": {
+         "evidence_id": "ev-a",
+         "reasoning": "No progression benefit.",
+         "relationship": "supports"
+        },
+        "original_uncertainty": "Prior uncertainty.",
+        "quote": "The trial enrolled diagnosed adults and measured symptom progression.",
+        "reasoning": "The trial measures progression after diagnosis, not incidence.",
+        "source_scope": "progression after diagnosis",
+        "status": "scoped"
+       }
+      ],
+      "scoped_count": 1
+     },
+     "state_derivation": {
+      "caveat": "Some evidence has different or unestablished applicability to this element and is retained as context; see the relationship explanations.",
+      "challenges_count": 0,
+      "context_count": 1,
+      "rule_applied": "all_supports",
+      "supports_count": 1,
+      "weighted_challenges": 0,
+      "weighted_supports": 3
+     },
+     "support_structure": {
+      "count": 1,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 1,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "example.org",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 1,
+       "reporting": 0
+      }
+     },
+     "tier_breakdown": {
+      "primary": 2
+     }
+    },
+    "description": "A reduces new diagnoses in adults.",
+    "element_id": "e1",
+    "evidence_refs": [
+     {
+      "evidence_id": "ev-a",
+      "reasoning": "Context after scope review: The trial measures progression after diagnosis, not incidence.",
+      "relationship": "context"
+     },
+     {
+      "evidence_id": "ev-b",
+      "reasoning": "Second support.",
+      "relationship": "supports"
+     }
+    ],
+    "state": "supported",
+    "uncertainty": "Some evidence has different or unestablished applicability to this element and is retained as context; see the relationship explanations."
+   }
+  ],
+  "metadata": {
+   "scope_review": {
+    "assessed_pairs": 1,
+    "calls": [
+     {
+      "pairs": 2,
+      "seconds": 0.0,
+      "status": "ok"
+     }
+    ],
+    "candidate_pairs": 2,
+    "latest_run": {
+     "assessed_pairs": 1,
+     "calls": [
+      {
+       "pairs": 2,
+       "seconds": 0.0,
+       "status": "ok"
+      }
+     ],
+     "candidate_pairs": 2,
+     "pairs": [
+      {
+       "block_id": "mapping-text",
+       "claim_scope": "new diagnoses",
+       "content_basis": "snippet",
+       "decision": "mismatch",
+       "dimension": "outcome",
+       "element_id": "e1",
+       "evidence_id": "ev-a",
+       "input_sha256": "8144c563199c2ac388a6635b27afe6fdf355fdff1087e20f8ec9b937528adce6",
+       "original_ref": {
+        "evidence_id": "ev-a",
+        "reasoning": "No progression benefit.",
+        "relationship": "supports"
+       },
+       "original_uncertainty": "Prior uncertainty.",
+       "quote": "The trial enrolled diagnosed adults and measured symptom progression.",
+       "reasoning": "The trial measures progression after diagnosis, not incidence.",
+       "source_scope": "progression after diagnosis",
+       "status": "scoped"
+      },
+      {
+       "element_id": "e1",
+       "evidence_id": "ev-b",
+       "invalid_reason": "not_returned",
+       "status": "invalid"
+      }
+     ],
+     "scope": "all",
+     "selected_pairs": 2,
+     "status": "needs_review",
+     "uninspected_pairs": 1
+    },
+    "method": "model_scope_review_not_entailment_proof",
+    "pairs": [
+     {
+      "block_id": "mapping-text",
+      "claim_scope": "new diagnoses",
+      "content_basis": "snippet",
+      "decision": "mismatch",
+      "dimension": "outcome",
+      "element_id": "e1",
+      "evidence_id": "ev-a",
+      "input_sha256": "8144c563199c2ac388a6635b27afe6fdf355fdff1087e20f8ec9b937528adce6",
+      "original_ref": {
+       "evidence_id": "ev-a",
+       "reasoning": "No progression benefit.",
+       "relationship": "supports"
+      },
+      "original_uncertainty": "Prior uncertainty.",
+      "quote": "The trial enrolled diagnosed adults and measured symptom progression.",
+      "reasoning": "The trial measures progression after diagnosis, not incidence.",
+      "source_scope": "progression after diagnosis",
+      "status": "scoped"
+     },
+     {
+      "element_id": "e1",
+      "evidence_id": "ev-b",
+      "invalid_reason": "not_returned",
+      "status": "invalid"
+     }
+    ],
+    "runs": 1,
+    "selected_pairs": 2,
+    "status": "needs_review",
+    "uninspected_pairs": 1,
+    "version": 4
+   }
+  },
+  "normalised_claim": "A reduces new diagnoses in adults."
+ },
+ "D_echo_restore": {
+  "claim_id": "0",
+  "elements": [
+   {
+    "basis": {
+     "challenge_structure": {
+      "count": 0,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 0,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 0,
+       "reporting": 0
+      }
+     },
+     "classification_breakdown": {},
+     "content_basis_breakdown": {},
+     "echo_scope": {
+      "restored": [
+       {
+        "evidence_id": "ev-d1",
+        "original_id": "ev-orig",
+        "reason": "original no longer counted on this side",
+        "was": "supports"
+       },
+       {
+        "evidence_id": "ev-d2",
+        "original_id": "ev-orig",
+        "reason": "original no longer counted on this side",
+        "was": "supports"
+       }
+      ],
+      "scoped": [],
+      "scoped_count": 0
+     },
+     "evidence_count": 3,
+     "relationship_breakdown": {
+      "context": 1,
+      "supports": 2
+     },
+     "state_derivation": {
+      "caveat": null,
+      "challenges_count": 0,
+      "context_count": 1,
+      "rule_applied": "all_supports",
+      "supports_count": 2,
+      "weighted_challenges": 0,
+      "weighted_supports": 4
+     },
+     "support_structure": {
+      "count": 2,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 2,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 0,
+       "reporting": 2
+      }
+     },
+     "tier_breakdown": {
+      "primary": 1,
+      "reporting": 2
+     }
+    },
+    "description": "Whether the figures rose.",
+    "element_id": "e1",
+    "evidence_refs": [
+     {
+      "evidence_id": "ev-orig",
+      "reasoning": "test",
+      "relationship": "context"
+     },
+     {
+      "evidence_id": "ev-d1",
+      "reasoning": "test",
+      "relationship": "supports"
+     },
+     {
+      "evidence_id": "ev-d2",
+      "reasoning": "test",
+      "relationship": "supports"
+     }
+    ],
+    "scope_reach": null,
+    "state": "supported",
+    "uncertainty": null
+   }
+  ],
+  "metadata": {},
+  "normalised_claim": "The figures rose."
+ },
+ "E_recovery_full_pool": {
+  "claim_id": "c1",
+  "claim_type": "empirical",
+  "elements": [
+   {
+    "basis": {
+     "challenge_structure": {
+      "count": 0,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 0,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 0,
+       "reporting": 0
+      }
+     },
+     "classification_breakdown": {},
+     "content_basis_breakdown": {},
+     "evidence_count": 2,
+     "relationship_breakdown": {
+      "context": 1,
+      "supports": 1
+     },
+     "state_derivation": {
+      "caveat": null,
+      "challenges_count": 0,
+      "context_count": 1,
+      "llm_state": "supported",
+      "rule_applied": "support_floor",
+      "supports_count": 1,
+      "weighted_challenges": 0,
+      "weighted_supports": 2
+     },
+     "support_structure": {
+      "count": 1,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 1,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "example.org",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 0,
+       "reporting": 1
+      }
+     },
+     "temporal_scope": {
+      "scoped": [
+       {
+        "evidence_id": "ev-old",
+        "was": "supports"
+       }
+      ],
+      "scoped_count": 1
+     },
+     "tier_breakdown": {
+      "reporting": 2
+     }
+    },
+    "description": "Element e1 about the figures in 2024.",
+    "element_id": "e1",
+    "evidence_refs": [
+     {
+      "evidence_id": "ev-main-2",
+      "reasoning": "test reasoning",
+      "relationship": "context"
+     },
+     {
+      "evidence_id": "ev-rec-e1_0_a",
+      "reasoning": "test reasoning",
+      "relationship": "supports"
+     }
+    ],
+    "state": "unresolved",
+    "uncertainty": "Recovery uncertainty."
+   },
+   {
+    "basis": {
+     "challenge_structure": {
+      "count": 2,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 1,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "example.org",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 2,
+       "reporting": 0
+      }
+     },
+     "classification_breakdown": {},
+     "content_basis_breakdown": {},
+     "evidence_count": 3,
+     "relationship_breakdown": {
+      "challenges": 2,
+      "supports": 1
+     },
+     "state_derivation": {
+      "llm_state": "supported",
+      "rule_applied": "prior"
+     },
+     "support_structure": {
+      "count": 1,
+      "derivation": {
+       "derivative_count": 0,
+       "originals": 0
+      },
+      "distinct_domains": 1,
+      "repetition": {
+       "distinct_domains": 0,
+       "max_cluster_on_side": 0
+      },
+      "sole_domain": "example.org",
+      "tier_counts": {
+       "commentary": 0,
+       "primary": 1,
+       "reporting": 0
+      }
+     },
+     "temporal_scope": {
+      "scoped": [
+       {
+        "evidence_id": "ev-old",
+        "was": "supports"
+       }
+      ],
+      "scoped_count": 1
+     },
+     "tier_breakdown": {
+      "primary": 3
+     }
+    },
+    "description": "Element e2 about the figures in 2024.",
+    "element_id": "e2",
+    "evidence_refs": [
+     {
+      "evidence_id": "ev-main",
+      "reasoning": "test reasoning",
+      "relationship": "supports"
+     },
+     {
+      "evidence_id": "ev-rec-e2_0_b",
+      "reasoning": "test reasoning",
+      "relationship": "challenges"
+     },
+     {
+      "evidence_id": "ev-rec-e2_0_c",
+      "reasoning": "test reasoning",
+      "relationship": "challenges"
+     }
+    ],
+    "state": "supported",
+    "uncertainty": null
+   },
+   {
+    "basis": {
+     "state_derivation": {
+      "caveat": null,
+      "challenges_count": 0,
+      "context_count": 0,
+      "llm_state": "unresolved",
+      "rule_applied": "no_evidence",
+      "supports_count": 0,
+      "weighted_challenges": 0,
+      "weighted_supports": 0
+     },
+     "temporal_scope": {
+      "scoped": [
+       {
+        "evidence_id": "ev-old",
+        "was": "supports"
+       }
+      ],
+      "scoped_count": 1
+     }
+    },
+    "description": "Element e3 about the figures in 2024.",
+    "element_id": "e3",
+    "evidence_refs": [],
+    "state": "unresolved",
+    "uncertainty": null
+   }
+  ],
+  "metadata": {
+   "completed_at": null,
+   "decomposition_model": "test",
+   "element_count": 3,
+   "mapping_model": "test"
+  },
+  "normalised_claim": "The figures rose in 2024.",
+  "orientation": "Of 3 elements examined, 2 lacking sufficient evidence; 1 predominantly supported.",
+  "orientation_basis": {
+   "state_distribution": {
+    "contextual": 0,
+    "disputed": 0,
+    "supported": 1,
+    "unresolved": 2
+   },
+   "total_elements": 3
+  }
+ },
+ "E_recovery_no_pool": {
+  "claim_id": "c1",
+  "claim_type": "empirical",
+  "elements": [
+   {
+    "basis": {
+     "state_derivation": {
+      "caveat": null,
+      "challenges_count": 0,
+      "context_count": 1,
+      "llm_state": "supported",
+      "rule_applied": "support_floor",
+      "supports_count": 1,
+      "weighted_challenges": 0,
+      "weighted_supports": 2
+     },
+     "temporal_scope": {
+      "scoped": [
+       {
+        "evidence_id": "ev-old",
+        "was": "supports"
+       }
+      ],
+      "scoped_count": 1
+     }
+    },
+    "description": "Element e1 about the figures in 2024.",
+    "element_id": "e1",
+    "evidence_refs": [
+     {
+      "evidence_id": "ev-main-2",
+      "reasoning": "test reasoning",
+      "relationship": "context"
+     },
+     {
+      "evidence_id": "ev-rec-e1_0_a",
+      "reasoning": "test reasoning",
+      "relationship": "supports"
+     }
+    ],
+    "state": "unresolved",
+    "uncertainty": "Recovery uncertainty."
+   },
+   {
+    "basis": {
+     "state_derivation": {
+      "llm_state": "supported",
+      "rule_applied": "prior"
+     },
+     "temporal_scope": {
+      "scoped": [
+       {
+        "evidence_id": "ev-old",
+        "was": "supports"
+       }
+      ],
+      "scoped_count": 1
+     }
+    },
+    "description": "Element e2 about the figures in 2024.",
+    "element_id": "e2",
+    "evidence_refs": [
+     {
+      "evidence_id": "ev-main",
+      "reasoning": "test reasoning",
+      "relationship": "supports"
+     },
+     {
+      "evidence_id": "ev-rec-e2_0_b",
+      "reasoning": "test reasoning",
+      "relationship": "challenges"
+     },
+     {
+      "evidence_id": "ev-rec-e2_0_c",
+      "reasoning": "test reasoning",
+      "relationship": "challenges"
+     }
+    ],
+    "state": "supported",
+    "uncertainty": null
+   },
+   {
+    "basis": {
+     "state_derivation": {
+      "caveat": null,
+      "challenges_count": 0,
+      "context_count": 0,
+      "llm_state": "unresolved",
+      "rule_applied": "no_evidence",
+      "supports_count": 0,
+      "weighted_challenges": 0,
+      "weighted_supports": 0
+     },
+     "temporal_scope": {
+      "scoped": [
+       {
+        "evidence_id": "ev-old",
+        "was": "supports"
+       }
+      ],
+      "scoped_count": 1
+     }
+    },
+    "description": "Element e3 about the figures in 2024.",
+    "element_id": "e3",
+    "evidence_refs": [],
+    "state": "unresolved",
+    "uncertainty": null
+   }
+  ],
+  "metadata": {
+   "completed_at": null,
+   "decomposition_model": "test",
+   "element_count": 3,
+   "mapping_model": "test"
+  },
+  "normalised_claim": "The figures rose in 2024.",
+  "orientation": "Of 3 elements examined, 2 lacking sufficient evidence; 1 predominantly supported.",
+  "orientation_basis": {
+   "state_distribution": {
+    "contextual": 0,
+    "disputed": 0,
+    "supported": 1,
+    "unresolved": 2
+   },
+   "total_elements": 3
+  }
+ }
+}
