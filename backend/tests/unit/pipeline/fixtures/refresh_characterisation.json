@@ -611,8 +611,14 @@
       "supports": 1
      },
      "state_derivation": {
+      "caveat": "mixed: 1 support / 2 disagree (weighted 3 vs 6)",
+      "challenges_count": 2,
+      "context_count": 0,
       "llm_state": "supported",
-      "rule_applied": "prior"
+      "rule_applied": "close_split",
+      "supports_count": 1,
+      "weighted_challenges": 6,
+      "weighted_supports": 3
      },
      "support_structure": {
       "count": 1,
@@ -664,7 +670,7 @@
       "relationship": "challenges"
      }
     ],
-    "state": "supported",
+    "state": "disputed",
     "uncertainty": null
    },
    {
@@ -703,12 +709,12 @@
    "mapping_model": "test"
   },
   "normalised_claim": "The figures rose in 2024.",
-  "orientation": "Of 3 elements examined, 2 lacking sufficient evidence; 1 predominantly supported.",
+  "orientation": "Of 3 elements examined, 2 lacking sufficient evidence; 1 with conflicting evidence.",
   "orientation_basis": {
    "state_distribution": {
     "contextual": 0,
-    "disputed": 0,
-    "supported": 1,
+    "disputed": 1,
+    "supported": 0,
     "unresolved": 2
    },
    "total_elements": 3

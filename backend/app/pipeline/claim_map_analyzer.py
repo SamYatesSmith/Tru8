@@ -4016,70 +4016,78 @@ class ClaimMapAnalyzer:
                     # resolve to no-ops here (and recovery items carry no
                     # derivation chains, so the echo gate is silent on this
                     # path — the safe direction).
-                    if new_refs:
+                    is_target = eid in target_set
+                    ref_ids = [r.get("evidence_id", "?") for r in new_refs]
+                    logger.info(
+                        f"[RECOVERY MAP] {eid} ({'target' if is_target else 'non-target'}): "
+                        f"+{len(new_refs)} refs {ref_ids}"
+                    )
+                    raw_state = None
+                    if is_target:
+                        raw_state = mapped.get("state", "unresolved")
+                        if raw_state not in _VALID_STATES:
+                            raw_state = "unresolved"
+                        # Set before the state is derived: its caveat reads it.
+                        elem["uncertainty"] = _clean_uncertainty(
+                            mapped.get("uncertainty")
+                        )
+
+                    if new_refs and full_evidence:
+                        # An element's state always matches its refs (D1,
+                        # founder 2026-10-07): ANY element that gained refs,
+                        # target or not, is rebuilt and re-derived over the
+                        # full pool (tier weights resolve for pre-existing refs
+                        # too). Before, non-targets got a fresh basis but their
+                        # OLD state, so a supported element that gained two
+                        # primary challenges still read `supported`. Gate
+                        # receipts carry across the rebuild (invariant #5).
+                        # The GATE index covers new_evidence only: pre-existing
+                        # refs were gated in the main pass (2026-08-13, check
+                        # 6f88a77f: this path once merged recovery refs ungated).
                         scope_receipts = self._apply_scope_gates(
                             elem, recovery_ev_index, claim_map
                         )
-                        # Basis recomputed over the FULL pool (2026-08-17,
-                        # quality-first Phase B): this path used to leave the
-                        # main pass's basis untouched, so evidence_count,
-                        # every breakdown dict and the support/challenge
-                        # structures under-reported the merged ref set (§10
-                        # staleness). ONLY when the caller supplied the full
-                        # pool — recomputing from new_evidence alone would
-                        # strip pre-existing refs' tiers from the breakdown,
-                        # which is worse than stale. Gate receipts and the
-                        # prior state derivation are carried across the
-                        # rebuild — losing a receipt is losing the record of
-                        # an exclusion (invariant #5); targets get a fresh
-                        # derivation right below.
+                        mech_state, state_basis = _refresh_element(
+                            elem,
+                            pool,
+                            claim_map,
+                            fresh_receipts=scope_receipts,
+                            keep_llm_state=not is_target,
+                        )
+                        if is_target:
+                            state_basis["llm_state"] = raw_state
+                    elif new_refs:
+                        # No full pool supplied (the runner always supplies it):
+                        # recomputing from new_evidence alone would strip
+                        # pre-existing refs' tiers, so the old basis is kept and
+                        # only the receipts merge; targets re-derive below.
+                        scope_receipts = self._apply_scope_gates(
+                            elem, recovery_ev_index, claim_map
+                        )
                         prior_basis = elem.get("basis") or {}
                         prior_receipts = {
                             k: v
                             for k, v in prior_basis.items()
                             if k in _SCOPE_RECEIPT_KEYS
                         }
-                        prior_state_derivation = prior_basis.get("state_derivation")
-                        if full_evidence:
-                            elem["basis"] = _compute_element_basis(elem, pool)
-                        else:
-                            elem["basis"] = dict(prior_basis)
+                        elem["basis"] = dict(prior_basis)
                         merged_receipts = _merge_scope_receipts(
                             prior_receipts, scope_receipts
                         )
                         if merged_receipts:
                             elem["basis"].update(merged_receipts)
-                        if prior_state_derivation is not None:
-                            elem["basis"]["state_derivation"] = prior_state_derivation
 
-                    is_target = eid in target_set
-                    ref_ids = [r.get("evidence_id", "?") for r in new_refs]
-                    logger.info(
-                        f"[RECOVERY MAP] {eid} ({'target' if is_target else 'resolved'}): "
-                        f"+{len(new_refs)} refs {ref_ids}, "
-                        f"state={'updating' if is_target else 'preserved'}"
-                    )
-
-                    # Only update state for unresolved (target) elements
-                    if is_target:
-                        raw_state = mapped.get("state", "unresolved")
-                        if raw_state not in _VALID_STATES:
-                            raw_state = "unresolved"
-                        elem["uncertainty"] = _clean_uncertainty(
-                            mapped.get("uncertainty")
-                        )
-                        # Authority-weighted override (parity with the main
-                        # mapping path). Since 2026-08-17 the runner passes
-                        # the merged pool, so tier weights resolve for
-                        # pre-existing refs too (they used to fall to
-                        # weight=1 here — the acknowledged blind spot of the
-                        # new_evidence-only lookup).
+                    if is_target and not (new_refs and full_evidence):
+                        # A target re-derives even with no new refs (parity
+                        # with the main mapping path); its basis is unchanged.
                         mech_state, state_basis = _derive_element_state_with_authority(
                             elem, pool, *_state_floor_for(claim_map)
                         )
                         state_basis["llm_state"] = raw_state
                         elem.setdefault("basis", {})["state_derivation"] = state_basis
                         elem["state"] = mech_state
+
+                    if is_target or new_refs and full_evidence:
                         logger.info(
                             f"[RECOVERY MAP] {eid}: state → {mech_state.value} "
                             f"(llm={raw_state}, rule={state_basis['rule_applied']})"

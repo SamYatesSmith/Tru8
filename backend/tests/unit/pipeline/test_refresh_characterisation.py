@@ -298,9 +298,9 @@ async def test_scenarios_reach_the_branches_they_claim(monkeypatch):
     e = await _site_e_recovery(True)
     by_id = {el["element_id"]: el for el in e["elements"]}
     assert len(by_id["e2"]["evidence_refs"]) == 3  # non-target gained refs
-    assert (
-        by_id["e2"]["basis"]["state_derivation"]["rule_applied"] == "prior"
-    )  # D1 today
+    # D1 fixed (2026-10-07): a non-target that gained refs is re-derived.
+    assert by_id["e2"]["state"] == ElementState.disputed
+    assert by_id["e2"]["basis"]["state_derivation"]["llm_state"] == "supported"
     assert by_id["e3"]["evidence_refs"] == []  # target with no new refs
     e_np = await _site_e_recovery(False)
     assert e_np["elements"][1]["basis"].get("evidence_count") is None  # old basis kept
