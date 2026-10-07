@@ -118,8 +118,8 @@ class EvidenceDistiller:
         # alone is what decides element 3, and a claim-level extractor drops it
         # as a subordinate detail: a 6,663-char BBC article became six facts,
         # none of them the counter-example the record then failed to file.
-        # This was gated behind ENABLE_PASSAGE_MAPPING — off in production —
-        # and by BOTH callers besides. Default path now, no flag.
+        # This was once gated behind the passage-mapping candidate (off in
+        # production, removed 2026-10-07). Default path now, no flag.
         if elements:
             claim_text += "\nResearch elements:\n" + "\n".join(
                 f"{e['element_id']}: {e['description']}" for e in elements
@@ -260,9 +260,7 @@ class EvidenceDistiller:
             # already fit the same ceiling (8 x 900 = 7,200), so for a document
             # that overflows they are strictly better input. Below the ceiling
             # the slice IS the document, so nothing changes there.
-            if settings.ENABLE_PASSAGE_MAPPING or (
-                settings.ENABLE_DISTIL_PASSAGE_INPUT and len(raw) > MAX_ARTICLE_CHARS
-            ):
+            if settings.ENABLE_DISTIL_PASSAGE_INPUT and len(raw) > MAX_ARTICLE_CHARS:
                 from app.services.passage_mapping import valid_passages
 
                 passages = valid_passages(item)

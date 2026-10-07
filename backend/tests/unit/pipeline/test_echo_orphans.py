@@ -234,7 +234,6 @@ async def test_restored_copies_are_reviewed_themselves(monkeypatch):
     """The review demotes the original; its copies come back and are sent to
     the review — ONLY those pairs — because they relay the same content."""
     monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", True)
-    monkeypatch.setattr(settings, "ENABLE_PASSAGE_MAPPING", False)
     analyzer = ClaimMapAnalyzer()
     claim_map, elem = _parse(ECHO_EVIDENCE, RELS)
     calls = []
@@ -264,7 +263,6 @@ async def test_restored_copies_are_reviewed_themselves(monkeypatch):
 @pytest.mark.asyncio
 async def test_no_second_review_when_nothing_is_restored(monkeypatch):
     monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", True)
-    monkeypatch.setattr(settings, "ENABLE_PASSAGE_MAPPING", False)
     analyzer = ClaimMapAnalyzer()
     claim_map, _ = _parse(ECHO_EVIDENCE, RELS)
     calls = []
@@ -351,7 +349,6 @@ async def test_restore_is_undone_when_its_review_is_cancelled(monkeypatch):
     import asyncio
 
     monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", True)
-    monkeypatch.setattr(settings, "ENABLE_PASSAGE_MAPPING", False)
     analyzer = ClaimMapAnalyzer()
     claim_map, elem = _parse(ECHO_EVIDENCE, RELS)
     _demote(elem, "ev-orig")
@@ -372,8 +369,9 @@ async def test_restore_is_undone_when_its_review_is_cancelled(monkeypatch):
 
 
 def test_gates_after_echo_still_yield_to_echo(monkeypatch):
-    """Precedence is list order: a gate listed AFTER echo (fact_applicability,
-    flag-only) must not claim a ref echo claims, and one BEFORE echo must."""
+    """Precedence is list order: a gate listed AFTER echo must not claim a ref
+    echo claims, and one BEFORE echo must. No production gate runs after echo
+    since 2026-10-07; `fact_applicability` is used here as a stand-in key."""
     from app.pipeline import claim_map_analyzer as cma
 
     def gate(key, fires=True):

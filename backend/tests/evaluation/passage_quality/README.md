@@ -1,5 +1,15 @@
 # Passage quality evaluation pack
 
+> **2026-10-07: historical.** The passage-mapping and structured-extraction
+> candidates this pack evaluated were removed, with their scripts
+> (`prepare_passage_evaluation.py`, `run_passage_evaluation.py`,
+> `score_passage_regressions.py`, `evaluate_result_fidelity.py`,
+> `audit_structured_extraction.py`; recoverable from git history before that
+> date). The result files below are the record of those runs. Two fixtures are
+> still live test inputs: `result_fragment_failure.json` and
+> `qualitative_effect_failures.json` (read by `tests/unit/test_relationship_scope_review.py`).
+> Plan: `audit/2026-10-07_passage_mapping_removal_plan.md`.
+
 This is test material, outside the application. Nothing here supplies facts,
 rates, dates, publisher overrides or answers to Tru8 at runtime. Historical
 fixtures remain historical when real-world values change; no schedule or AI
@@ -21,9 +31,9 @@ and pins the input hash. `prepared/extraction_report.json` records access and
 extraction separately. Raw pages and long source texts stay in the local pack;
 they are not application assets or redistributed in the repository.
 
-## Reproduce
+## Reproduce (historical: these scripts were removed 2026-10-07)
 
-From `backend`, using the project Python environment:
+From `backend`, using the project Python environment, at a commit before 2026-10-07:
 
 ```powershell
 python scripts/prepare_passage_evaluation.py capture --spec tests/evaluation/passage_quality/spec.json --pack ../tmp/a-new-capture-directory

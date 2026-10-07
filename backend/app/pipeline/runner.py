@@ -2248,7 +2248,7 @@ async def run_pipeline_phase2(
 
                 async def _distil_one_claim(claim_pos, ev_list, claim_text):
                     # Elements go through on every path (2026-09-22). Gating them
-                    # behind ENABLE_PASSAGE_MAPPING meant the extractor never knew
+                    # behind the passage-mapping candidate meant the extractor never knew
                     # what the evidence had to answer, so element-specific
                     # sentences were dropped as subordinate detail.
                     elements = (claim_lookup[claim_pos].get("claim_map") or {}).get(

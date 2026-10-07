@@ -296,17 +296,12 @@ class Settings(BaseSettings):
 
     # Evidence distillation
     ENABLE_EVIDENCE_DISTILLATION: bool = Field(True, env="ENABLE_EVIDENCE_DISTILLATION")
-    # Changes model input: enable only after fixed-source model evaluation.
-    ENABLE_PASSAGE_MAPPING: bool = Field(False, env="ENABLE_PASSAGE_MAPPING")
     # Read a document longer than MAX_ARTICLE_CHARS by its retained element
-    # windows instead of a leading slice (2026-09-22). Deliberately NOT part of
-    # ENABLE_PASSAGE_MAPPING, which also switches on the passage/applicability
-    # contract that the 2026-09-09 regrade found not ready. Rollback flag only —
+    # windows instead of a leading slice (2026-09-22). Rollback flag only —
     # below the ceiling the slice is the whole document, so this is a no-op there.
+    # (The passage-mapping candidate it was split from was removed 2026-10-07,
+    # with structured extraction: audit/2026-10-07_passage_mapping_removal_plan.md.)
     ENABLE_DISTIL_PASSAGE_INPUT: bool = Field(True, env="ENABLE_DISTIL_PASSAGE_INPUT")
-    ENABLE_STRUCTURED_EXTRACTION: bool = Field(
-        False, env="ENABLE_STRUCTURED_EXTRACTION"
-    )
     DISTIL_MODEL: str = Field("gemini-3.5-flash-lite", env="DISTIL_MODEL")
     # Migrated 2026-08-27. The 2026-08-25 migration moved GOOGLE_LLM_MODEL and
     # MAPPING_GOOGLE_MODEL and recorded "the whole pipeline is off the retiring
@@ -863,8 +858,8 @@ class Settings(BaseSettings):
     ENABLE_COPY_DEDUP: bool = Field(True, env="ENABLE_COPY_DEDUP")
 
     # Relationship review on the DEFAULT path (A− M1, 2026-09-24). Decoupled
-    # from ENABLE_PASSAGE_MAPPING, whose other parts the 09-09 regrade judged
-    # not ready. A demote-only model review of every directional ref (period,
+    # from the passage-mapping candidate (judged not ready 09-09, removed
+    # 2026-10-07). A demote-only model review of every directional ref (period,
     # place, measure before result). OFF until the offline eval passes.
     # 2026-09-29 ON (founder): held-out eval passed on gemini-3.7-flash,
     # supports only, demote-on-unknown (37/40 bad supports removed, 6/120 good

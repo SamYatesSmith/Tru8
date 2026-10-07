@@ -4,7 +4,7 @@ Regenerate with `cd backend && python -m scripts.flag_register`. `tests/unit/tes
 
 Defaults are the code's. **Railway can override any flag with an env var of the same name; this file cannot see that.** Check Railway when a live value matters.
 
-**53 flags: 43 on, 10 off by default.**
+**51 flags: 43 on, 8 off by default.**
 
 | Flag | Default | Read in | Why (from config.py) |
 |---|---|---|---|
@@ -12,8 +12,6 @@ Defaults are the code's. **Railway can override any flag with an env var of the 
 | `ENABLE_DERIVATION_CHAINS` | **OFF** | 1 file | The grey "echo" sourcing note's reader. OFF 2026-10-01 (founder): the unconfirmed links were real relays 24% of the time. |
 | `ENABLE_ECHO_LINK_CONFIRMATION` | **OFF** | 1 file | Echo link confirmation (2026-10-05). |
 | `ENABLE_ECHO_SCOPE_GATE` | **OFF** | 2 files | Echo scope gate (2026-08-17, quality-first Phase B). OFF 2026-10-01 (founder): the link it reads is wrong more often than right. |
-| `ENABLE_PASSAGE_MAPPING` | **OFF** | 3 files | Changes model input: enable only after fixed-source model evaluation. |
-| `ENABLE_STRUCTURED_EXTRACTION` | **OFF** | 3 files |  |
 | `MANIFEST_SIGNING_ENABLED` | **OFF** | 3 files | M-04: Manifest signing |
 | `SKYFIRE_ENABLED` | **OFF** | 1 file | ========== SKYFIRE KYAPay (L-06) ========== |
 | `SUBSCRIPTIONS_ENABLED` | **OFF** | 1 file | When False, subscription endpoints return "coming soon" message Set to True when ready to accept paid subscriptions |

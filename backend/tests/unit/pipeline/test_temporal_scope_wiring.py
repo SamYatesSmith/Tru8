@@ -452,13 +452,10 @@ def test_publication_resolution_rolls_back_independently(monkeypatch):
     assert _rel(elem, "ev-title-shortyear") == "context"
 
 
-@pytest.mark.parametrize("candidate", [False, True])
 @pytest.mark.parametrize("relationship", ["supports", "challenges"])
-def test_candidate_temporal_scope_explanation_matches_label(monkeypatch, candidate, relationship):
-    from app.core.config import settings
+def test_temporal_scope_keeps_the_model_reasoning(relationship):
     from app.pipeline.claim_map_analyzer import _index_evidence
 
-    monkeypatch.setattr(settings, "ENABLE_PASSAGE_MAPPING", candidate)
     claim_map = _claim_map()
     response = _mapping_response()
     original = "This establishes the element for the required period."
@@ -471,13 +468,8 @@ def test_candidate_temporal_scope_explanation_matches_label(monkeypatch, candida
     ref = elem["evidence_refs"][0]
     receipt = elem["basis"]["temporal_scope"]["scoped"][0]
     assert _rel(elem, "ev-june") == "context"
-    if candidate:
-        assert ref["reasoning"].startswith("Retained as context:")
-        assert "2024-09" in ref["reasoning"]
-        assert receipt["original_reasoning"] == original
-    else:
-        assert ref["reasoning"] == original
-        assert "original_reasoning" not in receipt
+    assert ref["reasoning"] == original
+    assert "original_reasoning" not in receipt
     saved_reason = ref["reasoning"]
     assert analyzer._apply_scope_gates(elem, _index_evidence(EVIDENCE), claim_map) == {}
     assert ref["reasoning"] == saved_reason

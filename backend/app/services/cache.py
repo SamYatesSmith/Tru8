@@ -133,8 +133,6 @@ class CacheService:
         deploy that changes what retrieval gathers starts every claim fresh
         instead of replaying a pool the old code built (24 h TTL)."""
         version = settings.RETRIEVAL_CACHE_VERSION
-        if settings.ENABLE_STRUCTURED_EXTRACTION:
-            version += ":structured-v1"
         return f"{version}:{self._hash_content(claim)}"
 
     async def cache_evidence_extraction(

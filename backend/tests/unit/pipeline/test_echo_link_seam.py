@@ -673,7 +673,6 @@ def _rel(cm, eid):
 @pytest.fixture
 def quiet_mapping(monkeypatch, readers_on):
     monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", False)
-    monkeypatch.setattr(settings, "ENABLE_PASSAGE_MAPPING", False)
 
 
 @pytest.mark.unit

@@ -1,10 +1,10 @@
-"""Actual broad-pilot false exclusion plus adjacent recital controls."""
+"""A reported trial finding that restates the claim is scoped to context by the
+recital gate (default path), plus attribution and plan controls."""
 
 import copy
 
 import pytest
 
-from app.core.config import settings
 from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
 from app.utils.recital_scope import recital_match
 
@@ -12,10 +12,8 @@ CLAIM = "In the LANE trial, intervention Q reduced hospital admissions in adults
 RESULT = "In the LANE randomized trial, intervention Q significantly reduced hospital admissions in adults compared with placebo."
 
 
-@pytest.mark.parametrize("enabled", [False, True])
 @pytest.mark.parametrize("relationship", ["supports", "challenges"])
-def test_reported_finding_through_real_parser(monkeypatch, enabled, relationship):
-    monkeypatch.setattr(settings, "ENABLE_PASSAGE_MAPPING", enabled)
+def test_reported_finding_through_real_parser(relationship):
     cm = {
         "claim_id": "x",
         "normalised_claim": CLAIM,
@@ -58,9 +56,7 @@ def test_reported_finding_through_real_parser(monkeypatch, enabled, relationship
         ]
     }
     ClaimMapAnalyzer()._parse_mapping_response(parsed, cm, evidence)
-    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == (
-        relationship if enabled else "context"
-    )
+    assert cm["elements"][0]["evidence_refs"][0]["relationship"] == "context"
     assert evidence == before
 
 
@@ -76,7 +72,7 @@ def test_reported_finding_through_real_parser(monkeypatch, enabled, relationship
     ],
 )
 def test_repetition_attribution_and_plans_still_excluded(text):
-    assert recital_match(None, text, [], CLAIM, allow_reported_results=True)
+    assert recital_match(None, text, [], CLAIM)
 
 
 def test_explicit_attribution_reasoning_still_wins():
@@ -85,11 +81,4 @@ def test_explicit_attribution_reasoning_still_wins():
         RESULT,
         [("company", "the company")],
         CLAIM,
-        allow_reported_results=True,
     )
-
-
-def test_unseen_reported_observation_not_discarded_for_wording():
-    claim = "Practice N was associated with fewer missed school days among adolescents."
-    text = "In the adolescent survey, practice N was associated with fewer missed school days among adolescents; researchers reported the association."
-    assert recital_match(None, text, [], claim, allow_reported_results=True) is None

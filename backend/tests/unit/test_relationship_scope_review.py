@@ -291,15 +291,13 @@ def test_excerpt_options_never_truncate_a_long_line():
 
 
 @pytest.mark.asyncio
-async def test_provider_schema_and_default_no_extra_review(monkeypatch):
-    from app.core.config import settings
-
+async def test_provider_schema_and_default_no_extra_review():
     a = ClaimMapAnalyzer()
     a.google_ai_api_key = "test-only"
     a._call_google = AsyncMock(return_value=({"pairs": []}, {}))
     await a._call_llm("review", 0, 100, "scope_review")
     assert a._call_google.call_args.kwargs["response_schema"] == RESPONSE_SCHEMA
-    monkeypatch.setattr(settings, "ENABLE_PASSAGE_MAPPING", False)
+    # Review flag off (autouse fixture): completion makes no review call.
     a._complete_unmapped_sources = AsyncMock()
     a._call_llm = AsyncMock()
     cm, ev, _ = fixture()
@@ -313,7 +311,7 @@ async def test_recovery_also_reviews_the_merged_pool(monkeypatch, enabled):
     from app.core.config import settings
     from app.services import relationship_scope_review
 
-    monkeypatch.setattr(settings, "ENABLE_PASSAGE_MAPPING", enabled)
+    monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", enabled)
     review = AsyncMock()
     monkeypatch.setattr(relationship_scope_review, "review_relationship_scope", review)
     cm, ev, _ = fixture()

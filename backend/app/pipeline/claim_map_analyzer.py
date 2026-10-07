@@ -2256,10 +2256,7 @@ class ClaimMapAnalyzer:
                     * int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 25))
                     + 5,
                 )
-                if (
-                    settings.ENABLE_PASSAGE_MAPPING
-                    or settings.ENABLE_RELATIONSHIP_REVIEW
-                )
+                if settings.ENABLE_RELATIONSHIP_REVIEW
                 else 25
             )
 
@@ -2328,31 +2325,6 @@ class ClaimMapAnalyzer:
         """
         self._last_model_used = "unknown"
 
-        if settings.ENABLE_PASSAGE_MAPPING and label in (
-            "decomposition",
-            "batch_decomposition",
-        ):
-            from app.services.mapping_applicability import DECOMPOSITION_SCOPE_RULES
-
-            # Remove the conflicting legacy split rule, rather than asking the
-            # candidate to obey it and an opposite addendum simultaneously.
-            prompt = prompt.replace(
-                "include the causal link itself as one element, alongside the cause and the effect.",
-                "include the causal claim itself without unasserted prerequisites or repeated outcomes.",
-            )
-            prompt = prompt + "\n" + DECOMPOSITION_SCOPE_RULES
-
-        if settings.ENABLE_PASSAGE_MAPPING and label in (
-            "mapping",
-            "batch_mapping",
-            "map_completion",
-            "recovery_mapping",
-            "passage_review",
-        ):
-            from app.services.mapping_applicability import APPLICABILITY_RULES
-
-            prompt = prompt + "\n" + APPLICABILITY_RULES
-
         # Mapping calls use the thinking model which needs more time
         is_mapping = label in ("mapping", "batch_mapping")
         google_timeout = self.mapping_timeout if is_mapping else self.timeout
@@ -2374,10 +2346,6 @@ class ClaimMapAnalyzer:
             response_schema = _MAPPING_RESPONSE_SCHEMA
         elif label == "batch_mapping":
             response_schema = _BATCH_MAPPING_RESPONSE_SCHEMA
-        elif label == "passage_review":
-            from app.services.passage_mapping import PASSAGE_RESPONSE_SCHEMA
-
-            response_schema = PASSAGE_RESPONSE_SCHEMA
         elif label == "scope_review":
             from app.services.relationship_scope_review import RESPONSE_SCHEMA
 
@@ -3283,7 +3251,6 @@ class ClaimMapAnalyzer:
                         item.text,
                         _t,
                         text,
-                        allow_reported_results=settings.ENABLE_PASSAGE_MAPPING,
                         narrowing=_n,
                         release=_r,
                         instrument_skip=getattr(
@@ -3459,29 +3426,6 @@ class ClaimMapAnalyzer:
                 )
             )
 
-        if settings.ENABLE_PASSAGE_MAPPING:
-            from app.services.fact_applicability import target_day, source_time_anchor
-
-            day = target_day(elem.get("description"), claim_map.get("normalised_claim"))
-            if day:
-                gates.append(
-                    _ScopeGate(
-                        key="fact_applicability",
-                        label="FACT APPLICABILITY",
-                        pins=day,
-                        summary={"target_day": day, "scan_scope": "retained_passages"},
-                        fires=lambda item, _ref: source_time_anchor(
-                            item.ev, elem.get("description", ""), day
-                        )
-                        is None,
-                        entry=lambda item, _ref: {
-                            "reason": "Time applicability is not established in retained source text.",
-                            "target_day": day,
-                            "original_reasoning": _ref.get("reasoning"),
-                        },
-                    )
-                )
-
         return gates
 
     def _apply_scope_gates(
@@ -3532,9 +3476,9 @@ class ClaimMapAnalyzer:
         # copy listed before its original was scoped while the original still
         # counted, and a later gate then scoped the original too, leaving the
         # side with neither (2026-09-30 review H1). So the gates run in three
-        # passes over all refs: those before echo, echo, those after it (only
-        # `fact_applicability`, flag-only). Precedence is unchanged and one gate
-        # still owns each ref: a later pass skips refs already relabelled.
+        # passes over all refs: those before echo, echo, those after it (none
+        # at present). Precedence is unchanged and one gate still owns each
+        # ref: a later pass skips refs already relabelled.
         keys = [g.key for g in gates]
         cut = keys.index("echo_scope") if "echo_scope" in keys else len(gates)
         passes = [gates[:cut], gates[cut : cut + 1], gates[cut + 1 :]]
@@ -3572,19 +3516,6 @@ class ClaimMapAnalyzer:
                 # Built BEFORE the relabel: echo's entry reads the ref's side.
                 entry.update(gate.entry(item, ref))
                 ref["relationship"] = EvidenceRelationship.context
-                if gate.key == "temporal_scope" and settings.ENABLE_PASSAGE_MAPPING:
-                    # A scoped label must not retain a directional explanation.
-                    # Keep the model's interpretation in the audit receipt.
-                    entry["original_reasoning"] = ref.get("reasoning")
-                    ref["reasoning"] = (
-                        "Retained as context: the source's identified time period "
-                        "does not match this element's required period "
-                        f"({entry['element_period']})."
-                    )
-                if gate.key == "fact_applicability":
-                    ref["reasoning"] = (
-                        f"{entry['reason']} Required date: {entry['target_day']}."
-                    )
                 scoped[gate.key].append(entry)
                 # One gate owns the reference. Letting a second also claim it
                 # would double-count the same exclusion in two receipts.
@@ -3668,21 +3599,8 @@ class ClaimMapAnalyzer:
         self, claim_map: ClaimMap, evidence_list: List[Dict[str, Any]]
     ) -> None:
         await self._complete_unmapped_sources(claim_map, evidence_list)
-        if settings.ENABLE_PASSAGE_MAPPING:
-            from app.services.passage_mapping import complete_passage_pairs
-
-            try:
-                await complete_passage_pairs(self, claim_map, evidence_list)
-            except Exception:
-                logger.exception("Passage review failed; preserving prior mapping")
-                receipt = claim_map.get("metadata", {}).get("passage_review")
-                if receipt:
-                    receipt["status"] = "failed"
-                    for pair in receipt.get("pairs", []):
-                        if pair.get("status") == "linked":
-                            pair["status"] = "not_applied"
         # A− M1 (2026-09-24): the relationship review has its own flag.
-        if settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW:
+        if settings.ENABLE_RELATIONSHIP_REVIEW:
             from app.services import relationship_scope_review as review
 
             await review.review_relationship_scope(self, claim_map, evidence_list)
@@ -3692,9 +3610,7 @@ class ClaimMapAnalyzer:
         self, claim_map: ClaimMap, evidence_list: List[Dict[str, Any]]
     ) -> None:
         """Restore copies orphaned by a later stage, then review just those."""
-        review_on = (
-            settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW
-        )
+        review_on = settings.ENABLE_RELATIONSHIP_REVIEW
         before = copy.deepcopy(claim_map["elements"]) if review_on else None
         restored = _restore_orphaned_echoes(claim_map, evidence_list)
         if not restored or not review_on:
@@ -3822,14 +3738,6 @@ class ClaimMapAnalyzer:
             f"LEFTOVER Evidence (not referenced by the main pass):\n"
             f"{leftover_desc}"
         )
-        if settings.ENABLE_PASSAGE_MAPPING:
-            prompt += (
-                "\nRetain a context relationship when a source addresses the same intervention or association "
-                "but explicitly studies a different population, endpoint or named study. Explain that boundary. "
-                "Such a source is relevant context, not directional evidence for this element. "
-                "Leave sources with no substantive connection unmapped; do not force all leftovers into context."
-            )
-
         logger.info(
             f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "
             f"{len(leftover)} leftover items, {len(all_elements)} elements"
@@ -4184,9 +4092,7 @@ class ClaimMapAnalyzer:
                 f"[RECOVERY MAP] Claim {claim_map.get('claim_id', '?')}: LLM returned None"
             )
 
-        if (
-            settings.ENABLE_PASSAGE_MAPPING or settings.ENABLE_RELATIONSHIP_REVIEW
-        ) and parsed is not None:
+        if settings.ENABLE_RELATIONSHIP_REVIEW and parsed is not None:
             from app.services import relationship_scope_review as review
 
             await review.review_relationship_scope(self, claim_map, pool)

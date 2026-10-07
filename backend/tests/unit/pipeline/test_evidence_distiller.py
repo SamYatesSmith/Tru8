@@ -495,12 +495,10 @@ class TestDistilSupplyInvariant:
 
     @pytest.mark.asyncio
     @pytest.mark.unit
-    async def test_elements_reach_the_prompt_with_passage_mapping_off(self):
+    async def test_elements_reach_the_prompt(self):
         """The elements are the point: a fact bearing on element 3 alone is what
-        decides element 3. They were gated behind ENABLE_PASSAGE_MAPPING, which
-        is off in production."""
-        from app.core.config import settings
-
+        decides element 3. They were once gated behind the passage-mapping
+        candidate (off in production, removed 2026-10-07)."""
         distiller = EvidenceDistiller()
         items = [_make_evidence(full_text=LONG_TEXT)]
         elements = [
@@ -513,8 +511,6 @@ class TestDistilSupplyInvariant:
         async def _capture(prompt, **kwargs):
             captured["prompt"] = prompt
             return ({"results": [{"index": 0, "facts": ["Fact."]}]}, {})
-
-        assert settings.ENABLE_PASSAGE_MAPPING is False, "guards the default path"
 
         with patch(
             "app.pipeline.evidence_distiller.call_google_ai_with_usage",
@@ -604,7 +600,6 @@ class TestDistilLongDocumentInput:
         from app.core.config import settings
 
         monkeypatch.setattr(settings, "ENABLE_DISTIL_PASSAGE_INPUT", False)
-        monkeypatch.setattr(settings, "ENABLE_PASSAGE_MAPPING", False)
         item, marker = self._long_item_with_late_marker()
 
         captured = {}

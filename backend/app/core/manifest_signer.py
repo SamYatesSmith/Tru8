@@ -43,10 +43,6 @@ def compute_pipeline_fingerprint() -> str:
         "decomposition_model": settings.DECOMPOSITION_MODEL,
         "analyzer_model": settings.ANALYZER_MODEL,
     }
-    if settings.ENABLE_PASSAGE_MAPPING:
-        config["passage_mapping_contract"] = "v11"
-    if settings.ENABLE_STRUCTURED_EXTRACTION:
-        config["structured_extraction_contract"] = "v1"
     if getattr(settings, "ENABLE_RELATIONSHIP_REVIEW", False):
         config["relationship_review_contract"] = "v1"
     # `is True`: the model name joins the payload, so a truthy stand-in for
