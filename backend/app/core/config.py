@@ -789,18 +789,13 @@ class Settings(BaseSettings):
     # Unique (A url, B url) pairs judged per check, strongest first.
     ECHO_LINK_MAX_PAIRS: int = Field(24, env="ECHO_LINK_MAX_PAIRS")
 
-    # Cited-source follow-up lane (2026-10-05, A− H3). When the pool's copies
-    # name the original they relay ("a new Bloomberg analysis finds", "NHS
-    # England announced"), one model call names it, one query per name searches
-    # for it, and only a result whose HOST identifies the cited body is kept
-    # (<= 1 per name, <= 2 per claim). Probe: the original came back at rank 1-2
-    # on 5/5 hand-built queries. Skipped on the quick tier and frozen replay,
-    # with receipts. Design: audit/2026-10-05_cited_source_lane_design.md
-    # (rev 2.1). OFF until its held-out eval passes. ROLLBACK: False.
-    ENABLE_CITED_SOURCE_LANE: bool = Field(False, env="ENABLE_CITED_SOURCE_LANE")
+    # Cited-source name call (2026-10-05, A− H3): one model call names the
+    # originals the pool's copies relay ("a new Bloomberg analysis finds").
+    # The search lane that fetched them failed its held-out eval (9.5% against
+    # a 60% bar, design §16) and was REMOVED 2026-10-07; the names now feed
+    # only the gap note below. Design: audit/2026-10-05_cited_source_lane_design.md
     CITED_SOURCE_MODEL: str = Field("gemini-3.7-flash", env="CITED_SOURCE_MODEL")
     CITED_SOURCE_NAME_TIMEOUT_S: int = Field(25, env="CITED_SOURCE_NAME_TIMEOUT_S")
-    CITED_SOURCE_STAGE_DEADLINE_S: int = Field(30, env="CITED_SOURCE_STAGE_DEADLINE_S")
     # Build B, the gap note (2026-10-06, design §§11.8, 12.2, 12.6, 17). Runs the
     # name call alone (no search, no fetch) even while the lane is off, and at
     # the end of the run writes `metadata.cited_sources.missing`: each accepted

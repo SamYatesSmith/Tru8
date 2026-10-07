@@ -10,7 +10,6 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.core.config import settings
 from app.services import cited_source as cs
 
 BLOOMBERG_CUE = "a new Bloomberg analysis finds Trump made nearly 28,700 trades"
@@ -123,77 +122,9 @@ def test_tokens_are_lowercased_and_generic_words_dropped():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.unit
-def test_the_bodys_page_without_the_claims_figure_is_not_present():
-    legend = _item(
-        "ev-j",
-        "https://effis.emergency.copernicus.eu/",
-        "|Fire Danger Classes |FWI |FFMC | DMC",
-    )
-    name = "European Forest Fire Information System"
-    cue = "data collected by the European Forest Fire Information System (EFFIS)"
-    claim = "EU wildfires burned 678,978 hectares in 2026"
-    assert cs.already_present([legend], name, cue, claim) is None
-    real = _item(
-        "ev-e",
-        "https://effis.emergency.copernicus.eu/est",
-        "Burnt area 678,978 ha in the EU",
-    )
-    assert cs.already_present([legend, real], name, cue, claim) == "ev-e"
-
-
-@pytest.mark.unit
-def test_a_copy_carrying_the_figure_is_not_the_original():
-    copy = _item(
-        "ev-y",
-        "https://finance.yahoo.com/x",
-        "Trump made 28,700 trades, Bloomberg said",
-    )
-    assert cs.already_present([copy], "Bloomberg", BLOOMBERG_CUE, CLAIM_TRADES) is None
-
-
-@pytest.mark.unit
-def test_name_tokens_never_count_as_claim_terms():
-    page = _item("ev-b", "https://www.bloomberg.com/x", "Bloomberg markets homepage")
-    claim = "Bloomberg says markets are calm"  # no figure; only the name overlaps
-    assert not cs.carries_claim(cs.stored_text(page), claim, "Bloomberg")
-
-
-@pytest.mark.unit
-def test_snippet_only_items_never_count_as_present():
-    bare = {
-        "evidence_id": "ev-b",
-        "url": "https://www.bloomberg.com/x",
-        "text": "28,700 trades",
-    }
-    assert cs.already_present([bare], "Bloomberg", BLOOMBERG_CUE, CLAIM_TRADES) is None
-
-
 # ---------------------------------------------------------------------------
 # Query builder
 # ---------------------------------------------------------------------------
-
-
-@pytest.mark.unit
-def test_query_keeps_every_claim_figure_and_drops_the_name_from_terms():
-    q = cs.build_query(
-        "Bloomberg",
-        "",
-        "Donald Trump made almost 28,700 trades of securities with a total value of $898 million to $2.87 billion since 2025",
-    )
-    assert q.startswith("Bloomberg ")
-    for fig in ("28,700", "$898", "$2.87"):
-        assert fig in q
-
-
-@pytest.mark.unit
-def test_query_keeps_short_acronyms():
-    q = cs.build_query(
-        "NHS England",
-        "",
-        "AI triage through the NHS App cut GP phone queues by 29 per cent",
-    )
-    assert " AI " in q and " GP " in q and "29" in q
 
 
 # ---------------------------------------------------------------------------
@@ -252,7 +183,9 @@ def test_guards():
     assert [a["name"] for a in accepted] == ["Bloomberg"]
     assert accepted[0]["citing_id"] == "ev-1"
     # The gap note keys on the receipt's citing_id (verification R2-LOW-1).
-    assert [r.get("citing_id") for r in receipts if r["status"] == "accepted"] == ["ev-1"]
+    assert [r.get("citing_id") for r in receipts if r["status"] == "accepted"] == [
+        "ev-1"
+    ]
     statuses = [r["status"] for r in receipts]
     assert statuses.count("accepted") == 1
     for s in ("name_not_in_cue", "cue_not_found", "self_outlet", "invalid"):
@@ -403,11 +336,6 @@ def test_missing_claim_row_is_receipted():
 # ---------------------------------------------------------------------------
 
 
-class _Urls(set):
-    def twin(self, url):
-        return url if url in self else None
-
-
 def _result(url):
     return SimpleNamespace(
         url=url, title="t", snippet="s", published_date=None, source=None
@@ -427,160 +355,6 @@ def _accepted(name="Bloomberg", cue=BLOOMBERG_CUE, kind="analysis"):
     return {"name": name, "cue": cue, "kind": kind, "document": "", "citing_id": "ev-1"}
 
 
-def _run_follow(names, results_by_query, claims=None, evidence=None):
-    claims = claims or [{"position": 0, "text": CLAIM_TRADES}]
-    evidence = evidence if evidence is not None else {"0": []}
-    issued = []
-
-    async def search(q):
-        issued.append(q)
-        return [_result(u) for u in results_by_query(q)]
-
-    async def extract(r, claim_text):
-        return {
-            "url": r.url,
-            "text": "x",
-            "metadata": {"source_path": "query_planning"},
-            "_full_text": "full",
-        }
-
-    receipts = asyncio.run(
-        cs.follow_names(claims, evidence, names, search, extract, _Urls())
-    )
-    return receipts, evidence, issued
-
-
-@pytest.mark.unit
-def test_issued_query_is_exactly_the_built_query():
-    _, _, issued = _run_follow(_names(_accepted()), lambda q: [])
-    assert issued == [cs.build_query("Bloomberg", "", CLAIM_TRADES)]
-
-
-@pytest.mark.unit
-def test_only_the_cited_bodys_own_page_is_kept():
-    hits = [
-        "https://finance.yahoo.com/a",
-        "https://www.msn.com/b",
-        "https://www.bloomberg.com/graphics/x",
-        "https://www.bloomberg.com/other",
-    ]
-    receipts, ev, _ = _run_follow(_names(_accepted()), lambda q: hits)
-    assert [i["url"] for i in ev["0"]] == ["https://www.bloomberg.com/graphics/x"]
-    item = ev["0"][0]
-    assert item["evidence_id"] == "ev-cs-0_0"
-    assert item["metadata"]["source_path"] == "cited_source"
-    assert item["metadata"]["cited_source"]["name"] == "Bloomberg"
-    assert item["_full_text"] == "full"
-    q = receipts["0"]["queries"][0]
-    assert q["dropped_not_cited_body"] == 2 and q["kept"] == ["ev-cs-0_0"]
-
-
-@pytest.mark.unit
-def test_at_most_two_kept_per_claim():
-    names = _names(
-        _accepted("Bloomberg"),
-        _accepted(
-            "Daily Telegraph", "wrote in the Daily Telegraph that", "news_first_report"
-        ),
-        _accepted("Bank of England", "the Bank of England estimated it", "data"),
-    )
-    hosts = {
-        "Bloomberg": "https://www.bloomberg.com/a",
-        "Daily": "https://www.telegraph.co.uk/b",
-        "Bank": "https://www.bankofengland.co.uk/c",
-    }
-    receipts, ev, _ = _run_follow(names, lambda q: [hosts[q.split()[0]]])
-    assert len(ev["0"]) == 2
-
-
-@pytest.mark.unit
-def test_queries_are_round_robin_and_capped_per_check(monkeypatch):
-    monkeypatch.setattr(cs, "QUERIES_PER_CHECK", 3)
-    claims = [{"position": 0, "text": "a 1"}, {"position": 1, "text": "b 2"}]
-    names = {
-        "0": {
-            "accepted": [
-                _accepted(f"Alpha{n} Agency", f"according to Alpha{n} Agency x", "data")
-                for n in range(3)
-            ],
-            "receipts": [],
-        },
-        "1": {
-            "accepted": [
-                _accepted(f"Beta{n} Agency", f"according to Beta{n} Agency x", "data")
-                for n in range(3)
-            ],
-            "receipts": [],
-        },
-    }
-    _, _, issued = _run_follow(
-        names, lambda q: [], claims=claims, evidence={"0": [], "1": []}
-    )
-    assert [q.split()[0] for q in issued] == ["Alpha0", "Beta0", "Alpha1"]
-
-
-@pytest.mark.unit
-def test_present_original_is_not_searched():
-    present = _item("ev-b", "https://www.bloomberg.com/x", "Trump made 28,700 trades")
-    receipts, ev, issued = _run_follow(
-        _names(_accepted()),
-        lambda q: ["https://www.bloomberg.com/y"],
-        evidence={"0": [present]},
-    )
-    assert issued == []
-    assert receipts["0"]["names"][0]["status"] == "already_present"
-
-
-@pytest.mark.unit
-def test_announcement_marks_the_body_as_interested_for_its_own_page():
-    names = _names(
-        _accepted("NHS England", "NHS England announced the rollout", "announcement")
-    )
-    _, ev, _ = _run_follow(names, lambda q: ["https://www.england.nhs.uk/2026/07/x"])
-    assert ev["0"][0]["metadata"]["cited_source"]["interested_subject"] == "nhs england"
-
-
-@pytest.mark.unit
-def test_an_analysis_is_not_an_interested_party():
-    _, ev, _ = _run_follow(
-        _names(_accepted()), lambda q: ["https://www.bloomberg.com/x"]
-    )
-    assert "interested_subject" not in ev["0"][0]["metadata"]["cited_source"]
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "cue,expected",
-    [
-        ("NHS England said the trial", True),
-        ("data published by NHS England", False),
-        ("as reported by NHS England", False),
-    ],
-)
-def test_statement_verbs_only(cue, expected):
-    assert (cs.interested_subject("NHS England", "data", cue) is not None) is expected
-
-
-@pytest.mark.unit
-def test_deadline_cancels_slow_searches(monkeypatch):
-    monkeypatch.setattr(cs, "stage_deadline_s", lambda: 0.05)
-    claims = [{"position": 0, "text": CLAIM_TRADES}]
-
-    async def search(q):
-        await asyncio.sleep(5)
-        return []
-
-    async def extract(r, t):
-        return None
-
-    receipts = asyncio.run(
-        cs.follow_names(
-            claims, {"0": []}, _names(_accepted()), search, extract, _Urls()
-        )
-    )
-    assert receipts["0"]["deadline_hit"] is True
-
-
 @pytest.mark.unit
 def test_receipts_and_skip():
     cms = {"0": {"metadata": {}}}
@@ -588,91 +362,9 @@ def test_receipts_and_skip():
     assert cms["0"]["metadata"]["cited_sources"]["totals"]["detail"] == "quick_tier"
 
 
-@pytest.mark.unit
-def test_search_bypasses_the_fact_check_rewriter(monkeypatch):
-    from app.services import search as search_mod
-
-    seen = {}
-
-    async def fake(self, query, max_results, freshness=None, country="gb"):
-        seen.update(query=query, freshness=freshness, country=country)
-        return []
-
-    monkeypatch.setattr(search_mod.SearchService, "_try_providers", fake)
-    asyncio.run(cs._search_exact("Bloomberg said Trump trades 28,700"))
-    assert seen == {
-        "query": "Bloomberg said Trump trades 28,700",
-        "freshness": None,
-        "country": None,
-    }
-
-
-@pytest.mark.unit
-def test_lane_is_off_by_default():
-    assert settings.ENABLE_CITED_SOURCE_LANE is False
-
-
-@pytest.mark.unit
-def test_quick_tier_declares_the_lane_only_while_it_is_on(monkeypatch):
-    from app.core.tier_limitations import limitations_for_tier
-
-    monkeypatch.setattr(settings, "ENABLE_CITED_SOURCE_LANE", False)
-    assert "no_cited_source_lane" not in limitations_for_tier("quick")
-    monkeypatch.setattr(settings, "ENABLE_CITED_SOURCE_LANE", True)
-    assert "no_cited_source_lane" in limitations_for_tier("quick")
-
-
 # ---------------------------------------------------------------------------
 # Interested-party gate: per-item subject from the lane
 # ---------------------------------------------------------------------------
-
-
-@pytest.mark.unit
-def test_lane_item_from_an_announcing_body_is_scoped_by_the_gate():
-    from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
-
-    lane = {
-        "evidence_id": "ev-cs-0_0",
-        "url": "https://www.england.nhs.uk/2026/07/x",
-        "title": "NHS accelerates AI rollout",
-        "snippet": "AI triage resulted in a 29% reduction in queues",
-        "tier": "primary",
-        "metadata": {
-            "cited_source": {"name": "NHS England", "interested_subject": "nhs england"}
-        },
-    }
-    cm = {
-        "claim_id": "0",
-        "normalised_claim": "AI triage cut GP phone queues by 29%.",
-        "elements": [
-            {
-                "element_id": "e1",
-                "description": "AI triage cut phone queues by 29%.",
-                "evidence_refs": [],
-                "state": None,
-            }
-        ],
-        "metadata": {},
-    }
-    raw = {
-        "elements": [
-            {
-                "element_id": "e1",
-                "state": "supported",
-                "evidence_refs": [
-                    {
-                        "evidence_id": "ev-cs-0_0",
-                        "relationship": "supports",
-                        "reasoning": "t",
-                    },
-                ],
-            }
-        ]
-    }
-    ClaimMapAnalyzer()._parse_mapping_response(raw, cm, [lane])
-    ref = cm["elements"][0]["evidence_refs"][0]
-    assert getattr(ref["relationship"], "value", ref["relationship"]) == "context"
-    assert "interested_party" in cm["elements"][0]["basis"]
 
 
 @pytest.mark.unit
@@ -750,113 +442,10 @@ def test_squashed_name_matches_a_joined_host_only_off_shared_suffixes():
     )
 
 
-@pytest.mark.unit
-def test_figures_past_the_word_cap_are_still_queried():
-    claim = (
-        "Officials in the regional health authority confirmed yesterday afternoon that "
-        "waiting lists across several large hospitals had fallen to 7,412 patients"
-    )
-    q = cs.build_query("Health Authority", "", claim)
-    assert "7,412" in q
-
-
 # ---------------------------------------------------------------------------
 # Verification fixes (2026-10-05): race, submitted page, host equality,
 # statement verbs, fetch conversion, runner seam
 # ---------------------------------------------------------------------------
-
-
-def _yielding_follow(names, hits, claims=None, source_url=None):
-    """Mocks that YIELD at every await, so concurrent queries interleave."""
-    claims = claims or [{"position": 0, "text": CLAIM_TRADES}]
-    evidence = {"0": []}
-
-    async def search(q):
-        await asyncio.sleep(0)
-        return [_result(u) for u in hits(q)]
-
-    async def extract(r, claim_text):
-        await asyncio.sleep(0)
-        await asyncio.sleep(0)
-        return {"url": r.url, "text": "x", "metadata": {}, "_full_text": "full"}
-
-    receipts = asyncio.run(
-        cs.follow_names(claims, evidence, names, search, extract, _Urls(), source_url)
-    )
-    return receipts, evidence
-
-
-@pytest.mark.unit
-def test_cap_holds_when_queries_interleave():
-    names = _names(
-        _accepted("Bloomberg"),
-        _accepted(
-            "Daily Telegraph", "wrote in the Daily Telegraph that", "news_first_report"
-        ),
-        _accepted("Bank of England", "the Bank of England estimated it", "data"),
-    )
-    hosts = {
-        "Bloomberg": "https://www.bloomberg.com/a",
-        "Daily": "https://www.telegraph.co.uk/b",
-        "Bank": "https://www.bankofengland.co.uk/c",
-    }
-    _, ev = _yielding_follow(names, lambda q: [hosts[q.split()[0]]])
-    assert len(ev["0"]) == 2
-
-
-@pytest.mark.unit
-def test_same_url_is_never_added_twice_when_queries_interleave():
-    names = _names(
-        _accepted("Bloomberg"),
-        _accepted("Bloomberg News", "a Bloomberg News analysis finds it", "analysis"),
-    )
-    _, ev = _yielding_follow(names, lambda q: ["https://www.bloomberg.com/same"])
-    assert [i["url"] for i in ev["0"]] == ["https://www.bloomberg.com/same"]
-
-
-@pytest.mark.unit
-def test_failed_fetch_frees_the_slot_and_tries_the_next_result():
-    claims = [{"position": 0, "text": CLAIM_TRADES}]
-    evidence = {"0": []}
-
-    async def search(q):
-        return [
-            _result("https://www.bloomberg.com/paywalled"),
-            _result("https://www.bloomberg.com/open"),
-        ]
-
-    async def extract(r, t):
-        return (
-            None
-            if "paywalled" in r.url
-            else {"url": r.url, "text": "x", "metadata": {}}
-        )
-
-    receipts = asyncio.run(
-        cs.follow_names(claims, evidence, _names(_accepted()), search, extract, _Urls())
-    )
-    assert [i["url"] for i in evidence["0"]] == ["https://www.bloomberg.com/open"]
-    assert receipts["0"]["queries"][0]["not_extracted"]
-
-
-@pytest.mark.unit
-def test_the_submitted_page_is_never_evidence_for_itself():
-    page = "https://www.bloomberg.com/graphics/2026-trump-stock-trades-congress/"
-    receipts, ev = _yielding_follow(
-        _names(_accepted()), lambda q: [page], source_url=page
-    )
-    assert ev["0"] == []
-    assert receipts["0"]["queries"][0]["dropped_submitted_page"] == 1
-
-
-@pytest.mark.unit
-def test_same_domain_pages_are_kept_and_tagged():
-    receipts, ev = _yielding_follow(
-        _names(_accepted()),
-        lambda q: ["https://www.bloomberg.com/other-story"],
-        source_url="https://www.bloomberg.com/graphics/x",
-    )
-    assert ev["0"][0]["metadata"]["same_domain_as_source"] is True
 
 
 @pytest.mark.unit
@@ -881,119 +470,6 @@ def test_prefix_lookalike_hosts_are_not_the_body(url, name, cue):
 @pytest.mark.unit
 def test_who_acronym_still_matches_its_own_site():
     assert cs.host_identifies("https://www.who.int/news/x", "WHO", "the WHO said")
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "cue",
-    [
-        "data from the United States Census Bureau",
-        "a Bloomberg analysis of insurance claims found",
-        "Ben Delo wrote in the Daily Telegraph that he was giving",
-    ],
-)
-def test_no_false_statement_triggers(cue):
-    assert cs.interested_subject("Body", "data", cue) is None
-
-
-@pytest.mark.unit
-def test_snippet_conversion_keeps_full_text_and_provenance_fields():
-    snippet = SimpleNamespace(
-        text="t",
-        source="bloomberg.com",
-        url="https://www.bloomberg.com/x",
-        title="T",
-        published_date="2026-09-16",
-        date_basis="page_metadata",
-        relevance_score=0.7,
-        word_count=900,
-        metadata={"is_snippet_fallback": False},
-        content_basis="full_text",
-        _full_text="the whole page",
-    )
-    item = cs._snippet_to_item(snippet)
-    assert item["_full_text"] == "the whole page"
-    assert item["date_basis"] == "page_metadata"
-    assert item["content_basis"] == "full_text"
-    assert item["receipt_status"] == "extracted"
-    assert item["metadata"] == {"is_snippet_fallback": False}
-    assert item["metadata"] is not snippet.metadata
-
-
-@pytest.mark.unit
-def test_default_extract_unwindows_and_converts(monkeypatch):
-    from app.pipeline import retrieve
-
-    seen = {}
-
-    class FakeRetriever:
-        async def _extract_with_fallback(self, result, claim_text, semaphore):
-            seen["freshness"] = getattr(result, "_freshness", None)
-            seen["claim"] = claim_text
-            return SimpleNamespace(
-                text="t",
-                source="s",
-                url=result.url,
-                title="T",
-                published_date=None,
-                date_basis=None,
-                relevance_score=0.0,
-                word_count=10,
-                metadata={},
-                content_basis="full_text",
-                _full_text="page",
-            )
-
-    monkeypatch.setattr(retrieve, "EvidenceRetriever", FakeRetriever)
-    extract = cs._default_extract()
-    item = asyncio.run(extract(_result("https://www.bloomberg.com/x"), CLAIM_TRADES))
-    assert seen == {"freshness": "none", "claim": CLAIM_TRADES}
-    assert item["_full_text"] == "page"
-
-
-@pytest.mark.unit
-def test_follow_for_check_end_to_end_with_receipts(monkeypatch):
-    claims = [{"position": 0, "text": CLAIM_TRADES}]
-    citer = _item(
-        "ev-1", "https://finance.yahoo.com/x", "Reporters say " + BLOOMBERG_CUE + "."
-    )
-    evidence = {"0": [citer]}
-    cms = {"0": {"metadata": {}}}
-
-    async def names():
-        return {
-            "_stats": {"status": "ok"},
-            "0": {
-                "accepted": [_accepted()],
-                "receipts": [{"name": "Bloomberg", "status": "accepted"}],
-            },
-        }
-
-    async def search(q):
-        return [
-            _result("https://finance.yahoo.com/y"),
-            _result("https://www.bloomberg.com/graphics/x"),
-        ]
-
-    def fake_extract():
-        async def extract(r, t):
-            return {"url": r.url, "text": "x", "metadata": {}, "_full_text": "page"}
-
-        return extract
-
-    monkeypatch.setattr(cs, "_search_exact", search)
-    monkeypatch.setattr(cs, "_default_extract", fake_extract)
-
-    async def go():
-        await cs.follow_for_check(
-            claims, evidence, cms, asyncio.ensure_future(names()), None
-        )
-
-    asyncio.run(go())
-    rec = cms["0"]["metadata"]["cited_sources"]
-    assert rec["totals"]["kept"] == 1
-    assert rec["queries"][0]["dropped_not_cited_body"] == 1
-    assert [i["evidence_id"] for i in evidence["0"]] == ["ev-1", "ev-cs-0_0"]
 
 
 # ---------------------------------------------------------------------------

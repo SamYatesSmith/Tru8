@@ -130,13 +130,6 @@ def test_a_name_without_a_cue_writes_nothing():
 
 
 @pytest.mark.unit
-def test_the_lane_keeps_its_stricter_content_test():
-    # `already_present` (the lane's skip-the-search test) is unchanged.
-    snippet_only = _item("ev-2", "https://www.bloomberg.com/graphics/x")
-    assert cs.already_present([snippet_only], "Bloomberg", CUE, CLAIM) is None
-
-
-@pytest.mark.unit
 def test_accepted_names_reads_every_guard_passing_status():
     stored = {
         "names": [
@@ -158,8 +151,8 @@ def test_accepted_names_reads_every_guard_passing_status():
 
 @pytest.fixture
 def no_network(monkeypatch):
-    """Record name calls; fail loudly on any search or fetch."""
-    calls = {"names": 0, "search": 0, "extract": 0}
+    """Record name calls (the module has no search or fetch path)."""
+    calls = {"names": 0}
 
     async def names(claims, evidence):
         calls["names"] += 1
@@ -175,26 +168,11 @@ def no_network(monkeypatch):
             },
         }
 
-    async def search(q):
-        calls["search"] += 1
-        return []
-
-    def extract():
-        calls["extract"] += 1
-
-        async def go(r, t):
-            return None
-
-        return go
-
     monkeypatch.setattr(cs, "name_cited_sources_default", names)
-    monkeypatch.setattr(cs, "_search_exact", search)
-    monkeypatch.setattr(cs, "_default_extract", extract)
     return calls
 
 
-def _flags(monkeypatch, lane, note):
-    monkeypatch.setattr(settings, "ENABLE_CITED_SOURCE_LANE", lane)
+def _flags(monkeypatch, note):
     monkeypatch.setattr(settings, "ENABLE_CITED_SOURCE_GAP_NOTE", note)
 
 
@@ -209,7 +187,7 @@ def _run(evidence, *, frozen=False, quick=False):
     async def go():
         task = cs.start_names(claims, evidence, frozen=frozen, quick=quick)
         await cs.after_post_filter(
-            claims, evidence, cms, task, None, frozen=frozen, quick=quick
+            claims, evidence, cms, task, frozen=frozen, quick=quick
         )
         await cs.finish_gap_note(claims, evidence, task)
         return task
@@ -222,10 +200,10 @@ def _run(evidence, *, frozen=False, quick=False):
 def test_gap_note_alone_names_without_searching_and_writes_missing(
     monkeypatch, no_network
 ):
-    _flags(monkeypatch, lane=False, note=True)
+    _flags(monkeypatch, note=True)
     cm, task = _run({"0": [dict(COPY)]})
     assert task is not None
-    assert no_network == {"names": 1, "search": 0, "extract": 0}
+    assert no_network == {"names": 1}
     rec = cm["metadata"]["cited_sources"]
     assert rec["missing"] == [{"name": "Bloomberg", "cue": CUE}]
     assert rec["queries"] == []
@@ -237,17 +215,17 @@ def test_gap_note_alone_names_without_searching_and_writes_missing(
 def test_gap_note_alone_clears_when_the_original_is_in_the_record(
     monkeypatch, no_network
 ):
-    _flags(monkeypatch, lane=False, note=True)
+    _flags(monkeypatch, note=True)
     cm, _ = _run({"0": [dict(COPY), dict(ORIGINAL)]})
     assert cm["metadata"]["cited_sources"]["missing"] == []
 
 
 @pytest.mark.unit
 def test_both_flags_off_start_no_task_and_write_no_field(monkeypatch, no_network):
-    _flags(monkeypatch, lane=False, note=False)
+    _flags(monkeypatch, note=False)
     cm, task = _run({"0": [dict(COPY)]})
     assert task is None
-    assert no_network == {"names": 0, "search": 0, "extract": 0}
+    assert no_network == {"names": 0}
     assert "cited_sources" not in cm["metadata"]
 
 
@@ -258,7 +236,7 @@ def test_both_flags_off_start_no_task_and_write_no_field(monkeypatch, no_network
 def test_gap_note_skips_replay_and_quick_with_a_receipt(
     monkeypatch, no_network, frozen, quick, detail
 ):
-    _flags(monkeypatch, lane=False, note=True)
+    _flags(monkeypatch, note=True)
     cm, task = _run({"0": [dict(COPY)]}, frozen=frozen, quick=quick)
     assert task is None and no_network["names"] == 0
     rec = cm["metadata"]["cited_sources"]
@@ -274,7 +252,7 @@ def test_a_failed_model_call_writes_no_missing(monkeypatch, fault):
     fault themselves and return status `failed` / `invalid_response`."""
     from app.services import google_ai
 
-    _flags(monkeypatch, lane=False, note=True)
+    _flags(monkeypatch, note=True)
     monkeypatch.setattr(settings, "CITED_SOURCE_NAME_TIMEOUT_S", 0.05)
 
     async def call(prompt, **kwargs):
@@ -298,14 +276,14 @@ def test_a_failed_model_call_writes_no_missing(monkeypatch, fault):
 def test_the_bodys_page_under_another_claim_clears_the_note(
     monkeypatch, no_network
 ):  # MEDIUM-2, end to end through the seam
-    _flags(monkeypatch, lane=False, note=True)
+    _flags(monkeypatch, note=True)
     cm, _ = _run({"0": [dict(COPY)], "1": [dict(ORIGINAL)]})
     assert cm["metadata"]["cited_sources"]["missing"] == []
 
 
 @pytest.mark.unit
 def test_a_raising_name_task_means_no_note_and_no_failed_check(monkeypatch):
-    _flags(monkeypatch, lane=False, note=True)
+    _flags(monkeypatch, note=True)
 
     async def broken(claims, evidence):
         raise RuntimeError("model down")
@@ -318,33 +296,15 @@ def test_a_raising_name_task_means_no_note_and_no_failed_check(monkeypatch):
 
 
 @pytest.mark.unit
-def test_lane_on_without_the_note_is_unchanged(monkeypatch, no_network):
-    _flags(monkeypatch, lane=True, note=False)
-    cm, _ = _run({"0": [dict(COPY)]})
-    rec = cm["metadata"]["cited_sources"]
-    assert no_network["search"] == 1
-    assert "missing" not in rec
-
-
-@pytest.mark.unit
-def test_lane_and_note_together_follow_then_note(monkeypatch, no_network):
-    _flags(monkeypatch, lane=True, note=True)
-    cm, _ = _run({"0": [dict(COPY)]})
-    rec = cm["metadata"]["cited_sources"]
-    assert no_network["search"] == 1
-    assert rec["queries"] and rec["missing"] == [{"name": "Bloomberg", "cue": CUE}]
-
-
-@pytest.mark.unit
 def test_gap_note_is_off_by_default_and_declared_on_quick_only_while_on(
     monkeypatch,
 ):
     from app.core.tier_limitations import limitations_for_tier
 
     assert settings.ENABLE_CITED_SOURCE_GAP_NOTE is False
-    _flags(monkeypatch, lane=False, note=False)
+    _flags(monkeypatch, note=False)
     assert "no_cited_source_gap_note" not in limitations_for_tier("quick")
-    _flags(monkeypatch, lane=False, note=True)
+    _flags(monkeypatch, note=True)
     assert "no_cited_source_gap_note" in limitations_for_tier("quick")
     assert "no_cited_source_gap_note" not in limitations_for_tier("full")
 

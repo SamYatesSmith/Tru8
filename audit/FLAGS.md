@@ -4,12 +4,11 @@ Regenerate with `cd backend && python -m scripts.flag_register`. `tests/unit/tes
 
 Defaults are the code's. **Railway can override any flag with an env var of the same name; this file cannot see that.** Check Railway when a live value matters.
 
-**54 flags: 43 on, 11 off by default.**
+**53 flags: 43 on, 10 off by default.**
 
 | Flag | Default | Read in | Why (from config.py) |
 |---|---|---|---|
 | `ENABLE_CITED_SOURCE_GAP_NOTE` | **OFF** | 1 file | Build B, the gap note (2026-10-06, design §§11.8, 12.2, 12.6, 17). |
-| `ENABLE_CITED_SOURCE_LANE` | **OFF** | 1 file | Cited-source follow-up lane (2026-10-05, A− H3). |
 | `ENABLE_DERIVATION_CHAINS` | **OFF** | 1 file | The grey "echo" sourcing note's reader. OFF 2026-10-01 (founder): the unconfirmed links were real relays 24% of the time. |
 | `ENABLE_ECHO_LINK_CONFIRMATION` | **OFF** | 1 file | Echo link confirmation (2026-10-05). |
 | `ENABLE_ECHO_SCOPE_GATE` | **OFF** | 2 files | Echo scope gate (2026-08-17, quality-first Phase B). OFF 2026-10-01 (founder): the link it reads is wrong more often than right. |

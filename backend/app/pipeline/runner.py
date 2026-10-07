@@ -1986,12 +1986,10 @@ async def run_pipeline_phase2(
 
     _capture_source_text()
 
-    # Cited-source lane, step 1 (names), started beside post-filter recovery:
-    # it reads only the text captured above (design rev 2 M2). It runs for the
-    # lane or for the gap note alone (Build B, design §17).
+    # Cited-source gap note, step 1 (names), started beside post-filter
+    # recovery: it reads only the text captured above (design rev 2 M2).
     from app.services import cited_source as _cs
 
-    _cs_started = datetime.now(timezone.utc)
     _cs_names_task = _cs.start_names(
         selected_claims,
         evidence,
@@ -2141,27 +2139,21 @@ async def run_pipeline_phase2(
                 datetime.now(timezone.utc) - stage_start
             ).total_seconds()
 
-    # Cited-source lane, step 2 (follow the names). Skipped tiers and replays
-    # leave a receipt; any fault leaves no lane items, never a failed check.
+    # Cited-source gap note, step 2: skipped tiers and replays leave a
+    # receipt. The names themselves are awaited at the end of the run.
     _cs_claim_maps = {
         str(c.get("position", 0)): c["claim_map"]
         for c in selected_claims
         if isinstance(c.get("claim_map"), dict)
     }
-    # The gap note alone does nothing here: its names are awaited at the end.
     await _cs.after_post_filter(
         selected_claims,
         evidence,
         _cs_claim_maps,
         _cs_names_task,
-        source_url,
         frozen=_is_frozen_evidence_replay,
         quick=config.mode == "quick",
     )
-    if _cs_names_task is not None and _cs.enabled():
-        stage_timings["cited_source"] = (
-            datetime.now(timezone.utc) - _cs_started
-        ).total_seconds()
 
     # =========================================================================
     # Stage 4.5 + 4.6: Classification + Distillation (run concurrently)
