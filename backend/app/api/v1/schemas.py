@@ -679,21 +679,6 @@ class AgentManifest(BaseModel):
     )
 
 
-class AgentClaimCompact(BaseModel):
-    """Compact claim representation (compact=true mode)."""
-
-    id: str = Field(description="Claim ID")
-    text: str = Field(description="Claim text")
-    position: int = Field(description="Position in check (0-indexed)")
-    claimMap: Optional[ClaimMapSchema] = Field(
-        None, description="Claim map with elements and orientation"
-    )
-    claimType: Optional[ClaimTypeEnum] = Field(
-        None, description="Claim type classification"
-    )
-    isSelected: Optional[bool] = Field(None, description="Whether claim was selected")
-
-
 class AgentCheckResponse(BaseModel):
     """Full agent response with evidence landscape, metadata, and signed manifest.
 
@@ -728,33 +713,6 @@ class AgentCheckResponse(BaseModel):
         None,
         description="(JSON key: `_computed`) Pre-computed analytics: tier/type distributions, corroboration groups, diagnostic values, timeline, element state summaries",
         json_schema_extra={"title": "_computed"},
-    )
-
-
-class AgentCacheMiss(BaseModel):
-    """Returned when a lookup or consensus check has no cached result available.
-
-    Status 200 — this is not an error. Use nextSuggestedTier to escalate.
-    """
-
-    hit: bool = Field(False, description="Always false for cache misses")
-    nextSuggestedTier: PipelineTier = Field(
-        description="Suggested tier to try next: consensus, quick, or full"
-    )
-    upgradeCostPence: int = Field(
-        description="Cost in GBP pence to run the suggested tier"
-    )
-    claimTextHash: str = Field(description="SHA-256 hash of the normalised claim text")
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "hit": False,
-                "nextSuggestedTier": "quick",
-                "upgradeCostPence": 7,
-                "claimTextHash": "a1b2c3d4e5f6...",
-            }
-        }
     )
 
 
@@ -858,15 +816,6 @@ class VerifySuccessResponse(BaseModel):
     )
 
 
-class VerifyFailureResponse(BaseModel):
-    """Failed manifest verification."""
-
-    valid: bool = Field(False, description="Always false on verification failure")
-    reason: str = Field(
-        description="Failure reason: not_found, invalid_signature, data_modified, or signing_disabled"
-    )
-
-
 # ============================================================================
 # Video recommendations schema
 # ============================================================================
@@ -919,28 +868,6 @@ class BountyUpdateResponse(BaseModel):
     )
 
 
-class ResearchStartResponse(BaseModel):
-    """Response after initiating element re-search."""
-
-    status: str = Field(description="Research status: started")
-    checkId: str = Field(description="Check ID")
-    claimId: str = Field(description="Claim ID")
-    elementId: str = Field(description="Element ID being re-searched")
-
-
-class ResearchStatusResponse(BaseModel):
-    """Current status of an element re-search operation."""
-
-    status: str = Field(description="Research status: idle, searching, or completed")
-    message: Optional[str] = Field(None, description="Status message")
-    newEvidenceCount: Optional[int] = Field(
-        None, description="Number of new evidence items found (when completed)"
-    )
-    operationId: Optional[str] = None
-    elementIds: Optional[List[str]] = None
-    revisionId: Optional[str] = None
-
-
 # ============================================================================
 # SSE token schema
 # ============================================================================
@@ -959,15 +886,6 @@ class SSETokenResponse(BaseModel):
 # ============================================================================
 # Select claims schema
 # ============================================================================
-
-
-class SelectClaimsResponse(BaseModel):
-    """Response after claim selection — pipeline resumes with Phase 2."""
-
-    status: str = Field(description="Operation result: selection_accepted")
-    selectedCount: int = Field(description="Number of claims selected")
-    checkId: str = Field(description="Check ID")
-    message: str = Field(description="Confirmation message")
 
 
 # ============================================================================

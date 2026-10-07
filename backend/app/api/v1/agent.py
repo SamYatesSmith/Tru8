@@ -36,7 +36,6 @@ from app.core.rate_limit import limiter
 from app.models.check import Check, Claim, compute_claim_text_hash
 from app.api.v1.schemas import (
     AgentCheckResponse,
-    AgentCacheMiss,
     CreditBalanceResponse,
     CheckoutSessionResponse,
     AgentStatsResponse,

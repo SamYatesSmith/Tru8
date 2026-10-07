@@ -17,7 +17,7 @@ from app.core.manifest_signer import (
     verify_manifest,
 )
 from app.models.check import Check, Claim, Evidence
-from app.api.v1.schemas import VerifySuccessResponse, VerifyFailureResponse
+from app.api.v1.schemas import VerifySuccessResponse
 
 logger = logging.getLogger(__name__)
 
