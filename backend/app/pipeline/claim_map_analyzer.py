@@ -1781,6 +1781,23 @@ def _index_evidence(evidence_list: List[Dict[str, Any]]) -> Dict[str, _IndexedEv
     return index
 
 
+def _completion_timeout() -> float:
+    """Ceiling on one claim's completion stage (census + review + reconcile).
+
+    The review shares this timeout; at 25 s it would often be cancelled
+    (safe — it stages a copy — but silently ineffective). 2026-09-29: with the
+    review ON by default, the window is the completion call's 25 s plus the
+    review call's deadline plus slack, so a slow completion cannot silently
+    cancel the review. 2026-09-30: plus a second review call, for echo copies
+    restored after the first review demoted their original (rare; see
+    `_reconcile_echoes`, which undoes the restore if this cancels it).
+    """
+    if not settings.ENABLE_RELATIONSHIP_REVIEW:
+        return 25
+    review_s = int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 25))
+    return max(50, 25 + 2 * review_s + 5)
+
+
 class ClaimMapAnalyzer:
     """Decomposes claims into elements and maps evidence to them."""
 
@@ -1987,19 +2004,22 @@ class ClaimMapAnalyzer:
                             )
                         except Exception:
                             pass  # Keep original result if retry also fails
-
+            except Exception as e:
+                logger.warning(
+                    f"Mapping parse failed for claim {claim_map['claim_id']}: {e}"
+                )
+                self._fallback_mapping(claim_map)
+            else:
                 # Step 2 (2026-05-12): per-element mapper completion pass.
                 # NF-19 mitigation. The main mapper is instructed to be
                 # conservative (MAPPING_PROMPT line 296: "Padding every
                 # element with the same items is a quality failure"); this
                 # second pass re-examines leftovers with a more permissive
                 # eye for context-tier matches. See COMPLETION_PROMPT.
-                await self._complete_unmapped_evidence(claim_map, evidence_list)
-            except Exception as e:
-                logger.warning(
-                    f"Mapping parse failed for claim {claim_map['claim_id']}: {e}"
-                )
-                self._fallback_mapping(claim_map)
+                # Outside the parse `try` (2026-10-07, D6): a completion
+                # failure keeps the main-pass mapping, as on the batch path,
+                # instead of reaching `_fallback_mapping`, which wipes it.
+                await self._complete_keeping_main_pass(claim_map, evidence_list)
         else:
             self._fallback_mapping(claim_map)
 
@@ -2236,51 +2256,12 @@ class ClaimMapAnalyzer:
             item for i, item in enumerate(with_evidence) if i not in failed_set
         ]
         if successful_items:
-            import asyncio as _asyncio
-
-            # The review shares this timeout; at 25 s it would often be cancelled
-            # (safe — it stages a copy — but silently ineffective).
-            # 2026-09-29: with the review ON by default, the window is the
-            # completion call's 25 s plus one review call's deadline plus slack,
-            # so a slow completion cannot silently cancel the review.
-            # 2026-09-30: plus a second review call, for echo copies restored
-            # after the first review demoted their original (rare; see
-            # _reconcile_echoes, which undoes the restore if this cancels it).
-            _COMPLETION_TIMEOUT = (
-                max(
-                    50,
-                    25
-                    + 2
-                    * int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 25))
-                    + 5,
-                )
-                if settings.ENABLE_RELATIONSHIP_REVIEW
-                else 25
+            await asyncio.gather(
+                *[
+                    self._complete_keeping_main_pass(it["claim_map"], it["evidence"])
+                    for it in successful_items
+                ]
             )
-
-            async def _run_completion(item):
-                try:
-                    await _asyncio.wait_for(
-                        self._complete_unmapped_evidence(
-                            item["claim_map"], item["evidence"]
-                        ),
-                        timeout=_COMPLETION_TIMEOUT,
-                    )
-                except _asyncio.TimeoutError:
-                    logger.warning(
-                        f"[MAP COMPLETION] Claim "
-                        f"{item['claim_map'].get('claim_id', '?')}: "
-                        f"timeout after {_COMPLETION_TIMEOUT}s — "
-                        f"preserving main-pass mapping"
-                    )
-                except Exception as e:
-                    logger.warning(
-                        f"[MAP COMPLETION] Claim "
-                        f"{item['claim_map'].get('claim_id', '?')}: "
-                        f"unexpected error — {e} — preserving main-pass mapping"
-                    )
-
-            await _asyncio.gather(*[_run_completion(it) for it in successful_items])
 
         # Derive orientation + set metadata for successfully batch-mapped claims
         # (failed claims get this via per-claim map_evidence_to_elements)
@@ -2298,7 +2279,6 @@ class ClaimMapAnalyzer:
             logger.info(
                 f"[CLAIM_MAP] Retrying {len(failed_indices)} claims via per-claim mapping"
             )
-            import asyncio
 
             async def _retry_map(idx: int) -> None:
                 item = with_evidence[idx]
@@ -3580,6 +3560,30 @@ class ClaimMapAnalyzer:
                 completed_at=None,
             ),
         )
+
+    async def _complete_keeping_main_pass(
+        self, claim_map: ClaimMap, evidence_list: List[Dict[str, Any]]
+    ) -> None:
+        """Run the completion stage under its own ceiling. A timeout or error
+        keeps whatever the main pass mapped; both mapping paths use this, so
+        neither can lose the main-pass mapping to a completion failure."""
+        timeout = _completion_timeout()
+        claim_id = claim_map.get("claim_id", "?")
+        try:
+            await asyncio.wait_for(
+                self._complete_unmapped_evidence(claim_map, evidence_list),
+                timeout=timeout,
+            )
+        except asyncio.TimeoutError:
+            logger.warning(
+                f"[MAP COMPLETION] Claim {claim_id}: timeout after {timeout}s — "
+                f"preserving main-pass mapping"
+            )
+        except Exception as e:
+            logger.warning(
+                f"[MAP COMPLETION] Claim {claim_id}: unexpected error — {e} — "
+                f"preserving main-pass mapping"
+            )
 
     async def _complete_unmapped_evidence(
         self, claim_map: ClaimMap, evidence_list: List[Dict[str, Any]]
