@@ -11,7 +11,7 @@ import asyncio
 import json
 import logging
 import uuid
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Query, Request
 from fastapi.responses import JSONResponse
@@ -34,6 +34,9 @@ from app.core.config import settings
 from app.core.database import get_session
 from app.core.rate_limit import limiter
 from app.models.check import Check, Claim, compute_claim_text_hash
+
+if TYPE_CHECKING:
+    from app.models.agent_transaction import AgentTransaction
 from app.api.v1.schemas import (
     AgentCheckResponse,
     CreditBalanceResponse,
@@ -275,12 +278,12 @@ async def agent_smart_check(
                     ),
                     cached_tier=check_row.executed_tier,
                 )
-            except Exception:
+            except Exception as err:
                 await _refund_and_fail_tx(tx, payment, amount_pence, session)
                 raise HTTPException(
                     status_code=502,
                     detail="Response building failed. Credits have been refunded.",
-                )
+                ) from err
 
             response_data["hit"] = True
             tx.status = "completed"
@@ -306,7 +309,7 @@ async def agent_smart_check(
         )
 
     # Step 2.5 (M-06): Try consensus if max_tier allows
-    from app.core.agent_pricing import tier_rank, TIER_ORDER
+    from app.core.agent_pricing import tier_rank
 
     if tier_rank(max_tier) >= tier_rank("consensus"):
         try:
@@ -512,12 +515,12 @@ async def agent_lookup(
             cached_from=check.completed_at.isoformat() if check.completed_at else None,
             cached_tier=check.executed_tier,
         )
-    except Exception:
+    except Exception as err:
         await _refund_and_fail_tx(tx, payment, amount_pence, session)
         raise HTTPException(
             status_code=502,
             detail="Response building failed. Credits have been refunded.",
-        )
+        ) from err
 
     response_data["hit"] = True
     tx.status = "completed"
@@ -829,7 +832,7 @@ async def _run_agent_pipeline(
                 {"exp": payment.token_exp}, tier
             )
         except ValueError as e:
-            raise HTTPException(status_code=402, detail=str(e))
+            raise HTTPException(status_code=402, detail=str(e)) from e
 
     # Charge upfront — transaction starts as "pending"
     tx = await payment.charge(
@@ -1024,7 +1027,7 @@ async def _run_agent_pipeline(
             },
         )
 
-    except asyncio.TimeoutError:
+    except asyncio.TimeoutError as err:
         logger.error(f"[AGENT {tier.upper()}] Pipeline timed out for check {check.id}")
         await _refund_and_fail_tx(tx, payment, amount_pence, session)
         await handle_pipeline_failure(
@@ -1034,14 +1037,14 @@ async def _run_agent_pipeline(
         raise HTTPException(
             status_code=504,
             detail="Pipeline timed out. Credits have been refunded.",
-        )
+        ) from err
 
     except PipelineError as e:
         logger.error(f"[AGENT {tier.upper()}] Pipeline error for check {check.id}: {e}")
         await _refund_and_fail_tx(tx, payment, amount_pence, session)
         await handle_pipeline_failure(check.id, payment.user_id, e)
         _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
-        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
+        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}") from e
 
     except HTTPException:
         raise
@@ -1053,7 +1056,7 @@ async def _run_agent_pipeline(
         await _refund_and_fail_tx(tx, payment, amount_pence, session)
         await handle_pipeline_failure(check.id, payment.user_id, e)
         _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
-        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
+        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}") from e
 
     finally:
         inflight_unregister(check.id)
@@ -1494,7 +1497,7 @@ async def purchase_credits(
         )
     except Exception as e:
         logger.error(f"Stripe error creating credit checkout: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create checkout session")
+        raise HTTPException(status_code=500, detail="Failed to create checkout session") from e
 
 
 # ---------------------------------------------------------------------------
@@ -1522,7 +1525,7 @@ async def get_agent_stats(
 
     **Rate limit:** 30/minute
     """
-    from sqlalchemy import func, case
+    from sqlalchemy import func
     from app.models.agent_transaction import AgentTransaction
 
     # Aggregate by tier
@@ -1756,8 +1759,6 @@ async def agent_batch(
                 detail=f"Insufficient credits. Need {total_cost} pence for {len(body.claims)} claims at £{amount_pence/100:.2f}/each. Balance: {balance} pence.",
             )
 
-    from app.core.database import async_session
-    from app.pipeline.progress import ProgressReporter
     from app.pipeline.runner import DEFAULT_CONFIG, QUICK_CONFIG
 
     config = QUICK_CONFIG if tier == "quick" else DEFAULT_CONFIG

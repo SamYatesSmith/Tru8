@@ -1,12 +1,15 @@
-from typing import Optional, List
+from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime, timezone
-from sqlmodel import Field, SQLModel, Relationship, JSON
+from sqlmodel import Field, SQLModel, Relationship
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB
 import hashlib
 import re
 import unicodedata
 import uuid
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 def generate_uuid() -> str:

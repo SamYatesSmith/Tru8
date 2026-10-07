@@ -18,8 +18,6 @@ Output:
 import asyncio
 import json
 import sys
-import os
-from collections import Counter
 from pathlib import Path
 
 # Add backend to path
@@ -28,8 +26,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.pipeline.evidence_classifier import (
     _classify_heuristic,
     EvidenceClassifier,
-    VALID_TIERS,
-    VALID_TYPES,
 )
 
 
@@ -962,7 +958,7 @@ def print_heuristic_report(results):
         )
         if len(defaults) > len(expected_defaults):
             print(
-                f"\n  Masked misclassifications (should NOT be commentary/news_reporting):"
+                "\n  Masked misclassifications (should NOT be commentary/news_reporting):"
             )
             for r in defaults:
                 if not (

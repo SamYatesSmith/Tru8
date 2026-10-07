@@ -37,7 +37,7 @@ import asyncio
 import json
 import os
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from app.core.config import settings
 

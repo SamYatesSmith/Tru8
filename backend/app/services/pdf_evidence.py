@@ -6,7 +6,7 @@ Extracts evidence from PDF documents with precise page citations
 import logging
 import re
 import asyncio
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any, List
 from io import BytesIO
 import httpx
 

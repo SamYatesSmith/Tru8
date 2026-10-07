@@ -202,7 +202,6 @@ class TransfermarktAdapter(GovernmentAPIClient):
             List of person names to search for
         """
         persons = []
-        entity_fallbacks = []
 
         if entities:
             for ent in entities:
@@ -979,7 +978,6 @@ class FootballDataAdapter(GovernmentAPIClient):
 
                 # Find best matching team
                 team_id = None
-                team_name_match = None
 
                 for team in all_teams:
                     team_name = team.get("name", "")
@@ -988,13 +986,11 @@ class FootballDataAdapter(GovernmentAPIClient):
                     # Fuzzy match - check if entity matches team name
                     if org_lower in team_lower or team_lower in org_lower:
                         team_id = team.get("id")
-                        team_name_match = team_name
                         break
                     # Partial match for common variations
                     for word in org_lower.split():
                         if len(word) > 3 and word in team_lower:
                             team_id = team.get("id")
-                            team_name_match = team_name
                             break
                     if team_id:
                         break

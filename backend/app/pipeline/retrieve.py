@@ -2,8 +2,7 @@ import copy
 import hashlib
 import logging
 import asyncio
-import re
-from typing import List, Dict, Any, Optional, Tuple, Union
+from typing import List, Dict, Any, Optional, Tuple
 import os
 from app.services.search import SearchService, SearchResult, JURISDICTION_TO_COUNTRY
 from app.services.title_recovery import recover_truncated_titles
@@ -1052,7 +1051,6 @@ class EvidenceRetriever:
 
             # Return both filtered evidence and raw evidence
             _func_elapsed = _time.time() - _func_start
-            total_evidence = sum(len(ev) for ev in evidence_by_claim.values())
             return {
                 "evidence_by_claim": evidence_by_claim,
                 "raw_evidence": all_raw_evidence,
@@ -2435,7 +2433,7 @@ class EvidenceRetriever:
 
                 if not unique_search_results:
                     logger.warning(
-                        f"[FRESHNESS FALLBACK] No results after all attempts"
+                        "[FRESHNESS FALLBACK] No results after all attempts"
                     )
                     return []
 
@@ -3012,8 +3010,8 @@ class EvidenceRetriever:
                     # Warn if classification failed (using fallback "General")
                     if article_classification.get("classification_failed"):
                         logger.warning(
-                            f"[API ROUTING] Classification failed - using General domain, "
-                            f"API evidence may be less targeted"
+                            "[API ROUTING] Classification failed - using General domain, "
+                            "API evidence may be less targeted"
                         )
 
                     logger.debug(

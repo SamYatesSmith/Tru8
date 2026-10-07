@@ -126,8 +126,8 @@ async def create_comparison(
         # as Error.message, so an object here would reach the UI as
         # "[object Object]". The budget itself comes from the GET.
         if e.code == "budget_exhausted":
-            raise HTTPException(status_code=409, detail="budget_exhausted")
-        raise HTTPException(status_code=502, detail=e.code)
+            raise HTTPException(status_code=409, detail="budget_exhausted") from e
+        raise HTTPException(status_code=502, detail=e.code) from e
 
     budget = await get_comparison_budget(session, check_id)
     return {

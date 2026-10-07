@@ -17,7 +17,6 @@ import logging
 from app.core.database import get_session
 from app.core.auth import get_current_user, _hash_api_key, API_KEY_PREFIX
 from app.models.api_key import APIKey
-from app.models.user import User
 from app.api.v1.users import get_or_create_user
 
 logger = logging.getLogger(__name__)

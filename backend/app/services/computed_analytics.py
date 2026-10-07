@@ -19,7 +19,6 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
-from typing import Any
 from urllib.parse import urlparse
 
 

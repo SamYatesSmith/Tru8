@@ -321,14 +321,14 @@ def summarise(results: list[dict]) -> None:
     print(
         f"  invented vague window ('recent period'):       {_pct(c2_vague, frag_total)}"
     )
-    print(f"\nCOND 3 — candidate B (context-carried decompose)")
+    print("\nCOND 3 — candidate B (context-carried decompose)")
     print(
         f"  >=1 element carries user's anchor:             {_pct(c3_anchored, frag_total)}"
     )
     print(
         f"  invented vague window:                         {_pct(c3_vague, frag_total)}"
     )
-    print(f"\nCOND 4 — candidate E (intact sentence, one claim)")
+    print("\nCOND 4 — candidate E (intact sentence, one claim)")
     print(f"  within 5-element cap:                          {_pct(c4_cap, n)}")
     print(f"  causal element present:                        {_pct(c4_causal, n)}")
     print(f"  >=1 element anchored:                          {_pct(c4_anchor, n)}")

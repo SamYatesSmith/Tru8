@@ -17,7 +17,7 @@ import logging
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Header, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -278,7 +278,7 @@ async def _run_x402_pipeline(
             },
         )
 
-    except asyncio.TimeoutError:
+    except asyncio.TimeoutError as err:
         logger.error(
             f"[AGENT X402 {tier.upper()}] Pipeline timed out for check {check.id}"
         )
@@ -287,7 +287,7 @@ async def _run_x402_pipeline(
         await handle_pipeline_failure(
             check.id, payment.user_id, Exception("Pipeline timed out")
         )
-        raise HTTPException(status_code=504, detail="Pipeline timed out.")
+        raise HTTPException(status_code=504, detail="Pipeline timed out.") from err
 
     except PipelineError as e:
         logger.error(
@@ -296,7 +296,7 @@ async def _run_x402_pipeline(
         tx.status = "failed"
         await session.commit()
         await handle_pipeline_failure(check.id, payment.user_id, e)
-        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
+        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}") from e
 
     except HTTPException:
         raise
@@ -308,7 +308,7 @@ async def _run_x402_pipeline(
         tx.status = "failed"
         await session.commit()
         await handle_pipeline_failure(check.id, payment.user_id, e)
-        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
+        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}") from e
 
     finally:
         inflight_unregister(check.id)
@@ -553,7 +553,7 @@ async def x402_challenge(
         challenge = await generate_challenge(address.lower(), check_id)
         return JSONResponse(content=challenge)
     except RuntimeError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=str(e)) from e
 
 
 # ---------------------------------------------------------------------------
@@ -583,7 +583,7 @@ async def x402_result(
     try:
         wallet_address = await verify_signature(body.message, body.signature, check_id)
     except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
+        raise HTTPException(status_code=401, detail=str(e)) from e
 
     # Resolve wallet to Tru8 user
     external_id = f"x402:{settings.X402_NETWORK}:{wallet_address}"

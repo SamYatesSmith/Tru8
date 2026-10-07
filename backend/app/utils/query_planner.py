@@ -801,7 +801,7 @@ def check_evidence_staleness(
 
     # Generate message
     if age_days is None:
-        message = f"Evidence date unknown - cannot verify recency"
+        message = "Evidence date unknown - cannot verify recency"
     elif is_stale:
         message = f"STALE: Evidence is {age_days} days old, max allowed for {freshness_desc} data is {max_age} days"
     elif is_warning:

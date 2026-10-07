@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
@@ -9,7 +9,6 @@ from app.core.client_origin import resolve_client
 from app.core.database import get_session
 from app.core.auth import (
     get_current_user,
-    get_current_user_sse,
     get_current_user_or_api_key,
     get_current_user_or_api_key_sse,
 )
@@ -29,9 +28,6 @@ import logging
 import secrets
 import redis.asyncio as aioredis
 import redis
-from app.core.config import settings
-import os
-import aiofiles
 from app.api.v1.users import get_or_create_user
 from app.services.storage import storage_service
 from app.services.usage_ledger import (
@@ -41,14 +37,12 @@ from app.services.usage_ledger import (
     reserve_usage,
 )
 from app.core.rate_limit import limiter
-from app.utils.encoding import fix_mojibake
 from pathlib import Path
 
 # Response builder (extracted L-03) — shared with agent.py
 from app.api.v1.response_builder import (
     _sanitize_strings,
     _claim_map_to_camel_case,
-    _convert_element,
     _serialize_evidence,
     build_check_response,
 )
@@ -339,7 +333,7 @@ async def upload_file(
 
     except Exception as e:
         logger.error(f"File upload error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to save uploaded file")
+        raise HTTPException(status_code=500, detail="Failed to save uploaded file") from e
 
 
 @router.post(
@@ -816,7 +810,7 @@ async def create_check_sync(
                 check.id, user.id, resp_session, computed=True
             )
 
-    except asyncio.TimeoutError:
+    except asyncio.TimeoutError as err:
         logger.error(f"[SYNC RUN] Pipeline timed out for check {check.id}")
         await handle_pipeline_failure(
             check.id, user.id, Exception("Pipeline timed out")
@@ -824,7 +818,7 @@ async def create_check_sync(
         raise HTTPException(
             status_code=504,
             detail="Pipeline timed out. Your credit has been returned.",
-        )
+        ) from err
 
     except PipelineError as e:
         logger.error(f"[SYNC RUN] Pipeline error for check {check.id}: {e}")
@@ -832,7 +826,7 @@ async def create_check_sync(
         raise HTTPException(
             status_code=502,
             detail=f"Pipeline error: {e}",
-        )
+        ) from e
 
     except HTTPException:
         raise
@@ -846,7 +840,7 @@ async def create_check_sync(
         raise HTTPException(
             status_code=502,
             detail=f"Pipeline error: {e}",
-        )
+        ) from e
 
 
 @router.get(
@@ -1642,7 +1636,7 @@ async def create_sse_token(
         await redis_client.aclose()
     except Exception as e:
         logger.error(f"Failed to store SSE token in Redis: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate stream token")
+        raise HTTPException(status_code=500, detail="Failed to generate stream token") from e
 
     return {"token": stream_token, "expiresIn": 300}
 
@@ -2006,7 +2000,7 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
         )
     except Exception as e:
         logger.error(f"Template rendering failed: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate PDF template")
+        raise HTTPException(status_code=500, detail="Failed to generate PDF template") from e
 
     # Generate PDF with WeasyPrint (lazy import — GTK3 DLLs only needed at PDF time)
     try:
@@ -2020,7 +2014,7 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
         logger.error(f"PDF generation failed: {e}")
         raise HTTPException(
             status_code=500, detail="Failed to generate PDF. Please try again."
-        )
+        ) from e
 
     return pdf_bytes
 
@@ -2780,7 +2774,6 @@ async def export_check_sources(
             key = f"tru8_{check_id[:8]}_{i+1}"
             pub_year = ev.published_date.year if ev.published_date else "n.d."
             pub_month = ev.published_date.strftime("%B") if ev.published_date else ""
-            pub_day = ev.published_date.day if ev.published_date else ""
 
             # Standard BibTeX @online entry (no internal scoring)
             entry = f"""@online{{{key},

@@ -12,10 +12,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
+from app.api.v1.response_builder import _convert_element
 from app.api.v1.checks import (
     _sanitize_strings,
     _claim_map_to_camel_case,
-    _convert_element,
     _serialize_evidence,
     safe_json_dumps,
     _validate_and_create_check,

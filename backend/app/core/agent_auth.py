@@ -13,14 +13,13 @@ import hashlib
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Callable, Optional
+from typing import Optional
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.agent_pricing import get_tier_price
 from app.core.config import settings
 from app.core.database import get_session
 from app.models.agent_transaction import AgentTransaction
@@ -127,7 +126,7 @@ class AgentPaymentContext(AgentIdentity):
         self.session.add(tx)
         try:
             await self.session.flush()
-        except IntegrityError:
+        except IntegrityError as err:
             # Lost the race on the unique idempotency_key index: a concurrent
             # resend inserted first. Roll back (this also undoes our debit)
             # and hand back the winner if it is ours.
@@ -143,7 +142,7 @@ class AgentPaymentContext(AgentIdentity):
             raise HTTPException(
                 status_code=409,
                 detail="Idempotency-Key is in use by a concurrent request",
-            )
+            ) from err
         return tx
 
 
@@ -227,7 +226,7 @@ async def get_agent_identity(
         try:
             payload = await skyfire.verify_jwt_only(token)
         except ValueError as e:
-            raise HTTPException(status_code=401, detail=str(e))
+            raise HTTPException(status_code=401, detail=str(e)) from e
 
         skyfire_user_id = payload.get("sub", "")
         if not skyfire_user_id:

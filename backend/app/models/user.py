@@ -1,7 +1,10 @@
-from typing import Optional, List
-from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Optional, List
+from datetime import datetime
 from sqlmodel import Field, SQLModel, Relationship
 from .check import _utcnow_naive
+
+if TYPE_CHECKING:
+    from .check import Check
 
 
 class User(SQLModel, table=True):

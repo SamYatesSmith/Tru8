@@ -5,7 +5,6 @@ Uses description hashing for element canonicalisation (no embeddings — KD5).
 """
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB

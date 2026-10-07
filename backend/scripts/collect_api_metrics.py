@@ -17,7 +17,7 @@ import json
 import argparse
 import requests
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any
 from sqlalchemy import create_engine, text
 from tabulate import tabulate
 

@@ -118,7 +118,7 @@ class TemporalAnalyzer:
         # Try ISO format
         try:
             return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-        except:
+        except Exception:
             pass
 
         # Try common formats
@@ -126,7 +126,7 @@ class TemporalAnalyzer:
         for fmt in formats:
             try:
                 return datetime.strptime(date_str, fmt)
-            except:
+            except Exception:
                 continue
 
         # Extract year and assume Jan 1

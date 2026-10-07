@@ -5,8 +5,8 @@ retrieved via YouTube Data API, classified by lightweight channel heuristics.
 """
 
 from typing import Optional
-from datetime import datetime, timezone
-from sqlmodel import Field, SQLModel, Relationship
+from datetime import datetime
+from sqlmodel import Field, SQLModel
 from .check import generate_uuid, _utcnow_naive
 
 

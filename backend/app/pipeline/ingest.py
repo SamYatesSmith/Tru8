@@ -2,7 +2,7 @@ import base64
 import logging
 import asyncio
 import random
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 from urllib.parse import urlparse, parse_qs
 import re
 import requests
@@ -467,7 +467,6 @@ class ImageIngester(BaseIngester):
     ) -> Optional[str]:
         """Use Gemini vision to extract text from an image."""
         try:
-            import json
 
             import httpx
 

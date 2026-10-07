@@ -30,7 +30,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Reuse the v1 artefacts (candidate prompt, red-team critic, battery, helpers).
 from scripts.decompose_symmetry_eval import (

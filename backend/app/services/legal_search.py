@@ -75,7 +75,7 @@ class LegalSearchService:
                 results = await self._search_uk_sources(claim_text, metadata)
             else:
                 # Unknown jurisdiction - try both
-                logger.warning(f"Unknown jurisdiction, trying all sources")
+                logger.warning("Unknown jurisdiction, trying all sources")
                 us_results = await self._search_us_sources(claim_text, metadata)
                 uk_results = await self._search_uk_sources(claim_text, metadata)
                 results = us_results + uk_results

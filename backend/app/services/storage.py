@@ -11,7 +11,6 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import BinaryIO
 
 import aiofiles
 
@@ -215,7 +214,7 @@ class S3StorageBackend(StorageBackend):
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code")
             if error_code == "NoSuchKey":
-                raise FileNotFoundError(f"File not found: {file_path}")
+                raise FileNotFoundError(f"File not found: {file_path}") from e
             raise
 
     async def delete(self, file_path: str) -> bool:

@@ -6,8 +6,8 @@ Tracks unknown domains encountered during evidence retrieval for manual review a
 """
 
 from typing import Optional
-from datetime import datetime, timezone
-from sqlmodel import Field, SQLModel, Column, JSON
+from datetime import datetime
+from sqlmodel import Field, SQLModel, Column
 from sqlalchemy.dialects.postgresql import JSONB
 from .check import _utcnow_naive
 import uuid

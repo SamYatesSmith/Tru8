@@ -16,7 +16,7 @@ import logging
 import time
 from typing import Dict, Any, Optional, Callable
 from enum import Enum
-from datetime import datetime, timedelta
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ class CircuitBreaker:
             self._on_success()
             return result
 
-        except Exception as e:
+        except Exception:
             # Failure - record it
             self._on_failure()
             raise

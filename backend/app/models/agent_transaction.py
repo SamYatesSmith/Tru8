@@ -12,7 +12,7 @@ Settlement reasons (stored in metadata.settlement_reason):
 """
 
 from typing import Optional
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB

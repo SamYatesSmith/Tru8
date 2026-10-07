@@ -406,7 +406,7 @@ def main():
 
     # Print summary
     s = run_result["summary"]
-    print(f"\nSummary:")
+    print("\nSummary:")
     print(f"  Cases tested: {s['cases_tested']}")
     print(f"  State accuracy: {s['state_accuracy']:.0%}")
     print(f"  Ref accuracy: {s['ref_accuracy']:.0%}")

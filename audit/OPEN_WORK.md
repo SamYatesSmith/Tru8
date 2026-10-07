@@ -24,8 +24,8 @@
   - **Build B DONE 2026-10-07:** production read first (0 of 406 claim maps, 0 report revisions carry `citations` / `passage_review` / `fact_applicability`; positive control 301/406), then every reader removed (PDF quote block, `cited_context`, receipt key, TypedDict/Pydantic fields, frontend notices; `PassageReviewNotice` renamed `SourceScopeNotices`). Output for production records unchanged (independent check); one copy change: revision history says "explanation changed" (citations no longer exist). Suite 4,628 pass; web 247/247; bench identical.
   - Follow-up M3: the review-flag-False branches in `relationship_scope_review.py` are unreachable from the pipeline (and its "candidate-only" docstring is stale).
   - `scripts/probe_endpoint_auth.py`: 8 pre-existing failures — its allowlist marks intentionally public routes (`/checks/public/*`, `/verify/*/revisions/*`, `/mcp` redirect, Clerk webhook) as protected. Needs a reviewed allowlist update, not a code change.
-  - `tests/unit/test_relationship_scope_review.py:614` references `asyncio` without importing it (unreached today; latent NameError).
-  - Next in the pass: mechanical lint (unused imports, `raise … from`, bare `except`), then structure (one receipt/state function for the 5 copies; split `run_pipeline_phase2`; D1–D5).
+  - **Lint pass DONE 2026-10-07** (pyflakes + bare except + raise-from to 3 deliberate leftovers; detail in the baseline doc). Fixed on the way: `test_relationship_scope_review.py` raised NameError where it meant TimeoutError (passed for the wrong reason); the legal adapter's try/except called `asyncio.run` in both branches.
+  - **Next:** structure (one receipt/state function for the 5 copies; split `run_pipeline_phase2`; D1–D5).
 
 ## ▶ 2026-10-06 (end) — ARCHITECTURE REVIEW (START HERE)
 - **Record:** `audit/2026-10-06_architecture_review.md`.

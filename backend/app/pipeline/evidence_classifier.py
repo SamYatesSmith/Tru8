@@ -24,7 +24,7 @@ import httpx
 
 from app.core.config import settings
 from app.services import originator_review
-from app.services.google_ai import call_google_ai, call_google_ai_with_usage
+from app.services.google_ai import call_google_ai_with_usage
 
 logger = logging.getLogger(__name__)
 

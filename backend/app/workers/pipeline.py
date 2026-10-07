@@ -7,13 +7,10 @@ Celery has been removed - all processing happens inline with SSE streaming.
 """
 
 from typing import Dict, List, Any, Optional
-import asyncio
 import logging
-from datetime import datetime
 from app.pipeline.ingest import UrlIngester, ImageIngester, VideoIngester
 from app.pipeline.extract import ClaimExtractor
 from app.pipeline.retrieve import EvidenceRetriever
-from app.services.cache import get_cache_service
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)

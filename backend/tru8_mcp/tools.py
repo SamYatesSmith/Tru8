@@ -12,7 +12,6 @@ from importlib.metadata import PackageNotFoundError, version
 from typing import Optional
 
 import hashlib
-import json
 
 import httpx
 

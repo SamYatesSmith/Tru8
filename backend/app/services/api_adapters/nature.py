@@ -258,7 +258,7 @@ class GBIFAdapter(GovernmentAPIClient):
                 snippet = f"Scientific classification: {taxonomy}. "
                 if status:
                     snippet += f"Taxonomic status: {status}. "
-                snippet += f"Data from GBIF - Global Biodiversity Information Facility."
+                snippet += "Data from GBIF - Global Biodiversity Information Facility."
 
                 evidence.append(
                     self._create_evidence_dict(

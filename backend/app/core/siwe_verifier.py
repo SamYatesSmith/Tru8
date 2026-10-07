@@ -59,7 +59,7 @@ async def generate_challenge(
             redis_key, settings.SIWE_NONCE_TTL_SECONDS, f"{address}:{check_id}"
         )
     except Exception as e:
-        raise RuntimeError(f"Failed to store SIWE nonce: {e}")
+        raise RuntimeError(f"Failed to store SIWE nonce: {e}") from e
 
     return {"message": message.prepare_message(), "nonce": nonce}
 
@@ -81,13 +81,13 @@ async def verify_signature(
     try:
         message = SiweMessage.from_message(message_str)
     except Exception as e:
-        raise ValueError(f"Invalid SIWE message: {e}")
+        raise ValueError(f"Invalid SIWE message: {e}") from e
 
     # Verify signature (checks address, domain, expiration, not-before)
     try:
         message.verify(signature, domain=domain)
     except Exception as e:
-        raise ValueError(f"SIWE signature verification failed: {e}")
+        raise ValueError(f"SIWE signature verification failed: {e}") from e
 
     # Manual URI binding check — siwe-py does NOT validate uri
     expected_uri = f"https://{domain}/api/v1/agent/x402/result/{expected_check_id}"

@@ -11,7 +11,6 @@ Cost: ~$0.004/claim, ~$0.02/check. Adds ~3-5s latency (parallelisable).
 """
 
 import asyncio
-import json
 import logging
 from typing import Any, Dict, List, Optional
 

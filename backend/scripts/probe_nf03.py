@@ -19,7 +19,6 @@ BACKEND = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BACKEND))
 
 from scripts.replay_bench.cassette import HttpxCassette  # noqa: E402
-from scripts.replay_bench.fixtures import DomainStatusFixture  # noqa: E402
 
 CORPUS = BACKEND / "tests" / "replay_corpus"
 

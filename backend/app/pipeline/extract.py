@@ -1,6 +1,5 @@
 import logging
 import json
-import asyncio
 import re
 from collections import defaultdict
 from typing import Dict, List, Any, Optional, Set, Tuple
@@ -1601,7 +1600,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                 # Only keep if factual core is substantial (>20 chars)
                 if len(factual_core) > 20:
                     logger.info(
-                        f"[EXTRACT] CLAIM REFINEMENT: Stripped procedural negative"
+                        "[EXTRACT] CLAIM REFINEMENT: Stripped procedural negative"
                     )
                     logger.info(f"   Original: {claim_text[:80]}...")
                     logger.info(f"   Refined: {factual_core[:80]}...")
@@ -1612,7 +1611,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                     claim["was_refined"] = True
                 else:
                     logger.warning(
-                        f"[EXTRACT] CLAIM FILTERED: Procedural negative with no factual core"
+                        "[EXTRACT] CLAIM FILTERED: Procedural negative with no factual core"
                     )
                     logger.warning(f"   Claim: {claim_text[:80]}...")
                     filtered_count += 1
@@ -1633,7 +1632,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
 
             if has_pronoun:
                 logger.warning(
-                    f"[EXTRACT] CLAIM FILTERED: Unresolved pronoun/reference"
+                    "[EXTRACT] CLAIM FILTERED: Unresolved pronoun/reference"
                 )
                 logger.warning(f"   Claim: {claim_text[:80]}...")
                 filtered_count += 1
@@ -1653,7 +1652,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
 
             if not (has_date or has_number or has_proper_noun):
                 logger.warning(
-                    f"[EXTRACT] CLAIM FILTERED: Too vague (no date/number/proper noun)"
+                    "[EXTRACT] CLAIM FILTERED: Too vague (no date/number/proper noun)"
                 )
                 logger.warning(f"   Claim: {claim_text[:80]}...")
                 filtered_count += 1
@@ -1680,7 +1679,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
 
             if has_subjective:
                 # Lower confidence but don't filter (might still be verifiable)
-                logger.info(f"[EXTRACT] CLAIM WARNING: Contains subjective language")
+                logger.info("[EXTRACT] CLAIM WARNING: Contains subjective language")
                 logger.info(f"   Claim: {claim_text[:80]}...")
                 claim["confidence"] = int(claim["confidence"] * 0.75)
                 claim["has_subjective_language"] = True

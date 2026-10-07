@@ -17,9 +17,7 @@ ASGI applications.  The ``send_wrapper`` pattern gives us the same
 interception capability with zero contextvar issues.
 """
 
-import json
 import logging
-from typing import Callable
 
 from starlette.types import ASGIApp, Receive, Scope, Send
 

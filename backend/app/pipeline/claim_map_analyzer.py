@@ -27,7 +27,7 @@ import httpx
 import sentry_sdk
 
 from app.core.config import settings
-from app.services.google_ai import call_google_ai, call_google_ai_with_usage
+from app.services.google_ai import call_google_ai_with_usage
 from app.models.claim_map import (
     ClaimElement,
     ClaimMap,
@@ -67,7 +67,6 @@ from app.utils.date_scope import element_day, is_off_day, format_day
 from app.utils.figure_scope import (
     element_figures,
     format_figure,
-    is_unstated_figure,
     rests_on_a_figure,
     same_kind_figures,
     unstated_reason,
@@ -1750,14 +1749,14 @@ def _index_evidence(evidence_list: List[Dict[str, Any]]) -> Dict[str, _IndexedEv
         oid = ev.get("evidence_id")
         if not oid:
             continue
-        for copy in ev.get("confirmed_copies") or []:
-            did = copy.get("id") if isinstance(copy, dict) else None
+        for link in ev.get("confirmed_copies") or []:
+            did = link.get("id") if isinstance(link, dict) else None
             if not did or did == oid:
                 continue
-            rank = copy.get("rank", 0)
+            rank = link.get("rank", 0)
             held = original_of.get(did)
             if held is None or (rank, oid) < held[:2]:
-                original_of[did] = (rank, oid, copy)
+                original_of[did] = (rank, oid, link)
 
     index: Dict[str, _IndexedEvidence] = {}
     for ev in evidence_list or []:

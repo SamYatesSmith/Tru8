@@ -4,13 +4,12 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, delete, func, text
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import selectinload
 from datetime import datetime, timezone
 import json
 from app.core.database import get_session
 from app.core.auth import get_current_user
 from app.core.config import settings
-from app.models import User, Check, Subscription, Claim, Evidence, RawEvidence
+from app.models import User, Check, Subscription, Claim, Evidence
 from app.services.push_notifications import push_notification_service
 from app.services.usage_ledger import get_usage_snapshot
 from app.core.rate_limit import limiter
@@ -100,7 +99,7 @@ async def get_or_create_user(session: AsyncSession, current_user: dict) -> User:
         user = result.scalar_one_or_none()
         if user:
             return user
-        raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}") from e
 
 
 @router.get("/profile")
@@ -191,7 +190,7 @@ async def update_profile(
         await session.rollback()
         raise HTTPException(
             status_code=500, detail=f"Failed to update profile: {str(e)}"
-        )
+        ) from e
 
     return {
         "id": user.id,
@@ -463,7 +462,7 @@ async def purchase_agent_credits(
         return {"sessionId": checkout_session.id, "url": checkout_session.url}
     except Exception as e:
         logger.error(f"Stripe error creating dashboard credit checkout: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create checkout session")
+        raise HTTPException(status_code=500, detail="Failed to create checkout session") from e
 
 
 # Pydantic models for push notifications
@@ -759,7 +758,7 @@ async def delete_user_account(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete account. Please contact support at support@tru8.com",
-        )
+        ) from e
 
 
 # ========== EMAIL NOTIFICATION PREFERENCES ==========
@@ -840,7 +839,7 @@ async def update_email_preferences(
         await session.rollback()
         raise HTTPException(
             status_code=500, detail=f"Failed to update preferences: {str(e)}"
-        )
+        ) from e
 
     return {
         "success": True,

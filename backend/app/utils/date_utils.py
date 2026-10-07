@@ -54,7 +54,7 @@ def parse_date(date_value: Any) -> Optional[datetime]:
             if parsed.tzinfo is not None:
                 parsed = parsed.replace(tzinfo=None)
             return parsed
-        except:
+        except Exception:
             pass
 
         # Try common formats
@@ -71,7 +71,7 @@ def parse_date(date_value: Any) -> Optional[datetime]:
         for fmt in formats:
             try:
                 return datetime.strptime(date_value, fmt)
-            except:
+            except Exception:
                 continue
 
         # Extract year and assume Jan 1 (fallback for "2025" or "Published in 2025")

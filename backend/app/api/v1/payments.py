@@ -7,9 +7,8 @@ from app.core.config import settings
 from app.models import User, Subscription
 from app.services.product_analytics import schedule_event
 from pydantic import BaseModel
-from typing import Optional
 import stripe
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import logging
 
 logger = logging.getLogger(__name__)
@@ -88,7 +87,7 @@ async def create_checkout_session(
                 await session.rollback()
                 raise HTTPException(
                     status_code=500, detail=f"Failed to create user: {str(e)}"
-                )
+                ) from e
 
         # Check for existing active subscription
         existing_sub_stmt = select(Subscription).where(
@@ -139,10 +138,10 @@ async def create_checkout_session(
 
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error creating checkout session: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error creating checkout session: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 @router.post("/webhook")
@@ -159,10 +158,10 @@ async def stripe_webhook(
         )
     except ValueError as e:
         logger.error(f"Invalid payload: {e}")
-        raise HTTPException(status_code=400, detail="Invalid payload")
+        raise HTTPException(status_code=400, detail="Invalid payload") from e
     except stripe.error.SignatureVerificationError as e:
         logger.error(f"Invalid signature: {e}")
-        raise HTTPException(status_code=400, detail="Invalid signature")
+        raise HTTPException(status_code=400, detail="Invalid signature") from e
 
     # Idempotency: skip duplicate event deliveries (72h TTL in Redis,
     # matching Stripe's 72h retry window)
@@ -230,7 +229,7 @@ async def stripe_webhook(
         logger.error(
             f"Webhook handler failed for event {event_id} ({event['type']}): {e}"
         )
-        raise HTTPException(status_code=500, detail="Webhook handler error")
+        raise HTTPException(status_code=500, detail="Webhook handler error") from e
 
     return {"status": "success"}
 
@@ -786,7 +785,7 @@ async def get_subscription_status(
             await session.rollback()
             raise HTTPException(
                 status_code=500, detail=f"Failed to create user: {str(e)}"
-            )
+            ) from e
 
     # Get user's subscription
     sub_stmt = select(Subscription).where(
@@ -863,7 +862,7 @@ async def cancel_subscription(
 
     except stripe.error.StripeError as e:
         logger.error(f"Error cancelling subscription: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/create-portal-session")
@@ -901,10 +900,10 @@ async def create_billing_portal_session(
 
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error creating portal session: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error creating portal session: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 @router.post("/reactivate-subscription")
@@ -959,7 +958,7 @@ async def reactivate_subscription(
 
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error reactivating subscription: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error reactivating subscription: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e

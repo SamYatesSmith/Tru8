@@ -27,7 +27,6 @@ import asyncio
 import csv
 import json
 import logging
-import os
 import subprocess
 import sys
 import time
@@ -39,9 +38,8 @@ from typing import Any, Dict, List, Optional, Tuple
 backend_dir = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(backend_dir))
 
-from app.core.config import settings
 from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
-from app.models.claim_map import ClaimType, ElementState
+from app.models.claim_map import ClaimType
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +60,7 @@ def load_golden_checks(path: Path) -> List[Dict[str, Any]]:
 
     # Validate structure
     for check in checks:
-        assert "claim_id" in check, f"Missing claim_id in golden check"
+        assert "claim_id" in check, "Missing claim_id in golden check"
         assert (
             "normalised_claim" in check
         ), f"Missing normalised_claim in {check['claim_id']}"
@@ -327,7 +325,7 @@ async def run_eval(
         print(f"  Model:          {model_used}")
 
     # Per-claim breakdown
-    print(f"\nPer-claim breakdown:")
+    print("\nPer-claim breakdown:")
     for r in all_results:
         status = "PERFECT" if r["accuracy"] == 1.0 else f"{r['accuracy']:.0%}"
         print(f"  {r['claim_id']}: {r['correct']}/{r['total']} [{status}]")

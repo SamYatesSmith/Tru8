@@ -522,7 +522,7 @@ class GovInfoAdapter(GovernmentAPIClient):
             )
             return []
 
-        logger.info(f"   [GOVINFO] Domain/jurisdiction match confirmed")
+        logger.info("   [GOVINFO] Domain/jurisdiction match confirmed")
 
         try:
             # Extract legal metadata from query using classifier
@@ -559,19 +559,12 @@ class GovInfoAdapter(GovernmentAPIClient):
             # Call legal search service (async, so we need to run it)
             import asyncio
 
-            try:
-                # Try to get running loop
-                loop = asyncio.get_running_loop()
-                # We're in a sync context called from async via asyncio.to_thread
-                # So we can't use await here, but the service handles this
-                results = asyncio.run(
-                    self.legal_service.search_statutes(query, legal_metadata)
-                )
-            except RuntimeError:
-                # No running loop, create new one
-                results = asyncio.run(
-                    self.legal_service.search_statutes(query, legal_metadata)
-                )
+            # Called via asyncio.to_thread, so this thread has no running loop.
+            # (The old try/except called asyncio.run in both branches; inside a
+            # running loop both raised and the handler below returned [].)
+            results = asyncio.run(
+                self.legal_service.search_statutes(query, legal_metadata)
+            )
 
             # Transform legal search results to standardized evidence format
             return self._transform_response(results)

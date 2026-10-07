@@ -34,7 +34,6 @@ import asyncio
 import hashlib
 import json
 import logging
-import os
 import sys
 import time
 from datetime import datetime, timezone
@@ -48,14 +47,8 @@ sys.path.insert(0, str(backend_dir))
 from app.core.config import settings
 from app.pipeline.claim_map_analyzer import (
     MAPPING_PROMPT,
-    ClaimMapAnalyzer,
     _VALID_RELATIONSHIPS,
     _VALID_STATES,
-)
-from app.models.claim_map import (
-    ElementState,
-    EvidenceRef,
-    EvidenceRelationship,
 )
 
 logger = logging.getLogger(__name__)

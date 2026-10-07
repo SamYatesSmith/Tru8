@@ -20,7 +20,7 @@ import logging
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 backend_dir = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(backend_dir))
@@ -468,7 +468,7 @@ def main():
             f"  Relationship accuracy: {summary['accuracy']['relationship_correct_pct']:.0%}"
         )
         print(f"  State accuracy: {summary['accuracy']['state_correct_pct']:.0%}")
-        print(f"\nFailure mode table:")
+        print("\nFailure mode table:")
         for mode, counts in summary["failure_mode_table"].items():
             total = counts["window_sufficient"] + counts["window_insufficient"]
             if total > 0:

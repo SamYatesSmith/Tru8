@@ -1118,7 +1118,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
             if current_date and current_date != "N/A":
                 try:
                     source_date = datetime.strptime(current_date, "%Y-%m-%d")
-                except:
+                except Exception:
                     pass
 
             evidence = self._create_evidence_dict(
@@ -1185,7 +1185,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                 if time_published:
                     try:
                         source_date = datetime.strptime(time_published[:8], "%Y%m%d")
-                    except:
+                    except Exception:
                         source_date = datetime.now(timezone.utc)
 
                 snippet = f"{summary} [Sentiment: {sentiment} ({sentiment_score:.2f})]"
@@ -1427,7 +1427,7 @@ class MarketauxAdapter(GovernmentAPIClient):
                         source_date = datetime.fromisoformat(
                             published.replace("Z", "+00:00")
                         )
-                    except:
+                    except Exception:
                         source_date = datetime.now(timezone.utc)
 
                 # Extract relevant entities

@@ -62,14 +62,14 @@ async def _verify_jwt_token(token: str) -> dict:
         payload = jwt.decode(token, signing_key.key, **decode_kwargs)
 
         return payload
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
-        )
+        ) from err
     except jwt.InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {str(e)}"
-        )
+        ) from e
 
 
 async def verify_token(
@@ -139,7 +139,7 @@ async def _fetch_user_data_from_clerk(user_id: str, token_payload: dict) -> dict
                             )
                 else:
                     pass
-        except Exception as e:
+        except Exception:
             pass
 
     return {

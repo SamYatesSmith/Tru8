@@ -9,7 +9,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete as sql_delete
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 from datetime import datetime
 import secrets
 import logging
@@ -108,7 +108,7 @@ async def create_webhook(
         raise HTTPException(
             status_code=400,
             detail=f"Webhook URL refused (private/internal address): {e}",
-        )
+        ) from e
 
     # Validate events
     invalid = set(body.events) - VALID_EVENTS
@@ -356,17 +356,17 @@ async def clerk_webhook(
         logger.error(f"[CLERK WEBHOOK] svix not installed: {e}")
         raise HTTPException(
             status_code=500, detail="Server misconfigured: svix missing"
-        )
+        ) from e
 
     try:
         wh = SvixWebhook(settings.CLERK_WEBHOOK_SECRET)
         event = wh.verify(payload, headers)
     except WebhookVerificationError as e:
         logger.warning(f"[CLERK WEBHOOK] signature verification failed: {e}")
-        raise HTTPException(status_code=403, detail="Invalid Svix signature")
+        raise HTTPException(status_code=403, detail="Invalid Svix signature") from e
     except Exception as e:
         logger.error(f"[CLERK WEBHOOK] verify error: {e}")
-        raise HTTPException(status_code=403, detail="Webhook verification error")
+        raise HTTPException(status_code=403, detail="Webhook verification error") from e
 
     event_type = event.get("type", "")
     data = event.get("data", {}) or {}

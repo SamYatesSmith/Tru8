@@ -10,13 +10,11 @@ import hashlib
 import hmac
 import json
 import logging
-import time
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import httpx
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import async_session
 from app.core.url_safety import UnsafeUrlError, safe_async_post

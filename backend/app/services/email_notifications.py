@@ -287,7 +287,6 @@ class EmailNotificationService:
 
         # Summary stats
         analyzed_count = selected_claims_count or claims_count
-        mode_label = "article" if entry_mode == "article" else "focused"
 
         return f"""
 <!DOCTYPE html>

@@ -24,7 +24,6 @@ Output:
 import asyncio
 import json
 import sys
-import os
 import time
 from collections import Counter, defaultdict
 from datetime import datetime
@@ -42,8 +41,6 @@ from app.utils.article_classifier import (  # noqa: E402
     _classify_with_fallback_llm,
     _classify_with_llm,
     ArticleClassification,
-    VALID_DOMAINS,
-    VALID_JURISDICTIONS,
 )
 
 

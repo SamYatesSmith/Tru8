@@ -763,7 +763,7 @@ async def run_pipeline_phase1(
 
     try:
         cache_service = await get_cache_service()
-        logger.info(f"[INLINE PIPELINE] Cache service initialized successfully")
+        logger.info("[INLINE PIPELINE] Cache service initialized successfully")
     except Exception as e:
         logger.warning(
             f"[INLINE PIPELINE] Cache service initialization failed, continuing without cache: {e}"
@@ -789,7 +789,7 @@ async def run_pipeline_phase1(
         import traceback
 
         logger.error(f"[INLINE PIPELINE] Ingest traceback: {traceback.format_exc()}")
-        raise PipelineError(get_user_friendly_error(e), stage="ingest")
+        raise PipelineError(get_user_friendly_error(e), stage="ingest") from e
 
     if not content.get("success"):
         error_msg = content.get("message") or content.get("error", "Unknown error")
@@ -836,7 +836,7 @@ async def run_pipeline_phase1(
         logger.error(
             f"[STAGE ERROR] check={check_id} stage=extract error={type(e).__name__}: {e}"
         )
-        raise PipelineError(get_user_friendly_error(e), stage="extract")
+        raise PipelineError(get_user_friendly_error(e), stage="extract") from e
 
     if not claims:
         raise PipelineError(
@@ -1428,7 +1428,6 @@ async def run_pipeline_phase2(
 
         # No frozen evidence in article mode phase2
         frozen_evidence = None
-        frozen_evidence_claim_texts = {}
         _replay_temp_token = None
         _replay_evidence_token = None
 
@@ -1553,7 +1552,7 @@ async def run_pipeline_phase2(
                 f"[STAGE ERROR] check={check_id} stage=decompose "
                 f"error={type(e).__name__}: {e}"
             )
-            raise PipelineError(f"Claim decomposition failed: {e}", stage="decompose")
+            raise PipelineError(f"Claim decomposition failed: {e}", stage="decompose") from e
         stage_timings["decompose"] = (
             datetime.now(timezone.utc) - stage_start
         ).total_seconds()
@@ -1694,7 +1693,7 @@ async def run_pipeline_phase2(
                     "raw_sources_count": 0,
                 }
             else:
-                raise PipelineError(f"Evidence retrieval failed: {e}", stage="retrieve")
+                raise PipelineError(f"Evidence retrieval failed: {e}", stage="retrieve") from e
 
         if (
             isinstance(retrieval_result, dict)
@@ -1729,7 +1728,7 @@ async def run_pipeline_phase2(
         logger.info(f"[INLINE PIPELINE] Claim {pos}: {len(ev_list)} evidence items")
     if total_evidence == 0:
         logger.critical(
-            f"[INLINE PIPELINE] CRITICAL: No evidence retrieved for any claim! Check search providers."
+            "[INLINE PIPELINE] CRITICAL: No evidence retrieved for any claim! Check search providers."
         )
 
     if ledger:
@@ -1780,7 +1779,7 @@ async def run_pipeline_phase2(
 
     if _is_frozen_evidence_replay and evidence:
         logger.info(
-            f"[URL DEDUP] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
+            "[URL DEDUP] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
         )
     elif evidence:
         stage_start = datetime.now(timezone.utc)
@@ -1885,7 +1884,7 @@ async def run_pipeline_phase2(
     # =========================================================================
     if _is_frozen_evidence_replay and evidence:
         logger.info(
-            f"[LLM SCORER] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
+            "[LLM SCORER] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
         )
         if ledger:
             count_frozen = sum(len(ev_list) for ev_list in evidence.values())
@@ -2529,18 +2528,18 @@ async def run_pipeline_phase2(
         await _elc.map_with_join(
             analyzer, batch_input, echo_join, mapping_base_timeout, stage_timings
         )
-        logger.info(f"[INLINE PIPELINE] Evidence mapping completed successfully")
-    except asyncio.TimeoutError:
+        logger.info("[INLINE PIPELINE] Evidence mapping completed successfully")
+    except asyncio.TimeoutError as err:
         logger.error(
             f"[STAGE ERROR] check={check_id} stage=analyze error=TimeoutError: "
             f"Evidence mapping timed out after {analyze_timeout}s"
         )
-        raise PipelineError("Evidence mapping timed out", stage="analyze")
+        raise PipelineError("Evidence mapping timed out", stage="analyze") from err
     except Exception as e:
         logger.error(
             f"[STAGE ERROR] check={check_id} stage=analyze error={type(e).__name__}: {e}"
         )
-        raise PipelineError(f"Evidence mapping failed: {e}", stage="analyze")
+        raise PipelineError(f"Evidence mapping failed: {e}", stage="analyze") from e
 
     if ledger:
         ledger.record(

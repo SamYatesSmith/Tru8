@@ -94,7 +94,6 @@ async def main() -> None:
         dirs = [e.get("basis", {}).get("direction") for e in elems]
         sym = cm.get("metadata", {}).get("symmetry", {})
         balanced = not _claim_dominated([d for d in dirs if d])
-        breadth_ok = len(elems) >= min(3, len(elems)) and len(elems) >= 1
         vw_hits = [
             e["description"]
             for e in elems

@@ -92,7 +92,11 @@ Vulture cannot see FastAPI routes, MCP tools or decorated handlers, so every rou
 | `db4b9a0` | 3 DEBUG-only `/checks/test/*` routes | unchanged | n/a (routes only) |
 | `d5c190d` | Passage mapping + structured extraction (plan, review, verification) | 4,739 → 4,632 (−109 removed, +2 restored legacy-reader tests) | identical to control |
 
-**Not yet done:** Build B legacy readers (needs a production read), stale `web/package-lock.json` (Docker and CI both resolve the root workspace lock; CI only uses it as a cache key).
+| (lint) | Mechanical lint: unused imports, duplicate imports, placeholder-less f-strings, unused variables, bare `except` → `except Exception`, explicit `raise … from`, type-only imports for string annotations, `copy` shadowing, a no-op try/except in the legal adapter, 2 latent test bugs | 4,628 unchanged, 0 fail | identical to control |
+
+**Lint counts (baseline → now):** F401 107 → 1, B904 62 → 0, F541 30 → 0, F841 12 → 2, E722 9 → 0, F821 5 → 0, F811 3 → 0. The three left are deliberate: `resend` (an availability check in health.py) and two `runner.py` assignments whose right-hand side can raise (`json.loads`, a dict lookup); they go with the runner restructure.
+
+**Not yet done:** stale `web/package-lock.json` (Docker and CI both resolve the root workspace lock; CI only uses it as a cache key).
 
 ## Proposed order
 1. **Delete dead code** (sections 3 and 4), one commit per area, each confirmed by grep, unit suite and flags-off bench equal.

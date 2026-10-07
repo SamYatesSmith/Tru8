@@ -25,7 +25,6 @@ import argparse
 import asyncio
 import json
 import logging
-import os
 import sys
 import time
 from collections import defaultdict
@@ -34,7 +33,6 @@ from pathlib import Path
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.core.config import settings
 from app.services.government_api_client import get_api_registry
 from app.services.api_adapters import initialize_adapters
 from app.utils.claim_keyword_router import get_keyword_router
@@ -377,7 +375,7 @@ def print_table(results: dict):
             )
 
     # Summary
-    print(f"\nSummary:")
+    print("\nSummary:")
     print(f"  Registered adapters: {len(results['registered_adapters'])}")
     print(
         f"  Adapters that were selected: {sum(1 for s in stats.values() if s['selected'] > 0)}"

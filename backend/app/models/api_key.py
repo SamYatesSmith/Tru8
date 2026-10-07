@@ -6,11 +6,14 @@ a simpler auth path than JWT for programmatic API access.
 The raw key is shown once at creation; only the SHA-256 hash is stored.
 """
 
-from typing import Optional
-from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Optional
+from datetime import datetime
 from sqlmodel import Field, SQLModel, Relationship
 from .check import _utcnow_naive
 import uuid
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 def _generate_uuid() -> str:

@@ -2,7 +2,6 @@
 
 from urllib.parse import urlparse
 import logging
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

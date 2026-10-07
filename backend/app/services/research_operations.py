@@ -16,7 +16,6 @@ from app.core.database import async_session
 from app.models import (
     Check,
     Claim,
-    Evidence,
     ResearchOperation,
     ReportRevision,
     User,

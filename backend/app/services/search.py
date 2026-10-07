@@ -6,7 +6,6 @@ import re
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 import httpx
-from urllib.parse import quote_plus
 from app.core.config import settings
 
 from app.core.search_meter import record_search
@@ -224,7 +223,7 @@ class BraveSearchProvider(BaseSearchProvider):
                 # Apply warm-up delay to prevent anti-abuse detection
                 wait_time = 3.0  # 3 second warm-up (reduced from 10s to avoid claim timeout pressure)
                 logger.info(
-                    f"BRAVE COLD START: First request since worker startup - applying 3s warm-up delay"
+                    "BRAVE COLD START: First request since worker startup - applying 3s warm-up delay"
                 )
             elif time_since_last < self.request_spacing:
                 wait_time = self.request_spacing - time_since_last
@@ -396,7 +395,7 @@ class BraveSearchProvider(BaseSearchProvider):
                 return None
 
             return date.isoformat()[:10]  # YYYY-MM-DD format
-        except:
+        except Exception:
             return None
 
 
@@ -459,7 +458,7 @@ class SerpAPIProvider(BaseSearchProvider):
                 # Apply warm-up delay to prevent anti-abuse detection
                 wait_time = 10.0  # 10 second warm-up
                 logger.info(
-                    f"SERPAPI COLD START: First request since worker startup - applying 10s warm-up delay"
+                    "SERPAPI COLD START: First request since worker startup - applying 10s warm-up delay"
                 )
             elif time_since_last < self.request_spacing:
                 wait_time = self.request_spacing - time_since_last
@@ -873,7 +872,7 @@ class SearchService:
 
         # Log if we stripped procedural negatives
         if query != original_query:
-            logger.info(f"QUERY OPTIMIZATION: Stripped procedural negatives")
+            logger.info("QUERY OPTIMIZATION: Stripped procedural negatives")
             logger.info(f"   Original: {original_query[:100]}...")
             logger.info(f"   Optimized: {query[:100]}...")
 

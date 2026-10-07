@@ -206,7 +206,6 @@ def safe_get(
 
     try:
         current = url
-        last_response: Optional[requests.Response] = None
         for hop in range(max_redirects + 1):
             assert_public_url(current)
             response = session.get(
@@ -216,7 +215,6 @@ def safe_get(
                 allow_redirects=False,
                 **kwargs,
             )
-            last_response = response
             if response.is_redirect or response.is_permanent_redirect:
                 location = response.headers.get("Location")
                 if not location:

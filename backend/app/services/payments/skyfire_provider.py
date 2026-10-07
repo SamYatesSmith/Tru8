@@ -122,14 +122,14 @@ class SkyfirePaymentProvider(PaymentProvider):
 
             return payload
 
-        except jwt.ExpiredSignatureError:
-            raise ValueError("Skyfire token has expired")
+        except jwt.ExpiredSignatureError as err:
+            raise ValueError("Skyfire token has expired") from err
         except jwt.InvalidTokenError as e:
-            raise ValueError(f"Invalid Skyfire token: {e}")
+            raise ValueError(f"Invalid Skyfire token: {e}") from e
         except ValueError:
             raise
         except Exception as e:
-            raise ValueError(f"Skyfire JWT verification failed: {e}")
+            raise ValueError(f"Skyfire JWT verification failed: {e}") from e
 
     def validate_expiry_headroom(self, payload: dict, tier: str) -> None:
         """Raise if the token will expire before the tier can finish.
@@ -167,7 +167,7 @@ class SkyfirePaymentProvider(PaymentProvider):
                     },
                 )
         except httpx.HTTPError as e:
-            raise RuntimeError(f"Skyfire charge failed: {e}")
+            raise RuntimeError(f"Skyfire charge failed: {e}") from e
 
         if response.status_code not in (200, 201):
             logger.error(

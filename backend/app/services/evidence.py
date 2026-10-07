@@ -296,7 +296,6 @@ class EvidenceExtractor:
         try:
             # Step 1: Build context-enriched search query
             # TIER 1 IMPROVEMENT: Enhanced query formulation
-            from app.core.config import settings
 
             search_query = claim
             logger.info(f"Search query: '{search_query[:80]}...'")

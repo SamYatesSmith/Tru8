@@ -8,7 +8,7 @@ import httpx
 import json
 from typing import Dict, List, Any, Optional
 from app.core.config import settings
-from app.services.google_ai import call_google_ai, call_google_ai_with_usage
+from app.services.google_ai import call_google_ai_with_usage
 
 logger = logging.getLogger(__name__)
 
