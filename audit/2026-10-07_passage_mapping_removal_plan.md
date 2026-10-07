@@ -25,7 +25,7 @@ Readers of `citations`, `passage_review`, `fact_applicability` (PDF `_element_pa
 
 ## Out of scope
 - Simplifying the three-pass gate split (Phase 3).
-- `PassageReviewNotice` stays (default-on concentration and scope-review notices); `PassageCitation` + `passage-citation.ts` stay (temporal provenance uses them).
+- `PassageReviewNotice` stays (renamed `SourceScopeNotices` in Build B) (default-on concentration and scope-review notices); `PassageCitation` + `passage-citation.ts` stay (temporal provenance uses them).
 
 ## Independent review (2026-10-07) — taken in full
 Verdict: plan holds; every flag-off site stays byte-identical (prompts, schemas, fingerprint, cache key). Corrections:

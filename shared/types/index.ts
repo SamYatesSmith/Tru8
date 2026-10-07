@@ -276,7 +276,6 @@ export interface EvidenceRef {
   // in this direction. Present on every ref since Track B (measured 100%,
   // avg 178 chars) — typed late (2026-08-26); no current UI reads it.
   reasoning?: string;
-  citations?: PassageCitation[];
 }
 
 export interface PassageCitation {
@@ -308,12 +307,6 @@ export interface EvidenceSideStructure {
 // Per-element basis metadata. Only the fields the frontend reads are typed;
 // other keys (state_derivation, *_breakdown) are present but untyped.
 export interface ElementBasis {
-  fact_applicability?: {
-    target_day: string;
-    scan_scope: 'retained_passages';
-    scoped_count: number;
-    scoped: { evidence_id: string; was: EvidenceRelationship; reason: string; target_day: string }[];
-  };
   support_structure?: EvidenceSideStructure;
   challenge_structure?: EvidenceSideStructure;
   [key: string]: unknown;
@@ -344,7 +337,6 @@ export interface ClaimMap {
     // Diagnostic provenance — absent on pre-R2e checks and planner fallback.
     // Inner keys stay snake_case (only top-level metadata keys are camelCased).
     queryPlan?: { queries: string[]; element_ids: string[]; freshness: string[] };
-    passageReview?: PassageReview;
     scopeReview?: {
       candidate_pairs: number;
       assessed_pairs: number;
@@ -452,12 +444,4 @@ export interface ExploreData {
   relatedClaims: RelatedClaim[];
   mode: 'gaps' | 'explore';
   explorationBasis: string;
-}
-
-export interface PassageReview {
-  status: string;
-  candidate_pairs: number;
-  assessed_pairs: number;
-  uninspected_pairs: number;
-  pairs: { element_id: string; evidence_id: string; status: string; proposed_relationship?: EvidenceRelationship; citations?: PassageCitation[] }[];
 }

@@ -371,7 +371,7 @@ async def test_restore_is_undone_when_its_review_is_cancelled(monkeypatch):
 def test_gates_after_echo_still_yield_to_echo(monkeypatch):
     """Precedence is list order: a gate listed AFTER echo must not claim a ref
     echo claims, and one BEFORE echo must. No production gate runs after echo
-    since 2026-10-07; `fact_applicability` is used here as a stand-in key."""
+    since 2026-10-07; `later_gate` is a stand-in key."""
     from app.pipeline import claim_map_analyzer as cma
 
     def gate(key, fires=True):
@@ -398,7 +398,7 @@ def test_gates_after_echo_still_yield_to_echo(monkeypatch):
         lambda *_a: [
             gate("temporal_scope", False),
             gate("echo_scope"),
-            gate("fact_applicability"),
+            gate("later_gate"),
         ],
     )
     receipts = analyzer._apply_scope_gates(elem, index, {})
@@ -411,7 +411,7 @@ def test_gates_after_echo_still_yield_to_echo(monkeypatch):
         lambda *_a: [
             gate("temporal_scope"),
             gate("echo_scope"),
-            gate("fact_applicability"),
+            gate("later_gate"),
         ],
     )
     receipts = analyzer._apply_scope_gates(elem, index, {})

@@ -428,7 +428,7 @@ def test_unsigned_export_identity_does_not_claim_a_signature():
     assert "not a signature" in html
 
 
-# ── Track Q step 8 — passage-backed export ───────────────────────────────────
+# ── Scope receipts in the PDF ─────────────────────────────────────────────────
 
 
 def _render(ctx):
@@ -439,36 +439,12 @@ def _render(ctx):
     return env.get_template("pdf/fact_check_report.html").render(**ctx)
 
 
-def _passage_ctx(quote="SQLite can return SQLITE_BUSY.", cite_quote=None):
-    from app.api.v1.checks import _element_passage_basis, _element_scope_notes
+def _scope_ctx():
+    from app.api.v1.checks import _element_scope_notes
 
     ctx = _context()
     claim = ctx["claims"][0]
-    sha = "a" * 64
-    text = "Under WAL, " + quote + " Readers do not block writers."
-    claim["evidence"][0].text_provenance = {
-        "version": 1,
-        "extraction_sha256": sha,
-        "extraction_characters": len(text),
-        "passages": [
-            {
-                "id": f"p-{sha[:16]}-0-{len(text)}",
-                "start": 0,
-                "end": len(text),
-                "text": text,
-            }
-        ],
-    }
     el = claim["elements"][0]
-    el["evidence_refs"][0]["citations"] = [
-        {
-            "passage_id": f"p-{sha[:16]}-0-{len(text)}",
-            "quote": cite_quote or quote,
-            "start": 11,
-            "end": 11 + len(cite_quote or quote),
-            "extraction_sha256": sha,
-        }
-    ]
     el["basis"]["same_study_scope"] = {
         "scoped_count": 1,
         "scoped": [
@@ -490,41 +466,12 @@ def _passage_ctx(quote="SQLite can return SQLITE_BUSY.", cite_quote=None):
             }
         ],
     }
-    by_id = {e.evidence_id: e for e in claim["evidence"]}
-    el["passage_basis"] = _element_passage_basis(el, by_id, claim["evidence_index"])
     el["scope_notes"] = _element_scope_notes(el, claim["evidence_index"])
     return ctx, el
 
 
-def test_validated_quote_renders_with_its_source_number():
-    ctx, el = _passage_ctx()
-    assert el["passage_basis"] == [
-        {
-            "ref_num": 1,
-            "relationship": "supports",
-            "quotes": ["SQLite can return SQLITE_BUSY."],
-        }
-    ]
-    html = _render(ctx)
-    assert "quoted from the captured extraction" in html
-    assert "SQLite can return SQLITE_BUSY." in html
-    assert "Source 1" in html
-
-
-def test_a_paraphrase_or_stale_citation_never_renders_as_a_quote():
-    ctx, el = _passage_ctx(cite_quote="SQLite may return BUSY errors.")
-    assert el["passage_basis"] == []
-    assert "quoted from the captured extraction" not in _render(ctx)
-    ctx, el = _passage_ctx()
-    el["evidence_refs"][0]["citations"][0]["extraction_sha256"] = "b" * 64
-    from app.api.v1.checks import _element_passage_basis
-
-    by_id = {e.evidence_id: e for e in ctx["claims"][0]["evidence"]}
-    assert _element_passage_basis(el, by_id, ctx["claims"][0]["evidence_index"]) == []
-
-
 def test_scope_receipts_render_as_neutral_notes_and_withhold_verdict_wording():
-    ctx, el = _passage_ctx()
+    ctx, el = _scope_ctx()
     notes = {n["ref_num"]: n for n in el["scope_notes"]}
     assert notes[2]["label"] == "another host of a study already counted"
     assert notes[2]["detail"] == "counted as source 1"

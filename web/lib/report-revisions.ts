@@ -11,7 +11,6 @@ export interface RevisionRef {
   evidence_id: string;
   relationship: string;
   reasoning?: string | null;
-  citations?: { quote: string }[];
 }
 
 export interface RevisionElement {
@@ -69,8 +68,8 @@ export function revisionChanges(before: RevisionSnapshot, after: RevisionSnapsho
         const sourceName = source?.title || sourceId;
         if (!previous || !current || previous.relationship !== current.relationship) {
           changes.push(`${label} — ${sourceName}: ${previous?.relationship || 'not linked'} → ${current?.relationship || 'not linked'}.`);
-        } else if (previous.reasoning !== current.reasoning || JSON.stringify(previous.citations) !== JSON.stringify(current.citations)) {
-          changes.push(`${label} — ${sourceName}: explanation or quotation changed; relationship remains ${current.relationship}.`);
+        } else if (previous.reasoning !== current.reasoning) {
+          changes.push(`${label} — ${sourceName}: explanation changed; relationship remains ${current.relationship}.`);
         }
       }
     }

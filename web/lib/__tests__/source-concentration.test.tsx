@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { Claim } from '@shared/types';
-import { PassageReviewNotice } from '@/components/evidence-views/PassageReviewNotice';
+import { SourceScopeNotices } from '@/components/evidence-views/SourceScopeNotices';
 
 it('explains repeated publishers without presenting them as independent sources', () => {
   const claim = { claimMap: { metadata: { sourceConcentration: {
@@ -9,12 +9,12 @@ it('explains repeated publishers without presenting them as independent sources'
     domains: [{ domain: 'docs.example', documents: 4 }, { domain: 'other.example', documents: 1 }],
     independence: 'not_established',
   } } } } as Claim;
-  render(<PassageReviewNotice claim={claim} />);
+  render(<SourceScopeNotices claim={claim} />);
   expect(screen.getByText(/4 mapped documents from docs.example/)).toBeTruthy();
   expect(screen.getByText(/not necessarily independent evidence/)).toBeTruthy();
 });
 
 it('does not invent concentration information for historical records', () => {
-  const { container } = render(<PassageReviewNotice claim={{ claimMap: { metadata: {} } } as Claim} />);
+  const { container } = render(<SourceScopeNotices claim={{ claimMap: { metadata: {} } } as Claim} />);
   expect(container.textContent).toBe('');
 });

@@ -1,18 +1,14 @@
 """Retained-passage helpers (text provenance windows).
 
 `rank_passages` and `valid_passages` feed the relationship review and the
-distiller. `validate_citations` and `cited_context` read `citations` that the
-removed passage-mapping candidate stored on evidence refs; they are kept for
-such legacy records until a production read confirms none exist (removal plan
-2026-10-07, Build B). Exact-text checks are not entailment checks.
+distiller. (The passage-mapping candidate and its `citations` readers were
+removed 2026-10-07: audit/2026-10-07_passage_mapping_removal_plan.md.)
 """
 
 import re
 from collections import Counter
 
 from app.services.text_provenance import _terms
-
-MAX_PASSAGES_PER_PAIR = 2
 
 
 def rank_passages(passages, terms):
@@ -70,46 +66,3 @@ def valid_passages(evidence):
         ):
             result.append(p)
     return result
-
-
-def validate_citations(raw, pair):
-    if not isinstance(raw, list) or not 1 <= len(raw) <= MAX_PASSAGES_PER_PAIR:
-        return None
-    passages = {p["id"]: p for p in pair["passages"]}
-    citations = []
-    for citation in raw:
-        if not isinstance(citation, dict):
-            return None
-        passage = passages.get(citation.get("passage_id"))
-        quote = citation.get("quote")
-        if (
-            not passage
-            or not isinstance(quote, str)
-            or not quote.strip()
-            or quote not in passage["text"]
-        ):
-            return None
-        start = passage["start"] + passage["text"].index(quote)
-        citations.append(
-            {
-                "passage_id": passage["id"],
-                "quote": quote,
-                "start": start,
-                "end": start + len(quote),
-                "extraction_sha256": pair["evidence"]["text_provenance"][
-                    "extraction_sha256"
-                ],
-            }
-        )
-    return citations
-
-
-def cited_context(citations, evidence):
-    """Use the same captured context on later scope-gate/recovery passes."""
-    passages = valid_passages(evidence)
-    pair = {"passages": passages, "evidence": evidence}
-    validated = validate_citations(citations, pair)
-    if not validated or validated != citations:
-        return None
-    ids = {c["passage_id"] for c in validated}
-    return "\n".join(p["text"] for p in passages if p["id"] in ids)

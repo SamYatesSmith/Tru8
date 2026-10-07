@@ -32,7 +32,6 @@ GATE_WORDS = {
     "absence_of_evidence": "says evidence is lacking, not a contrary finding",
     "same_study_scope": "another host of a study already counted",
     "echo_scope": "a copy of a source already counted",
-    "fact_applicability": "time applicability not established",
     "relationship_scope": "scope review",
 }
 
@@ -99,9 +98,6 @@ for folder in sorted(p for p in RUN.iterdir() if p.is_dir()):
                 eid = r.get("evidenceId") or r.get("evidence_id")
                 e = ev.get(eid, {})
                 passage = e.get("snippet") or e.get("text") or ""
-                quotes = [
-                    c.get("quote") for c in (r.get("citations") or []) if c.get("quote")
-                ]
                 label_id = f"{folder.name}/c{ci}/e{ei}/{eid}"
                 md.append(f"#### {label_id}")
                 md.append("")
@@ -109,10 +105,6 @@ for folder in sorted(p for p in RUN.iterdir() if p.is_dir()):
                     f"- **Label:** `{r.get('relationship')}` · **Source:** [{clean(e.get('title'), 120)}]({e.get('url')}) · {domain(e.get('url'))} · tier `{e.get('tier')}` · type `{e.get('evidenceType') or e.get('evidence_type')}`"
                 )
                 md.append(f"- **System's reasoning:** {clean(r.get('reasoning'), 500)}")
-                if quotes:
-                    md.append(
-                        f"- **Exact quotation the system cited:** “{clean(quotes[0], 600)}”"
-                    )
                 md.append(
                     f"- **What the mapper was given (distilled facts or snippet):** {clean(passage, 900)}"
                 )

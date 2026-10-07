@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Evidence, EvidenceTier, EvidenceRelationship, PassageCitation } from '@shared/types';
-import { citationText } from '@/lib/passage-citation';
+import { Evidence, EvidenceTier, EvidenceRelationship } from '@shared/types';
 import { interpretationNote } from '@/lib/system-interpretation';
 import { TierStamp } from './TierStamp';
 import { TypeStamp } from './TypeStamp';
@@ -40,7 +39,7 @@ const TIER_BORDER_COLORS: Record<EvidenceTier, string> = {
 interface ReadingTableProps {
   evidence: Evidence;
   callNumber: string;
-  elementDescriptions: { elementId: string; description: string; relationship?: EvidenceRelationship; reasoning?: string; claimLabel?: string; citations?: PassageCitation[] }[];
+  elementDescriptions: { elementId: string; description: string; relationship?: EvidenceRelationship; reasoning?: string; claimLabel?: string }[];
   claimLabel?: string;
   /** Public record (/r/): model free text is gated fail-closed. */
   readOnly?: boolean;
@@ -128,22 +127,14 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
             <span className="flex-1 h-px bg-zinc-200" />
           </div>
           <div className="space-y-1">
-            {elementDescriptions.map(({ elementId, description, relationship, reasoning, claimLabel, citations }, index) => (
+            {elementDescriptions.map(({ elementId, description, relationship, reasoning, claimLabel }, index) => (
               <div key={`${claimLabel}-${elementId}-${index}`} className="text-[11px] text-zinc-600 pb-3">
                 {claimLabel && <span>{claimLabel} · </span>}
                 <span className="text-zinc-400">Element {elementId.replace('e', '')}</span>
                 {description && <span> &mdash; {description}</span>}
                 {relationship && <p className="font-mono uppercase mt-1">{relationship}</p>}
                 <p className="mt-1">System interpretation: {interpretationNote(reasoning, readOnly)}</p>
-                {citations?.some(c => citationText(evidence, c)) ? (
-                  <div className="mt-2">
-                    <p>Quoted basis from the captured extraction. The relationship remains a system interpretation.</p>
-                    {citations.map((citation, i) => {
-                      const quote = citationText(evidence, citation);
-                      return quote ? <blockquote key={i} className="border-l-2 border-zinc-300 pl-3 mt-2 whitespace-pre-wrap">{quote}</blockquote> : null;
-                    })}
-                  </div>
-                ) : <p className="text-zinc-400 mt-1">An exact supporting passage is not available in this record.</p>}
+                <p className="text-zinc-400 mt-1">An exact supporting passage is not available in this record.</p>
               </div>
             ))}
           </div>
@@ -153,7 +144,7 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
       {evidence.textProvenance?.version === 1 && (
         <section aria-label="Captured source text" className="mb-4 space-y-3 text-[11px] text-zinc-600">
           <h3 className="font-mono uppercase text-zinc-500">Captured source text</h3>
-          <p>These excerpts are copied from the extracted text. Extraction may omit page content or tables. {elementDescriptions.some(e => e.citations?.some(c => citationText(evidence, c))) ? 'Relationship quotations are shown above; the excerpts below provide retained context.' : 'They have not been linked to the relationships above.'}</p>
+          <p>These excerpts are copied from the extracted text. Extraction may omit page content or tables. They have not been linked to the relationships above.</p>
           {evidence.textProvenance.passages.map((passage, index) => (
             <div key={passage.id}>
               <p className="text-zinc-400">Retained excerpt {index + 1}</p>

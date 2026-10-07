@@ -71,16 +71,7 @@ def load_labels(run_dir: Path):
                         continue
                     eid = r.get("evidenceId") or r.get("evidence_id")
                     e = ev.get(eid, {})
-                    quotes = [
-                        c.get("quote")
-                        for c in (r.get("citations") or [])
-                        if c.get("quote")
-                    ]
-                    passage = (
-                        quotes[0]
-                        if quotes
-                        else (e.get("snippet") or e.get("text") or "")
-                    )
+                    passage = e.get("snippet") or e.get("text") or ""
                     labels.append(
                         {
                             "label_id": f"{folder.name}/c{ci}/e{ei}/{eid}",

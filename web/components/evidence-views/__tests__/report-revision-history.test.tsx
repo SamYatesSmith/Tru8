@@ -102,7 +102,7 @@ it('compares claim and element identities rather than array position', () => {
 it('records explanation-only changes and refuses unsafe source links', () => {
   const old = snapshot(), next = snapshot();
   next.claims[0].claimMap!.elements![0].evidence_refs![0].reasoning = 'New reason';
-  expect(revisionChanges(old, next)[0]).toContain('explanation or quotation changed');
+  expect(revisionChanges(old, next)[0]).toContain('explanation changed; relationship remains');
   expect(safeSourceUrl('javascript:alert(1)')).toBeUndefined();
   expect(safeSourceUrl('https://example.invalid')).toBe('https://example.invalid/');
 });

@@ -1854,54 +1854,8 @@ _SCOPE_NOTE_LABELS = {
     "recital_scope": "reports the claim rather than making it",
     "same_study_scope": "another host of a study already counted",
     "echo_scope": "a copy of a source already counted",
-    "fact_applicability": "time applicability not established in the retained text",
     "relationship_scope": "scope review",
 }
-
-
-def _element_passage_basis(
-    element: dict, evidence_by_id: dict, evidence_index: dict
-) -> list[dict]:
-    """Exact quoted passages behind each relationship, for the PDF (Track Q
-    step 8, 2026-09-09). A quote renders ONLY when it re-validates against the
-    captured extraction the citation names (same version hash, literal text
-    in the retained passage) — the web ``citationText`` rule. A paraphrase or
-    a stale citation renders nothing; the relationship stays a system
-    interpretation either way."""
-    from app.services.passage_mapping import valid_passages, validate_citations
-
-    out: list[dict] = []
-    if not isinstance(element, dict):
-        return out
-    for ref in element.get("evidence_refs") or []:
-        if not isinstance(ref, dict) or not ref.get("citations"):
-            continue
-        ev = evidence_by_id.get(ref.get("evidence_id"))
-        receipt = getattr(ev, "text_provenance", None) if ev is not None else None
-        if not isinstance(receipt, dict):
-            continue
-        digest = receipt.get("extraction_sha256")
-        if any(
-            c.get("extraction_sha256") != digest
-            for c in ref["citations"]
-            if isinstance(c, dict)
-        ):
-            continue
-        pair = {
-            "passages": valid_passages({"text_provenance": receipt}),
-            "evidence": {"text_provenance": receipt},
-        }
-        validated = validate_citations(ref["citations"], pair)
-        quotes = [c["quote"] for c in (validated or []) if c.get("quote")]
-        if quotes:
-            out.append(
-                {
-                    "ref_num": evidence_index.get(ref.get("evidence_id"), 0),
-                    "relationship": ref.get("relationship"),
-                    "quotes": quotes,
-                }
-            )
-    return out
 
 
 def _element_scope_notes(element: dict, evidence_index: dict) -> list[dict]:
@@ -2005,14 +1959,10 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
         claim_map = copy.deepcopy(claim.claim_map) if claim.claim_map else None
         elements = claim_map.get("elements", []) if claim_map else []
         # Pre-compute presentation reads (like tier_counts) so Jinja stays dumb.
-        evidence_by_id = {(ev.evidence_id or str(ev.id)): ev for ev in evidence_list}
         for el in elements:
             if isinstance(el, dict):
                 el["quality_notes"] = _element_quality_notes(el)
                 el["state_label"] = _element_state_label(el)
-                el["passage_basis"] = _element_passage_basis(
-                    el, evidence_by_id, evidence_index
-                )
                 el["scope_notes"] = _element_scope_notes(el, evidence_index)
         claims_with_evidence.append(
             {

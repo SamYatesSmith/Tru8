@@ -7,7 +7,7 @@ import { computeDiagnosticValues } from '@/lib/diagnostic-value';
 import { EvidenceHeatmap } from './EvidenceHeatmap';
 import { FilterPills } from './FilterPills';
 import { EvidenceLedger } from './EvidenceLedger';
-import { PassageReviewNotice } from '../PassageReviewNotice';
+import { SourceScopeNotices } from '../SourceScopeNotices';
 import { ReadingTable } from './ReadingTable';
 import { UnmappedEvidenceGroup } from './UnmappedEvidenceGroup';
 import { RetrievalFunnel } from './RetrievalFunnel';
@@ -246,7 +246,6 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
         description: element.description,
         relationship: ref.relationship,
         reasoning: ref.reasoning,
-        citations: ref.citations,
         claimLabel: scope === 'check' ? `Claim ${index + 1}` : undefined,
       }))
     ));
@@ -307,7 +306,7 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
         </div>
       )}
 
-      {claims.map(claim => <PassageReviewNotice key={claim.id} claim={claim} readOnly={readOnly} />)}
+      {claims.map(claim => <SourceScopeNotices key={claim.id} claim={claim} readOnly={readOnly} />)}
       <EvidenceLedger
         activeElementDescriptions={activeElementDescriptions}
         evidence={filteredEvidence}

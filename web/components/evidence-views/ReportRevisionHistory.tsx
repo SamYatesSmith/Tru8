@@ -121,7 +121,6 @@ export function ReportRevisionHistory({ checkId, refreshKey }: { checkId: string
                     return <div key={ref.evidence_id} className="mt-2">
                       <p>{url ? <a className="underline" href={url} target="_blank" rel="noopener noreferrer">{source?.title || ref.evidence_id}</a> : source?.title || ref.evidence_id}: {ref.relationship}</p>
                       {ref.reasoning && <p>{ref.reasoning}</p>}
-                      {ref.citations?.map((citation, i) => <blockquote key={i} className="border-l pl-3 mt-1">{citation.quote}</blockquote>)}
                     </div>;
                   })}
                 </div>)}

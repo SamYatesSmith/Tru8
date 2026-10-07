@@ -40,9 +40,6 @@ def _sanitize_strings(obj):
                 in {
                     "textProvenance",
                     "text_provenance",
-                    "citations",
-                    "passageReview",
-                    "passage_review",
                 }
                 else _sanitize_strings(v)
             )

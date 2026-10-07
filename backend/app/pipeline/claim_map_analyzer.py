@@ -1674,7 +1674,6 @@ class _ScopeGate(NamedTuple):
 #: receipt is losing the record of an exclusion (invariant #5).
 _SCOPE_RECEIPT_KEYS = (
     "relationship_scope",
-    "fact_applicability",
     "temporal_scope",
     "readable_text",
     "jurisdiction_scope",
@@ -3493,18 +3492,6 @@ class ClaimMapAnalyzer:
             item = ev_index.get(ref.get("evidence_id"))
             if item is None:
                 continue
-
-            if ref.get("citations"):
-                from app.services.passage_mapping import cited_context
-
-                context = cited_context(ref["citations"], item.ev)
-                if context:
-                    reviewed = {**item.ev, "text": context, "snippet": context}
-                    item = _index_evidence([reviewed])[ref["evidence_id"]]._replace(
-                        original_id=item.original_id,
-                        echo_cue=item.echo_cue,
-                        echo_cue_kind=item.echo_cue_kind,
-                    )
 
             for gate in pass_gates:
                 if not gate.fires(item, ref):

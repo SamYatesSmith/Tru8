@@ -10,7 +10,7 @@ import { ResearchButton } from './ResearchButton';
 import { SeekerProvenanceNote } from './SeekerProvenanceNote';
 import { ExplorePanel } from './ExplorePanel';
 import { DiagnosticFlag } from '../DiagnosticFlag';
-import { PassageReviewNotice } from '../PassageReviewNotice';
+import { SourceScopeNotices } from '../SourceScopeNotices';
 import { CitedSourceGaps, citedOriginalsPhrase } from './CitedSourceGaps';
 import { citedSourceGaps, evidenceCoverage, hasMappedEvidence, needsEvidenceReview } from '@/lib/evidence-coverage';
 
@@ -79,15 +79,10 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
   const metrics = useMemo(() => evidenceCoverage(elements, citedGaps), [elements, citedGaps]);
 
   // Determine if explore mode should activate
-  const passageReview = claim.claimMap?.metadata?.passageReview;
-  // A review that ran and did not finish leaves unknowns; 'not_run' (the
-  // default-off candidate) and 'complete' do not.
-  const reviewIncomplete = !!passageReview &&
-    ['needs_review', 'partial', 'failed', 'interrupted', 'invalid_response'].includes(passageReview.status);
   // Element-level unknowns decide the all-covered state and the explore
   // panel, exactly as before the cited-source gap note: a cited original not
   // in the record changes the all-covered wording only, never hides anything.
-  const hasUnknowns = metrics.elementGaps > 0 || metrics.needsReview > 0 || reviewIncomplete;
+  const hasUnknowns = metrics.elementGaps > 0 || metrics.needsReview > 0;
 
   // Fetch explore data when no unknowns remain
   useEffect(() => {
@@ -166,7 +161,7 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
 
   return (
     <div className="space-y-6">
-      <PassageReviewNotice claim={claim} readOnly={readOnly} />
+      <SourceScopeNotices claim={claim} readOnly={readOnly} />
       <UnknownsSummaryStrip {...metrics} />
       <CoverageMap elements={elements} />
 

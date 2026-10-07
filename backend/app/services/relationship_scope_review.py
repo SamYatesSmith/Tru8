@@ -830,8 +830,6 @@ async def _review_run(analyzer, claim_map, evidence, only, history, holder):
             if decision == "unknown"
             else "Context after scope review: "
         ) + row["reasoning"]
-        # Preserve old citations in the receipt, not as the basis of new wording.
-        ref.pop("citations", None)
         existing = element.setdefault("basis", {}).setdefault(
             "relationship_scope", {"scoped": [], "scoped_count": 0}
         )
