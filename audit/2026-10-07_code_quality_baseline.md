@@ -87,7 +87,12 @@ Vulture cannot see FastAPI routes, MCP tools or decorated handlers, so every rou
 
 **Kept deliberately:** `UnknownSource` model (its table exists; removing the model needs a migration decision), test-facing wrappers that pin live gate logic (`is_out_of_period`, `is_out_of_jurisdiction`, `has_evaluative_head`), drift guards (`undeclared_reductions`), test-support helpers (`force_open`, `reset_all`, `reset_cache_metrics`, `inflight_count`), `evidence_for_mapping` (round-trip contract in 4 test files), the `cache.invalidate_pattern` the bench uses.
 
-**Not yet done:** the default-off features (passage mapping, structured extraction, cited-source search half), stale `web/package-lock.json` (Docker and CI both resolve the root workspace lock; CI only uses it as a cache key), unused API schemas, `checks.py` debug-only `/test/*` routes.
+| `031e4bf` | Cited-source search lane (failed eval, never on); gap note kept | 4,775 → 4,739 (−36 removed cases) | identical to control |
+| `2fb6308` | 6 unused API schemas | unchanged | n/a (no runtime reference) |
+| `db4b9a0` | 3 DEBUG-only `/checks/test/*` routes | unchanged | n/a (routes only) |
+| `d5c190d` | Passage mapping + structured extraction (plan, review, verification) | 4,739 → 4,632 (−109 removed, +2 restored legacy-reader tests) | identical to control |
+
+**Not yet done:** Build B legacy readers (needs a production read), stale `web/package-lock.json` (Docker and CI both resolve the root workspace lock; CI only uses it as a cache key).
 
 ## Proposed order
 1. **Delete dead code** (sections 3 and 4), one commit per area, each confirmed by grep, unit suite and flags-off bench equal.
