@@ -25,7 +25,7 @@
   - Follow-up M3: the review-flag-False branches in `relationship_scope_review.py` are unreachable from the pipeline (and its "candidate-only" docstring is stale).
   - `scripts/probe_endpoint_auth.py`: 8 pre-existing failures — its allowlist marks intentionally public routes (`/checks/public/*`, `/verify/*/revisions/*`, `/mcp` redirect, Clerk webhook) as protected. Needs a reviewed allowlist update, not a code change.
   - **Lint pass DONE 2026-10-07** (pyflakes + bare except + raise-from to 3 deliberate leftovers; detail in the baseline doc). Fixed on the way: `test_relationship_scope_review.py` raised NameError where it meant TimeoutError (passed for the wrong reason); the legal adapter's try/except called `asyncio.run` in both branches.
-  - **Next:** structure (one receipt/state function for the 5 copies; split `run_pipeline_phase2`; D1–D5).
+  - **Structure + recovery (plan `audit/2026-10-07_structure_and_recovery_plan.md`, reviewed):** done S2/D6 `f3ebbeb` (a failing completion no longer wipes the single-claim/Strengthen mapping), S0 `65c6aff` (characterisation golden), S1a `b20ee5a` (`_refresh_element`), S1b/D4 `e99abd4`. **Next: S5 (recovery all-or-nothing) needs decision 2 (grace window), then S3/D1 (decision 1), S4/D2, S7.** D3 = decision 3.
 
 ## ▶ 2026-10-06 (end) — ARCHITECTURE REVIEW (START HERE)
 - **Record:** `audit/2026-10-06_architecture_review.md`.
