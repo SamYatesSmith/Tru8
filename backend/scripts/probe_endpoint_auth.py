@@ -2,7 +2,6 @@
 
 Protected endpoints must return 401 or 403.
 Public endpoints (health/verify/waitlist/discovery) can return anything 2xx-4xx.
-DEBUG-gated test endpoints must return 404 when DEBUG=false.
 """
 
 from __future__ import annotations
@@ -47,8 +46,6 @@ PUBLIC_PATHS = {
 # missing signature. We treat 400 as expected here.
 WEBHOOK_PATHS = {"/api/v1/payments/webhook"}
 
-DEBUG_GATED_PREFIX = "/api/v1/checks/test"
-
 # Mounted ASGI sub-app — not a route we can probe by method.
 SKIP_PATHS = {"/metrics"}
 
@@ -81,16 +78,12 @@ def expected_status(method: str, path: str) -> str:
         return "public"
     if path in WEBHOOK_PATHS:
         return "webhook"
-    if path.startswith(DEBUG_GATED_PREFIX):
-        return "debug-gated"
     return "protected"
 
 
 def status_ok(category: str, code: int) -> bool:
     if category == "protected":
         return code in (401, 403)
-    if category == "debug-gated":
-        return code == 404
     if category == "webhook":
         # Missing signature -> 400; some impls 401. Either is fine.
         return code in (400, 401, 403)
@@ -163,9 +156,8 @@ def main():
 
     if not failures and not exceptions:
         print(
-            "ALL OK — every protected endpoint returned 401/403, every "
-            "DEBUG-gated test endpoint returned 404, and every public "
-            "endpoint returned a non-auth-error response."
+            "ALL OK — every protected endpoint returned 401/403, and every "
+            "public endpoint returned a non-auth-error response."
         )
         return 0
     return 1
