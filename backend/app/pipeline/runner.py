@@ -7,6 +7,7 @@ running them in a thread pool with asyncio.run() for proper isolation
 """
 
 import asyncio
+import copy
 import json
 import logging
 import re
@@ -633,6 +634,89 @@ async def run_in_executor(async_func, *args, **kwargs):
     loop = asyncio.get_event_loop()
     func = partial(_run_async_in_thread, async_func, *args, **kwargs)
     return await loop.run_in_executor(_executor, func)
+
+
+def _recovery_mapping_grace() -> int:
+    """Ceiling on coverage recovery's Phase B (mapping + review), seconds.
+
+    It contains the recovery mapping call (`ClaimMapAnalyzer.timeout` 30 s,
+    waited for up to 35 s) and, with the relationship review on, one review
+    call (`RELATIONSHIP_REVIEW_CALL_TIMEOUT_S`). The old fixed 25 s was
+    shorter than the review alone, so recovery was regularly cut mid-review
+    (D5, structure plan 2026-10-07; founder chose 85 s). A second review
+    (echo reconcile) is not budgeted: the echo gate is off. Not budgeted
+    either: the OpenAI fallback inside the mapping call (its own 30 s client
+    timeout after Google fails). When it fires the claim's recovery can
+    overrun and is then discarded whole, which `_map_recovery_atomically`
+    makes safe. Worst-case recovery is now Phase A 35 s + 85 s = 120 s,
+    inside `PIPELINE_WATCHDOG_SECONDS` (300).
+    """
+    base = int(settings.RECOVERY_MAPPING_GRACE_SECONDS)
+    if not settings.ENABLE_RELATIONSHIP_REVIEW:
+        return base
+    review_s = int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 40))
+    return max(base, 35 + review_s + 10)
+
+
+async def _await_recovery_mappings(coros, grace: float) -> None:
+    """Phase B wait: run the per-claim recovery mappings under one grace
+    ceiling. Every outcome is read (a failure is logged, never silent), and
+    a timeout is logged rather than raised: unfinished claims commit
+    nothing, so their earlier mapping stands."""
+    try:
+        outcomes = await asyncio.wait_for(
+            asyncio.gather(*coros, return_exceptions=True), timeout=grace
+        )
+    except asyncio.TimeoutError:
+        logger.warning(
+            f"[COVERAGE RECOVERY] Mapping grace exceeded ({grace}s) — "
+            f"unfinished claims discarded whole; their earlier mapping is kept"
+        )
+        return
+    for outcome in outcomes:
+        if isinstance(outcome, BaseException):
+            logger.warning(f"[COVERAGE RECOVERY] Claim recovery failed: {outcome!r}")
+
+
+async def _map_recovery_atomically(
+    analyzer, claim, pos, evidence, unresolved_ids, new_evidence
+) -> bool:
+    """Map one claim's recovery evidence and commit it all-or-nothing.
+
+    The mapping (refs merged, target states re-derived, then the relationship
+    review awaited) runs on a staged copy of the claim map. Only when it
+    finished are the map swapped in place and the pool extended, together
+    and synchronously, so a cancellation or a late error can never leave
+    refs to items that were not pooled, rewritten states with stale
+    orientation, or a half-applied review (D5, structure plan 2026-10-07).
+    The map is replaced IN PLACE because `claims` and `selected_claims`
+    share the claim dicts. Returns True when committed; cancellation
+    propagates (nothing committed); any other error is logged, nothing
+    committed, and False is returned.
+    """
+    cm = claim["claim_map"]
+    staged = copy.deepcopy(cm)
+    try:
+        await analyzer.map_evidence_to_specific_elements(
+            claim_map=staged,
+            unresolved_element_ids=unresolved_ids,
+            new_evidence=new_evidence,
+            full_evidence=(evidence.get(pos) or []) + new_evidence,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception as e:
+        logger.warning(
+            f"[COVERAGE RECOVERY] Claim {pos}: mapping failed ({e}); "
+            f"recovery not applied, the earlier mapping is kept"
+        )
+        return False
+    # Commit: no await from here on.
+    cm.clear()
+    cm.update(staged)
+    evidence.setdefault(pos, []).extend(new_evidence)
+    claim["evidence"] = evidence[pos]
+    return True
 
 
 # User-friendly error messages
@@ -2776,30 +2860,18 @@ async def run_pipeline_phase2(
             unresolved_elements = prep["unresolved_elements"]
             new_evidence = prep["new_evidence"]
 
-            # Focused mapping for unresolved elements only. full_evidence =
-            # the merged pool (2026-08-17): the basis recompute and state
-            # re-derivation need tier lookups for PRE-EXISTING refs too —
-            # new_evidence is only appended to the shared pool after the
-            # mapping call below, so the merge is built here.
+            # Focused mapping for unresolved elements only, committed
+            # all-or-nothing with the pool extension (D5, 2026-10-07): on
+            # E323-8862 (2026-07-22) a cancelled mapping had already pooled 20
+            # unscored, unmapped sources; later the reverse happened (map
+            # mutated, pool not extended). On success the unselected items
+            # still enter with unmapped receipts, matching main-pass
+            # transparency.
             unresolved_ids = [e["element_id"] for e in unresolved_elements]
-            await analyzer.map_evidence_to_specific_elements(
-                claim_map=cm,
-                unresolved_element_ids=unresolved_ids,
-                new_evidence=new_evidence,
-                full_evidence=(evidence.get(pos) or []) + new_evidence,
-            )
-
-            # Add to evidence pool AFTER the mapping attempt (2026-07-22): on
-            # E323-8862 the recovery timeout cancelled the mapping call
-            # mid-flight, but the items were already pooled — 20 unscored,
-            # unmapped sources shipped in the report. Extending here means a
-            # cancellation leaves the pool untouched; on mapping success the
-            # unselected items still enter with unmapped receipts, matching
-            # main-pass transparency.
-            if pos not in evidence:
-                evidence[pos] = []
-            evidence[pos].extend(new_evidence)
-            claim["evidence"] = evidence[pos]
+            if not await _map_recovery_atomically(
+                analyzer, claim, pos, evidence, unresolved_ids, new_evidence
+            ):
+                return
 
             # Count results
             claims_recovered += 1
@@ -2846,19 +2918,9 @@ async def run_pipeline_phase2(
         # Phase B — mapping for every completed prep, own grace ceiling
         # (hang protection only; a healthy Flash mapping call is ~5-12s).
         if preps:
-            grace = settings.RECOVERY_MAPPING_GRACE_SECONDS
-            try:
-                await asyncio.wait_for(
-                    asyncio.gather(
-                        *[_recover_map(p) for p in preps], return_exceptions=True
-                    ),
-                    timeout=grace,
-                )
-            except asyncio.TimeoutError:
-                logger.warning(
-                    f"[COVERAGE RECOVERY] Mapping grace exceeded ({grace}s) — "
-                    f"a mapping call hung; unfinished claims discarded"
-                )
+            await _await_recovery_mappings(
+                [_recover_map(p) for p in preps], _recovery_mapping_grace()
+            )
 
         recovery_elapsed = (datetime.now(timezone.utc) - recovery_start).total_seconds()
         stage_timings["coverage_recovery"] = recovery_elapsed

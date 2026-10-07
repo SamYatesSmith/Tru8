@@ -50,7 +50,7 @@ Defaults are the code's. **Railway can override any flag with an env var of the 
 | `ENABLE_RECITAL_SCOPE_GATE` | ON | 1 file | Recital gate (2026-08-13): the same check's load-bearing failure — "states Trump claimed to have 'settled six wars'" was mapped `supports`. |
 | `ENABLE_RECOVERY_ENRICHMENT` | ON | 1 file | ========== PIPELINE EVIDENCE QUALITY (Track N Phase 2) ========== Coverage recovery enrichment: fetch full page content for recovery evidence |
 | `ENABLE_RECOVERY_QUERY_PLANNING` | ON | 1 file |  |
-| `ENABLE_RELATIONSHIP_REVIEW` | ON | 3 files | Relationship review on the DEFAULT path (A− M1, 2026-09-24). |
+| `ENABLE_RELATIONSHIP_REVIEW` | ON | 4 files | Relationship review on the DEFAULT path (A− M1, 2026-09-24). |
 | `ENABLE_SAME_STUDY_SCOPE_GATE` | ON | 1 file | Same-study scope gate (2026-09-09, Track Q — Astra finding 10). |
 | `ENABLE_SEARCH_CLARITY` | ON | 2 files | Search Clarity Feature (MVP) |
 | `ENABLE_SEMANTIC_SNIPPET_EXTRACTION` | ON | 1 file | Semantic Snippet Extraction |
