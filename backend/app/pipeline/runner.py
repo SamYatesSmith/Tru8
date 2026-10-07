@@ -648,14 +648,87 @@ def _recovery_mapping_grace() -> int:
     either: the OpenAI fallback inside the mapping call (its own 30 s client
     timeout after Google fails). When it fires the claim's recovery can
     overrun and is then discarded whole, which `_map_recovery_atomically`
-    makes safe. Worst-case recovery is now Phase A 35 s + 85 s = 120 s,
-    inside `PIPELINE_WATCHDOG_SECONDS` (300).
+    makes safe. With the originator review on recovered items (D3, founder
+    2026-10-07) the window is 105 s, and worst-case recovery is Phase A
+    35 s + 105 s = 140 s, inside `PIPELINE_WATCHDOG_SECONDS` (300).
     """
     base = int(settings.RECOVERY_MAPPING_GRACE_SECONDS)
-    if not settings.ENABLE_RELATIONSHIP_REVIEW:
+    review_s = (
+        int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 40))
+        if settings.ENABLE_RELATIONSHIP_REVIEW
+        else 0
+    )
+    originator_s = (
+        _RECOVERY_ORIGINATOR_REVIEW_S
+        if getattr(settings, "ENABLE_ORIGINATOR_REVIEW", False)
+        else 0
+    )
+    if not review_s and not originator_s:
         return base
-    review_s = int(getattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 40))
-    return max(base, 35 + review_s + 10)
+    return max(base, 35 + review_s + originator_s + 10)
+
+
+# Cap on the originator review of recovered items (D3). One review call is
+# 9-15 s on gemini-3.7-flash (2026-09-30 design); the main pass allows 40 s.
+_RECOVERY_ORIGINATOR_REVIEW_S = 20
+
+
+async def _review_recovery_originators(classifier, items) -> None:
+    """Originator review for recovered items (D3, structure plan 2026-10-07).
+
+    Phase A cannot hold it (its budget is nearly spent on retrieval, scoring
+    and classify, and overrunning it loses the claim's whole recovery), so
+    Phase A marks candidates `not_reviewed` (`recovery_budget`) and the
+    review runs here, before the mapping, so the mapping and the state
+    weights see the reviewed tiers. The Phase A mark is cleared first:
+    `is_candidate` skips any item that already carries a receipt. Capped at
+    `_RECOVERY_ORIGINATOR_REVIEW_S`; on overrun nothing is applied (the
+    review only changes tiers after every call returns) and the items are
+    marked `not_reviewed` (`recovery_timeout`). Tiers only ever go down.
+    """
+    from app.services import originator_review
+
+    # Taken off every item first, so no opening is ever stored, whether or
+    # not the review runs.
+    openings = {
+        id(item): item.pop(originator_review.RECOVERY_OPENING_KEY, None)
+        for item in items
+    }
+    if classifier is None or not originator_review.enabled():
+        return
+    pending = [
+        item
+        for item in items
+        if ((item.get("metadata") or {}).get("originator_review") or {}).get("reason")
+        == "recovery_budget"
+    ]
+    if not pending:
+        return
+    for item in pending:
+        item["metadata"].pop("originator_review", None)
+        if openings.get(id(item)):
+            item[originator_review.PAGE_OPENING_KEY] = openings[id(item)]
+    try:
+        stats = await asyncio.wait_for(
+            originator_review.review_originators(
+                pending, classifier._call_originator_review
+            ),
+            timeout=_RECOVERY_ORIGINATOR_REVIEW_S,
+        )
+        logger.info(f"[COVERAGE RECOVERY] Originator review: {stats}")
+    except asyncio.TimeoutError:
+        originator_review.mark_not_reviewed(pending, "recovery_timeout")
+        logger.warning(
+            f"[COVERAGE RECOVERY] Originator review over {_RECOVERY_ORIGINATOR_REVIEW_S}s; "
+            f"{len(pending)} item(s) kept their tiers, marked not reviewed"
+        )
+    except Exception as e:
+        # A review fault costs the review, never the claim's recovery.
+        originator_review.mark_not_reviewed(pending, "recovery_review_failed")
+        logger.warning(f"[COVERAGE RECOVERY] Originator review failed ({e}); tiers kept")
+    finally:
+        for item in pending:
+            item.pop(originator_review.PAGE_OPENING_KEY, None)
 
 
 async def _await_recovery_mappings(coros, grace: float) -> None:
@@ -679,7 +752,7 @@ async def _await_recovery_mappings(coros, grace: float) -> None:
 
 
 async def _map_recovery_atomically(
-    analyzer, claim, pos, evidence, unresolved_ids, new_evidence
+    analyzer, claim, pos, evidence, unresolved_ids, new_evidence, classifier=None
 ) -> bool:
     """Map one claim's recovery evidence and commit it all-or-nothing.
 
@@ -697,6 +770,7 @@ async def _map_recovery_atomically(
     cm = claim["claim_map"]
     staged = copy.deepcopy(cm)
     try:
+        await _review_recovery_originators(classifier, new_evidence)
         await analyzer.map_evidence_to_specific_elements(
             claim_map=staged,
             unresolved_element_ids=unresolved_ids,
@@ -2807,14 +2881,15 @@ async def run_pipeline_phase2(
                     )
 
             # Classify new evidence (match CLASSIFY stage pattern)
+            classifier = None
             try:
                 if config.enable_llm_classifier:
                     from app.pipeline.evidence_classifier import EvidenceClassifier
 
                     classifier = EvidenceClassifier()
                     # No originator review inside Phase A's budget: a timeout
-                    # here cancels the claim's whole recovery pool, and these
-                    # items carry no page text (design §4.1).
+                    # here cancels the claim's whole recovery pool. It runs
+                    # at the start of Phase B instead (D3, 2026-10-07).
                     new_evidence = await classifier.classify_batch(
                         new_evidence, review_originators=False
                     )
@@ -2845,6 +2920,7 @@ async def run_pipeline_phase2(
                 "pos": pos,
                 "unresolved_elements": unresolved_elements,
                 "new_evidence": new_evidence,
+                "classifier": classifier,
             }
 
         async def _recover_map(prep):
@@ -2869,7 +2945,13 @@ async def run_pipeline_phase2(
             # transparency.
             unresolved_ids = [e["element_id"] for e in unresolved_elements]
             if not await _map_recovery_atomically(
-                analyzer, claim, pos, evidence, unresolved_ids, new_evidence
+                analyzer,
+                claim,
+                pos,
+                evidence,
+                unresolved_ids,
+                new_evidence,
+                classifier=prep.get("classifier"),
             ):
                 return
 

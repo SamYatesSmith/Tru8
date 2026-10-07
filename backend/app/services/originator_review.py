@@ -44,6 +44,10 @@ LOWERING_ROLES = {"relays", "user_content"}
 # Transient copy of the page opening, set before classify/distil start
 # (runner, re_search) and popped by classify_batch. Never persisted.
 PAGE_OPENING_KEY = "_page_opening"
+# Coverage recovery's page opening (2026-10-07, D3): kept at enrichment under
+# its own key because Phase A's classify drops PAGE_OPENING_KEY; the Phase B
+# review moves it into place and removes both on every path.
+RECOVERY_OPENING_KEY = "_recovery_page_opening"
 
 RESPONSE_SCHEMA = {
     "type": "OBJECT",

@@ -40,7 +40,7 @@ Runs at the END of `classify_batch`, after every existing cap and floor. An item
 - it carries no `originator_review` receipt yet (idempotent on a second call).
 
 **Not reviewed, with a receipt (`originator_review.status = "not_reviewed"`, reason named):**
-- **coverage recovery** (`reason: recovery_budget`). The review would sit inside Phase A's `asyncio.wait` budget (`runner.py:2559-2760`), which has overrun twice; a timeout there cancels the claim's whole recovery pool. Recovery items also have no page text. Moving it into Phase B is a follow-up (§9).
+- **coverage recovery** (`reason: recovery_budget`). The review would sit inside Phase A's `asyncio.wait` budget (`runner.py:2559-2760`), which has overrun twice; a timeout there cancels the claim's whole recovery pool. Recovery items also have no page text. **Done 2026-10-07 (D3):** the review runs at the start of recovery's Phase B, inside the all-or-nothing step, capped at 20 s, on the page opening kept at enrichment (`RECOVERY_OPENING_KEY`); Phase A still marks `recovery_budget`, Phase B clears it and reviews (overrun: `recovery_timeout`; fault: `recovery_review_failed`). Plan: `audit/2026-10-07_structure_and_recovery_plan.md`.
 - quick tier: the LLM classifier is off there, so the review never runs. Declared in `tier_limitations.py` if a new `PipelineConfig` flag is added.
 
 **Named gap, logged, not fixed here:** news stories arriving via the **Marketaux** adapter are forced primary by `_high_confidence_override:559-564` (3 held-out occurrences, rte.ie). Fix separately, as round 2 did for Wikipedia: a reporting cap for non-data adapters.
@@ -132,13 +132,13 @@ Checked with `_identity_settles_tier` (JRC checked as a `*.europa.eu` host, whic
 ## 8. What it will not fix
 - Unmapped rows keeping a badge (decided 28 Sep).
 - Adapter items, including Marketaux news (named gap, §4.1).
-- Coverage-recovery items (skipped with a receipt, §4.1).
+- ~~Coverage-recovery items~~ — reviewed in recovery Phase B since 2026-10-07 (§4.1).
 - Identity-settled explainers (a `.gov` "what is inflation" page stays primary).
 - A genuine originator that is weak (an interested party's own statement): correctly primary; the interested-party gate handles its weight.
 
 ## 9. After this
 - Option D (prompt tie-break and originator definition) as its own measured step.
-- The review in coverage recovery's Phase B, with page text captured for recovery items.
+- ~~The review in coverage recovery's Phase B, with page text captured for recovery items.~~ Done 2026-10-07 (§4.1).
 - `relays → commentary` for explainers, measured separately.
 - A reporting cap for non-data adapters (Marketaux).
 

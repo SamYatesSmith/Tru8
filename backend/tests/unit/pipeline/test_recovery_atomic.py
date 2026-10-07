@@ -108,9 +108,15 @@ def test_the_grace_window_holds_the_mapping_call_and_one_review(monkeypatch):
     monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", True)
     monkeypatch.setattr(settings, "RELATIONSHIP_REVIEW_CALL_TIMEOUT_S", 40)
     monkeypatch.setattr(settings, "RECOVERY_MAPPING_GRACE_SECONDS", 25)
-    assert runner._recovery_mapping_grace() == 85  # 35 mapping + 40 review + 10
+    monkeypatch.setattr(settings, "ENABLE_ORIGINATOR_REVIEW", True)
+    # 35 mapping + 40 relationship review + 20 originator review + 10 slack
+    assert runner._recovery_mapping_grace() == 105
+    monkeypatch.setattr(settings, "ENABLE_ORIGINATOR_REVIEW", False)
+    assert runner._recovery_mapping_grace() == 85
     monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", False)
     assert runner._recovery_mapping_grace() == 25
+    monkeypatch.setattr(settings, "ENABLE_ORIGINATOR_REVIEW", True)
+    assert runner._recovery_mapping_grace() == 65  # 35 + 20 + 10
 
 
 def test_phase_b_logs_failures_and_a_timeout_and_returns(caplog):
@@ -232,3 +238,173 @@ def test_recovery_counts_one_study_once_across_passes(
     assert [s["evidence_id"] for s in scoped] == [
         e for e in rels if e != counted
     ]
+
+
+# ── D3 (structure plan S6): originator review on recovered items, Phase B ───
+
+
+def _phase_a_item(eid="ev-rec-1"):
+    """A recovered item as Phase A leaves it: LLM-classified primary, marked
+    not reviewed because the review cannot fit Phase A's budget."""
+    return {
+        "evidence_id": eid,
+        "tier": "primary",
+        "classification_method": "llm",
+        "url": "https://relay.example/page",
+        "metadata": {
+            "originator_review": {"status": "not_reviewed", "reason": "recovery_budget"}
+        },
+    }
+
+
+class _TierAnalyzer(_Analyzer):
+    def __init__(self):
+        super().__init__()
+        self.tiers_seen = None
+
+    async def map_evidence_to_specific_elements(
+        self, claim_map, unresolved_element_ids, new_evidence, full_evidence
+    ):
+        self.tiers_seen = [e["tier"] for e in new_evidence]
+        await super().map_evidence_to_specific_elements(
+            claim_map, unresolved_element_ids, new_evidence, full_evidence
+        )
+
+
+class _FakeClassifier:
+    async def _call_originator_review(self, prompt):
+        return None
+
+
+def _run_with_review(monkeypatch, review):
+    from app.services import originator_review
+
+    monkeypatch.setattr(settings, "ENABLE_ORIGINATOR_REVIEW", True)
+    monkeypatch.setattr(originator_review, "review_originators", review)
+    item = _phase_a_item()
+    claim, evidence = _claim(), {0: []}
+    analyzer = _TierAnalyzer()
+
+    async def go():
+        return await runner._map_recovery_atomically(
+            analyzer, claim, 0, evidence, ["e1"], [item], classifier=_FakeClassifier()
+        )
+
+    committed = asyncio.run(go())
+    return committed, item, analyzer
+
+
+def test_recovered_items_are_reviewed_before_the_mapping(monkeypatch):
+    seen = {}
+
+    async def review(items, call):
+        seen["receipt_cleared"] = all(
+            "originator_review" not in (i.get("metadata") or {}) for i in items
+        )
+        for i in items:
+            i["tier"] = "reporting"
+            i["metadata"]["originator_review"] = {"status": "reviewed"}
+        return {"candidates": len(items), "lowered": len(items)}
+
+    committed, item, analyzer = _run_with_review(monkeypatch, review)
+    assert committed is True
+    assert seen["receipt_cleared"] is True  # else is_candidate() skips it
+    assert analyzer.tiers_seen == ["reporting"]  # the mapping weighed the review
+    assert item["metadata"]["originator_review"]["status"] == "reviewed"
+
+
+def test_a_slow_review_marks_not_reviewed_and_recovery_goes_on(monkeypatch):
+    monkeypatch.setattr(runner, "_RECOVERY_ORIGINATOR_REVIEW_S", 0.05)
+
+    async def slow(items, call):
+        await asyncio.sleep(5)
+
+    committed, item, analyzer = _run_with_review(monkeypatch, slow)
+    assert committed is True
+    assert analyzer.tiers_seen == ["primary"]
+    receipt = item["metadata"]["originator_review"]
+    assert receipt["status"] == "not_reviewed" and receipt["reason"] == "recovery_timeout"
+
+
+def test_no_review_without_a_classifier_or_with_the_flag_off(monkeypatch):
+    from app.services import originator_review
+
+    calls = []
+
+    async def review(items, call):
+        calls.append(items)
+        return {}
+
+    monkeypatch.setattr(originator_review, "review_originators", review)
+    monkeypatch.setattr(settings, "ENABLE_ORIGINATOR_REVIEW", True)
+    asyncio.run(
+        runner._map_recovery_atomically(
+            _Analyzer(), _claim(), 0, {0: []}, ["e1"], [_phase_a_item()], classifier=None
+        )
+    )
+    monkeypatch.setattr(settings, "ENABLE_ORIGINATOR_REVIEW", False)
+    asyncio.run(
+        runner._map_recovery_atomically(
+            _Analyzer(), _claim(), 0, {0: []}, ["e1"], [_phase_a_item()], classifier=_FakeClassifier()
+        )
+    )
+    assert calls == []
+
+
+def test_a_review_fault_costs_the_review_not_the_recovery(monkeypatch):
+    async def broken(items, call):
+        raise ValueError("bad row")
+
+    committed, item, analyzer = _run_with_review(monkeypatch, broken)
+    assert committed is True
+    assert analyzer.tiers_seen == ["primary"]
+    assert item["metadata"]["originator_review"]["reason"] == "recovery_review_failed"
+
+
+def test_recovered_items_are_reviewed_on_the_page_opening_and_it_is_dropped(
+    monkeypatch,
+):
+    """Verification M1: the review reads the claim-independent page opening
+    kept at enrichment (not the 500-char claim-selected snippet), and no
+    opening survives the review on any path."""
+    from app.services import originator_review
+
+    seen = {}
+
+    async def review(items, call):
+        seen["inputs"] = [originator_review.review_text(i) for i in items]
+        return {}
+
+    monkeypatch.setattr(settings, "ENABLE_ORIGINATOR_REVIEW", True)
+    monkeypatch.setattr(originator_review, "review_originators", review)
+    item = _phase_a_item()
+    item["snippet"] = "A passage chosen for the claim."
+    item[originator_review.RECOVERY_OPENING_KEY] = "Opening of the page itself."
+
+    asyncio.run(runner._review_recovery_originators(_FakeClassifier(), [item]))
+    assert seen["inputs"] == [("page_opening", "Opening of the page itself.")]
+    assert originator_review.RECOVERY_OPENING_KEY not in item
+    assert originator_review.PAGE_OPENING_KEY not in item
+
+    # Flag off / no classifier: nothing reviewed, the opening still dropped.
+    other = _phase_a_item()
+    other[originator_review.RECOVERY_OPENING_KEY] = "x"
+    asyncio.run(runner._review_recovery_originators(None, [other]))
+    assert originator_review.RECOVERY_OPENING_KEY not in other
+
+
+def test_the_runner_wires_the_classifier_into_phase_b():
+    """Verification M2: the helpers are tested directly, so pin the runner's
+    wiring too — without it the review silently never runs."""
+    import inspect
+
+    src = inspect.getsource(runner)
+    prepare = src[src.index("async def _recover_prepare") : src.index("async def _recover_map")]
+    assert '"classifier": classifier,' in prepare
+    recover_map = src[src.index("async def _recover_map") :]
+    recover_map = recover_map[: recover_map.index("# Phase A")]
+    assert 'classifier=prep.get("classifier")' in recover_map
+    atomic = src[src.index("async def _map_recovery_atomically") :]
+    assert atomic.index("_review_recovery_originators(") < atomic.index(
+        "map_evidence_to_specific_elements("
+    )

@@ -907,9 +907,11 @@ class EvidenceClassifier:
             evidence_items: List of evidence dicts, each with at least
                 title, url/source, and snippet/text fields.
             review_originators: False where the originator review must not
-                run (coverage recovery's Phase A budget); its candidates get a
-                `not_reviewed` receipt instead. Only read when the review is
-                enabled.
+                run here (coverage recovery's Phase A budget); its candidates
+                get a `not_reviewed` receipt (`recovery_budget`), which the
+                recovery's Phase B clears before reviewing them
+                (runner `_review_recovery_originators`, 2026-10-07). Only read
+                when the review is enabled.
 
         Returns:
             The same list with 'tier' and 'evidence_type' added to each item.

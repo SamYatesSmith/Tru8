@@ -40,7 +40,7 @@ Defaults are the code's. **Railway can override any flag with an env var of the 
 | `ENABLE_LLM_RELEVANCE_SCORER` | ON | 2 files | ========== LLM RELEVANCE SCORER ========== Replaces embedding-based ranking with LLM-based understanding of evidential value Uses GPT-4o-mini to score evidence 1-5 based on how well it helps verify/refute claims |
 | `ENABLE_MEASURE_SCOPE_GATE` | ON | 1 file | Measure gate (2026-08-06): the third mismatch in check 757f02c2. |
 | `ENABLE_OPINION_REFRAME` | ON | 3 files | ========== OPINION DECOUPLING (Phase 1a, 2026-07-16) ========== Extraction KEEPS main-predicate evaluative claims (reframed affirmative, type_hint="normative") instead of dropping them under Rule 6; the grounds stage then rebuilds their elements as neutral ... |
-| `ENABLE_ORIGINATOR_REVIEW` | ON | 2 files | Originator review (A− H4 class D, 2026-09-30). ON 2026-09-30 (founder): held-out eval on 3. |
+| `ENABLE_ORIGINATOR_REVIEW` | ON | 3 files | Originator review (A− H4 class D, 2026-09-30). ON 2026-09-30 (founder): held-out eval on 3. |
 | `ENABLE_QUERY_PLANNING` | ON | 1 file | ========== QUERY PLANNING AGENT ========== LLM-powered batch query planning for semantic claim understanding Generates targeted queries based on claim type (squad, stats, contract, etc.) |
 | `ENABLE_RANGE_PERIOD_GATE` | ON | 1 file | Range-period gate (A− option 3, 2026-09-24): an aggregate element over a closed past year range cannot be established by a source published before 1 December of the range's end year (trusted dates only). |
 | `ENABLE_READABLE_TEXT_GATE` | ON | 1 file | Unreadable-text floor (A− M2, 2026-09-24). |

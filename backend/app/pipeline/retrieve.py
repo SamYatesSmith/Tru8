@@ -1718,6 +1718,21 @@ class EvidenceRetriever:
                     ),
                     timeout=timeout_per_url,
                 )
+                # The originator review reads a page's claim-independent
+                # opening, not the claim-selected passage below (D3,
+                # 2026-10-07). Kept under a key classify does not drop; the
+                # Phase B review removes it on every path.
+                from app.services import originator_review
+
+                full_text = getattr(snippet, "_full_text", None) if snippet else None
+                if (
+                    originator_review.enabled()
+                    and isinstance(full_text, str)
+                    and full_text.strip()
+                ):
+                    ev[originator_review.RECOVERY_OPENING_KEY] = full_text[
+                        : originator_review.TEXT_CHARS
+                    ]
                 if (
                     snippet
                     and snippet.text
