@@ -837,7 +837,7 @@ async def _review_run(analyzer, claim_map, evidence, only, history, holder):
         element["uncertainty"] = (
             "Some evidence has different or unestablished applicability to this element and is retained as context; see the relationship explanations."
         )
-        _refresh_element(element, evidence, claim_map)
+        _refresh_element(element, evidence, claim_map, keep_llm_state=True)
     claim_map["elements"] = staged
     receipt["uninspected_pairs"] = total - receipt["assessed_pairs"]
     receipt["status"] = (

@@ -1639,7 +1639,7 @@ def _restore_orphaned_echoes(
             f"[ECHO RESTORED] elem={elem.get('element_id')}: {len(back)} ref(s) "
             "restored; their original no longer counts on that side"
         )
-        _refresh_element(elem, evidence_list, claim_map)
+        _refresh_element(elem, evidence_list, claim_map, keep_llm_state=True)
     return restored
 
 
