@@ -133,3 +133,102 @@ def test_phase_b_logs_failures_and_a_timeout_and_returns(caplog):
     caplog.clear()
     asyncio.run(runner._await_recovery_mappings([hang()], grace=0.05))
     assert any("grace exceeded (0.05s)" in r.getMessage() for r in caplog.records)
+
+
+# ── D2 (structure plan S4): recovery gates against the full pool ────────────
+
+_DOI = "10.1056/NEJMoa2307563"
+
+
+def _recovery_case(main_tier, recovery_tier):
+    from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
+    from unittest.mock import AsyncMock
+
+    main = {
+        "evidence_id": "ev-main",
+        "url": f"https://www.nejm.org/doi/full/{_DOI}",
+        "title": "The trial (journal)",
+        "snippet": "MACE occurred in 6.5% versus 8.0% of participants.",
+        "tier": main_tier,
+    }
+    rec = {
+        "evidence_id": "ev-rec-e1_0_pm",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37952131/",
+        "title": "The trial (abstract)",
+        "snippet": f"doi: {_DOI}. MACE occurred in 6.5% versus 8.0%.",
+        "tier": recovery_tier,
+    }
+    cm = {
+        "claim_id": "c1",
+        "normalised_claim": "The drug reduced events.",
+        "claim_type": "empirical",
+        "metadata": {},
+        "elements": [
+            {
+                "element_id": "e1",
+                "description": "The drug reduced events.",
+                "state": "unresolved",
+                "uncertainty": None,
+                "evidence_refs": [
+                    {"evidence_id": "ev-main", "relationship": "supports", "reasoning": "r"}
+                ],
+            }
+        ],
+    }
+    analyzer = ClaimMapAnalyzer.__new__(ClaimMapAnalyzer)
+    analyzer.snippet_length = 200
+    analyzer.analyzer_temperature = 0.1
+    analyzer.analyzer_max_tokens = 2000
+    analyzer._call_llm = AsyncMock(
+        return_value={
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "evidence_refs": [
+                        {
+                            "evidence_id": "ev-rec-e1_0_pm",
+                            "relationship": "supports",
+                            "reasoning": "r",
+                        }
+                    ],
+                    "state": "supported",
+                    "uncertainty": None,
+                }
+            ]
+        }
+    )
+    asyncio.run(
+        analyzer.map_evidence_to_specific_elements(
+            claim_map=cm,
+            unresolved_element_ids=["e1"],
+            new_evidence=[rec],
+            full_evidence=[main, rec],
+        )
+    )
+    elem = cm["elements"][0]
+    rels = {
+        r["evidence_id"]: getattr(r["relationship"], "value", r["relationship"])
+        for r in elem["evidence_refs"]
+    }
+    return elem, rels
+
+
+@pytest.mark.parametrize(
+    "main_tier,recovery_tier,counted",
+    [
+        ("primary", "reporting", "ev-main"),  # main-pass host is the carrier
+        ("reporting", "primary", "ev-rec-e1_0_pm"),  # recovery host outranks it
+        ("primary", "primary", "ev-main"),  # tie: the earlier ref carries
+    ],
+)
+def test_recovery_counts_one_study_once_across_passes(
+    monkeypatch, main_tier, recovery_tier, counted
+):
+    monkeypatch.setattr(settings, "ENABLE_RELATIONSHIP_REVIEW", False)
+    elem, rels = _recovery_case(main_tier, recovery_tier)
+    directional = [e for e, r in rels.items() if r == "supports"]
+    assert directional == [counted]
+    scoped = elem["basis"]["same_study_scope"]["scoped"]
+    assert [s["evidence_id"] for s in scoped] == [
+        e for e in rels if e != counted
+    ]

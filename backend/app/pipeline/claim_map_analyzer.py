@@ -3986,8 +3986,14 @@ class ClaimMapAnalyzer:
                 raw_elements = parsed.get("elements", [])
                 raw_by_id = {e.get("element_id"): e for e in raw_elements}
 
-                # Built once for the gate pass over merged refs below.
-                recovery_ev_index = _index_evidence(new_evidence)
+                # Built once for the gate pass over merged refs below, over
+                # the FULL pool (D2, 2026-10-07), as the completion census
+                # does: cross-ref gates must see main-pass items, or the
+                # same-study gate counts a study twice when one host arrives
+                # in each pass. Already-scoped refs are `context` and skipped;
+                # deterministic gates re-run on earlier refs with the same
+                # result. (Without a full pool, `pool` is new_evidence.)
+                recovery_ev_index = _index_evidence(pool)
 
                 for elem in all_elements:
                     eid = elem["element_id"]
@@ -4041,8 +4047,7 @@ class ClaimMapAnalyzer:
                         # OLD state, so a supported element that gained two
                         # primary challenges still read `supported`. Gate
                         # receipts carry across the rebuild (invariant #5).
-                        # The GATE index covers new_evidence only: pre-existing
-                        # refs were gated in the main pass (2026-08-13, check
+                        # Gates run over the merged refs (2026-08-13, check
                         # 6f88a77f: this path once merged recovery refs ungated).
                         scope_receipts = self._apply_scope_gates(
                             elem, recovery_ev_index, claim_map
