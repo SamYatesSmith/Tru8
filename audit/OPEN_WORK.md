@@ -12,6 +12,14 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-10-08 MORNING — PICK UP HERE (handoff from 2026-10-07)
+- **A− is paused** (founder, 2026-10-07): the work is code quality — tidy-up, efficiency, dead-code removal.
+- **Done and LIVE in production (`e0879be`, health OK):** dead code removed (~6.5k lines incl. passage mapping, structured extraction, cited-source search lane, debug routes, legacy readers); lint pass; structure + recovery fixes D1–D6 (plan `audit/2026-10-07_structure_and_recovery_plan.md`, Progress section is canonical).
+- **Next step: S7** — split `run_pipeline_phase2` (runner.py, ~1,850 lines) into stage functions. REFACTOR ONLY, one extraction per commit, each proven by unit suite unchanged + bench `--all` equal to the previous run. Constraints are listed in the plan (review M6): `@metered` stays only on `run_pipeline_phase2`; source-text tests pin call order and literals (`test_cited_source_gap_note.py:313-338`, `test_originator_review.py:497-508`, `test_recital_original_wording.py:111-119`); `evidence` is REBOUND twice (functions must return it); `claims`/`selected_claims` share dicts; one `analyzer` instance flows through; patch targets live in `app.pipeline.runner` so helpers stay in that module.
+- **Bench today:** `--all` = 135/15/16/2 when 93DD finishes in time, 121/14/15/2 when it drifts on timing (B4A3 and 82CF drift under `--all`; all clean alone). README's 152/18/15 is stale.
+- **Open, small:** recovery classify/review tokens never reach cost telemetry; size the 20 s recovery originator-review cap on production `call_seconds`; `scripts/probe_endpoint_auth.py` allowlist is stale (8 pre-existing failures on intentionally public routes); two `runner.py` unused assignments left on purpose for S7.
+- **Founder note:** local `backend/.env` holds a LIVE Stripe secret key (the config guard discards it in development; it should not be on this machine).
+
 ## ▶ 2026-10-07 — CODE QUALITY PASS: BASELINE MEASURED (START HERE)
 - **Founder:** A− paused for this session; the focus is tidy-up, efficiency and dead-code removal.
 - **Baseline:** `audit/2026-10-07_code_quality_baseline.md` (ruff, vulture, radon, knip; read-only).
