@@ -12,6 +12,16 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-10-07 — CODE QUALITY PASS: BASELINE MEASURED (START HERE)
+- **Founder:** A− paused for this session; the focus is tidy-up, efficiency and dead-code removal.
+- **Baseline:** `audit/2026-10-07_code_quality_baseline.md` (ruff, vulture, radon, knip; read-only).
+  - 68 backend functions at complexity D–F; `run_pipeline_phase2` CC 252. Five pipeline/API files at the lowest maintainability grade.
+  - Dead code: 2 whole modules, ~50 uncalled functions, 6 unused schemas, 3 default-off features; web has 19 unused files and 4 unused packages.
+  - Web passes ESLint and `tsc`.
+- **Done (3 backend + 1 web commit, `4bb0609`, `c629a1e` and the batch-3 commit):** 4 dead modules, 50 uncalled or test-only functions, 19 web files, 4 packages. Suite 4,863 → 4,775 (−88 = exactly the deleted tests, 0 fail). Bench identical to a control arm on `93029ab`. Detail + what was kept and why: the baseline doc, Progress section.
+- **Bench baseline correction:** `--all` today = 121 ok / 14 warn / 15 fail / 2 unexercised (93DD + B4A3 timing drift under `--all`, clean alone). The control arm shows the same, so the README's 152/18/15 is stale for `--all`.
+- **Next:** passage mapping removal is difficulty ≥3 (79 refs incl. manifest signer, an 8th gate, shared branches with relationship review, stored `citations`): design first. Structured extraction and the cited-source search half are smaller.
+
 ## ▶ 2026-10-06 (end) — ARCHITECTURE REVIEW (START HERE)
 - **Record:** `audit/2026-10-06_architecture_review.md`.
 - **Findings:**
