@@ -37,3 +37,11 @@ Verdict: plan holds; every flag-off site stays byte-identical (prompts, schemas,
 - **M4** the `cited_context` block reads STORED `citations`: moved to Build B with the other legacy readers (removal waits on the production read).
 - **Build note:** `ClaimMapMetadata.passage_review` (a TypedDict key) also moves to Build B: if a Pydantic model validates against it, removing the key could strip the field from legacy responses.
 - **L1** drop the now-unused imports in `passage_mapping.py`; **L2** fix `tests/evaluation/passage_quality/README.md`; **L3** update CLAUDE.md / OPEN_WORK at ship.
+
+## Build B gate — production read (2026-10-07, read-only transaction, counts only)
+| Table / column | Rows | `"citations":` | `"passage_review":` | `"fact_applicability":` | control `"evidence_refs":` |
+|---|---|---|---|---|---|
+| `claim.claim_map` | 406 | 0 | 0 | 0 | 301 |
+| `report_revision.snapshot` | 0 | 0 | 0 | 0 | 0 |
+
+The positive control matches, so the zeros are real: **no production record carries a field Build B's readers read.** Build B is unblocked (local/eval databases may still hold flag-on records; they would simply stop rendering those fields).
