@@ -599,15 +599,6 @@ class NOAAAdapter(GovernmentAPIClient):
             logger.error(f"NOAA search failed for '{query}': {e}")
             return []
 
-    def _search_datasets(self, query: str) -> List[Dict[str, Any]]:
-        """Dataset catalog search disabled (Fix 4b) - returns metadata, not evidence.
-
-        Note: This method previously returned NOAA dataset catalog info like
-        'GHCND: 1.0 data coverage...' which is not useful as evidence.
-        Now returns empty to prevent confusing metadata in results.
-        """
-        logger.info(f"[NOAA] Dataset search bypassed (returns metadata, not evidence)")
-        return []
 
     def _build_data_query_params(
         self,
@@ -851,22 +842,6 @@ class NOAAAdapter(GovernmentAPIClient):
 
         return None
 
-    def _create_climate_evidence(
-        self, title: str, snippet: str, url: str
-    ) -> List[Dict[str, Any]]:
-        """Create climate evidence dictionary."""
-        evidence = self._create_evidence_dict(
-            title=title,
-            snippet=snippet,
-            url=url,
-            source_date=datetime.now(timezone.utc),
-            metadata={
-                "api_source": "NOAA CDO",
-                "data_type": "climate",
-                "authority": "US Government",
-            },
-        )
-        return [evidence]
 
     def _transform_dataset_response(self, raw_response: Any) -> List[Dict[str, Any]]:
         """Transform NOAA dataset list response."""

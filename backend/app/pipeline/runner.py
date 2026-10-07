@@ -10,7 +10,6 @@ import asyncio
 import json
 import logging
 import re
-from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from functools import partial
@@ -22,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import async_session
 from app.core.search_meter import metered
-from app.models import Check, Claim, Evidence, RawEvidence, User
+from app.models import Check, Claim, Evidence, RawEvidence
 from app.models.check import compute_claim_text_hash
 from app.pipeline.progress import ProgressReporter
 from app.services.push_notifications import push_notification_service
@@ -33,7 +32,7 @@ from app.utils.date_provenance import derive_date_basis
 from app.utils.date_utils import parse_date
 from app.utils.temporal_markers import has_historical_marker
 from app.utils.url_identity import UrlKeySet
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -633,20 +632,6 @@ async def run_in_executor(async_func, *args, **kwargs):
     """
     loop = asyncio.get_event_loop()
     func = partial(_run_async_in_thread, async_func, *args, **kwargs)
-    return await loop.run_in_executor(_executor, func)
-
-
-async def run_in_executor_with_timeout(async_func, timeout: float, *args, **kwargs):
-    """
-    Run an async function in a thread pool with isolated event loop AND enforced timeout.
-
-    The timeout is enforced INSIDE the asyncio.run() call, so it actually works
-    (unlike asyncio.wait_for around run_in_executor, which can't cancel thread work).
-    """
-    loop = asyncio.get_event_loop()
-    func = partial(
-        _run_async_in_thread_with_timeout, async_func, timeout, *args, **kwargs
-    )
     return await loop.run_in_executor(_executor, func)
 
 

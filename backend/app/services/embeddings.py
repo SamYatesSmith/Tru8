@@ -208,10 +208,6 @@ class EmbeddingService:
         except Exception as e:
             logger.warning(f"Cache storage failed: {e}")
     
-    async def cleanup(self):
-        """Cleanup resources"""
-        if self.redis_client:
-            await self.redis_client.close()
 
 # Specialized functions for fact-checking pipeline
 
@@ -241,90 +237,6 @@ async def embed_claim_and_evidence(claim: str, evidence_snippets: List[str]) -> 
             "dimension": service.dimension
         }
 
-async def rank_evidence_by_similarity(claim: str, evidence_snippets: List[str], 
-                                     top_k: int = 5) -> List[Tuple[int, float, str]]:
-    """Rank evidence snippets by similarity to claim"""
-    service = await get_embedding_service()
-    
-    try:
-        # Generate embeddings
-        embeddings_data = await embed_claim_and_evidence(claim, evidence_snippets)
-        claim_embedding = embeddings_data["claim_embedding"]
-        evidence_embeddings = embeddings_data["evidence_embeddings"]
-        
-        # Find most similar evidence
-        similar_indices = await service.find_most_similar(
-            claim_embedding, 
-            evidence_embeddings, 
-            top_k=top_k
-        )
-        
-        # Return with evidence text
-        # Normalize similarity from [-1, 1] to [0, 1] to match config threshold expectations
-        ranked_evidence = []
-        for idx, similarity in similar_indices:
-            if idx < len(evidence_snippets):
-                normalized_similarity = (similarity + 1.0) / 2.0
-                ranked_evidence.append((idx, normalized_similarity, evidence_snippets[idx]))
-        
-        return ranked_evidence
-        
-    except Exception as e:
-        logger.error(f"Evidence ranking failed: {e}")
-        # Fallback: return first few evidence snippets
-        return [(i, 0.5, snippet) for i, snippet in enumerate(evidence_snippets[:top_k])]
-
-async def compute_claim_evidence_similarity_matrix(claims: List[str], 
-                                                   evidence_snippets: List[str]) -> np.ndarray:
-    """Compute similarity matrix between all claims and evidence snippets"""
-    service = await get_embedding_service()
-    
-    try:
-        # Generate all embeddings
-        claim_embeddings = await service.embed_batch(claims)
-        evidence_embeddings = await service.embed_batch(evidence_snippets)
-        
-        # Compute similarity matrix
-        similarity_matrix = np.zeros((len(claims), len(evidence_snippets)))
-        
-        for i, claim_emb in enumerate(claim_embeddings):
-            for j, evidence_emb in enumerate(evidence_embeddings):
-                similarity = await service.compute_similarity(claim_emb, evidence_emb)
-                similarity_matrix[i, j] = similarity
-        
-        return similarity_matrix
-        
-    except Exception as e:
-        logger.error(f"Similarity matrix computation failed: {e}")
-        # Return matrix with moderate similarities as fallback
-        return np.full((len(claims), len(evidence_snippets)), 0.5)
-
-async def calculate_semantic_similarity(text1: str, text2: str) -> float:
-    """
-    Calculate semantic similarity between two texts.
-
-    Returns cosine similarity score between 0.0 (completely different) and 1.0 (identical).
-    Used for relevance gatekeeper to filter off-topic evidence before NLI.
-    """
-    service = await get_embedding_service()
-
-    try:
-        # Generate embeddings for both texts
-        embeddings = await service.embed_batch([text1, text2])
-        embedding1, embedding2 = embeddings[0], embeddings[1]
-
-        # Compute cosine similarity
-        similarity = await service.compute_similarity(embedding1, embedding2)
-
-        # Convert from [-1, 1] to [0, 1] range
-        normalized_similarity = (similarity + 1.0) / 2.0
-
-        return float(normalized_similarity)
-
-    except Exception as e:
-        logger.error(f"Semantic similarity calculation failed: {e}")
-        # Return moderate similarity as fallback (don't filter by default on error)
-        return 0.5
 
 # Global embedding service instance
 _embedding_service = None

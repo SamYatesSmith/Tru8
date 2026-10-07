@@ -99,40 +99,6 @@ class EvidenceDeduplicator:
 
         return unique
 
-    def _domain_dedup(self, evidence: List[Dict]) -> List[Dict]:
-        """
-        Remove duplicate domains - keep only the best evidence from each source.
-
-        This prevents Hartford Courant x3 or Facebook x2 in the same claim.
-
-        Args:
-            evidence: List of evidence dictionaries
-
-        Returns:
-            List with max 1 evidence per domain
-        """
-        import tldextract
-
-        seen_domains = set()
-        unique = []
-
-        for ev in evidence:
-            url = ev.get("url", "")
-
-            # Extract domain
-            try:
-                parsed = tldextract.extract(url)
-                domain = parsed.registered_domain.lower()
-            except Exception:
-                domain = url  # Fallback to full URL if parsing fails
-
-            if domain not in seen_domains:
-                seen_domains.add(domain)
-                unique.append(ev)
-            else:
-                logger.debug(f"Domain duplicate found: {domain} (URL: {url})")
-
-        return unique
 
     def _hash_content(self, text: str) -> str:
         """

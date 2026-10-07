@@ -37,18 +37,6 @@ class APIError(Exception):
         super().__init__(message)
 
 
-class InsufficientCreditsError(APIError):
-    """Raised when user doesn't have enough credits."""
-
-    def __init__(self, required: int = 1, available: int = 0):
-        super().__init__(
-            message="Insufficient credits for this operation",
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            error_code="INSUFFICIENT_CREDITS",
-            details={"required": required, "available": available},
-        )
-
-
 class PipelineError(APIError):
     """Raised when the fact-checking pipeline fails."""
 
@@ -58,18 +46,6 @@ class PipelineError(APIError):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             error_code="PIPELINE_ERROR",
             details={"stage": stage},
-        )
-
-
-class ExternalServiceError(APIError):
-    """Raised when an external service (API, database) fails."""
-
-    def __init__(self, service: str, message: str):
-        super().__init__(
-            message=f"External service '{service}' error: {message}",
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            error_code="EXTERNAL_SERVICE_ERROR",
-            details={"service": service},
         )
 
 

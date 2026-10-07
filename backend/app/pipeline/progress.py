@@ -251,16 +251,6 @@ class ProgressReporter:
         await self._queue.put(None)  # Signal end of stream
         logger.error(f"[PROGRESS] Check {self.check_id} failed: {error}")
 
-    async def send_heartbeat(self) -> None:
-        """Send heartbeat to keep connection alive."""
-        if self._completed:
-            return
-
-        event = {
-            "type": "heartbeat",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-        await self._queue.put(event)
 
     async def events(
         self,

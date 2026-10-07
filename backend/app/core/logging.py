@@ -1,7 +1,6 @@
 import logging
 import logging.handlers
 import sys
-import os
 from pathlib import Path
 from app.core.config import settings
 from app.core.correlation import CorrelationIdFilter
@@ -126,25 +125,3 @@ def setup_logging():
     _logging_configured = True
 
 
-def clear_log_file():
-    """
-    Clear the pipeline log file.
-
-    Call this before running a test to get a clean log.
-    Can be triggered via API endpoint or called directly.
-    """
-    try:
-        if LOG_FILE_PATH.exists():
-            with open(LOG_FILE_PATH, "w", encoding="utf-8") as f:
-                f.write(f"{'='*60}\n")
-                f.write(f"[LOG CLEARED] New logging session started\n")
-                f.write(f"{'='*60}\n\n")
-            return True
-    except Exception as e:
-        print(f"[LOGGING] Failed to clear log file: {e}")
-    return False
-
-
-def get_log_file_path() -> str:
-    """Return the path to the log file for reading."""
-    return str(LOG_FILE_PATH)

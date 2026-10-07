@@ -278,33 +278,6 @@ class DomainStatusTracker:
             ),
         }
 
-    def export_for_budgeting(self) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Export categorized domains for budgeting decisions.
-
-        Returns:
-            {
-                "paywall_priority": [...],  # High encounter count paywalls
-                "consider_playwright": [...],  # JS-required sites worth investing in
-                "blocked_investigate": [...]  # Blocked sites to investigate
-            }
-        """
-        paywalls = self.get_domains_by_status(DomainStatus.PAYWALL)
-        js_required = self.get_domains_by_status(DomainStatus.JS_REQUIRED)
-        blocked = self.get_domains_by_status(DomainStatus.BOT_BLOCKED)
-
-        return {
-            "paywall_priority": [
-                p for p in paywalls if p.get("encounter_count", 0) >= 3
-            ],
-            "consider_playwright": [
-                j for j in js_required if j.get("encounter_count", 0) >= 5
-            ],
-            "blocked_investigate": [
-                b for b in blocked if b.get("encounter_count", 0) >= 3
-            ],
-        }
-
 
 # Singleton instance
 _tracker: Optional[DomainStatusTracker] = None

@@ -180,40 +180,6 @@ class EmailNotificationService:
 
     # ========== ASYNC METHODS (for API endpoints) ==========
 
-    async def send_check_completed_email(
-        self,
-        user_id: str,
-        check_id: str,
-        claims_count: int,
-        # ClaimMap parameters
-        entry_mode: Optional[str] = None,
-        selected_claims_count: int = 0,
-        input_url: Optional[str] = None,
-        input_title: Optional[str] = None,
-        total_sources: int = 0,
-        claims_analyzed: Optional[list] = None,
-    ) -> bool:
-        """Send email when an evidence research check is completed (async wrapper)"""
-        # For now, delegate to sync version - Resend SDK is synchronous
-        return self.send_check_completed_email_sync(
-            user_id=user_id,
-            check_id=check_id,
-            claims_count=claims_count,
-            entry_mode=entry_mode,
-            selected_claims_count=selected_claims_count,
-            input_url=input_url,
-            input_title=input_title,
-            total_sources=total_sources,
-            claims_analyzed=claims_analyzed,
-        )
-
-    async def send_check_failed_email(
-        self, user_id: str, check_id: str, error_message: str
-    ) -> bool:
-        """Send email when an evidence research check fails (async wrapper)"""
-        return self.send_check_failed_email_sync(
-            user_id=user_id, check_id=check_id, error_message=error_message
-        )
 
     # ========== LIFECYCLE (FUNNEL) EMAILS ==========
     #

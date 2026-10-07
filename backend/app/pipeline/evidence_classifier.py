@@ -104,17 +104,14 @@ Include one entry per evidence item. The index must match the item number above.
 # scripts/measure_factcheck_signal.py, then flip with a re-record budgeted):
 #   1. the LLM emits a conservative `factcheck` boolean — a genre judgement
 #      over content, never an outlet roster (invariant #6);
-#   2. the four-domain fallback marks search-path items mechanically (parity
-#      with FactCheckParser._is_factcheck_domain — that parser is NOT wired
-#      into the live pipeline);
+#   2. the four-domain fallback marks search-path items mechanically;
 #   3. a flagged item that ALSO classified `analysis` is promoted
 #      commentary → reporting (`factcheck_promotion` receipt). A floor, never
 #      a demotion — and the quality floors keep the last word, so a Substack
 #      "factcheck" stays pinned by blog_platform_floor.
 # Design: audit/2026-08-28_rigour_and_refutation_design_review.md §3, Option 7-A.
 
-# Parity with FactCheckParser._is_factcheck_domain (factcheck_parser.py:80) —
-# the list is a FALLBACK for the obvious four, not a roster of who counts.
+# The list is a FALLBACK for the obvious four, not a roster of who counts.
 _FACTCHECK_DOMAINS = re.compile(
     r"snopes\.com|politifact\.com|factcheck\.org|fullfact\.org",
     re.IGNORECASE,

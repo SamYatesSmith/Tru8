@@ -1,9 +1,7 @@
 import logging
-import asyncio
 import json
 import hashlib
-from typing import Any, Optional, Dict, List, Union
-from datetime import datetime, timedelta
+from typing import Any, Optional, Dict, List
 import redis.asyncio as redis
 from app.core.config import settings
 
@@ -19,12 +17,9 @@ class CacheService:
         
         # TTL configurations for different types of data
         self.ttl_config = {
-            "search_results": 3600,      # 1 hour
             "evidence_extract": 3600 * 24,  # 1 day
             "claim_extract": 3600 * 6,   # 6 hours
             "embeddings": 3600 * 24 * 3, # 3 days (reduced from 1 week)
-            "url_content": 3600 * 12,    # 12 hours
-            "pipeline_result": 3600 * 24,  # 1 day (reduced from 3 days)
         }
     
     async def initialize(self):
@@ -117,49 +112,11 @@ class CacheService:
             logger.warning(f"Cache exists error for {category}:{identifier}: {e}")
             return False
     
-    async def get_or_set(self, category: str, identifier: str, 
-                        fetch_function, ttl: Optional[int] = None) -> Any:
-        """Get from cache or fetch and set if not exists"""
-        # Try to get from cache first
-        cached_data = await self.get(category, identifier)
-        if cached_data is not None:
-            return cached_data
-        
-        # Fetch new data
-        try:
-            if asyncio.iscoroutinefunction(fetch_function):
-                new_data = await fetch_function()
-            else:
-                new_data = fetch_function()
-            
-            # Cache the new data
-            await self.set(category, identifier, new_data, ttl)
-            return new_data
-        except Exception as e:
-            logger.error(f"Fetch function failed for {category}:{identifier}: {e}")
-            return None
     
-    # Specialized methods for fact-checking pipeline
     
-    async def cache_search_results(self, query: str, provider: str, results: List[Dict]) -> bool:
-        """Cache search results"""
-        identifier = f"{provider}:{self._hash_content(query)}"
-        return await self.set("search_results", identifier, results)
     
-    async def get_cached_search_results(self, query: str, provider: str) -> Optional[List[Dict]]:
-        """Get cached search results"""
-        identifier = f"{provider}:{self._hash_content(query)}"
-        return await self.get("search_results", identifier)
     
-    async def cache_url_content(self, url: str, content_data: Dict) -> bool:
-        """Cache extracted URL content"""
-        identifier = self._hash_content(url)
-        return await self.set("url_content", identifier, content_data)
     
-    async def get_cached_url_content(self, url: str) -> Optional[Dict]:
-        """Get cached URL content"""
-        identifier = self._hash_content(url)
-        return await self.get("url_content", identifier)
     
     async def cache_claim_extraction(self, content: str, model: str, claims: List[Dict]) -> bool:
         """Cache claim extraction results"""
@@ -193,13 +150,7 @@ class CacheService:
         identifier = self._evidence_identifier(claim)
         return await self.get("evidence_extract", identifier)
     
-    async def cache_pipeline_result(self, check_id: str, result_data: Dict) -> bool:
-        """Cache complete pipeline result"""
-        return await self.set("pipeline_result", check_id, result_data)
     
-    async def get_cached_pipeline_result(self, check_id: str) -> Optional[Dict]:
-        """Get cached pipeline result"""
-        return await self.get("pipeline_result", check_id)
     
     async def invalidate_pattern(self, pattern: str) -> int:
         """Invalidate all keys matching a pattern"""
@@ -217,100 +168,9 @@ class CacheService:
             logger.warning(f"Cache invalidate error for pattern {pattern}: {e}")
             return 0
     
-    async def get_cache_stats(self) -> Dict[str, Any]:
-        """Get cache statistics"""
-        await self.initialize()
-        if not self.redis_client:
-            return {}
-        
-        try:
-            info = await self.redis_client.info("memory")
-            keyspace = await self.redis_client.info("keyspace")
-            
-            # Count keys by category
-            categories = {}
-            for category in self.ttl_config.keys():
-                pattern = f"{self.key_prefix}{category}:*"
-                keys = await self.redis_client.keys(pattern)
-                categories[category] = len(keys)
-            
-            return {
-                "memory_used": info.get("used_memory_human"),
-                "total_keys": sum(categories.values()),
-                "categories": categories,
-                "keyspace_info": keyspace
-            }
-        except Exception as e:
-            logger.error(f"Cache stats error: {e}")
-            return {}
     
-    async def cleanup(self):
-        """Cleanup cache connections"""
-        if self.redis_client:
-            await self.redis_client.close()
 
-    # ========== NEW METHODS FOR API CACHING (Phase 5: Government API Integration) ==========
 
-    async def get_cached_api_response(
-        self,
-        api_name: str,
-        query: str
-    ) -> Optional[List[Dict]]:
-        """
-        Retrieve cached API response.
-
-        Args:
-            api_name: "ONS Economic Statistics", "PubMed", etc.
-            query: Search query
-
-        Returns:
-            Cached response or None
-        """
-        query_hash = self._hash_content(query)
-        identifier = f"{api_name}:{query_hash}"
-        return await self.get("api_response", identifier)
-
-    async def cache_api_response(
-        self,
-        api_name: str,
-        query: str,
-        response: List[Dict],
-        ttl: int = 86400  # 24 hours
-    ) -> bool:
-        """Cache API response"""
-        query_hash = self._hash_content(query)
-        identifier = f"{api_name}:{query_hash}"
-        return await self.set("api_response", identifier, response, ttl)
-
-# Convenient decorator for caching function results
-def cache_result(category: str, ttl: Optional[int] = None):
-    """Decorator to cache function results"""
-    def decorator(func):
-        async def wrapper(*args, **kwargs):
-            cache_service = await get_cache_service()
-            
-            # Create cache key from function name and arguments
-            cache_key_data = {
-                "func": func.__name__,
-                "args": args,
-                "kwargs": kwargs
-            }
-            identifier = cache_service._hash_content(cache_key_data)
-            
-            # Try to get from cache
-            cached_result = await cache_service.get(category, identifier)
-            if cached_result is not None:
-                logger.debug(f"Cache hit for {func.__name__}")
-                return cached_result
-            
-            # Execute function and cache result
-            logger.debug(f"Cache miss for {func.__name__}")
-            result = await func(*args, **kwargs) if asyncio.iscoroutinefunction(func) else func(*args, **kwargs)
-            await cache_service.set(category, identifier, result, ttl)
-            return result
-        
-        return wrapper
-    return decorator
 
 # Global cache service instance
 _cache_service = None

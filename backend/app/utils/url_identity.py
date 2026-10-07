@@ -93,10 +93,6 @@ def canonical_url_key(url: Optional[str]) -> str:
     return key
 
 
-def same_url(a: Optional[str], b: Optional[str]) -> bool:
-    return bool(a and b) and canonical_url_key(a) == canonical_url_key(b)
-
-
 class UrlKeySet:
     """A set of URLs whose membership is the canonical key (2026-10-01).
 

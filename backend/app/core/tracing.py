@@ -33,12 +33,6 @@ try:
 except ImportError:
     HTTPX_INSTRUMENTATION_AVAILABLE = False
 
-try:
-    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-    SQLALCHEMY_INSTRUMENTATION_AVAILABLE = True
-except ImportError:
-    SQLALCHEMY_INSTRUMENTATION_AVAILABLE = False
-
 # Global flag to track initialization
 _tracing_configured = False
 
@@ -126,28 +120,6 @@ def setup_tracing(app) -> None:
     # This will be called separately after database initialization if needed
 
     _tracing_configured = True
-
-
-def instrument_database(engine) -> None:
-    """
-    Instrument SQLAlchemy engine for tracing.
-
-    Should be called after database engine is created.
-
-    Args:
-        engine: SQLAlchemy engine instance
-    """
-    if not _tracing_configured or not OTEL_AVAILABLE:
-        return
-
-    if not SQLALCHEMY_INSTRUMENTATION_AVAILABLE:
-        return
-
-    try:
-        SQLAlchemyInstrumentor().instrument(engine=engine)
-        logger.debug("SQLAlchemy instrumentation enabled")
-    except Exception as e:
-        logger.warning(f"Failed to instrument SQLAlchemy: {e}")
 
 
 def get_tracer(name: str = __name__):
