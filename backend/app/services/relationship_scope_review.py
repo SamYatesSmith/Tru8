@@ -478,12 +478,7 @@ async def review_relationship_scope(analyzer, claim_map, evidence, only=None):
 
 async def _review_run(analyzer, claim_map, evidence, only, history, holder):
     """One review run; its own receipt goes in ``holder["run"]``."""
-    from app.pipeline.claim_map_analyzer import (
-        _compute_element_basis,
-        _derive_element_state_with_authority,
-        _state_floor_for,
-        _SCOPE_RECEIPT_KEYS,
-    )
+    from app.pipeline.claim_map_analyzer import _refresh_element
 
     # Every earlier run counts, not just the latest: an echo re-review
     # (2026-09-30) makes the main run's pairs a `prior_runs` entry, and a later
@@ -842,18 +837,7 @@ async def _review_run(analyzer, claim_map, evidence, only, history, holder):
         element["uncertainty"] = (
             "Some evidence has different or unestablished applicability to this element and is retained as context; see the relationship explanations."
         )
-        old = {
-            k: v
-            for k, v in element.get("basis", {}).items()
-            if k in _SCOPE_RECEIPT_KEYS
-        }
-        element["basis"] = _compute_element_basis(element, evidence)
-        element["basis"].update(old)
-        state, derivation = _derive_element_state_with_authority(
-            element, evidence, *_state_floor_for(claim_map)
-        )
-        element["state"] = state
-        element["basis"]["state_derivation"] = derivation
+        _refresh_element(element, evidence, claim_map)
     claim_map["elements"] = staged
     receipt["uninspected_pairs"] = total - receipt["assessed_pairs"]
     receipt["status"] = (

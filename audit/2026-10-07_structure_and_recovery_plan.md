@@ -65,3 +65,8 @@ Extract in order, one commit each, each proven by suite + bench equal: load stat
 - **M4 (S2 wider than stated):** the single-claim path also serves any one-claim check, every batch-parse retry, and EVERY Strengthen run (re_search.py:141) — D6 can wipe a strengthened map. It has no completion timeout at all. Wrap only the completion call; keep the fallback for parse failures; hoist `_COMPLETION_TIMEOUT`.
 - **M5 (order):** S0 → S2 → S1a → S1b → S5 → S3 → S4 → S7 (S6 decision only).
 - **M6 (S7 constraints):** `@metered` stays on `run_pipeline_phase2` only (`test_derivation_chains_flag.py:110-116`); exact-indent literal (`test_recital_original_wording.py:119`); the `"\n    )"` cut in `test_cited_source_gap_note.py:336`; CMA count pins (`_element_lines(` ×5, `_date_context()` ×5); patch targets live in `app.pipeline.runner`, so extracted helpers stay in that module.
+
+## Progress
+- **S2 (D6) done** `f3ebbeb`: `_complete_keeping_main_pass` on both mapping paths; tests written first (2 failed on old code).
+- **S0 done** `65c6aff`: `test_refresh_characterisation.py` + golden (sites B, C, D, E; branch guard).
+- **S1a done:** `_refresh_element` replaces sites B (completion), C (review) and D (echo restore); golden unchanged; mutation-checked (dropping B's `llm_state` fails the golden). **Site E deliberately NOT folded in here:** its body is rewritten by S5 (staging) and S3/S4 (fixes); folding it now would mix structure with its defects. It moves to `_refresh_element` in S3.

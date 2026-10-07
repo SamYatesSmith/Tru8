@@ -1639,14 +1639,7 @@ def _restore_orphaned_echoes(
             f"[ECHO RESTORED] elem={elem.get('element_id')}: {len(back)} ref(s) "
             "restored; their original no longer counts on that side"
         )
-        kept = {k: v for k, v in elem["basis"].items() if k in _SCOPE_RECEIPT_KEYS}
-        elem["basis"] = _compute_element_basis(elem, evidence_list)
-        elem["basis"].update(kept)
-        state, derivation = _derive_element_state_with_authority(
-            elem, evidence_list, *_state_floor_for(claim_map)
-        )
-        elem["state"] = state
-        elem["basis"]["state_derivation"] = derivation
+        _refresh_element(elem, evidence_list, claim_map)
     return restored
 
 
@@ -1717,6 +1710,43 @@ def _merge_scope_receipts(
         elif new:
             merged[key] = new
     return merged
+
+
+def _refresh_element(
+    elem: Dict[str, Any],
+    evidence_list: List[Dict[str, Any]],
+    claim_map: Dict[str, Any],
+    *,
+    fresh_receipts: Optional[Dict[str, Any]] = None,
+    keep_llm_state: bool = False,
+) -> Tuple[ElementState, Dict[str, Any]]:
+    """Rebuild an element's basis and state after its refs changed.
+
+    The one sequence every later pass needs (structure plan 2026-10-07, S1a):
+    keep the scope receipts already on the basis (invariant #5), rebuild the
+    basis over `evidence_list`, merge in any `fresh_receipts` from this pass's
+    gates, then re-derive the state. Merging with no fresh receipts restores
+    the prior ones unchanged. `keep_llm_state` carries the main pass's
+    `llm_state` record across the rebuild when it had one. Callers set
+    `uncertainty` first: the state caveat reads it.
+    """
+    basis = elem.get("basis") or {}
+    prior_receipts = {k: v for k, v in basis.items() if k in _SCOPE_RECEIPT_KEYS}
+    prior_derivation = basis.get("state_derivation")
+    elem["basis"] = _compute_element_basis(elem, evidence_list)
+    elem["basis"].update(_merge_scope_receipts(prior_receipts, fresh_receipts or {}))
+    state, derivation = _derive_element_state_with_authority(
+        elem, evidence_list, *_state_floor_for(claim_map)
+    )
+    if (
+        keep_llm_state
+        and isinstance(prior_derivation, dict)
+        and prior_derivation.get("llm_state")
+    ):
+        derivation["llm_state"] = prior_derivation["llm_state"]
+    elem["basis"]["state_derivation"] = derivation
+    elem["state"] = state
+    return state, derivation
 
 
 def _figure_text(item: _IndexedEvidence) -> str:
@@ -3809,39 +3839,21 @@ class ClaimMapAnalyzer:
                 # only the additions are examined; receipts are MERGED with
                 # the main pass's — the fresh basis recompute below would
                 # otherwise destroy them.
-                prior_receipts = {
-                    k: v
-                    for k, v in (elem.get("basis") or {}).items()
-                    if k in _SCOPE_RECEIPT_KEYS
-                }
-                # Captured BEFORE the basis rebuild below (2026-09-28): it used
-                # to be read after `_compute_element_basis` had replaced the
-                # basis, so the main pass's llm_state was always lost here —
-                # 9 of 48 elements on the A− re-measure carried llm_state None.
-                prior_state_derivation = (elem.get("basis") or {}).get(
-                    "state_derivation"
-                )
                 scope_receipts = self._apply_scope_gates(
                     elem, completion_ev_index, claim_map
                 )
 
-                # Re-derive state with the merged refs. Recompute basis
-                # too so the per-element metrics reflect the completion
-                # pass's additions.
-                elem["basis"] = _compute_element_basis(elem, evidence_list)
-                elem["basis"].update(
-                    _merge_scope_receipts(prior_receipts, scope_receipts)
+                # Re-derive state with the merged refs. Recompute basis too so
+                # the per-element metrics reflect the completion pass's
+                # additions; the main pass's llm_state record is kept (lost
+                # before 2026-09-28: 9 of 48 elements on the A− re-measure).
+                mech_state, state_basis = _refresh_element(
+                    elem,
+                    evidence_list,
+                    claim_map,
+                    fresh_receipts=scope_receipts,
+                    keep_llm_state=True,
                 )
-                mech_state, state_basis = _derive_element_state_with_authority(
-                    elem, evidence_list, *_state_floor_for(claim_map)
-                )
-                # Preserve the main pass's llm_state record if present.
-                if isinstance(
-                    prior_state_derivation, dict
-                ) and prior_state_derivation.get("llm_state"):
-                    state_basis["llm_state"] = prior_state_derivation["llm_state"]
-                elem["basis"]["state_derivation"] = state_basis
-                elem["state"] = mech_state
 
                 ref_ids = [
                     (
