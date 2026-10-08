@@ -39,7 +39,7 @@ plan) and the outreach contact map (third-party personal data).
 # Backend
 cd backend
 uvicorn main:app --reload                        # API server (port 8000) — module is main:app, NOT app.main (start-backend.sh / entrypoint.sh)
-pytest tests/ -q --no-cov                        # All tests (3,517 pass, 66 skip, ~85s as of 2026-08-17)
+pytest tests/ -q --no-cov                        # All tests (4,673 pass, 69 skip, ~2 min as of 2026-10-08)
 # Redis + Postgres must be up or ~26 cache/perf tests fail on connection refused, not on logic.
 pytest tests/unit/pipeline/ -v                   # Pipeline unit tests
 pytest tests/integration/ -v                     # Integration tests
@@ -47,7 +47,7 @@ alembic upgrade head                             # Run migrations
 
 # Replay bench — run before EVERY pipeline-quality commit (replay itself is free; ~10 min)
 docker-compose up -d                             # REQUIRED: the bench writes a Check row
-python scripts/replay_bench.py --all             # CURRENT (2026-10-06, after the date/shared-total prompt re-record): 152 ok / 18 warn / 15 fail / 2 unexercised + known drift 82CF — the README header is canonical. Older note: expect exactly: 170 ok / 5 warn / 8 fail / 5 unexercised + 1 cassette-drift claim (82CF — nondeterministic across processes after extraction; its committed cassette is the re-keyed 2026-09-09 one). 2026-09-10 full re-record after the decomposition-specificity rule; 9/10 claims replay at ZERO misses, 0001 clean (19/0/0) for the first time. Read a collapsed pool's cassette `_exception` entries before blaming code — two first-pass pools died on ConnectTimeouts / fetch-deadline cancellations and were re-recorded singly. ⚠️ `--update-golden` DROPS curated hard_invariants + tolerance-0 pins — never commit its output raw (README header is canonical)
+python scripts/replay_bench.py --all             # CURRENT (2026-10-08, the S7 control run): 135 ok / 15 warn / 16 fail / 2 unexercised — 93DD drops it to 121/14/15 when the machine is busy (never run pytest alongside); B4A3/82CF cassette hit counts vary on unchanged code. Earlier (2026-10-06): 152 ok / 18 warn / 15 fail / 2 unexercised + known drift 82CF (the README header still shows this; it is stale for `--all`). Older note: expect exactly: 170 ok / 5 warn / 8 fail / 5 unexercised + 1 cassette-drift claim (82CF — nondeterministic across processes after extraction; its committed cassette is the re-keyed 2026-09-09 one). 2026-09-10 full re-record after the decomposition-specificity rule; 9/10 claims replay at ZERO misses, 0001 clean (19/0/0) for the first time. Read a collapsed pool's cassette `_exception` entries before blaming code — two first-pass pools died on ConnectTimeouts / fetch-deadline cancellations and were re-recorded singly. ⚠️ `--update-golden` DROPS curated hard_invariants + tolerance-0 pins — never commit its output raw (README header is canonical)
 # ⚠️ THE BENCH CANNOT VERIFY SMALL RETRIEVAL CHANGES (measured 2026-08-20). Two
 # recordings of TRU-018F-44AA taken an hour apart with IDENTICAL settings differed
 # by 25 of 40 URLs — 62% churn — and their tier mixes disagreed wildly

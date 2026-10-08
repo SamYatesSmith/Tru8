@@ -46,7 +46,13 @@
 
 **F10 — note.** Dedup also reorders each claim's items into first-seen-URL order (`:1995-1998`). Order can matter downstream (round-robin truncation, invariant #2).
 
-**F11 — MEDIUM (timeouts).** `POST /checks/run` gives the WHOLE pipeline 180 s (`checks.py:678`) — equal to retrieval's own timeout, so on `/run` the partial-result rescue can never apply. The stream path's 300 s watchdog is also less than retrieve 180 + mapping 120 + the other stages; the inner deadlines normally keep real runs well under it.
+**F11 — MEDIUM (timeouts) — REVIEWED 2026-10-08, not changed.**
+- `/checks/run` (`checks.py:653`) wraps the pipeline in `asyncio.wait_for(..., 180)`. Focused (single-claim) checks run Phase 1 AND Phase 2 inside that one 180 s; article checks get 180 s for Phase 1 and a fresh 180 s for Phase 2. On expiry it fails honestly: `handle_pipeline_failure` (refund) + 504 "Your credit has been returned". Retrieval's own 180 s timeout can never fire first on `/run`, so its partial-result rescue never applies there — but the inner deadlines (45 s per claim, 30 s fetch phase) keep retrieval far below 180 s anyway, so that part is cosmetic.
+- `/checks/stream` has no such cap; only the 300 s watchdog (`PIPELINE_WATCHDOG_SECONDS`).
+- Local data (367 completed checks, `tru8_dev`): p50 55-76 s, p90 102-128 s, max 201 s; 2 of 367 over 180 s. Production distribution NOT read (needs a read-only prod query — founder approval).
+- **Bigger, likely issue (verify first):** `api.trueight.com` is proxied by Cloudflare (`Server: cloudflare`, `CF-RAY`, then Railway edge). Cloudflare's documented proxy read timeout on non-Enterprise plans is **100 s** with no bytes from the origin → **524** to the client. `/run` sends nothing until the check ends, so a `/run` call longer than ~100 s would 524 at the edge while the server carries on, completes, saves and keeps the credit; the caller sees an error but the result exists (`GET /checks/{id}`). Local p90 is above 100 s. NOT verified live (a verifying call costs a paid check) and the Cloudflare plan was not checked. `/stream` (SSE) sends progress events, so it is not exposed the same way. Possibly related: the hosted MCP stream dying at ~140 s (CLAUDE.md, 2026-09-02).
+- Who uses `/run`: signed-in Console users calling programmatically and the admin API-key exemption; the web app uses `/stream`; agents use `/agent/*`.
+- Options (founder): (1) verify — Cloudflare plan + one admin `/run` on a slow claim, or a prod log search for 524s; (2) if confirmed, either make `/run` asynchronous (202 + poll `GET /checks/{id}`), or keep the connection alive with periodic whitespace before the JSON body, and align its ceiling with `PIPELINE_WATCHDOG_SECONDS`; (3) at minimum, correct the docs ("Set your HTTP client timeout to at least 180s") which promise more than the edge allows.
 
 ## 3. Per function
 

@@ -12,17 +12,23 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## ▶ 2026-10-08 — COMPLEX STAGE FUNCTIONS REVIEWED (read-only, verified) — START HERE
-- Record: `audit/2026-10-08_complex_stage_functions_review.md`. No code changed.
-- **F1 FIXED and LIVE (`c959a59`, health OK):** `frozen_evidence` now 403s on a deployed backend unless the caller is an admin. **Checked 2026-10-08 (founder screenshot):** Clerk has "Verify at sign-up" ON (email code), so the email-takeover path below is closed — provided the screenshot is the PRODUCTION instance. Background: confirm Clerk requires a VERIFIED email at sign-up — `get_or_create_user` hands an existing row (admin included) to any new Clerk ID presenting the same email (`users.py:50-69`).
-- (was) **HIGH, F1:** any signed-in user could send `frozen_evidence` on `/checks/stream` or `/checks/run` and get a normal, publicly readable (by ID), signed record built from evidence they supplied (tier included); retrieval, dedup, scoring and classify are skipped. Only user: the Feb golden-dataset harness. Founder decision: guard it.
-- **F9 FIXED (local):** dedup's URL-less drop now leaves a `[URL LEDGER]` receipt; the real dedup function is now tested (15 tests). Still open MEDIUM: F11 `/run` caps the whole pipeline at 180 s = retrieve's own timeout · F2 post-filter recovery items are never relevance-scored.
-- Most of the stage-function complexity is the debug ledger (`DEBUG_EVIDENCE_LEDGER`, 32 sites, never tested). Production value unknown (read-only Railway check needed).
-
-## ▶ 2026-10-08 — S7 DONE: `run_pipeline_phase2` SPLIT (local, not pushed)
-- 10 commits `641fef8`…`bd7f103`: 12 stage functions; `run_pipeline_phase2` ~1,850 lines / CC 252 → 382 / CC 19. Refactor only.
-- Proof per step: suite 4,648 unchanged; bench `--all` equal to a control run on `e3d7e6d` (135/15/16/2). B4A3 and 82CF cassette hit counts vary run to run on the UNCHANGED commit too (B4A3 alone there: 19/52), so B4A3 is no longer "clean alone".
-- Detail: structure plan Progress (S7). Next candidates: the stage functions with the highest complexity (`_post_filter_recovery` 34, `_retrieve_stage` 33), the two unused assignments, or the small open items below.
+## ▶ 2026-10-09 MORNING — PICK UP HERE (handoff from 2026-10-08)
+- **Mode:** A− still paused (founder); code quality + correctness. Everything below is pushed and live (health on `main`).
+- **Done 2026-10-08 (all independently verified):**
+  - **S7:** `run_pipeline_phase2` split into 12 stage functions (1,850 lines / CC 252 → 382 / CC 19), one extraction per commit, suite + bench equal to control at every step. Record: structure plan Progress (S7).
+  - **Review of the 7 complex stage functions** (read-only): `audit/2026-10-08_complex_stage_functions_review.md` — findings F1–F11, per-function contracts, coverage (unit + bench), constraints. READ IT before touching any stage function.
+  - **F1 FIXED (`c959a59`):** `frozen_evidence` now 403s on a deployed backend unless the caller is an admin (any signed-in user could previously build a public, signed record from evidence they wrote). Clerk "Verify at sign-up" is ON (founder screenshot) — confirm it was the PRODUCTION instance; `get_or_create_user` hands an existing row to any new Clerk ID presenting the same email, so that setting is load-bearing.
+  - **F9 FIXED (`ea0590c`):** dedup's URL-less drop leaves a `[URL LEDGER]` receipt; the REAL dedup function now has 15 tests (only a copy was tested before).
+- **Next, in order — one founder decision at a time:**
+  1. **F11 verify:** `api.trueight.com` is behind Cloudflare's proxy; on non-Enterprise plans it returns **524 after 100 s** with no origin bytes. `/checks/run` sends nothing until done; local p90 is 102-128 s. Likely: long `/run` calls 524 at the edge while the server completes, saves and keeps the credit. Verify (Cloudflare plan, prod log search for 524s, or one admin `/run` — ask first, paid), then choose: async 202+poll, keep-alive whitespace, or docs-only. Detail: review F11.
+  2. **Ledger decision:** read Railway `DEBUG_EVIDENCE_LEDGER` (read-only; ask). It drives most of the stage-function complexity (32 untested sites). Keep or remove (removal retires the Feb `harness/run_golden_dataset.py`).
+  3. **F2:** post-filter recovery items are never relevance-scored (behaviour change; adds model calls → paid bench re-record; ask).
+  4. **F3/F4:** retrieve's two unreachable branches + the policy question "should a total retrieval failure fail the check?"; on the outer 180 s retrieve timeout, unfinished claims, cache hits and fact-checks are lost.
+  5. **Then** structural simplification of `_post_filter_recovery` (CC 34) / `_retrieve_stage` (33) — characterisation tests FIRST (their add/timeout paths are untested by suite and bench).
+  6. Small: recovery tokens missing from cost telemetry · size the 20 s recovery review cap on prod `call_seconds` · `scripts/probe_endpoint_auth.py` allowlist stale · 2 unused assignments in runner · README bench header stale · **live Stripe secret key in local `backend/.env` (founder)**.
+- **Method that worked (keep it):** CRLF-aware Python edit scripts (runner.py is CRLF; `checks.py` is not black-clean — never let the Edit hook reformat a non-black file); dry-run on a copy; tests written first and seen failing; mutation-check new tests; full suite; bench `--all` diffed against a saved control; independent verifier agent before commit.
+- **Bench baseline (2026-10-08):** `--all` = **135/15/16/2**. B4A3 and 82CF cassette hit counts vary on unchanged code; 93DD drops to 121/14/15 when the machine is busy — **never run pytest or agents alongside the bench**.
+- **Suite:** 4,673 passed, 69 skipped (Docker Postgres + Redis up).
 
 ## ▶ 2026-10-08 MORNING — PICK UP HERE (handoff from 2026-10-07)
 - **A− is paused** (founder, 2026-10-07): the work is code quality — tidy-up, efficiency, dead-code removal.
