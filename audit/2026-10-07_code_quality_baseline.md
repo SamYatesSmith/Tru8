@@ -95,6 +95,7 @@ Vulture cannot see FastAPI routes, MCP tools or decorated handlers, so every rou
 | (lint) | Mechanical lint: unused imports, duplicate imports, placeholder-less f-strings, unused variables, bare `except` → `except Exception`, explicit `raise … from`, type-only imports for string annotations, `copy` shadowing, a no-op try/except in the legal adapter, 2 latent test bugs | 4,628 unchanged, 0 fail | identical to control |
 
 | `f3ebbeb`…`e0879be` | Structure + recovery: D6, S0 golden, S1a `_refresh_element`, D4, D5, D1, D2, D3 (see the structure plan's Progress) | 4,628 → 4,648, 0 fail | identical, except 93DD's 2 new recorded calls for D3 (re-recorded, attributed) |
+| `641fef8`…`bd7f103` | S7: `run_pipeline_phase2` split into 12 stage functions (1,850 lines / CC 252 → 382 / CC 19), one extraction per commit | 4,648 unchanged at every step | identical to control at every step, bar B4A3/82CF cassette hit counts (vary on the unchanged commit) |
 
 **Lint counts (baseline → now):** F401 107 → 1, B904 62 → 0, F541 30 → 0, F841 12 → 2, E722 9 → 0, F821 5 → 0, F811 3 → 0. The three left are deliberate: `resend` (an availability check in health.py) and two `runner.py` assignments whose right-hand side can raise (`json.loads`, a dict lookup); they go with the runner restructure.
 

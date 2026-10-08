@@ -12,6 +12,11 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-10-08 — S7 DONE: `run_pipeline_phase2` SPLIT (local, not pushed)
+- 10 commits `641fef8`…`bd7f103`: 12 stage functions; `run_pipeline_phase2` ~1,850 lines / CC 252 → 382 / CC 19. Refactor only.
+- Proof per step: suite 4,648 unchanged; bench `--all` equal to a control run on `e3d7e6d` (135/15/16/2). B4A3 and 82CF cassette hit counts vary run to run on the UNCHANGED commit too (B4A3 alone there: 19/52), so B4A3 is no longer "clean alone".
+- Detail: structure plan Progress (S7). Next candidates: the stage functions with the highest complexity (`_post_filter_recovery` 34, `_retrieve_stage` 33), the two unused assignments, or the small open items below.
+
 ## ▶ 2026-10-08 MORNING — PICK UP HERE (handoff from 2026-10-07)
 - **A− is paused** (founder, 2026-10-07): the work is code quality — tidy-up, efficiency, dead-code removal.
 - **Done and LIVE in production (`e0879be`, health OK):** dead code removed (~6.5k lines incl. passage mapping, structured extraction, cited-source search lane, debug routes, legacy readers); lint pass; structure + recovery fixes D1–D6 (plan `audit/2026-10-07_structure_and_recovery_plan.md`, Progress section is canonical).
