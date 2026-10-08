@@ -16,7 +16,7 @@
 - Record: `audit/2026-10-08_complex_stage_functions_review.md`. No code changed.
 - **F1 FIXED and LIVE (`c959a59`, health OK):** `frozen_evidence` now 403s on a deployed backend unless the caller is an admin. **Checked 2026-10-08 (founder screenshot):** Clerk has "Verify at sign-up" ON (email code), so the email-takeover path below is closed — provided the screenshot is the PRODUCTION instance. Background: confirm Clerk requires a VERIFIED email at sign-up — `get_or_create_user` hands an existing row (admin included) to any new Clerk ID presenting the same email (`users.py:50-69`).
 - (was) **HIGH, F1:** any signed-in user could send `frozen_evidence` on `/checks/stream` or `/checks/run` and get a normal, publicly readable (by ID), signed record built from evidence they supplied (tier included); retrieval, dedup, scoring and classify are skipped. Only user: the Feb golden-dataset harness. Founder decision: guard it.
-- MEDIUM: F9 dedup drops URL-less items with no receipt · F11 `/run` caps the whole pipeline at 180 s = retrieve's own timeout · F2 post-filter recovery items are never relevance-scored.
+- **F9 FIXED (local):** dedup's URL-less drop now leaves a `[URL LEDGER]` receipt; the real dedup function is now tested (15 tests). Still open MEDIUM: F11 `/run` caps the whole pipeline at 180 s = retrieve's own timeout · F2 post-filter recovery items are never relevance-scored.
 - Most of the stage-function complexity is the debug ledger (`DEBUG_EVIDENCE_LEDGER`, 32 sites, never tested). Production value unknown (read-only Railway check needed).
 
 ## ▶ 2026-10-08 — S7 DONE: `run_pipeline_phase2` SPLIT (local, not pushed)

@@ -1949,6 +1949,17 @@ def _dedup_urls_across_claims(
                 for ev in ev_list:
                     url = ev.get("url", "")
                     if not url:
+                        # Dropped, as before: a `None` URL would fail the
+                        # whole save (`Evidence.url` is a required string),
+                        # and an empty one gives the reader no source to
+                        # open. The receipt is new (invariant #5); str()
+                        # keeps an odd field from failing the stage.
+                        logger.info(
+                            f"[URL LEDGER] claim={claim_pos} dropped "
+                            f"stage=url_dedup reason='no_url' "
+                            f"source={str(ev.get('source') or '-')[:80]!r} "
+                            f"title={str(ev.get('title') or '-')[:120]!r}"
+                        )
                         continue
 
                     score = ev.get("llm_relevance_score") or ev.get(

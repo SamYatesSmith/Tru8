@@ -42,6 +42,8 @@
 
 **F9 — MEDIUM (invariant #5, "every exclusion has a receipt").** `_dedup_urls_across_claims` silently drops every evidence item with no URL (`runner.py:1950-1952`: `continue`, never re-added to the rebuilt dict), with no receipt. No producer that writes an empty URL was found in `app/services` or `app/pipeline`, so how often this happens is unknown — a production read of URL-less evidence would tell.
 
+**F9 FIXED 2026-10-08:** the drop is kept (a `None` URL fails the whole save — `Evidence.url` is a required string; an empty one gives the reader nothing to open) and now leaves an INFO `[URL LEDGER] claim=… dropped stage=url_dedup reason='no_url' source=… title=…` receipt, `str()`-guarded so an odd field cannot fail the stage. Measured first: 0 of 10,366 local pre-dedup rows (adapter sources included) lack a URL, so the gap was latent. New `test_url_dedup_stage.py` (15 tests) characterises the REAL function — cap, tiebreak, same-claim duplicates, reordering, frozen skip, ledger path — closing F8's gap; the receipt and `str()` tests fail on the old code. Independently verified. Remaining note: URL-less drops count in the ledger's `removed` and the "Removed N duplicate URLs" log line, though they are not duplicates.
+
 **F10 — note.** Dedup also reorders each claim's items into first-seen-URL order (`:1995-1998`). Order can matter downstream (round-robin truncation, invariant #2).
 
 **F11 — MEDIUM (timeouts).** `POST /checks/run` gives the WHOLE pipeline 180 s (`checks.py:678`) — equal to retrieval's own timeout, so on `/run` the partial-result rescue can never apply. The stream path's 300 s watchdog is also less than retrieve 180 + mapping 120 + the other stages; the inner deadlines normally keep real runs well under it.
