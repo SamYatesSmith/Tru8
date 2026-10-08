@@ -725,7 +725,9 @@ async def _review_recovery_originators(classifier, items) -> None:
     except Exception as e:
         # A review fault costs the review, never the claim's recovery.
         originator_review.mark_not_reviewed(pending, "recovery_review_failed")
-        logger.warning(f"[COVERAGE RECOVERY] Originator review failed ({e}); tiers kept")
+        logger.warning(
+            f"[COVERAGE RECOVERY] Originator review failed ({e}); tiers kept"
+        )
     finally:
         for item in pending:
             item.pop(originator_review.PAGE_OPENING_KEY, None)
@@ -1710,7 +1712,9 @@ async def run_pipeline_phase2(
                 f"[STAGE ERROR] check={check_id} stage=decompose "
                 f"error={type(e).__name__}: {e}"
             )
-            raise PipelineError(f"Claim decomposition failed: {e}", stage="decompose") from e
+            raise PipelineError(
+                f"Claim decomposition failed: {e}", stage="decompose"
+            ) from e
         stage_timings["decompose"] = (
             datetime.now(timezone.utc) - stage_start
         ).total_seconds()
@@ -1851,7 +1855,9 @@ async def run_pipeline_phase2(
                     "raw_sources_count": 0,
                 }
             else:
-                raise PipelineError(f"Evidence retrieval failed: {e}", stage="retrieve") from e
+                raise PipelineError(
+                    f"Evidence retrieval failed: {e}", stage="retrieve"
+                ) from e
 
         if (
             isinstance(retrieval_result, dict)
