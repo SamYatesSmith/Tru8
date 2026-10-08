@@ -2127,6 +2127,157 @@ async def _score_relevance(
     return evidence
 
 
+async def _post_filter_recovery(
+    evidence: Dict[str, List[Dict[str, Any]]],
+    is_frozen_evidence_replay: bool,
+    claims: List[Dict[str, Any]],
+    config: PipelineConfig,
+    ledger: Any,
+    stage_timings: Dict[str, float],
+) -> None:
+    """Stage 3.8: backfill claims thinned by scoring below
+    MIN_EVIDENCE_POST_FILTER with one search each. Appends to the evidence
+    lists in place; a failure is non-critical."""
+    MIN_EVIDENCE_POST_FILTER = settings.MIN_EVIDENCE_POST_FILTER
+    if (
+        not is_frozen_evidence_replay
+        and evidence
+        and config.enable_post_filter_recovery
+    ):
+        thin_claims = []
+        for pos, ev_list in evidence.items():
+            if len(ev_list) < MIN_EVIDENCE_POST_FILTER:
+                thin_claims.append((pos, ev_list))
+
+        if thin_claims:
+            logger.info(
+                f"[POST-FILTER RECOVERY] {len(thin_claims)} claims below {MIN_EVIDENCE_POST_FILTER} items: "
+                f"positions {[c[0] for c in thin_claims]}"
+            )
+            stage_start = datetime.now(timezone.utc)
+            try:
+                from app.pipeline.retrieve import _already_pooled
+                from app.services.search import SearchService
+                from app.services.evidence import (
+                    get_runtime_blocked_domains,
+                    is_domain_blocked,
+                )
+
+                recovery_search = SearchService()
+                # Recovery items used to be appended straight to the
+                # evidence dict without consulting the runtime blocklist
+                # — that allowed bot-blocked domains (notably facebook.com)
+                # to leak in via search snippets when the URL itself was
+                # never fetched. Apply the same blocklist EvidenceService
+                # uses at extraction time.
+                recovery_blocklist = get_runtime_blocked_domains()
+                existing_urls = UrlKeySet()
+                for ev_list in evidence.values():
+                    for ev in ev_list:
+                        existing_urls.add(ev.get("url", ""))
+
+                claim_lookup = {str(c.get("position", 0)): c for c in claims}
+                for pos, ev_list in thin_claims:
+                    claim = claim_lookup.get(pos)
+                    if not claim:
+                        continue
+                    claim_text = claim.get("text", "")
+                    if not claim_text:
+                        continue
+
+                    try:
+                        # F-R2f (2026-07-09, audit/2026-07-09_retrieval_quality_plan.md):
+                        # the hardcoded past-year window made this last-resort
+                        # backfill fetch ONLY recent chatter for historical
+                        # claims (TRU-C051-3024: reddit/tiktok for "doctors
+                        # historically recommended…"). Historical claims get
+                        # an unwindowed recovery search.
+                        recovery_freshness = (
+                            "none" if has_historical_marker(claim_text) else "py"
+                        )
+                        results = await recovery_search.search_for_evidence(
+                            claim_text, max_results=10, freshness=recovery_freshness
+                        )
+                        added = 0
+                        dropped_blocked = 0
+                        for r in results:
+                            if _already_pooled(existing_urls, r.url, f"claim={pos}"):
+                                continue
+                            if is_domain_blocked(r.url, recovery_blocklist):
+                                dropped_blocked += 1
+                                logger.info(
+                                    f"[URL LEDGER] claim={pos} dropped(recovery) "
+                                    f"type=web provider=- stage=blocklist "
+                                    f"reason='runtime_blocked_domain' "
+                                    f"url={(r.url or '')[:120]}"
+                                )
+                                existing_urls.add(r.url)
+                                continue
+                            evidence[pos].append(
+                                {
+                                    "id": f"recovery_post_{pos}_{added}",
+                                    "evidence_id": f"ev-rpf-{pos}_{added}",
+                                    "element_ids": [],
+                                    "text": r.snippet or "",
+                                    "source": r.source or "",
+                                    "url": r.url,
+                                    "title": r.title or "",
+                                    "published_date": r.published_date,
+                                    # No page fetched here — engine date, unconfirmed
+                                    "date_basis": derive_date_basis(
+                                        r.url, r.published_date
+                                    ),
+                                    "relevance_score": 0.0,
+                                    "semantic_similarity": 0.0,
+                                    "receipt_status": "extracted",
+                                    "is_recovery": True,
+                                    "metadata": {"post_filter_recovery": True},
+                                }
+                            )
+                            logger.info(
+                                f"[URL LEDGER] claim={pos} kept(recovery) "
+                                f"type=web provider=- "
+                                f"url={(r.url or '')[:120]}"
+                            )
+                            existing_urls.add(r.url)
+                            added += 1
+                            if len(ev_list) >= MIN_EVIDENCE_POST_FILTER:
+                                break
+                        if added > 0 or dropped_blocked > 0:
+                            logger.info(
+                                f"[POST-FILTER RECOVERY] Claim {pos}: added {added} items → {len(ev_list)} total"
+                                + (
+                                    f" ({dropped_blocked} blocked-domain dropped)"
+                                    if dropped_blocked
+                                    else ""
+                                )
+                            )
+                    except Exception as e:
+                        logger.warning(
+                            f"[POST-FILTER RECOVERY] Claim {pos} search failed: {e}"
+                        )
+
+                if ledger:
+                    recovery_total = sum(
+                        1
+                        for ev_list in evidence.values()
+                        for ev in ev_list
+                        if ev.get("is_recovery")
+                        and ev.get("metadata", {}).get("post_filter_recovery")
+                    )
+                    ledger.record(
+                        "post_filter_recovery",
+                        claims_recovered=len(thin_claims),
+                        items_added=recovery_total,
+                    )
+
+            except Exception as e:
+                logger.warning(f"Post-filter recovery failed (non-critical): {e}")
+            stage_timings["post_filter_recovery"] = (
+                datetime.now(timezone.utc) - stage_start
+            ).total_seconds()
+
+
 @metered  # counts every billable search query this check issues
 async def run_pipeline_phase2(
     check_id: str,
@@ -2283,144 +2434,14 @@ async def run_pipeline_phase2(
     # =========================================================================
     # Stage 3.8: Post-Filter Recovery — backfill claims thinned by scoring
     # =========================================================================
-    MIN_EVIDENCE_POST_FILTER = settings.MIN_EVIDENCE_POST_FILTER
-    if (
-        not _is_frozen_evidence_replay
-        and evidence
-        and config.enable_post_filter_recovery
-    ):
-        thin_claims = []
-        for pos, ev_list in evidence.items():
-            if len(ev_list) < MIN_EVIDENCE_POST_FILTER:
-                thin_claims.append((pos, ev_list))
-
-        if thin_claims:
-            logger.info(
-                f"[POST-FILTER RECOVERY] {len(thin_claims)} claims below {MIN_EVIDENCE_POST_FILTER} items: "
-                f"positions {[c[0] for c in thin_claims]}"
-            )
-            stage_start = datetime.now(timezone.utc)
-            try:
-                from app.pipeline.retrieve import _already_pooled
-                from app.services.search import SearchService
-                from app.services.evidence import (
-                    get_runtime_blocked_domains,
-                    is_domain_blocked,
-                )
-
-                recovery_search = SearchService()
-                # Recovery items used to be appended straight to the
-                # evidence dict without consulting the runtime blocklist
-                # — that allowed bot-blocked domains (notably facebook.com)
-                # to leak in via search snippets when the URL itself was
-                # never fetched. Apply the same blocklist EvidenceService
-                # uses at extraction time.
-                recovery_blocklist = get_runtime_blocked_domains()
-                existing_urls = UrlKeySet()
-                for ev_list in evidence.values():
-                    for ev in ev_list:
-                        existing_urls.add(ev.get("url", ""))
-
-                claim_lookup = {str(c.get("position", 0)): c for c in claims}
-                for pos, ev_list in thin_claims:
-                    claim = claim_lookup.get(pos)
-                    if not claim:
-                        continue
-                    claim_text = claim.get("text", "")
-                    if not claim_text:
-                        continue
-
-                    try:
-                        # F-R2f (2026-07-09, audit/2026-07-09_retrieval_quality_plan.md):
-                        # the hardcoded past-year window made this last-resort
-                        # backfill fetch ONLY recent chatter for historical
-                        # claims (TRU-C051-3024: reddit/tiktok for "doctors
-                        # historically recommended…"). Historical claims get
-                        # an unwindowed recovery search.
-                        recovery_freshness = (
-                            "none" if has_historical_marker(claim_text) else "py"
-                        )
-                        results = await recovery_search.search_for_evidence(
-                            claim_text, max_results=10, freshness=recovery_freshness
-                        )
-                        added = 0
-                        dropped_blocked = 0
-                        for r in results:
-                            if _already_pooled(existing_urls, r.url, f"claim={pos}"):
-                                continue
-                            if is_domain_blocked(r.url, recovery_blocklist):
-                                dropped_blocked += 1
-                                logger.info(
-                                    f"[URL LEDGER] claim={pos} dropped(recovery) "
-                                    f"type=web provider=- stage=blocklist "
-                                    f"reason='runtime_blocked_domain' "
-                                    f"url={(r.url or '')[:120]}"
-                                )
-                                existing_urls.add(r.url)
-                                continue
-                            evidence[pos].append(
-                                {
-                                    "id": f"recovery_post_{pos}_{added}",
-                                    "evidence_id": f"ev-rpf-{pos}_{added}",
-                                    "element_ids": [],
-                                    "text": r.snippet or "",
-                                    "source": r.source or "",
-                                    "url": r.url,
-                                    "title": r.title or "",
-                                    "published_date": r.published_date,
-                                    # No page fetched here — engine date, unconfirmed
-                                    "date_basis": derive_date_basis(
-                                        r.url, r.published_date
-                                    ),
-                                    "relevance_score": 0.0,
-                                    "semantic_similarity": 0.0,
-                                    "receipt_status": "extracted",
-                                    "is_recovery": True,
-                                    "metadata": {"post_filter_recovery": True},
-                                }
-                            )
-                            logger.info(
-                                f"[URL LEDGER] claim={pos} kept(recovery) "
-                                f"type=web provider=- "
-                                f"url={(r.url or '')[:120]}"
-                            )
-                            existing_urls.add(r.url)
-                            added += 1
-                            if len(ev_list) >= MIN_EVIDENCE_POST_FILTER:
-                                break
-                        if added > 0 or dropped_blocked > 0:
-                            logger.info(
-                                f"[POST-FILTER RECOVERY] Claim {pos}: added {added} items → {len(ev_list)} total"
-                                + (
-                                    f" ({dropped_blocked} blocked-domain dropped)"
-                                    if dropped_blocked
-                                    else ""
-                                )
-                            )
-                    except Exception as e:
-                        logger.warning(
-                            f"[POST-FILTER RECOVERY] Claim {pos} search failed: {e}"
-                        )
-
-                if ledger:
-                    recovery_total = sum(
-                        1
-                        for ev_list in evidence.values()
-                        for ev in ev_list
-                        if ev.get("is_recovery")
-                        and ev.get("metadata", {}).get("post_filter_recovery")
-                    )
-                    ledger.record(
-                        "post_filter_recovery",
-                        claims_recovered=len(thin_claims),
-                        items_added=recovery_total,
-                    )
-
-            except Exception as e:
-                logger.warning(f"Post-filter recovery failed (non-critical): {e}")
-            stage_timings["post_filter_recovery"] = (
-                datetime.now(timezone.utc) - stage_start
-            ).total_seconds()
+    await _post_filter_recovery(
+        evidence,
+        _is_frozen_evidence_replay,
+        claims,
+        config,
+        ledger,
+        stage_timings,
+    )
 
     # Cited-source gap note, step 2: skipped tiers and replays leave a
     # receipt. The names themselves are awaited at the end of the run.
