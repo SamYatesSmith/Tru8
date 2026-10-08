@@ -2514,308 +2514,16 @@ async def run_pipeline_phase2(
     # =========================================================================
     # Stage 5.1: Coverage Recovery — targeted retrieval for low-coverage claims
     # =========================================================================
-    COVERAGE_RECOVERY_THRESHOLD = 0.4  # Trigger when >40% unresolved
-    RECOVERY_MAX_CLAIMS = settings.RECOVERY_MAX_CLAIMS
-    RECOVERY_MAX_ELEMENTS = settings.RECOVERY_MAX_ELEMENTS_PER_CLAIM
-    # RECOVERY_TIMEOUT_SECONDS is now derived per-run via _compute_recovery_timeout
-    # (Bug B — scales with len(recovery_candidates)).
-
-    _skip_coverage_recovery = not config.enable_coverage_recovery
-    # §4d fix 1: the ≤2-claim skip is dropped so recovery reaches intact
-    # single-thesis checks — a claim can look healthy while one element is
-    # starved (0 supports/challenges). Cost is bounded by RECOVERY_MAX_* caps.
-    if _skip_coverage_recovery:
-        if "coverage_recovery" not in stage_timings:
-            logger.info(f"[COVERAGE RECOVERY] Skipped (mode={config.mode})")
-        stage_timings["coverage_recovery"] = 0.0
-
-    recovery_candidates = []
-    for claim in [] if _skip_coverage_recovery else selected_claims:
-        cm = claim.get("claim_map")
-        if not cm or not cm.get("elements"):
-            continue
-        elements = cm["elements"]
-        total = len(elements)
-        # Elements recovery would re-query: unresolved (original) OR starved of
-        # directional evidence (new). Qualify on the 40% ratio OR ANY starved
-        # element — a single starved element on an otherwise-healthy claim is the
-        # founder's e02 case and must trigger.
-        needs = sum(1 for e in elements if _element_needs_recovery(e))
-        any_starved = any(_element_is_starved(e) for e in elements)
-        if total > 0 and ((needs / total) > COVERAGE_RECOVERY_THRESHOLD or any_starved):
-            recovery_candidates.append(
-                {
-                    "claim": claim,
-                    "total": total,
-                    "needs": needs,
-                    "ratio": needs / total,
-                }
-            )
-
-    if recovery_candidates:
-        recovery_candidates.sort(key=lambda x: -x["ratio"])
-        recovery_candidates = recovery_candidates[:RECOVERY_MAX_CLAIMS]
-
-        recovery_timeout = _compute_recovery_timeout(len(recovery_candidates))
-
-        candidate_info = [
-            (c["claim"].get("position", "?"), f"{c['needs']}/{c['total']}")
-            for c in recovery_candidates
-        ]
-        logger.info(
-            f"[COVERAGE RECOVERY] {len(recovery_candidates)} claims qualify "
-            f"(>{COVERAGE_RECOVERY_THRESHOLD*100:.0f}% unresolved or starved): "
-            f"{candidate_info} timeout={recovery_timeout}s"
-        )
-
-        # Collect existing URLs for dedup
-        existing_urls = UrlKeySet()
-        for ev_list in evidence.values():
-            for ev in ev_list:
-                if ev.get("url"):
-                    existing_urls.add(ev["url"])
-
-        from app.pipeline.retrieve import EvidenceRetriever
-
-        retriever = EvidenceRetriever()
-        recovery_start = datetime.now(timezone.utc)
-        claims_recovered = 0
-        elements_resolved = 0
-
-        async def _recover_prepare(candidate):
-            """Phase A: retrieve → cap → score → classify. Returns a prep dict
-            for the mapping phase, or None when nothing survived. Runs under
-            the Phase A budget — safe to cancel (nothing is mutated)."""
-            claim = candidate["claim"]
-            cm = claim["claim_map"]
-            pos = str(claim.get("position", 0))
-
-            # Identify elements needing recovery — unresolved OR starved of
-            # directional evidence (§4d fix 1) — cap per claim.
-            unresolved_elements = [
-                {"element_id": e["element_id"], "description": e["description"]}
-                for e in cm["elements"]
-                if _element_needs_recovery(e)
-            ][:RECOVERY_MAX_ELEMENTS]
-
-            if not unresolved_elements:
-                return None
-
-            # Targeted retrieval
-            new_evidence = await retriever.retrieve_for_elements(
-                elements=unresolved_elements,
-                claim_text=claim.get("text", ""),
-                existing_urls=existing_urls,
-                article_context=claim.get("article_classification"),
-            )
-
-            if not new_evidence:
-                logger.info(f"[COVERAGE RECOVERY] Claim {pos}: no new evidence found")
-                return None
-
-            # Bound the scoring/mapping payload, round-robin per element
-            # (2026-07-22: 42 unbounded items cost 12.6s of scoring).
-            before_cap = len(new_evidence)
-            new_evidence = _cap_recovery_items(
-                new_evidence, settings.RECOVERY_MAX_SCORED_ITEMS
-            )
-            if len(new_evidence) < before_cap:
-                logger.info(
-                    f"[COVERAGE RECOVERY] Claim {pos}: capped {before_cap} → "
-                    f"{len(new_evidence)} items (round-robin per element)"
-                )
-
-            # Relevance-score recovery items (2026-07-22): recovery previously
-            # bypassed the SCORE stage entirely, so unscored junk (consultancy
-            # homepages, off-topic market reports on E323-8862) entered the
-            # final source list whenever recovery ran. Same gate + receipt
-            # shape as the main pass; scorer failure degrades to pass-through.
-            if config.enable_llm_relevance_scorer:
-                try:
-                    from app.pipeline.relevance_scorer import score_evidence_batch
-
-                    scored = await score_evidence_batch(
-                        claims=[claim.get("text", "")],
-                        evidence={"0": new_evidence},
-                        article_context=content.get("content", "")[:5000],
-                    )
-                    excluded_by_scorer = scored.pop("_excluded", [])
-                    for ex_ev in excluded_by_scorer:
-                        raw_evidence_data.append(
-                            {
-                                "source": ex_ev.get("source", "Unknown"),
-                                "url": ex_ev.get("url", ""),
-                                "title": ex_ev.get("title", ""),
-                                "snippet": ex_ev.get("snippet", ex_ev.get("text", "")),
-                                "published_date": ex_ev.get("published_date"),
-                                "relevance_score": float(
-                                    ex_ev.get("relevance_score", 0.0)
-                                ),
-                                "is_included": False,
-                                "filter_stage": "llm_relevance",
-                                "filter_reason": f"LLM score 1/5: {(ex_ev.get('llm_relevance_rationale') or 'off-topic')[:200]}",
-                                "tier": ex_ev.get("tier"),
-                                "claim_position": claim.get("position", 0),
-                            }
-                        )
-                    new_evidence = scored.get("0", [])
-                    if excluded_by_scorer:
-                        logger.info(
-                            f"[COVERAGE RECOVERY] Claim {pos}: scorer excluded "
-                            f"{len(excluded_by_scorer)} irrelevant recovery items"
-                        )
-                    if not new_evidence:
-                        logger.info(
-                            f"[COVERAGE RECOVERY] Claim {pos}: no recovery items "
-                            f"survived relevance scoring"
-                        )
-                        return None
-                except Exception as e:
-                    logger.warning(
-                        f"[COVERAGE RECOVERY] Relevance scoring failed "
-                        f"(non-critical, passing through unscored): {e}"
-                    )
-
-            # Classify new evidence (match CLASSIFY stage pattern)
-            classifier = None
-            try:
-                if config.enable_llm_classifier:
-                    from app.pipeline.evidence_classifier import EvidenceClassifier
-
-                    classifier = EvidenceClassifier()
-                    # No originator review inside Phase A's budget: a timeout
-                    # here cancels the claim's whole recovery pool. It runs
-                    # at the start of Phase B instead (D3, 2026-10-07).
-                    new_evidence = await classifier.classify_batch(
-                        new_evidence, review_originators=False
-                    )
-                    for ev in new_evidence:
-                        ev["receipt_status"] = "classified"
-                    logger.info(
-                        f"[COVERAGE RECOVERY] Claim {pos}: classified "
-                        f"{len(new_evidence)} recovery evidence items (LLM)"
-                    )
-                else:
-                    from app.pipeline.evidence_classifier import _classify_heuristic
-
-                    for ev in new_evidence:
-                        tier, evidence_type = _classify_heuristic(ev)
-                        ev["tier"] = tier
-                        ev["evidence_type"] = evidence_type
-                        ev["receipt_status"] = "classified"
-                    logger.info(
-                        f"[COVERAGE RECOVERY] Claim {pos}: classified "
-                        f"{len(new_evidence)} recovery evidence items (heuristic)"
-                    )
-            except Exception as e:
-                logger.warning(f"[COVERAGE RECOVERY] Classification failed: {e}")
-
-            return {
-                "claim": claim,
-                "cm": cm,
-                "pos": pos,
-                "unresolved_elements": unresolved_elements,
-                "new_evidence": new_evidence,
-                "classifier": classifier,
-            }
-
-        async def _recover_map(prep):
-            """Phase B: mapping + pool merge + counters. Runs under its own
-            grace window — once Phase A has paid for the inputs, the mapping
-            call is never cancelled by the Phase A budget (2026-07-22:
-            E323-8862 and 11F0-F1AE both discarded fully-prepared
-            GVP/USGS-class evidence at the single shared timeout)."""
-            nonlocal claims_recovered, elements_resolved
-            claim = prep["claim"]
-            cm = prep["cm"]
-            pos = prep["pos"]
-            unresolved_elements = prep["unresolved_elements"]
-            new_evidence = prep["new_evidence"]
-
-            # Focused mapping for unresolved elements only, committed
-            # all-or-nothing with the pool extension (D5, 2026-10-07): on
-            # E323-8862 (2026-07-22) a cancelled mapping had already pooled 20
-            # unscored, unmapped sources; later the reverse happened (map
-            # mutated, pool not extended). On success the unselected items
-            # still enter with unmapped receipts, matching main-pass
-            # transparency.
-            unresolved_ids = [e["element_id"] for e in unresolved_elements]
-            if not await _map_recovery_atomically(
-                analyzer,
-                claim,
-                pos,
-                evidence,
-                unresolved_ids,
-                new_evidence,
-                classifier=prep.get("classifier"),
-            ):
-                return
-
-            # Count results
-            claims_recovered += 1
-            newly_resolved = sum(
-                1
-                for e in cm["elements"]
-                if e["element_id"] in unresolved_ids
-                and (
-                    e.get("state").value
-                    if hasattr(e.get("state"), "value")
-                    else e.get("state")
-                )
-                != "unresolved"
-            )
-            elements_resolved += newly_resolved
-
-            logger.info(
-                f"[COVERAGE RECOVERY] Claim {pos}: +{len(new_evidence)} evidence, "
-                f"{newly_resolved}/{len(unresolved_elements)} elements now resolved"
-            )
-
-        # Phase A — budgeted. asyncio.wait (NOT wait_for(gather)): a timeout
-        # cancels only the stragglers; claims whose prep already completed
-        # keep their results and proceed to mapping.
-        prep_tasks = [
-            asyncio.create_task(_recover_prepare(c)) for c in recovery_candidates
-        ]
-        done, pending = await asyncio.wait(prep_tasks, timeout=recovery_timeout)
-        if pending:
-            for t in pending:
-                t.cancel()
-            logger.warning(
-                f"[COVERAGE RECOVERY] Phase A timed out after {recovery_timeout}s "
-                f"({len(pending)}/{len(prep_tasks)} claims cancelled, "
-                f"{len(done)} proceeding to mapping)"
-            )
-        preps = []
-        for t in done:
-            if t.exception():
-                logger.warning(f"[COVERAGE RECOVERY] Prepare failed: {t.exception()}")
-            elif t.result() is not None:
-                preps.append(t.result())
-
-        # Phase B — mapping for every completed prep, own grace ceiling
-        # (hang protection only; a healthy Flash mapping call is ~5-12s).
-        if preps:
-            await _await_recovery_mappings(
-                [_recover_map(p) for p in preps], _recovery_mapping_grace()
-            )
-
-        recovery_elapsed = (datetime.now(timezone.utc) - recovery_start).total_seconds()
-        stage_timings["coverage_recovery"] = recovery_elapsed
-
-        logger.info(
-            f"[COVERAGE RECOVERY] Complete: {claims_recovered} claims recovered, "
-            f"{elements_resolved} elements resolved, {recovery_elapsed:.1f}s elapsed"
-        )
-
-        if ledger:
-            ledger.record(
-                "coverage_recovery",
-                candidates=len(recovery_candidates),
-                claims_recovered=claims_recovered,
-                elements_resolved=elements_resolved,
-                elapsed_seconds=round(recovery_elapsed, 2),
-            )
+    await _coverage_recovery(
+        evidence,
+        selected_claims,
+        analyzer,
+        content,
+        raw_evidence_data,
+        config,
+        stage_timings,
+        ledger,
+    )
 
     # =========================================================================
     # Stage 5.5: Query Answering (optional)
@@ -3473,6 +3181,326 @@ async def _map_evidence(
     stage_timings["analyze"] = (
         datetime.now(timezone.utc) - stage_start
     ).total_seconds()
+
+
+async def _coverage_recovery(
+    evidence: Dict[str, List[Dict[str, Any]]],
+    selected_claims: List[Dict[str, Any]],
+    analyzer: Any,
+    content: Dict[str, Any],
+    raw_evidence_data: List[Dict[str, Any]],
+    config: PipelineConfig,
+    stage_timings: Dict[str, float],
+    ledger: Any,
+) -> None:
+    """Stage 5.1: targeted retrieval for low-coverage claims.
+
+    Phase A (budgeted) retrieves, scores and classifies per claim; Phase B
+    maps each prepared claim under its own grace window and commits map and
+    pool together (_map_recovery_atomically). Mutates `evidence` and the
+    claim maps in place; scorer exclusions append to `raw_evidence_data`."""
+    COVERAGE_RECOVERY_THRESHOLD = 0.4  # Trigger when >40% unresolved
+    RECOVERY_MAX_CLAIMS = settings.RECOVERY_MAX_CLAIMS
+    RECOVERY_MAX_ELEMENTS = settings.RECOVERY_MAX_ELEMENTS_PER_CLAIM
+    # RECOVERY_TIMEOUT_SECONDS is now derived per-run via _compute_recovery_timeout
+    # (Bug B — scales with len(recovery_candidates)).
+
+    _skip_coverage_recovery = not config.enable_coverage_recovery
+    # §4d fix 1: the ≤2-claim skip is dropped so recovery reaches intact
+    # single-thesis checks — a claim can look healthy while one element is
+    # starved (0 supports/challenges). Cost is bounded by RECOVERY_MAX_* caps.
+    if _skip_coverage_recovery:
+        if "coverage_recovery" not in stage_timings:
+            logger.info(f"[COVERAGE RECOVERY] Skipped (mode={config.mode})")
+        stage_timings["coverage_recovery"] = 0.0
+
+    recovery_candidates = []
+    for claim in [] if _skip_coverage_recovery else selected_claims:
+        cm = claim.get("claim_map")
+        if not cm or not cm.get("elements"):
+            continue
+        elements = cm["elements"]
+        total = len(elements)
+        # Elements recovery would re-query: unresolved (original) OR starved of
+        # directional evidence (new). Qualify on the 40% ratio OR ANY starved
+        # element — a single starved element on an otherwise-healthy claim is the
+        # founder's e02 case and must trigger.
+        needs = sum(1 for e in elements if _element_needs_recovery(e))
+        any_starved = any(_element_is_starved(e) for e in elements)
+        if total > 0 and ((needs / total) > COVERAGE_RECOVERY_THRESHOLD or any_starved):
+            recovery_candidates.append(
+                {
+                    "claim": claim,
+                    "total": total,
+                    "needs": needs,
+                    "ratio": needs / total,
+                }
+            )
+
+    if recovery_candidates:
+        recovery_candidates.sort(key=lambda x: -x["ratio"])
+        recovery_candidates = recovery_candidates[:RECOVERY_MAX_CLAIMS]
+
+        recovery_timeout = _compute_recovery_timeout(len(recovery_candidates))
+
+        candidate_info = [
+            (c["claim"].get("position", "?"), f"{c['needs']}/{c['total']}")
+            for c in recovery_candidates
+        ]
+        logger.info(
+            f"[COVERAGE RECOVERY] {len(recovery_candidates)} claims qualify "
+            f"(>{COVERAGE_RECOVERY_THRESHOLD*100:.0f}% unresolved or starved): "
+            f"{candidate_info} timeout={recovery_timeout}s"
+        )
+
+        # Collect existing URLs for dedup
+        existing_urls = UrlKeySet()
+        for ev_list in evidence.values():
+            for ev in ev_list:
+                if ev.get("url"):
+                    existing_urls.add(ev["url"])
+
+        from app.pipeline.retrieve import EvidenceRetriever
+
+        retriever = EvidenceRetriever()
+        recovery_start = datetime.now(timezone.utc)
+        claims_recovered = 0
+        elements_resolved = 0
+
+        async def _recover_prepare(candidate):
+            """Phase A: retrieve → cap → score → classify. Returns a prep dict
+            for the mapping phase, or None when nothing survived. Runs under
+            the Phase A budget — safe to cancel (nothing is mutated)."""
+            claim = candidate["claim"]
+            cm = claim["claim_map"]
+            pos = str(claim.get("position", 0))
+
+            # Identify elements needing recovery — unresolved OR starved of
+            # directional evidence (§4d fix 1) — cap per claim.
+            unresolved_elements = [
+                {"element_id": e["element_id"], "description": e["description"]}
+                for e in cm["elements"]
+                if _element_needs_recovery(e)
+            ][:RECOVERY_MAX_ELEMENTS]
+
+            if not unresolved_elements:
+                return None
+
+            # Targeted retrieval
+            new_evidence = await retriever.retrieve_for_elements(
+                elements=unresolved_elements,
+                claim_text=claim.get("text", ""),
+                existing_urls=existing_urls,
+                article_context=claim.get("article_classification"),
+            )
+
+            if not new_evidence:
+                logger.info(f"[COVERAGE RECOVERY] Claim {pos}: no new evidence found")
+                return None
+
+            # Bound the scoring/mapping payload, round-robin per element
+            # (2026-07-22: 42 unbounded items cost 12.6s of scoring).
+            before_cap = len(new_evidence)
+            new_evidence = _cap_recovery_items(
+                new_evidence, settings.RECOVERY_MAX_SCORED_ITEMS
+            )
+            if len(new_evidence) < before_cap:
+                logger.info(
+                    f"[COVERAGE RECOVERY] Claim {pos}: capped {before_cap} → "
+                    f"{len(new_evidence)} items (round-robin per element)"
+                )
+
+            # Relevance-score recovery items (2026-07-22): recovery previously
+            # bypassed the SCORE stage entirely, so unscored junk (consultancy
+            # homepages, off-topic market reports on E323-8862) entered the
+            # final source list whenever recovery ran. Same gate + receipt
+            # shape as the main pass; scorer failure degrades to pass-through.
+            if config.enable_llm_relevance_scorer:
+                try:
+                    from app.pipeline.relevance_scorer import score_evidence_batch
+
+                    scored = await score_evidence_batch(
+                        claims=[claim.get("text", "")],
+                        evidence={"0": new_evidence},
+                        article_context=content.get("content", "")[:5000],
+                    )
+                    excluded_by_scorer = scored.pop("_excluded", [])
+                    for ex_ev in excluded_by_scorer:
+                        raw_evidence_data.append(
+                            {
+                                "source": ex_ev.get("source", "Unknown"),
+                                "url": ex_ev.get("url", ""),
+                                "title": ex_ev.get("title", ""),
+                                "snippet": ex_ev.get("snippet", ex_ev.get("text", "")),
+                                "published_date": ex_ev.get("published_date"),
+                                "relevance_score": float(
+                                    ex_ev.get("relevance_score", 0.0)
+                                ),
+                                "is_included": False,
+                                "filter_stage": "llm_relevance",
+                                "filter_reason": f"LLM score 1/5: {(ex_ev.get('llm_relevance_rationale') or 'off-topic')[:200]}",
+                                "tier": ex_ev.get("tier"),
+                                "claim_position": claim.get("position", 0),
+                            }
+                        )
+                    new_evidence = scored.get("0", [])
+                    if excluded_by_scorer:
+                        logger.info(
+                            f"[COVERAGE RECOVERY] Claim {pos}: scorer excluded "
+                            f"{len(excluded_by_scorer)} irrelevant recovery items"
+                        )
+                    if not new_evidence:
+                        logger.info(
+                            f"[COVERAGE RECOVERY] Claim {pos}: no recovery items "
+                            f"survived relevance scoring"
+                        )
+                        return None
+                except Exception as e:
+                    logger.warning(
+                        f"[COVERAGE RECOVERY] Relevance scoring failed "
+                        f"(non-critical, passing through unscored): {e}"
+                    )
+
+            # Classify new evidence (match CLASSIFY stage pattern)
+            classifier = None
+            try:
+                if config.enable_llm_classifier:
+                    from app.pipeline.evidence_classifier import EvidenceClassifier
+
+                    classifier = EvidenceClassifier()
+                    # No originator review inside Phase A's budget: a timeout
+                    # here cancels the claim's whole recovery pool. It runs
+                    # at the start of Phase B instead (D3, 2026-10-07).
+                    new_evidence = await classifier.classify_batch(
+                        new_evidence, review_originators=False
+                    )
+                    for ev in new_evidence:
+                        ev["receipt_status"] = "classified"
+                    logger.info(
+                        f"[COVERAGE RECOVERY] Claim {pos}: classified "
+                        f"{len(new_evidence)} recovery evidence items (LLM)"
+                    )
+                else:
+                    from app.pipeline.evidence_classifier import _classify_heuristic
+
+                    for ev in new_evidence:
+                        tier, evidence_type = _classify_heuristic(ev)
+                        ev["tier"] = tier
+                        ev["evidence_type"] = evidence_type
+                        ev["receipt_status"] = "classified"
+                    logger.info(
+                        f"[COVERAGE RECOVERY] Claim {pos}: classified "
+                        f"{len(new_evidence)} recovery evidence items (heuristic)"
+                    )
+            except Exception as e:
+                logger.warning(f"[COVERAGE RECOVERY] Classification failed: {e}")
+
+            return {
+                "claim": claim,
+                "cm": cm,
+                "pos": pos,
+                "unresolved_elements": unresolved_elements,
+                "new_evidence": new_evidence,
+                "classifier": classifier,
+            }
+
+        async def _recover_map(prep):
+            """Phase B: mapping + pool merge + counters. Runs under its own
+            grace window — once Phase A has paid for the inputs, the mapping
+            call is never cancelled by the Phase A budget (2026-07-22:
+            E323-8862 and 11F0-F1AE both discarded fully-prepared
+            GVP/USGS-class evidence at the single shared timeout)."""
+            nonlocal claims_recovered, elements_resolved
+            claim = prep["claim"]
+            cm = prep["cm"]
+            pos = prep["pos"]
+            unresolved_elements = prep["unresolved_elements"]
+            new_evidence = prep["new_evidence"]
+
+            # Focused mapping for unresolved elements only, committed
+            # all-or-nothing with the pool extension (D5, 2026-10-07): on
+            # E323-8862 (2026-07-22) a cancelled mapping had already pooled 20
+            # unscored, unmapped sources; later the reverse happened (map
+            # mutated, pool not extended). On success the unselected items
+            # still enter with unmapped receipts, matching main-pass
+            # transparency.
+            unresolved_ids = [e["element_id"] for e in unresolved_elements]
+            if not await _map_recovery_atomically(
+                analyzer,
+                claim,
+                pos,
+                evidence,
+                unresolved_ids,
+                new_evidence,
+                classifier=prep.get("classifier"),
+            ):
+                return
+
+            # Count results
+            claims_recovered += 1
+            newly_resolved = sum(
+                1
+                for e in cm["elements"]
+                if e["element_id"] in unresolved_ids
+                and (
+                    e.get("state").value
+                    if hasattr(e.get("state"), "value")
+                    else e.get("state")
+                )
+                != "unresolved"
+            )
+            elements_resolved += newly_resolved
+
+            logger.info(
+                f"[COVERAGE RECOVERY] Claim {pos}: +{len(new_evidence)} evidence, "
+                f"{newly_resolved}/{len(unresolved_elements)} elements now resolved"
+            )
+
+        # Phase A — budgeted. asyncio.wait (NOT wait_for(gather)): a timeout
+        # cancels only the stragglers; claims whose prep already completed
+        # keep their results and proceed to mapping.
+        prep_tasks = [
+            asyncio.create_task(_recover_prepare(c)) for c in recovery_candidates
+        ]
+        done, pending = await asyncio.wait(prep_tasks, timeout=recovery_timeout)
+        if pending:
+            for t in pending:
+                t.cancel()
+            logger.warning(
+                f"[COVERAGE RECOVERY] Phase A timed out after {recovery_timeout}s "
+                f"({len(pending)}/{len(prep_tasks)} claims cancelled, "
+                f"{len(done)} proceeding to mapping)"
+            )
+        preps = []
+        for t in done:
+            if t.exception():
+                logger.warning(f"[COVERAGE RECOVERY] Prepare failed: {t.exception()}")
+            elif t.result() is not None:
+                preps.append(t.result())
+
+        # Phase B — mapping for every completed prep, own grace ceiling
+        # (hang protection only; a healthy Flash mapping call is ~5-12s).
+        if preps:
+            await _await_recovery_mappings(
+                [_recover_map(p) for p in preps], _recovery_mapping_grace()
+            )
+
+        recovery_elapsed = (datetime.now(timezone.utc) - recovery_start).total_seconds()
+        stage_timings["coverage_recovery"] = recovery_elapsed
+
+        logger.info(
+            f"[COVERAGE RECOVERY] Complete: {claims_recovered} claims recovered, "
+            f"{elements_resolved} elements resolved, {recovery_elapsed:.1f}s elapsed"
+        )
+
+        if ledger:
+            ledger.record(
+                "coverage_recovery",
+                candidates=len(recovery_candidates),
+                claims_recovered=claims_recovered,
+                elements_resolved=elements_resolved,
+                elapsed_seconds=round(recovery_elapsed, 2),
+            )
 
 
 def _aggregate_api_stats(
