@@ -1924,99 +1924,17 @@ async def _retrieve_stage(
     return evidence, raw_evidence_data, raw_sources_count
 
 
-@metered  # counts every billable search query this check issues
-async def run_pipeline_phase2(
-    check_id: str,
-    user_id: str,
-    input_data: Dict[str, Any],
-    progress_reporter: ProgressReporter,
-    _phase1_state: Optional[Dict[str, Any]] = None,
-    config: Optional[PipelineConfig] = None,
-) -> Dict[str, Any]:
-    """
-    Pipeline Phase 2: factcheck → decompose → retrieve → filter cascade → evidence mapping → build result.
+def _dedup_urls_across_claims(
+    evidence: Dict[str, List[Dict[str, Any]]],
+    is_frozen_evidence_replay: bool,
+    ledger: Any,
+    stage_timings: Dict[str, float],
+) -> Dict[str, List[Dict[str, Any]]]:
+    """Stage 3.6: cap how many claims one URL may serve (MAX_CLAIMS_PER_URL),
+    keeping the highest-scoring claims. Returns the (possibly new) evidence
+    dict; a failure is non-critical and returns the input."""
 
-    If _phase1_state is provided (focused mode), uses it directly.
-    Otherwise (article mode, called from PATCH endpoint), reloads state from DB.
-    """
-    if config is None:
-        config = DEFAULT_CONFIG
-
-    from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
-
-    start_time = datetime.now(timezone.utc)
-    stage_timings = {}
-
-    # =========================================================================
-    # Load state — either from phase1 passthrough or from DB
-    # =========================================================================
-    if _phase1_state:
-        # Focused mode: phase1 passed state directly
-        state = _phase1_state
-        frozen_evidence_claim_texts = state["frozen_evidence_claim_texts"]
-        start_time = state["start_time"]
-        stage_timings = state["stage_timings"]
-    else:
-        # Article mode: reload from DB after user selected claims
-        state = await _load_phase2_state_from_db(check_id)
-    claims = state["claims"]
-    selected_claims = state["selected_claims"]
-    content = state["content"]
-    article_classification = state["article_classification"]
-    entry_mode = state["entry_mode"]
-    frozen_evidence = state["frozen_evidence"]
-    _replay_temp_token = state["_replay_temp_token"]
-    _replay_evidence_token = state["_replay_evidence_token"]
-    cache_service = state["cache_service"]
-    ledger = state["ledger"]
-
-    # =========================================================================
-    # Stages 2.5 + 3: Fact-check Lookup + Decompose (concurrent)
-    # =========================================================================
-    analyzer = ClaimMapAnalyzer()
-    factcheck_evidence = await _factcheck_and_decompose(
-        check_id,
-        claims,
-        selected_claims,
-        content,
-        analyzer,
-        frozen_evidence,
-        config,
-        progress_reporter,
-        stage_timings,
-        ledger,
-    )
-    current_stage = "decompose"
-
-    # =========================================================================
-    # Stage 4: Retrieve Evidence
-    # =========================================================================
-    await _log_stage_transition(check_id, current_stage, "retrieve", progress_reporter)
-    current_stage = "retrieve"
-    stage_start = datetime.now(timezone.utc)
-
-    evidence, raw_evidence_data, raw_sources_count = await _retrieve_stage(
-        check_id,
-        claims,
-        selected_claims,
-        content,
-        frozen_evidence,
-        factcheck_evidence,
-        cache_service,
-        config,
-        stage_timings,
-        ledger,
-        stage_start,
-    )
-
-    # =========================================================================
-    # Stage 3.6: Cross-Claim URL Deduplication
-    # =========================================================================
-    from app.pipeline.replay_context import frozen_evidence_replay as _fer_var
-
-    _is_frozen_evidence_replay = _fer_var.get(False)
-
-    if _is_frozen_evidence_replay and evidence:
+    if is_frozen_evidence_replay and evidence:
         logger.info(
             "[URL DEDUP] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
         )
@@ -2118,10 +2036,24 @@ async def run_pipeline_phase2(
             datetime.now(timezone.utc) - stage_start
         ).total_seconds()
 
-    # =========================================================================
-    # Stage 3.7: LLM Relevance Scoring with Reassignment
-    # =========================================================================
-    if _is_frozen_evidence_replay and evidence:
+    return evidence
+
+
+async def _score_relevance(
+    evidence: Dict[str, List[Dict[str, Any]]],
+    is_frozen_evidence_replay: bool,
+    claims: List[Dict[str, Any]],
+    content: Dict[str, Any],
+    raw_evidence_data: List[Dict[str, Any]],
+    config: PipelineConfig,
+    ledger: Any,
+    stage_timings: Dict[str, float],
+) -> Dict[str, List[Dict[str, Any]]]:
+    """Stage 3.7: LLM relevance scoring with reassignment. Score-1 items
+    leave the pool and are appended to `raw_evidence_data` as receipts.
+    Returns the (possibly new) evidence dict; a failure is non-critical."""
+
+    if is_frozen_evidence_replay and evidence:
         logger.info(
             "[LLM SCORER] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
         )
@@ -2191,6 +2123,119 @@ async def run_pipeline_phase2(
         stage_timings["llm_relevance"] = (
             datetime.now(timezone.utc) - stage_start
         ).total_seconds()
+
+    return evidence
+
+
+@metered  # counts every billable search query this check issues
+async def run_pipeline_phase2(
+    check_id: str,
+    user_id: str,
+    input_data: Dict[str, Any],
+    progress_reporter: ProgressReporter,
+    _phase1_state: Optional[Dict[str, Any]] = None,
+    config: Optional[PipelineConfig] = None,
+) -> Dict[str, Any]:
+    """
+    Pipeline Phase 2: factcheck → decompose → retrieve → filter cascade → evidence mapping → build result.
+
+    If _phase1_state is provided (focused mode), uses it directly.
+    Otherwise (article mode, called from PATCH endpoint), reloads state from DB.
+    """
+    if config is None:
+        config = DEFAULT_CONFIG
+
+    from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
+
+    start_time = datetime.now(timezone.utc)
+    stage_timings = {}
+
+    # =========================================================================
+    # Load state — either from phase1 passthrough or from DB
+    # =========================================================================
+    if _phase1_state:
+        # Focused mode: phase1 passed state directly
+        state = _phase1_state
+        frozen_evidence_claim_texts = state["frozen_evidence_claim_texts"]
+        start_time = state["start_time"]
+        stage_timings = state["stage_timings"]
+    else:
+        # Article mode: reload from DB after user selected claims
+        state = await _load_phase2_state_from_db(check_id)
+    claims = state["claims"]
+    selected_claims = state["selected_claims"]
+    content = state["content"]
+    article_classification = state["article_classification"]
+    entry_mode = state["entry_mode"]
+    frozen_evidence = state["frozen_evidence"]
+    _replay_temp_token = state["_replay_temp_token"]
+    _replay_evidence_token = state["_replay_evidence_token"]
+    cache_service = state["cache_service"]
+    ledger = state["ledger"]
+
+    # =========================================================================
+    # Stages 2.5 + 3: Fact-check Lookup + Decompose (concurrent)
+    # =========================================================================
+    analyzer = ClaimMapAnalyzer()
+    factcheck_evidence = await _factcheck_and_decompose(
+        check_id,
+        claims,
+        selected_claims,
+        content,
+        analyzer,
+        frozen_evidence,
+        config,
+        progress_reporter,
+        stage_timings,
+        ledger,
+    )
+    current_stage = "decompose"
+
+    # =========================================================================
+    # Stage 4: Retrieve Evidence
+    # =========================================================================
+    await _log_stage_transition(check_id, current_stage, "retrieve", progress_reporter)
+    current_stage = "retrieve"
+    stage_start = datetime.now(timezone.utc)
+
+    evidence, raw_evidence_data, raw_sources_count = await _retrieve_stage(
+        check_id,
+        claims,
+        selected_claims,
+        content,
+        frozen_evidence,
+        factcheck_evidence,
+        cache_service,
+        config,
+        stage_timings,
+        ledger,
+        stage_start,
+    )
+
+    # =========================================================================
+    # Stage 3.6: Cross-Claim URL Deduplication
+    # =========================================================================
+    from app.pipeline.replay_context import frozen_evidence_replay as _fer_var
+
+    _is_frozen_evidence_replay = _fer_var.get(False)
+
+    evidence = _dedup_urls_across_claims(
+        evidence, _is_frozen_evidence_replay, ledger, stage_timings
+    )
+
+    # =========================================================================
+    # Stage 3.7: LLM Relevance Scoring with Reassignment
+    # =========================================================================
+    evidence = await _score_relevance(
+        evidence,
+        _is_frozen_evidence_replay,
+        claims,
+        content,
+        raw_evidence_data,
+        config,
+        ledger,
+        stage_timings,
+    )
 
     # =========================================================================
     # Source-text capture, moved before post-filter recovery (2026-10-05,
