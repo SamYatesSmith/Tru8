@@ -12,6 +12,12 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-10-08 — COMPLEX STAGE FUNCTIONS REVIEWED (read-only, verified) — START HERE
+- Record: `audit/2026-10-08_complex_stage_functions_review.md`. No code changed.
+- **HIGH, F1:** any signed-in user can send `frozen_evidence` on `/checks/stream` or `/checks/run` and get a normal, publicly readable (by ID), signed record built from evidence they supplied (tier included); retrieval, dedup, scoring and classify are skipped. Only user: the Feb golden-dataset harness. Founder decision: guard it.
+- MEDIUM: F9 dedup drops URL-less items with no receipt · F11 `/run` caps the whole pipeline at 180 s = retrieve's own timeout · F2 post-filter recovery items are never relevance-scored.
+- Most of the stage-function complexity is the debug ledger (`DEBUG_EVIDENCE_LEDGER`, 32 sites, never tested). Production value unknown (read-only Railway check needed).
+
 ## ▶ 2026-10-08 — S7 DONE: `run_pipeline_phase2` SPLIT (local, not pushed)
 - 10 commits `641fef8`…`bd7f103`: 12 stage functions; `run_pipeline_phase2` ~1,850 lines / CC 252 → 382 / CC 19. Refactor only.
 - Proof per step: suite 4,648 unchanged; bench `--all` equal to a control run on `e3d7e6d` (135/15/16/2). B4A3 and 82CF cassette hit counts vary run to run on the UNCHANGED commit too (B4A3 alone there: 19/52), so B4A3 is no longer "clean alone".
