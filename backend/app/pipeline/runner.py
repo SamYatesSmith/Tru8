@@ -2499,186 +2499,17 @@ async def run_pipeline_phase2(
     # =========================================================================
     await _log_stage_transition(check_id, current_stage, "analyze", progress_reporter)
     current_stage = "analyze"
-    stage_start = datetime.now(timezone.utc)
-
-    from app.utils.url_utils import extract_domain
-
-    final_evidence_count = sum(len(ev_list) for ev_list in evidence.values())
-    final_domains = {}
-    final_urls = set()
-    for ev_list in evidence.values():
-        for ev in ev_list:
-            domain = extract_domain(ev.get("url", ""), fallback="unknown")
-            final_domains[domain] = final_domains.get(domain, 0) + 1
-            final_urls.add(ev.get("url", ""))
-
-    logger.info(
-        f"[ANALYZER INPUT] Final evidence: {final_evidence_count} items, "
-        f"{len(final_urls)} unique URLs, {len(final_domains)} domains"
-    )
-    logger.info(
-        f"[ANALYZER INPUT] Domain distribution: {dict(sorted(final_domains.items(), key=lambda x: -x[1]))}"
-    )
-
-    if ledger:
-        snippet_fallback_count = 0
-        snippet_reasons = {
-            "403": 0,
-            "429": 0,
-            "timeout": 0,
-            "js_required": 0,
-            "other": 0,
-        }
-        title_only_count = 0
-        for ev_list in evidence.values():
-            for ev in ev_list:
-                meta = ev.get("metadata") or {}
-                if meta.get("is_snippet_fallback"):
-                    snippet_fallback_count += 1
-                    reason = (meta.get("fallback_reason") or "").lower()
-                    if "403" in reason or "forbidden" in reason:
-                        snippet_reasons["403"] += 1
-                    elif "429" in reason:
-                        snippet_reasons["429"] += 1
-                    elif "timeout" in reason:
-                        snippet_reasons["timeout"] += 1
-                    elif "js" in reason or "javascript" in reason:
-                        snippet_reasons["js_required"] += 1
-                    else:
-                        snippet_reasons["other"] += 1
-                if not ev.get("text") and ev.get("title"):
-                    title_only_count += 1
-        ledger.record(
-            "analyzer_input",
-            total=final_evidence_count,
-            unique_urls=len(final_urls),
-            domains=dict(sorted(final_domains.items(), key=lambda x: -x[1])),
-            snippet_fallbacks=snippet_fallback_count,
-            snippet_fallback_reasons=snippet_reasons,
-            title_only_items=title_only_count,
-        )
-        ledger.record(
-            "analyzer_input_evidence",
-            evidence={
-                pos: [dict(ev) for ev in ev_list] for pos, ev_list in evidence.items()
-            },
-        )
-
-    # Compute claim_map_input_hash BEFORE evidence mapping (determinism tracking)
-    import hashlib as _hashlib
-
-    def _compute_claim_map_input_hash(
-        claim_map_scaffold: dict, evidence_list: list
-    ) -> str:
-        """Canonicalize scaffold + evidence, return SHA256[:16] hex."""
-        elements_canon = sorted(
-            [
-                {"element_id": e["element_id"], "description": e["description"]}
-                for e in claim_map_scaffold.get("elements", [])
-            ],
-            key=lambda x: x["element_id"],
-        )
-        evidence_canon = sorted(
-            [
-                {"evidence_id": e.get("evidence_id", ""), "url": e.get("url", "")}
-                for e in evidence_list
-            ],
-            key=lambda x: x["evidence_id"],
-        )
-        blob = json.dumps(
-            {"elements": elements_canon, "evidence": evidence_canon},
-            sort_keys=True,
-            ensure_ascii=True,
-        )
-        return _hashlib.sha256(blob.encode()).hexdigest()[:16]
-
-    for claim in selected_claims:
-        pos = str(claim.get("position", 0))
-        scaffold = claim.get("claim_map")
-        ev_list = evidence.get(pos, [])
-        if scaffold:
-            claim["claim_map_input_hash"] = _compute_claim_map_input_hash(
-                scaffold, ev_list
-            )
-            attach_claim_jurisdiction(claim, scaffold)
-            attach_claim_subjects(claim, scaffold)
-            attach_claim_text(claim, scaffold)
-
-    # Budget: ~55s Google thinking model batch mapping + ~25s parallel
-    # completion passes (Step 2 NF-19 fix, 2026-05-12) + ~30s OpenAI
-    # fallback + margin. Bumped 90 → 120 when Step 1's class-targeted
-    # query augmentation grew pool size + Step 2 added per-claim
-    # completion-pass LLM calls.
-    analyze_timeout = 120
-
-    claim_maps_by_pos = {
-        str(c.get("position", 0)): c["claim_map"]
-        for c in selected_claims
-        if isinstance(c.get("claim_map"), dict)
-    }
-    echo_join = _elc.start_for_check(
-        _echo_plan,
+    await _map_evidence(
+        check_id,
         evidence,
-        claim_maps_by_pos,
-        analyzer.call_echo_link,
-        frozen=_is_frozen_evidence_replay,
-        quick=_echo_quick,
+        _is_frozen_evidence_replay,
+        selected_claims,
+        analyzer,
+        _echo_plan,
+        _echo_quick,
+        stage_timings,
+        ledger,
     )
-    # The join may hold mapping up to JOIN_WAIT_S; that time must not come
-    # out of mapping's own budget (plan rev 2 M2).
-    mapping_base_timeout = analyze_timeout
-    analyze_timeout = _elc.mapping_timeout(mapping_base_timeout, echo_join)
-
-    try:
-        batch_input = []
-        for claim in selected_claims:
-            pos = str(claim.get("position", 0))
-            claim_evidence = evidence.get(pos, [])
-            claim["evidence"] = claim_evidence
-            if claim.get("claim_map"):
-                batch_input.append(
-                    {
-                        "claim_map": claim["claim_map"],
-                        "evidence": claim_evidence,
-                    }
-                )
-
-        logger.info(
-            f"[INLINE PIPELINE] Starting batch evidence mapping for "
-            f"{len(batch_input)} claims with {analyze_timeout}s timeout"
-        )
-        # Attaches the echo join, and closes it whatever mapping does (M1).
-        await _elc.map_with_join(
-            analyzer, batch_input, echo_join, mapping_base_timeout, stage_timings
-        )
-        logger.info("[INLINE PIPELINE] Evidence mapping completed successfully")
-    except asyncio.TimeoutError as err:
-        logger.error(
-            f"[STAGE ERROR] check={check_id} stage=analyze error=TimeoutError: "
-            f"Evidence mapping timed out after {analyze_timeout}s"
-        )
-        raise PipelineError("Evidence mapping timed out", stage="analyze") from err
-    except Exception as e:
-        logger.error(
-            f"[STAGE ERROR] check={check_id} stage=analyze error={type(e).__name__}: {e}"
-        )
-        raise PipelineError(f"Evidence mapping failed: {e}", stage="analyze") from e
-
-    if ledger:
-        ledger.record(
-            "evidence_mapping",
-            claims_mapped=len(selected_claims),
-            evidence_per_claim={
-                str(c.get("position", 0)): len(
-                    evidence.get(str(c.get("position", 0)), [])
-                )
-                for c in selected_claims
-            },
-        )
-
-    stage_timings["analyze"] = (
-        datetime.now(timezone.utc) - stage_start
-    ).total_seconds()
 
     # =========================================================================
     # Stage 5.1: Coverage Recovery — targeted retrieval for low-coverage claims
@@ -3444,6 +3275,204 @@ async def _classify_and_distil(
                     ev.pop("_full_text", None)
 
     return _stage_components, current_stage
+
+
+async def _map_evidence(
+    check_id: str,
+    evidence: Dict[str, List[Dict[str, Any]]],
+    is_frozen_evidence_replay: bool,
+    selected_claims: List[Dict[str, Any]],
+    analyzer: Any,
+    echo_plan: Any,
+    echo_quick: bool,
+    stage_timings: Dict[str, float],
+    ledger: Any,
+) -> None:
+    """Stage 5: map evidence to each claim's elements (with the echo link
+    join overlapping the mapping call). Writes `claim_map_input_hash`,
+    `evidence` and the mapped `claim_map` onto each selected claim."""
+    from app.services import echo_link_confirmation as _elc
+
+    stage_start = datetime.now(timezone.utc)
+
+    from app.utils.url_utils import extract_domain
+
+    final_evidence_count = sum(len(ev_list) for ev_list in evidence.values())
+    final_domains = {}
+    final_urls = set()
+    for ev_list in evidence.values():
+        for ev in ev_list:
+            domain = extract_domain(ev.get("url", ""), fallback="unknown")
+            final_domains[domain] = final_domains.get(domain, 0) + 1
+            final_urls.add(ev.get("url", ""))
+
+    logger.info(
+        f"[ANALYZER INPUT] Final evidence: {final_evidence_count} items, "
+        f"{len(final_urls)} unique URLs, {len(final_domains)} domains"
+    )
+    logger.info(
+        f"[ANALYZER INPUT] Domain distribution: {dict(sorted(final_domains.items(), key=lambda x: -x[1]))}"
+    )
+
+    if ledger:
+        snippet_fallback_count = 0
+        snippet_reasons = {
+            "403": 0,
+            "429": 0,
+            "timeout": 0,
+            "js_required": 0,
+            "other": 0,
+        }
+        title_only_count = 0
+        for ev_list in evidence.values():
+            for ev in ev_list:
+                meta = ev.get("metadata") or {}
+                if meta.get("is_snippet_fallback"):
+                    snippet_fallback_count += 1
+                    reason = (meta.get("fallback_reason") or "").lower()
+                    if "403" in reason or "forbidden" in reason:
+                        snippet_reasons["403"] += 1
+                    elif "429" in reason:
+                        snippet_reasons["429"] += 1
+                    elif "timeout" in reason:
+                        snippet_reasons["timeout"] += 1
+                    elif "js" in reason or "javascript" in reason:
+                        snippet_reasons["js_required"] += 1
+                    else:
+                        snippet_reasons["other"] += 1
+                if not ev.get("text") and ev.get("title"):
+                    title_only_count += 1
+        ledger.record(
+            "analyzer_input",
+            total=final_evidence_count,
+            unique_urls=len(final_urls),
+            domains=dict(sorted(final_domains.items(), key=lambda x: -x[1])),
+            snippet_fallbacks=snippet_fallback_count,
+            snippet_fallback_reasons=snippet_reasons,
+            title_only_items=title_only_count,
+        )
+        ledger.record(
+            "analyzer_input_evidence",
+            evidence={
+                pos: [dict(ev) for ev in ev_list] for pos, ev_list in evidence.items()
+            },
+        )
+
+    # Compute claim_map_input_hash BEFORE evidence mapping (determinism tracking)
+    import hashlib as _hashlib
+
+    def _compute_claim_map_input_hash(
+        claim_map_scaffold: dict, evidence_list: list
+    ) -> str:
+        """Canonicalize scaffold + evidence, return SHA256[:16] hex."""
+        elements_canon = sorted(
+            [
+                {"element_id": e["element_id"], "description": e["description"]}
+                for e in claim_map_scaffold.get("elements", [])
+            ],
+            key=lambda x: x["element_id"],
+        )
+        evidence_canon = sorted(
+            [
+                {"evidence_id": e.get("evidence_id", ""), "url": e.get("url", "")}
+                for e in evidence_list
+            ],
+            key=lambda x: x["evidence_id"],
+        )
+        blob = json.dumps(
+            {"elements": elements_canon, "evidence": evidence_canon},
+            sort_keys=True,
+            ensure_ascii=True,
+        )
+        return _hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+    for claim in selected_claims:
+        pos = str(claim.get("position", 0))
+        scaffold = claim.get("claim_map")
+        ev_list = evidence.get(pos, [])
+        if scaffold:
+            claim["claim_map_input_hash"] = _compute_claim_map_input_hash(
+                scaffold, ev_list
+            )
+            attach_claim_jurisdiction(claim, scaffold)
+            attach_claim_subjects(claim, scaffold)
+            attach_claim_text(claim, scaffold)
+
+    # Budget: ~55s Google thinking model batch mapping + ~25s parallel
+    # completion passes (Step 2 NF-19 fix, 2026-05-12) + ~30s OpenAI
+    # fallback + margin. Bumped 90 → 120 when Step 1's class-targeted
+    # query augmentation grew pool size + Step 2 added per-claim
+    # completion-pass LLM calls.
+    analyze_timeout = 120
+
+    claim_maps_by_pos = {
+        str(c.get("position", 0)): c["claim_map"]
+        for c in selected_claims
+        if isinstance(c.get("claim_map"), dict)
+    }
+    echo_join = _elc.start_for_check(
+        echo_plan,
+        evidence,
+        claim_maps_by_pos,
+        analyzer.call_echo_link,
+        frozen=is_frozen_evidence_replay,
+        quick=echo_quick,
+    )
+    # The join may hold mapping up to JOIN_WAIT_S; that time must not come
+    # out of mapping's own budget (plan rev 2 M2).
+    mapping_base_timeout = analyze_timeout
+    analyze_timeout = _elc.mapping_timeout(mapping_base_timeout, echo_join)
+
+    try:
+        batch_input = []
+        for claim in selected_claims:
+            pos = str(claim.get("position", 0))
+            claim_evidence = evidence.get(pos, [])
+            claim["evidence"] = claim_evidence
+            if claim.get("claim_map"):
+                batch_input.append(
+                    {
+                        "claim_map": claim["claim_map"],
+                        "evidence": claim_evidence,
+                    }
+                )
+
+        logger.info(
+            f"[INLINE PIPELINE] Starting batch evidence mapping for "
+            f"{len(batch_input)} claims with {analyze_timeout}s timeout"
+        )
+        # Attaches the echo join, and closes it whatever mapping does (M1).
+        await _elc.map_with_join(
+            analyzer, batch_input, echo_join, mapping_base_timeout, stage_timings
+        )
+        logger.info("[INLINE PIPELINE] Evidence mapping completed successfully")
+    except asyncio.TimeoutError as err:
+        logger.error(
+            f"[STAGE ERROR] check={check_id} stage=analyze error=TimeoutError: "
+            f"Evidence mapping timed out after {analyze_timeout}s"
+        )
+        raise PipelineError("Evidence mapping timed out", stage="analyze") from err
+    except Exception as e:
+        logger.error(
+            f"[STAGE ERROR] check={check_id} stage=analyze error={type(e).__name__}: {e}"
+        )
+        raise PipelineError(f"Evidence mapping failed: {e}", stage="analyze") from e
+
+    if ledger:
+        ledger.record(
+            "evidence_mapping",
+            claims_mapped=len(selected_claims),
+            evidence_per_claim={
+                str(c.get("position", 0)): len(
+                    evidence.get(str(c.get("position", 0)), [])
+                )
+                for c in selected_claims
+            },
+        )
+
+    stage_timings["analyze"] = (
+        datetime.now(timezone.utc) - stage_start
+    ).total_seconds()
 
 
 def _aggregate_api_stats(
