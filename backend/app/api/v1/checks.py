@@ -143,6 +143,30 @@ def _require_console_submission(
     return "dashboard"
 
 
+def _require_frozen_evidence_permission(body, user) -> None:
+    """Refuse caller-supplied evidence unless this is a development backend or
+    the caller is an admin.
+
+    `frozen_evidence` replaces retrieval with the caller's own items (tier
+    included), and the pipeline then skips dedup, relevance scoring and
+    classification. On a deployed backend that would let any signed-in user
+    produce a normal, publicly readable record built from evidence they wrote
+    (audit/2026-10-08_complex_stage_functions_review.md F1). It exists for the
+    golden-dataset harness (harness/run_golden_dataset.py), which runs against
+    a local backend. Checked before the usage gate, so a refusal costs nothing.
+    """
+    if body.frozen_evidence is None:
+        return
+    if settings.ENVIRONMENT.lower() == "development":
+        return
+    if is_admin_email(user.email):
+        return
+    raise HTTPException(
+        status_code=403,
+        detail="frozen_evidence is restricted to internal replay testing.",
+    )
+
+
 async def _validate_and_create_check(
     body,
     current_user: dict,
@@ -157,6 +181,7 @@ async def _validate_and_create_check(
     """
     # Get or create user (handles race conditions)
     user = await get_or_create_user(session, current_user)
+    _require_frozen_evidence_permission(body, user)
 
     # USAGE LIMIT CHECK — ledger-backed; locks the user row so the gate and
     # the debit below commit atomically (admins bypass the limit, not the

@@ -14,7 +14,8 @@
 ---
 ## ▶ 2026-10-08 — COMPLEX STAGE FUNCTIONS REVIEWED (read-only, verified) — START HERE
 - Record: `audit/2026-10-08_complex_stage_functions_review.md`. No code changed.
-- **HIGH, F1:** any signed-in user can send `frozen_evidence` on `/checks/stream` or `/checks/run` and get a normal, publicly readable (by ID), signed record built from evidence they supplied (tier included); retrieval, dedup, scoring and classify are skipped. Only user: the Feb golden-dataset harness. Founder decision: guard it.
+- **F1 FIXED (local commit, push owed):** `frozen_evidence` now 403s on a deployed backend unless the caller is an admin. **NEW OPEN (founder):** confirm Clerk requires a VERIFIED email at sign-up — `get_or_create_user` hands an existing row (admin included) to any new Clerk ID presenting the same email (`users.py:50-69`).
+- (was) **HIGH, F1:** any signed-in user could send `frozen_evidence` on `/checks/stream` or `/checks/run` and get a normal, publicly readable (by ID), signed record built from evidence they supplied (tier included); retrieval, dedup, scoring and classify are skipped. Only user: the Feb golden-dataset harness. Founder decision: guard it.
 - MEDIUM: F9 dedup drops URL-less items with no receipt · F11 `/run` caps the whole pipeline at 180 s = retrieve's own timeout · F2 post-filter recovery items are never relevance-scored.
 - Most of the stage-function complexity is the debug ledger (`DEBUG_EVIDENCE_LEDGER`, 32 sites, never tested). Production value unknown (read-only Railway check needed).
 

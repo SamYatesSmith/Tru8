@@ -71,6 +71,9 @@ def _make_body(**overrides):
         "url": None,
         "file_path": None,
         "user_query": None,
+        # CreateCheckRequest always carries it (default None); a bare
+        # MagicMock attribute would read as caller-supplied evidence.
+        "frozen_evidence": None,
     }
     defaults.update(overrides)
     return MagicMock(**defaults)
