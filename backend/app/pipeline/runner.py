@@ -2528,39 +2528,17 @@ async def run_pipeline_phase2(
     # =========================================================================
     # Stage 5.5: Query Answering (optional)
     # =========================================================================
-    query_response_data = None
-    if (
-        input_data.get("user_query")
-        and settings.ENABLE_SEARCH_CLARITY
-        and config.enable_query_answering
-    ):
-        await _log_stage_transition(check_id, current_stage, "query", progress_reporter)
-        current_stage = "query"
-        stage_start = datetime.now(timezone.utc)
-
-        try:
-            from app.pipeline.query_answer import get_query_answerer
-
-            query_answerer = await get_query_answerer()
-            query_result = await query_answerer.answer_query(
-                user_query=input_data.get("user_query"),
-                claims=claims,
-                evidence_by_claim=evidence,
-                original_text=content.get("content", "")[:1000],
-            )
-            query_response_data = {
-                "answer": query_result["answer"],
-                "confidence": query_result["confidence"],
-                "source_ids": query_result["source_ids"],
-                "related_claims": query_result["related_claims"],
-                "found_answer": query_result["found_answer"],
-            }
-        except Exception as e:
-            logger.error(f"Query answering failed (non-critical): {e}")
-
-        stage_timings["query"] = (
-            datetime.now(timezone.utc) - stage_start
-        ).total_seconds()
+    query_response_data = await _answer_query(
+        check_id,
+        input_data,
+        claims,
+        evidence,
+        content,
+        config,
+        progress_reporter,
+        stage_timings,
+        current_stage,
+    )
 
     # =========================================================================
     # Build Final Result
@@ -2594,58 +2572,7 @@ async def run_pipeline_phase2(
     except Exception as e:
         logger.warning(f"[CITED SOURCE] gap note failed (non-critical): {e}")
 
-    # Classifier roles describe documents; concentration describes the pool.
-    # Do not overwrite roles after mapping merely because a host is common.
-    from app.services.source_concentration import source_concentration
-
-    for claim in claims:
-        cm = claim.get("claim_map")
-        if isinstance(cm, dict):
-            cm.setdefault("metadata", {})["source_concentration"] = (
-                source_concentration(evidence.get(str(claim.get("position", 0)), []))
-            )
-
-    # V3 per-claim quality signals on MAPPED items only.
-    # Mapping rate is diagnostic (retrieve.py:retrieve_for_elements vs B3 RECEIPTS);
-    # the user-facing quality dimensions are computed here from what reaches the UI.
-    for claim in claims:
-        pos = str(claim.get("position", 0))
-        ev_list = evidence.get(pos, [])
-        if not ev_list:
-            continue
-        signals = _compute_claim_quality_signals(claim.get("claim_map"), ev_list)
-        if signals["mapped_count"] == 0:
-            continue
-        top_d, top_s = signals["top_domain"]
-        logger.info(
-            f"[B3 QUALITY] claim={pos} mapped={signals['mapped_count']} "
-            f"unique_domains={signals['unique_domains']} "
-            f"top_domain={top_d}@{int(top_s * 100)}% "
-            f"wikipedia={int(signals['wikipedia_share'] * 100)}% "
-            f"factual_weight={int(signals['factual_weight_share'] * 100)}% "
-            f"element_resolution={int(signals['element_resolution'] * 100)}% "
-            f"tier_mix={signals['tier_mix']} "
-            f"type_mix={signals['type_mix']}"
-        )
-
-    # F-R2e (2026-07-09): persist the retrieval query plan onto claim_map
-    # metadata so zero-yield queries leave a trace. The TRU-C051-3024
-    # investigation had to diagnose the web path blind because only queries
-    # that RETURNED evidence reached the DB (metadata.query_used on surviving
-    # items); the diagnostic case — a query that found nothing — vanished.
-    for claim in claims:
-        qp = claim.get("query_plan")
-        cm = claim.get("claim_map")
-        if qp and isinstance(cm, dict):
-            md = cm.get("metadata")
-            if not isinstance(md, dict):
-                md = {}
-                cm["metadata"] = md
-            md["query_plan"] = {
-                "queries": qp.get("queries", []),
-                "element_ids": qp.get("query_element_ids", []),
-                "freshness": qp.get("query_freshness", []),
-            }
+    _annotate_final_claim_maps(claims, evidence)
 
     results = []
     for claim in claims:
@@ -2726,45 +2653,7 @@ async def run_pipeline_phase2(
             frozen_evidence_replay.reset(_replay_evidence_token)
         logger.info("[FROZEN EVIDENCE REPLAY] Reset replay overrides")
 
-    # Token accumulation from LLM-calling modules (L-12). Classifier and
-    # distiller are closure-local in their task wrappers and publish
-    # themselves into _stage_components; absent = not instantiated (quick
-    # mode / disabled). The old bare-name + except-NameError pattern here
-    # ALWAYS raised, so their tokens never reached telemetry.
-    _accumulate_tokens(final_result, analyzer.get_token_usage())
-    _classifier = _stage_components.get("classifier")
-    if _classifier is not None:
-        _accumulate_tokens(final_result, _classifier.get_token_usage())
-    _distiller = _stage_components.get("distiller")
-    if _distiller is not None:
-        _accumulate_tokens(final_result, _distiller.get_token_usage())
-
-    # Phase 1.3: per-stage breakdown for cost monitoring + kill switch +
-    # fallback-rate tracking. Stored alongside the aggregated counts.
-    by_stage: Dict[str, Any] = {
-        "analyzer": {
-            **analyzer.get_token_usage(),
-            "models_used": analyzer.get_models_used(),
-            "fallback_fired": analyzer.get_fallback_status(),
-        }
-    }
-    if _classifier is not None:
-        by_stage["classifier"] = _classifier.get_token_usage()
-    if _distiller is not None:
-        by_stage["distiller"] = _distiller.get_token_usage()
-    final_result["llm_usage_by_stage"] = by_stage
-
-    # Pipeline metrics (L-12)
-    metrics = extract_pipeline_metrics(final_result, config)
-    final_result["pipeline_metrics"] = metrics.to_dict()
-    logger.info(
-        f"[PIPELINE METRICS] check={check_id} mode={metrics.mode} "
-        f"llm_calls={metrics.llm_calls} web_search={metrics.web_search_calls} "
-        f"api_adapters={metrics.api_adapter_calls} wall_time={metrics.wall_time_seconds:.1f}s "
-        f"claims={metrics.claims_processed} elements={metrics.elements_processed} "
-        f"sources_considered={metrics.sources_considered} sources_included={metrics.sources_included} "
-        f"llm_input_tokens={metrics.llm_input_tokens} llm_output_tokens={metrics.llm_output_tokens}"
-    )
+    _attach_llm_telemetry(final_result, check_id, analyzer, _stage_components, config)
 
     logger.info(
         f"[INLINE PIPELINE] Completed in {processing_time_ms}ms for check {check_id}"
@@ -3501,6 +3390,165 @@ async def _coverage_recovery(
                 elements_resolved=elements_resolved,
                 elapsed_seconds=round(recovery_elapsed, 2),
             )
+
+
+async def _answer_query(
+    check_id: str,
+    input_data: Dict[str, Any],
+    claims: List[Dict[str, Any]],
+    evidence: Dict[str, List[Dict[str, Any]]],
+    content: Dict[str, Any],
+    config: PipelineConfig,
+    progress_reporter: ProgressReporter,
+    stage_timings: Dict[str, float],
+    current_stage: str,
+) -> Optional[Dict[str, Any]]:
+    """Stage 5.5 (optional): answer the user's query from the mapped
+    evidence. Returns the response payload, or None."""
+    query_response_data = None
+    if (
+        input_data.get("user_query")
+        and settings.ENABLE_SEARCH_CLARITY
+        and config.enable_query_answering
+    ):
+        await _log_stage_transition(check_id, current_stage, "query", progress_reporter)
+        current_stage = "query"
+        stage_start = datetime.now(timezone.utc)
+
+        try:
+            from app.pipeline.query_answer import get_query_answerer
+
+            query_answerer = await get_query_answerer()
+            query_result = await query_answerer.answer_query(
+                user_query=input_data.get("user_query"),
+                claims=claims,
+                evidence_by_claim=evidence,
+                original_text=content.get("content", "")[:1000],
+            )
+            query_response_data = {
+                "answer": query_result["answer"],
+                "confidence": query_result["confidence"],
+                "source_ids": query_result["source_ids"],
+                "related_claims": query_result["related_claims"],
+                "found_answer": query_result["found_answer"],
+            }
+        except Exception as e:
+            logger.error(f"Query answering failed (non-critical): {e}")
+
+        stage_timings["query"] = (
+            datetime.now(timezone.utc) - stage_start
+        ).total_seconds()
+    return query_response_data
+
+
+def _annotate_final_claim_maps(
+    claims: List[Dict[str, Any]],
+    evidence: Dict[str, List[Dict[str, Any]]],
+) -> None:
+    """Write source concentration and the query plan onto each claim map,
+    and log the per-claim quality signals."""
+    # Classifier roles describe documents; concentration describes the pool.
+    # Do not overwrite roles after mapping merely because a host is common.
+    from app.services.source_concentration import source_concentration
+
+    for claim in claims:
+        cm = claim.get("claim_map")
+        if isinstance(cm, dict):
+            cm.setdefault("metadata", {})["source_concentration"] = (
+                source_concentration(evidence.get(str(claim.get("position", 0)), []))
+            )
+
+    # V3 per-claim quality signals on MAPPED items only.
+    # Mapping rate is diagnostic (retrieve.py:retrieve_for_elements vs B3 RECEIPTS);
+    # the user-facing quality dimensions are computed here from what reaches the UI.
+    for claim in claims:
+        pos = str(claim.get("position", 0))
+        ev_list = evidence.get(pos, [])
+        if not ev_list:
+            continue
+        signals = _compute_claim_quality_signals(claim.get("claim_map"), ev_list)
+        if signals["mapped_count"] == 0:
+            continue
+        top_d, top_s = signals["top_domain"]
+        logger.info(
+            f"[B3 QUALITY] claim={pos} mapped={signals['mapped_count']} "
+            f"unique_domains={signals['unique_domains']} "
+            f"top_domain={top_d}@{int(top_s * 100)}% "
+            f"wikipedia={int(signals['wikipedia_share'] * 100)}% "
+            f"factual_weight={int(signals['factual_weight_share'] * 100)}% "
+            f"element_resolution={int(signals['element_resolution'] * 100)}% "
+            f"tier_mix={signals['tier_mix']} "
+            f"type_mix={signals['type_mix']}"
+        )
+
+    # F-R2e (2026-07-09): persist the retrieval query plan onto claim_map
+    # metadata so zero-yield queries leave a trace. The TRU-C051-3024
+    # investigation had to diagnose the web path blind because only queries
+    # that RETURNED evidence reached the DB (metadata.query_used on surviving
+    # items); the diagnostic case — a query that found nothing — vanished.
+    for claim in claims:
+        qp = claim.get("query_plan")
+        cm = claim.get("claim_map")
+        if qp and isinstance(cm, dict):
+            md = cm.get("metadata")
+            if not isinstance(md, dict):
+                md = {}
+                cm["metadata"] = md
+            md["query_plan"] = {
+                "queries": qp.get("queries", []),
+                "element_ids": qp.get("query_element_ids", []),
+                "freshness": qp.get("query_freshness", []),
+            }
+
+
+def _attach_llm_telemetry(
+    final_result: Dict[str, Any],
+    check_id: str,
+    analyzer: Any,
+    stage_components: Dict[str, Any],
+    config: PipelineConfig,
+) -> None:
+    """Accumulate token usage, the per-stage breakdown and the pipeline
+    metrics onto the final result."""
+    # Token accumulation from LLM-calling modules (L-12). Classifier and
+    # distiller are closure-local in their task wrappers and publish
+    # themselves into stage_components; absent = not instantiated (quick
+    # mode / disabled). The old bare-name + except-NameError pattern here
+    # ALWAYS raised, so their tokens never reached telemetry.
+    _accumulate_tokens(final_result, analyzer.get_token_usage())
+    _classifier = stage_components.get("classifier")
+    if _classifier is not None:
+        _accumulate_tokens(final_result, _classifier.get_token_usage())
+    _distiller = stage_components.get("distiller")
+    if _distiller is not None:
+        _accumulate_tokens(final_result, _distiller.get_token_usage())
+
+    # Phase 1.3: per-stage breakdown for cost monitoring + kill switch +
+    # fallback-rate tracking. Stored alongside the aggregated counts.
+    by_stage: Dict[str, Any] = {
+        "analyzer": {
+            **analyzer.get_token_usage(),
+            "models_used": analyzer.get_models_used(),
+            "fallback_fired": analyzer.get_fallback_status(),
+        }
+    }
+    if _classifier is not None:
+        by_stage["classifier"] = _classifier.get_token_usage()
+    if _distiller is not None:
+        by_stage["distiller"] = _distiller.get_token_usage()
+    final_result["llm_usage_by_stage"] = by_stage
+
+    # Pipeline metrics (L-12)
+    metrics = extract_pipeline_metrics(final_result, config)
+    final_result["pipeline_metrics"] = metrics.to_dict()
+    logger.info(
+        f"[PIPELINE METRICS] check={check_id} mode={metrics.mode} "
+        f"llm_calls={metrics.llm_calls} web_search={metrics.web_search_calls} "
+        f"api_adapters={metrics.api_adapter_calls} wall_time={metrics.wall_time_seconds:.1f}s "
+        f"claims={metrics.claims_processed} elements={metrics.elements_processed} "
+        f"sources_considered={metrics.sources_considered} sources_included={metrics.sources_included} "
+        f"llm_input_tokens={metrics.llm_input_tokens} llm_output_tokens={metrics.llm_output_tokens}"
+    )
 
 
 def _aggregate_api_stats(
