@@ -1434,6 +1434,129 @@ def annotate_post_classify_structure(evidence: Dict[str, List[Dict[str, Any]]]) 
         )
 
 
+async def _load_phase2_state_from_db(check_id: str) -> Dict[str, Any]:
+    """Article mode: reload Phase 2's state from the DB after the user
+    selected claims, and mark the check processing.
+
+    Returns the keys the focused-mode `_phase1_state` carries, except the
+    timing pair and the frozen claim texts (article mode has none)."""
+    from app.pipeline.evidence_ledger import get_ledger
+
+    ledger = get_ledger(check_id)
+
+    try:
+        cache_service = await get_cache_service()
+    except Exception as e:
+        logger.warning(f"[PHASE 2] Cache service init failed: {e}")
+        cache_service = None
+
+    async with async_session() as session:
+        # Load check
+        stmt = select(Check).where(Check.id == check_id)
+        result = await session.execute(stmt)
+        check = result.scalar_one_or_none()
+
+        if not check:
+            raise PipelineError(f"Check {check_id} not found", stage="phase2_init")
+
+        entry_mode = check.entry_mode or "article"
+
+        # Load content from input_content
+        input_content = json.loads(check.input_content) if check.input_content else {}
+        content = {
+            "content": check.article_excerpt or "",
+            "metadata": {
+                "url": check.input_url,
+                "title": None,
+            },
+        }
+
+        # Reconstruct article_classification from check fields
+        article_classification = None
+        if check.article_domain:
+            article_classification = type(
+                "ArticleClassification",
+                (),
+                {
+                    "primary_domain": check.article_domain,
+                    "secondary_domains": check.article_secondary_domains or [],
+                    "jurisdiction": check.article_jurisdiction,
+                    "confidence": (
+                        check.article_classification_confidence / 100.0
+                        if check.article_classification_confidence
+                        else None
+                    ),
+                    "source": check.article_classification_source,
+                    "to_dict": lambda self: {
+                        "primary_domain": self.primary_domain,
+                        "secondary_domains": self.secondary_domains,
+                        "jurisdiction": self.jurisdiction,
+                        "confidence": self.confidence,
+                        "source": self.source,
+                    },
+                },
+            )()
+
+        # Load claims from DB
+        claims_stmt = (
+            select(Claim).where(Claim.check_id == check_id).order_by(Claim.position)
+        )
+        claims_result = await session.execute(claims_stmt)
+        db_claims = claims_result.scalars().all()
+
+        claims = []
+        for db_claim in db_claims:
+            claim_dict = {
+                "text": db_claim.text,
+                "position": db_claim.position,
+                "is_selected": db_claim.is_selected,
+                "significance_rank": db_claim.significance_rank,
+                "significance_score": db_claim.significance_score,
+                "claim_type": db_claim.claim_type,
+                "subject_context": db_claim.subject_context,
+                "claimant": db_claim.claimant,
+                "key_entities": db_claim.key_entities,
+                "source_title": db_claim.source_title,
+                "source_url": db_claim.source_url,
+                "source_date": db_claim.source_date,
+                "type_hint": db_claim.type_hint,
+                "rhetorical_analysis": db_claim.rhetorical_context,
+                "has_rhetorical_context": db_claim.has_rhetorical_context,
+                "rhetorical_style": db_claim.rhetorical_style,
+            }
+            if article_classification:
+                claim_dict["article_classification"] = article_classification.to_dict()
+            claims.append(claim_dict)
+
+        selected_claims = [c for c in claims if c.get("is_selected")]
+
+        # Update check status to processing. Refresh the processing clock:
+        # the boot-time stale sweep (hang-proofing W2) ages 'processing'
+        # rows from this timestamp, and an article check may have sat at
+        # the selection pause for hours since created_at.
+        check.status = "processing"
+        check.processing_started_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        await session.commit()
+
+    logger.info(
+        f"[INLINE PIPELINE] Phase 2 starting for check {check_id}: "
+        f"{len(selected_claims)} selected claims of {len(claims)} total"
+    )
+    return {
+        "claims": claims,
+        "selected_claims": selected_claims,
+        "content": content,
+        "article_classification": article_classification,
+        "entry_mode": entry_mode,
+        # No frozen evidence in article mode phase2
+        "frozen_evidence": None,
+        "_replay_temp_token": None,
+        "_replay_evidence_token": None,
+        "cache_service": cache_service,
+        "ledger": ledger,
+    }
+
+
 @metered  # counts every billable search query this check issues
 async def run_pipeline_phase2(
     check_id: str,
@@ -1467,134 +1590,23 @@ async def run_pipeline_phase2(
     # =========================================================================
     if _phase1_state:
         # Focused mode: phase1 passed state directly
-        claims = _phase1_state["claims"]
-        selected_claims = _phase1_state["selected_claims"]
-        content = _phase1_state["content"]
-        article_classification = _phase1_state["article_classification"]
-        entry_mode = _phase1_state["entry_mode"]
-        frozen_evidence = _phase1_state["frozen_evidence"]
-        frozen_evidence_claim_texts = _phase1_state["frozen_evidence_claim_texts"]
-        _replay_temp_token = _phase1_state["_replay_temp_token"]
-        _replay_evidence_token = _phase1_state["_replay_evidence_token"]
-        cache_service = _phase1_state["cache_service"]
-        ledger = _phase1_state["ledger"]
-        start_time = _phase1_state["start_time"]
-        stage_timings = _phase1_state["stage_timings"]
+        state = _phase1_state
+        frozen_evidence_claim_texts = state["frozen_evidence_claim_texts"]
+        start_time = state["start_time"]
+        stage_timings = state["stage_timings"]
     else:
         # Article mode: reload from DB after user selected claims
-        from app.pipeline.evidence_ledger import get_ledger
-
-        ledger = get_ledger(check_id)
-
-        try:
-            cache_service = await get_cache_service()
-        except Exception as e:
-            logger.warning(f"[PHASE 2] Cache service init failed: {e}")
-            cache_service = None
-
-        async with async_session() as session:
-            # Load check
-            stmt = select(Check).where(Check.id == check_id)
-            result = await session.execute(stmt)
-            check = result.scalar_one_or_none()
-
-            if not check:
-                raise PipelineError(f"Check {check_id} not found", stage="phase2_init")
-
-            entry_mode = check.entry_mode or "article"
-
-            # Load content from input_content
-            input_content = (
-                json.loads(check.input_content) if check.input_content else {}
-            )
-            content = {
-                "content": check.article_excerpt or "",
-                "metadata": {
-                    "url": check.input_url,
-                    "title": None,
-                },
-            }
-
-            # Reconstruct article_classification from check fields
-            article_classification = None
-            if check.article_domain:
-                article_classification = type(
-                    "ArticleClassification",
-                    (),
-                    {
-                        "primary_domain": check.article_domain,
-                        "secondary_domains": check.article_secondary_domains or [],
-                        "jurisdiction": check.article_jurisdiction,
-                        "confidence": (
-                            check.article_classification_confidence / 100.0
-                            if check.article_classification_confidence
-                            else None
-                        ),
-                        "source": check.article_classification_source,
-                        "to_dict": lambda self: {
-                            "primary_domain": self.primary_domain,
-                            "secondary_domains": self.secondary_domains,
-                            "jurisdiction": self.jurisdiction,
-                            "confidence": self.confidence,
-                            "source": self.source,
-                        },
-                    },
-                )()
-
-            # Load claims from DB
-            claims_stmt = (
-                select(Claim).where(Claim.check_id == check_id).order_by(Claim.position)
-            )
-            claims_result = await session.execute(claims_stmt)
-            db_claims = claims_result.scalars().all()
-
-            claims = []
-            for db_claim in db_claims:
-                claim_dict = {
-                    "text": db_claim.text,
-                    "position": db_claim.position,
-                    "is_selected": db_claim.is_selected,
-                    "significance_rank": db_claim.significance_rank,
-                    "significance_score": db_claim.significance_score,
-                    "claim_type": db_claim.claim_type,
-                    "subject_context": db_claim.subject_context,
-                    "claimant": db_claim.claimant,
-                    "key_entities": db_claim.key_entities,
-                    "source_title": db_claim.source_title,
-                    "source_url": db_claim.source_url,
-                    "source_date": db_claim.source_date,
-                    "type_hint": db_claim.type_hint,
-                    "rhetorical_analysis": db_claim.rhetorical_context,
-                    "has_rhetorical_context": db_claim.has_rhetorical_context,
-                    "rhetorical_style": db_claim.rhetorical_style,
-                }
-                if article_classification:
-                    claim_dict["article_classification"] = (
-                        article_classification.to_dict()
-                    )
-                claims.append(claim_dict)
-
-            selected_claims = [c for c in claims if c.get("is_selected")]
-
-            # Update check status to processing. Refresh the processing clock:
-            # the boot-time stale sweep (hang-proofing W2) ages 'processing'
-            # rows from this timestamp, and an article check may have sat at
-            # the selection pause for hours since created_at.
-            check.status = "processing"
-            check.processing_started_at = datetime.now(timezone.utc).replace(
-                tzinfo=None
-            )
-            await session.commit()
-
-        # No frozen evidence in article mode phase2
-        frozen_evidence = None
-        _replay_temp_token = None
-        _replay_evidence_token = None
-
-        logger.info(
-            f"[INLINE PIPELINE] Phase 2 starting for check {check_id}: "
-            f"{len(selected_claims)} selected claims of {len(claims)} total"
-        )
+        state = await _load_phase2_state_from_db(check_id)
+    claims = state["claims"]
+    selected_claims = state["selected_claims"]
+    content = state["content"]
+    article_classification = state["article_classification"]
+    entry_mode = state["entry_mode"]
+    frozen_evidence = state["frozen_evidence"]
+    _replay_temp_token = state["_replay_temp_token"]
+    _replay_evidence_token = state["_replay_evidence_token"]
+    cache_service = state["cache_service"]
+    ledger = state["ledger"]
 
     # =========================================================================
     # Stages 2.5 + 3: Fact-check Lookup + Decompose (concurrent)
