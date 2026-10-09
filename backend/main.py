@@ -5,9 +5,9 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
 
 from app.middleware.mcp_cors import MCPCorsMiddleware
+from app.middleware.sse_gzip import StreamAwareGZipMiddleware
 import sentry_sdk
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from prometheus_client import make_asgi_app
@@ -332,7 +332,9 @@ app.add_middleware(
 # CORS posture is unchanged. Reasoning in app/middleware/mcp_cors.py.
 app.add_middleware(MCPCorsMiddleware, path_prefix="/mcp")
 
-app.add_middleware(GZipMiddleware, minimum_size=1000)
+# Event streams pass through uncompressed: plain GZipMiddleware buffered every
+# SSE heartbeat and MCP ping to zero bytes (F11, 2026-10-09; app/middleware/sse_gzip.py).
+app.add_middleware(StreamAwareGZipMiddleware, minimum_size=1000)
 
 # A8a (pipeline remediation 2026-04-22): filter pipeline-instrumentation
 # noise so real errors aren't buried.
