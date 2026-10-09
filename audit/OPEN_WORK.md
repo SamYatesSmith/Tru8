@@ -12,6 +12,18 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-10-10 — PICK UP HERE (handoff from 2026-10-09)
+- **State:** `main` is 2 commits AHEAD of origin, NOT pushed: `fdf047c` (async `/agent/check` + polling MCP client + refund-safety fixes) and the handoff docs commit after it. Production runs `b8e269c` (SSE gzip fix + pydantic pin, live and verified).
+- **Founder decisions waiting (ask one at a time):**
+  1. **Push `fdf047c`** (= production deploy). After deploy verify: health shows the new commit; `POST /api/v1/agent/check?async=true` appears in `/openapi.json`; no new Sentry errors. A real paid async check is a paid run — ask first.
+  2. **Publish `tru8-mcp` 1.0.6 to PyPI + bump the MCP registry** (`backend/tru8_mcp/pyproject.toml` and `server.json` both say 1.0.5 = PyPI latest, 2026-08-13). 1.0.6 carries the async client AND the 2026-09-11 idempotency-key fix, which never shipped to PyPI. Run `mcp-publisher validate` first. Hosted `/mcp` gets the client on deploy without this.
+  3. **Lock file for backend deps.** Today's first deploy FAILED its healthcheck because unpinned `pydantic` resolved to the new 2.14.0 (breaks `mcp` 1.12.4); pinned to 2.13.5. Every other transitive dep is still unpinned — the next new release can do the same. Proposal: freeze the live container's versions (`railway ssh "pip freeze"`) into a constraints file.
+  4. **Read Railway `TRU8_API_URL`** (read-only). If unset, hosted `/mcp` calls back out to https://api.trueight.com through Cloudflare. With polling every inner call is short, so this is now low priority.
+- **Done 2026-10-09 (all verified):** F11 verified + pressure-tested (Cloudflare limit is 125 s, not 100) · SSE gzip fix LIVE (`87118a4`; prod `/mcp` now sends plain pings every 15 s) · pydantic pin (`08783d0`) · async agent build (`fdf047c`, design `audit/2026-10-09_agent_check_async_design.md`, 2 design/verify review rounds + a final verifier, real-ORM tests for the guard and sweep). Suite 4,721 pass / 69 skip. Bench not run (no pipeline logic changed).
+- **Then (unchanged from the 2026-10-09 list below):** ledger decision (`DEBUG_EVIDENCE_LEDGER`), F2, F3/F4, characterisation tests before simplifying `_post_filter_recovery` / `_retrieve_stage`; after that, return to A− (biggest blocker: copies counted as independent).
+- **Known nits left (not bugs):** async success branch marks a tx `completed` without a lock (a guard refund + late finish = free result, no money lost) · a retry after a failed full run that hits a cache/consensus result gets 409 (request-hash differs) · `_sweep`'s status re-check reads identity-map values, safe because of the cutoff.
+- **Method notes:** CRLF files (agent.py, agent_auth.py, tools.py, server.py, main.py, checks.py) — edit with a CRLF-aware script; `agent.py` is NOT black-clean, never run black on it. Mocked sessions hide ORM expiry bugs — use the aiosqlite pattern in `tests/unit/test_sweep_real_session.py` (JSONB→JSON compile shim) for anything touching rollback/commit. The local shell has no `grep`; heredoc paths to `/c/...` break inside Python — use the Write tool for edit scripts.
+
 ## ▶ 2026-10-09 MORNING — PICK UP HERE (handoff from 2026-10-08)
 - **Mode:** A− still paused (founder); code quality + correctness. Everything below is pushed and live (health on `main`).
 - **Done 2026-10-08 (all independently verified):**
