@@ -202,7 +202,7 @@ class TestMaxAgeHoursZeroReachesTheServer:
             async def __aexit__(self, *args):
                 return False
 
-            async def post(self, url, json=None, headers=None):
+            async def post(self, url, json=None, headers=None, params=None):
                 box["payload"] = json
                 return httpx.Response(
                     200,

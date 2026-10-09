@@ -50,8 +50,13 @@ async def refund_stranded_agent_transaction(
     already `refunded`/`failed` is left alone.
     """
     try:
+        # Row lock: the async run's own failure branch refunds the same
+        # transaction (agent.py, only while pending/unsettled); the lock makes the
+        # two refunders take turns, so one of them sees it settled.
         result = await session.execute(
-            select(AgentTransaction).where(AgentTransaction.check_id == check_id)
+            select(AgentTransaction)
+            .where(AgentTransaction.check_id == check_id)
+            .with_for_update()
         )
         txs = [tx for tx in result.scalars().all() if isinstance(tx, AgentTransaction)]
     except Exception as e:  # noqa: BLE001 — never block the sweep

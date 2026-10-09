@@ -152,6 +152,9 @@ IDEMPOTENCY_CONFLICT_DETAIL = {
 }
 
 _TERMINAL_TX_STATUSES = ("completed", "failed", "refunded", "unsettled")
+# Failed runs whose charge was returned (credit) or never settled (other rails).
+# "unsettled" is excluded: the stranded-sweep's money question is still open.
+_FAILED_TX_STATUSES = ("failed", "refunded")
 
 
 async def find_idempotent_transaction(
@@ -179,7 +182,11 @@ def idempotency_disposition(
     ``replay``            same payer, same request, still pending or inside the
                           sliding window → return the existing transaction.
     ``expired``           same payer, same request, terminal and older than the
-                          window → retire the key and charge afresh.
+                          window → retire the key and charge afresh. A run that
+                          FAILED (refunded / failed) is expired at once: the
+                          caller paid nothing for it, and holding its key for
+                          the window turned every retry into a 502 for ten
+                          minutes (2026-10-09).
     ``other_payer``       the key was registered by a different payer → 409.
     ``different_request`` same payer, different request_hash → 409.
     """
@@ -189,6 +196,8 @@ def idempotency_disposition(
         return "different_request"
     if existing_tx.status not in _TERMINAL_TX_STATUSES:
         return "replay"
+    if existing_tx.status in _FAILED_TX_STATUSES:
+        return "expired"
     ttl = settings.AGENT_IDEMPOTENCY_TTL_S if ttl_s is None else ttl_s
     created = existing_tx.created_at
     if not isinstance(created, datetime):

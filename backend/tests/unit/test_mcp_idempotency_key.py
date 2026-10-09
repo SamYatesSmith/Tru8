@@ -86,7 +86,7 @@ class _FakeClient:
     async def __aexit__(self, *a):
         return False
 
-    async def post(self, url, json=None, headers=None):
+    async def post(self, url, json=None, headers=None, params=None):
         _FakeClient.calls.append(SimpleNamespace(url=url, json=json, headers=headers))
         return _FakeResponse()
 

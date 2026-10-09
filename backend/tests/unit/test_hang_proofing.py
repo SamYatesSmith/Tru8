@@ -123,8 +123,11 @@ def _fake_sweep_session(rows, monkeypatch):
     result = MagicMock()
     result.scalars.return_value.all.return_value = rows
     session.execute = AsyncMock(return_value=result)
+    by_id = {r.id: r for r in rows}
+    session.get = AsyncMock(side_effect=lambda model, cid: by_id.get(cid))
     session.add = MagicMock()
     session.commit = AsyncMock()
+    session.rollback = AsyncMock()
 
     refund = AsyncMock(return_value=True)
     import app.services.usage_ledger as ledger_mod
@@ -236,9 +239,29 @@ class TestStaleSweep:
 
         monkeypatch.setattr(ledger_mod, "refund_usage", refund)
 
+        session.rollback = AsyncMock()
+        session.get = AsyncMock(
+            side_effect=lambda model, cid: {stale_a.id: stale_a, stale_b.id: stale_b}[
+                cid
+            ]
+        )
+
         assert await sweep_stale_checks(session=session) == 1
         assert stale_a.status == "processing"  # failed row left as-was
         assert stale_b.status == "failed"
+        # 2026-10-09: the bad row rolls back ALONE. Before, its failed
+        # statement poisoned the shared transaction, so on Postgres the final
+        # commit undid every other row's refund too.
+        session.rollback.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_each_stale_check_commits_on_its_own(self, monkeypatch):
+        stale_a = _check("processing", started_min_ago=30)
+        stale_b = _check("processing", started_min_ago=40)
+        session, _ = _fake_sweep_session([stale_a, stale_b], monkeypatch)
+
+        assert await sweep_stale_checks(session=session) == 2
+        assert session.commit.await_count >= 2
 
 
 # ── W3: stream-duration bound is connection-only ─────────────────────────────

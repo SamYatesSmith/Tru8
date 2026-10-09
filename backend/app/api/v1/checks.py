@@ -666,7 +666,9 @@ async def create_check_sync(
 
     For URL/article inputs, claims are auto-selected (top-ranked, up to 5).
 
-    **Set your HTTP client timeout to at least 180s.**
+    Sends nothing until the run finishes, and the edge closes a connection
+    silent for ~125 s, so a slow run (URL inputs especially) can be cut off
+    while it completes. Agents: use `/agent/check?async=true` and poll.
 
     **Rate limit:** 10/minute
     """

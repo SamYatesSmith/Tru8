@@ -234,6 +234,11 @@ async def tru8_check(
     - claims[].claimMap.orientation — mechanical summary from element states
     - _meta — execution metadata: executedTier, chargedPence, limitations
 
+    A run that has not finished after several minutes returns
+    {checkId, status, chargedPence, message} instead of the result: fetch it
+    later with tru8_get_result (free). A run that FAILS raises an error and is
+    not charged.
+
     Per-argument guidance lives on the parameters themselves (see the
     Annotated/Field declarations above), which is where a client can actually
     read it — a docstring "Args:" block never reaches the tool's inputSchema.

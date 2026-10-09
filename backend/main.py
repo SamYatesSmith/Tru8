@@ -181,13 +181,21 @@ If a key is compromised, revoke it immediately via `DELETE /api/v1/api-keys/{id}
 
 ## Workflows
 
-### Synchronous — recommended for agents
+### Agents — submit, then poll
+```
+POST /api/v1/agent/check?async=true   → 202 {checkId, pollUrl}
+GET  /api/v1/agent/result/{checkId}   → status until completed, then the result
+```
+API keys use the metered `/agent/*` endpoints. Poll every few seconds rather
+than holding one connection: the edge closes a connection that stays silent
+for ~125 s.
+
+### Synchronous — signed-in Console users
 ```
 POST /api/v1/checks/run
 ```
-Single HTTP call. Blocks until complete (60-120s). Returns the full evidence
-landscape with claims, elements, evidence, and analytics.
-Set your HTTP client timeout to **at least 180 seconds**.
+Single HTTP call. Blocks until complete (60-120s, longer for URLs) and sends
+nothing until then, so a slow run can outlast the edge's ~125 s idle limit.
 URL inputs auto-select claims (top-ranked, up to 5).
 
 ### Streaming — for dashboards

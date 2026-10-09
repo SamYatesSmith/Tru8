@@ -155,6 +155,12 @@ def _resolve_input(claim: str, explicit_type: Optional[str] = None) -> tuple:
             "description": "Evidence landscape returned (check `_meta.executedTier` for which tier was used, `hit` for cache status)",
             "model": AgentCheckResponse,
         },
+        202: {
+            "description": (
+                "Accepted with `?async=true`: {checkId, status, tier, chargedPence, "
+                "txId, pollUrl}. Poll `pollUrl` (GET /agent/result/{checkId})."
+            ),
+        },
         402: {
             "description": "Insufficient credits or payment required",
             "model": ErrorResponse,
@@ -173,6 +179,7 @@ def _resolve_input(claim: str, explicit_type: Optional[str] = None) -> tuple:
 async def agent_smart_check(
     body: SmartCheckRequest,
     request: Request,
+    async_mode: bool = Query(False, alias="async"),
     payment: AgentPaymentContext = Depends(get_agent_payment),
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
@@ -184,6 +191,10 @@ async def agent_smart_check(
     You're only charged for the tier actually executed.
 
     **Fallback chain:** lookup → consensus → quick → full
+
+    Set `?async=true` to get a 202 with a `pollUrl` when the pipeline has to
+    run, instead of one silent connection for the whole run (proxies close a
+    connection idle for ~125 s). Cache and consensus hits still answer at once.
 
     **Response headers:** `X-Check-Id`, `X-Tru8-Tx-Id`
 
@@ -207,6 +218,7 @@ async def agent_smart_check(
             idempotency_key=idempotency_key,
             claim_hash=claim_hash,
             compact=body.compact,
+            async_mode=async_mode,
         )
         if replay is not None:
             return replay
@@ -419,6 +431,7 @@ async def agent_smart_check(
         payment=payment,
         session=session,
         idempotency_key=idempotency_key,
+        async_mode=async_mode,
         client=resolve_client(request),
     )
 
@@ -567,6 +580,7 @@ async def agent_lookup(
 async def get_agent_result(
     check_id: str,
     request: Request,
+    compact: bool = Query(False),
     identity: AgentIdentity = Depends(get_agent_identity),
     session: AsyncSession = Depends(get_session),
 ) -> JSONResponse:
@@ -607,6 +621,7 @@ async def get_agent_result(
         executed_tier=check.executed_tier or "full",
         charged_pence=0,
         limitations=limitations_for_tier(check.executed_tier),
+        compact=compact,
     )
 
     return JSONResponse(
@@ -639,6 +654,12 @@ QUICK_LIMITATIONS = limitations_for_tier("quick")
         200: {
             "description": "Evidence landscape (quick tier)",
             "model": AgentCheckResponse,
+        },
+        202: {
+            "description": (
+                "Accepted with `?async=true`: {checkId, status, tier, chargedPence, "
+                "txId, pollUrl}. Poll `pollUrl` (GET /agent/result/{checkId})."
+            ),
         },
         402: {
             "description": "Insufficient credits or payment required",
@@ -711,6 +732,12 @@ async def agent_quick(
             "description": "Complete evidence landscape (full tier)",
             "model": AgentCheckResponse,
         },
+        202: {
+            "description": (
+                "Accepted with `?async=true`: {checkId, status, tier, chargedPence, "
+                "txId, pollUrl}. Poll `pollUrl` (GET /agent/result/{checkId})."
+            ),
+        },
         402: {
             "description": "Insufficient credits or payment required",
             "model": ErrorResponse,
@@ -738,14 +765,16 @@ async def agent_full(
 
     Runs the full pipeline: fact-check lookup, web search and specialist providers (government,
     academic, news, data APIs), LLM classification, coverage recovery, and
-    query answering. Set your HTTP client timeout to at least 180 seconds.
+    query answering.
 
-    Set `?async=true` to receive a 202 Accepted immediately and poll
-    `/agent/result/{checkId}` for the completed result.
+    Prefer `?async=true`: a 202 Accepted arrives immediately and you poll
+    `/agent/result/{checkId}` for the completed result. A synchronous call holds
+    one silent connection for the whole run, and proxies close a connection
+    idle for ~125 s.
 
     **Response headers:** `X-Check-Id`, `X-Tru8-Tx-Id`
 
-    **Rate limit:** 10/minute
+    **Rate limit:** 5/minute
     """
     tier = "full"
     amount_pence = get_tier_price(tier)
@@ -775,6 +804,11 @@ async def agent_full(
 # Strong refs for fire-and-forget tasks so they aren't garbage-collected
 # mid-flight (same pattern as checks.py).
 _background_tasks: set = set()
+
+# A transaction whose money question is already answered: refunded (credit)
+# or failed (other rails). Every refund path skips these and only these —
+# the same rule as agent_refunds._ALREADY_SETTLED (2026-10-09).
+_SETTLED_TX_STATUSES = ("refunded", "failed")
 
 
 def _launch_archiving(check_id: str) -> None:
@@ -859,6 +893,7 @@ async def _run_agent_pipeline(
             limitations=limitations,
             compact=body.compact or False,
             max_wait_s=config.max_wall_time_seconds,
+            wait=not async_mode,
         )
 
     # Resolve input type (auto-detect URL from claim text)
@@ -889,7 +924,9 @@ async def _run_agent_pipeline(
 
     # --- Async mode: launch pipeline in background, return 202 immediately ---
     if async_mode:
-        asyncio.create_task(
+        # Held in _background_tasks: the event loop keeps only a weak
+        # reference to a task, so a bare create_task can be collected mid-run.
+        task = asyncio.create_task(
             _run_pipeline_background(
                 check_id=check.id,
                 user_id=payment.user_id,
@@ -901,6 +938,8 @@ async def _run_agent_pipeline(
                 amount_pence=amount_pence,
             )
         )
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
         estimated = 15 if tier == "quick" else 60
         return JSONResponse(
             status_code=202,
@@ -1069,6 +1108,7 @@ async def _replay_for_key(
     idempotency_key: str,
     claim_hash: str,
     compact: bool,
+    async_mode: bool = False,
 ) -> Optional[JSONResponse]:
     """Replay the check an Idempotency-Key already owns, or return None.
 
@@ -1100,6 +1140,7 @@ async def _replay_for_key(
             limitations=limitations_for_tier(tx.tier),
             compact=compact or False,
             max_wait_s=config.max_wall_time_seconds,
+            wait=not async_mode,
         )
     if disposition == "expired":
         return None
@@ -1116,6 +1157,7 @@ async def _idempotent_replay(
     compact: bool,
     max_wait_s: float,
     poll_s: float = 2.0,
+    wait: bool = True,
 ) -> JSONResponse:
     """Return the check an idempotent transaction already owns.
 
@@ -1123,6 +1165,9 @@ async def _idempotent_replay(
     in flight, then builds the normal agent response for it with
     ``chargedPence`` 0 — the first call paid. A failed original surfaces as
     502 exactly as its own call did; the refund happened there.
+
+    ``wait=False`` (async callers, 2026-10-09) never holds the connection: a
+    run still in flight answers 202 with the poll URL at once.
     """
     import time
 
@@ -1145,6 +1190,23 @@ async def _idempotent_replay(
         executed_tier = getattr(check, "executed_tier", None) or tier
         if status in ("completed", "failed", "error"):
             break
+        if not wait:
+            return JSONResponse(
+                status_code=202,
+                content={
+                    "checkId": check_id,
+                    "status": status,
+                    "tier": executed_tier,
+                    "chargedPence": 0,
+                    "txId": tx.id,
+                    "pollUrl": f"/api/v1/agent/result/{check_id}",
+                },
+                headers={
+                    "X-Check-Id": check_id,
+                    "X-Tru8-Tx-Id": tx.id,
+                    "X-Tru8-Idempotent-Replay": "1",
+                },
+            )
         if time.monotonic() >= deadline:
             raise HTTPException(
                 status_code=504,
@@ -1187,15 +1249,43 @@ async def _refund_and_fail_tx(
     amount_pence: int,
     session: AsyncSession,
 ) -> None:
-    """Refund credits and mark transaction as refunded/failed."""
-    if payment.provider == "credit":
-        from app.services.payments.credit_provider import refund_credits
+    """Refund credits and mark transaction as refunded/failed.
 
-        await refund_credits(payment.user_id, amount_pence, session)
-        tx.status = "refunded"
-    else:
-        tx.status = "failed"
-    await session.commit()
+    Locks the transaction FIRST (order tx → balance, the same as the async
+    failure branch, the shutdown guard and the stale sweep) and skips a
+    transaction already settled (refunded / failed): the guard or a sweep may
+    have paid it back, and a second refund would pay the caller twice
+    (2026-10-09). `completed` is NOT settled here — the sync path marks the
+    tx completed before building the response, and a build failure after
+    that must still refund.
+
+    Never raises: a failed refund is logged at ERROR and rolled back, so the
+    caller still reports the real error, marks the check failed and fires the
+    webhook.
+    """
+    try:
+        await session.refresh(tx, with_for_update=True)
+        if tx.status in _SETTLED_TX_STATUSES:
+            logger.info(f"[AGENT] tx {tx.id} already {tx.status}; no second refund")
+            await session.commit()
+            return
+        if payment.provider == "credit":
+            from app.services.payments.credit_provider import refund_credits
+
+            await refund_credits(payment.user_id, amount_pence, session)
+            tx.status = "refunded"
+        else:
+            tx.status = "failed"
+        await session.commit()
+    except Exception as e:  # noqa: BLE001 — must not mask the caller's error
+        logger.error(
+            f"[AGENT] Refund for tx {getattr(tx, 'id', '?')} failed: {e}",
+            exc_info=True,
+        )
+        try:
+            await session.rollback()
+        except Exception:  # noqa: BLE001
+            pass
 
 
 def _fire_agent_webhook_failed(user_id: str, check_id: str, error_msg: str) -> None:
@@ -1331,15 +1421,26 @@ async def _run_pipeline_background(
             f"[AGENT ASYNC] {tier.upper()} failed for check {check_id}: {error_msg}"
         )
 
-        # Refund + mark tx failed
+        # Refund + mark tx failed — unless already settled (refunded/failed),
+        # under a row lock. `unsettled` (the stale-pending sweeper marks
+        # without refunding) is still ours to return. The deploy-shutdown
+        # guard and the stale sweep refund the same transaction
+        # (agent_refunds.py); without the lock and the status check both could
+        # pay it back.
         async with async_session() as fail_session:
             from app.models.agent_transaction import AgentTransaction
 
             tx_result = await fail_session.execute(
-                select(AgentTransaction).where(AgentTransaction.id == tx_id)
+                select(AgentTransaction)
+                .where(AgentTransaction.id == tx_id)
+                .with_for_update()
             )
             tx = tx_result.scalar_one()
-            if provider == "credit":
+            if tx.status in _SETTLED_TX_STATUSES:
+                logger.info(
+                    f"[AGENT ASYNC] tx {tx_id} already {tx.status}; no second refund"
+                )
+            elif provider == "credit":
                 from app.services.payments.credit_provider import refund_credits
 
                 await refund_credits(user_id, amount_pence, fail_session)
@@ -1801,8 +1902,8 @@ async def agent_batch(
         tx.check_id = check.id
         await session.commit()
 
-        # Launch pipeline in background
-        asyncio.create_task(
+        # Launch pipeline in background (held, like the async run path)
+        task = asyncio.create_task(
             _run_pipeline_background(
                 check_id=check.id,
                 user_id=payment.user_id,
@@ -1814,6 +1915,8 @@ async def agent_batch(
                 amount_pence=amount_pence,
             )
         )
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
 
         results.append(
             {

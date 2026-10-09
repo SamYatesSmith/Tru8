@@ -80,12 +80,19 @@ async def fail_and_refund_inflight() -> int:
                     check.status = "failed"
                     check.error_message = SHUTDOWN_ERROR_MSG
                     session.add(check)
+                    # One transaction per check (2026-10-09). Holding one
+                    # across checks kept check A's owner's balance row locked
+                    # while asking for check B's transaction lock — the
+                    # reverse of an async run's own failure refund (tx, then
+                    # balance): a deadlock. It also let one failed statement
+                    # poison the session and undo every other refund.
+                    await session.commit()
                     failed += 1
                 except Exception as e:  # noqa: BLE001 — never abort the sweep
+                    await session.rollback()
                     logger.error(
                         f"[SHUTDOWN GUARD] Failed to clean check {check_id}: {e}"
                     )
-            await session.commit()
     except Exception as e:  # noqa: BLE001 — shutdown must not raise
         logger.error(f"[SHUTDOWN GUARD] Sweep failed: {e}")
         return failed
@@ -142,30 +149,39 @@ async def sweep_stale_checks(session=None) -> int:
         result = await sess.execute(
             select(Check).where(Check.status.in_(("processing", "pending")))
         )
-        for check in result.scalars().all():
-            started = (
-                (check.processing_started_at or check.created_at)
-                if check.status == "processing"
-                else check.created_at
-            )
-            if started is None or started >= cutoff:
-                continue
+        # Plain ids, read before any rollback. A rollback expires every loaded
+        # row — primary key included — and an async session cannot lazily
+        # refresh, so each check is fetched by id inside its own transaction.
+        check_ids = [c.id for c in result.scalars().all()]
+        for check_id in check_ids:
             try:
-                await refund_usage(sess, check.id)
+                check = await sess.get(Check, check_id)
+                if check is None or check.status not in ("processing", "pending"):
+                    continue
+                started = (
+                    (check.processing_started_at or check.created_at)
+                    if check.status == "processing"
+                    else check.created_at
+                )
+                if started is None or started >= cutoff:
+                    continue
+                await refund_usage(sess, check_id)
                 await refund_stranded_agent_transaction(
-                    sess, check.id, user_id=getattr(check, "user_id", None)
+                    sess, check_id, user_id=getattr(check, "user_id", None)
                 )
                 check.status = "failed"
                 check.error_message = STALE_ERROR_MSG
                 sess.add(check)
+                # One transaction per check — see fail_and_refund_inflight.
+                await sess.commit()
                 swept += 1
                 logger.warning(
-                    f"[BOOT SWEEP] Failed + refunded stale check {check.id} "
+                    f"[BOOT SWEEP] Failed + refunded stale check {check_id} "
                     f"(stuck since {started})"
                 )
             except Exception as e:  # noqa: BLE001 — never abort the sweep
-                logger.error(f"[BOOT SWEEP] Could not clean check {check.id}: {e}")
-        await sess.commit()
+                await sess.rollback()
+                logger.error(f"[BOOT SWEEP] Could not clean check {check_id}: {e}")
         return swept
 
     try:

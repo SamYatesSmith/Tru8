@@ -149,3 +149,46 @@ class TestFailAndRefund:
         refund.assert_awaited_once()
         agent_refund.assert_awaited_once_with(session, "c-agent", user_id="u-1")
         assert check.status == "failed"
+
+
+class TestOneCheckOneTransaction:
+    """2026-10-09: the guard used to hold ONE transaction across every check.
+    After refunding check A it held A's owner's balance row while asking for
+    check B's transaction lock; an async run failing B at that moment holds
+    B's lock and wants the same balance row — a deadlock. Each check now
+    commits on its own (lock order tx → balance everywhere), and a failure
+    rolls back only its own check."""
+
+    @pytest.mark.asyncio
+    async def test_each_check_commits_on_its_own(self, monkeypatch):
+        a = SimpleNamespace(id="c-a", status="processing", error_message=None)
+        b = SimpleNamespace(id="c-b", status="processing", error_message=None)
+        session, _ = _fake_db({"c-a": a, "c-b": b}, monkeypatch)
+        session.rollback = AsyncMock()
+        inflight_register("c-a")
+        inflight_register("c-b")
+
+        assert await fail_and_refund_inflight() == 2
+        assert session.commit.await_count >= 2
+
+    @pytest.mark.asyncio
+    async def test_a_failing_check_rolls_back_alone(self, monkeypatch):
+        a = SimpleNamespace(id="c-a", status="processing", error_message=None)
+        b = SimpleNamespace(id="c-b", status="processing", error_message=None)
+        session, _ = _fake_db({"c-a": a, "c-b": b}, monkeypatch)
+        session.rollback = AsyncMock()
+        import app.services.usage_ledger as ledger_mod
+
+        monkeypatch.setattr(
+            ledger_mod,
+            "refund_usage",
+            AsyncMock(side_effect=[RuntimeError("a broke"), True]),
+        )
+        inflight_register("c-a")
+        inflight_register("c-b")
+
+        assert await fail_and_refund_inflight() == 1
+        session.rollback.assert_awaited_once()
+        # The registry is a set: whichever check went first broke, the other
+        # still failed + refunded.
+        assert sorted([a.status, b.status]) == ["failed", "processing"]
