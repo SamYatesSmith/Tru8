@@ -12,6 +12,17 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-10-13 — PICK UP HERE (handoff from 2026-10-12)
+- **State:** `main` = origin = production = `c2caab4` (backend + web SUCCESS, health verified). Nothing unpushed. Working tree has unrelated uncommitted edits to `README.md`, `SYNOPSIS.md`, `.claude/settings.local.json` and untracked audit files — not touched this session.
+- **Shipped 2026-10-12:** `96fb823` failure messages (real reason shown, single full stop, honest email) · `fdf047c` async `/agent/check` + polling MCP client (deployed with it on founder approval) · `c2caab4` web `sharp` + writable `.next/cache` (images now WebP, cache HIT on repeat; web logs clean).
+- **Founder decisions waiting (ask one at a time):**
+  1. **Paid test of async `/agent/check?async=true`** (ask first). `/openapi.json` is not public in prod, so the route is unverified beyond the deploy.
+  2. **`tru8-mcp` 1.0.6 to PyPI + registry bump** (async client + 2026-09-11 idempotency fix; run `mcp-publisher validate`).
+  3. **Backend lock file** (only `pydantic` pinned; next transitive release can break a deploy).
+  4. Read Railway `TRU8_API_URL` (read-only).
+- **Then:** the 2026-10-09 list below (ledger decision, F2, F3/F4, characterisation tests), then A−.
+- **Method notes:** prod logs per day: `railway logs -s backend --since <ISO> --until <ISO> -n 5000` (a single `-n 20000` fails "Error in limit"); prod DB read-only via `railway ssh` + base64-piped script (stdin piping hangs). The suite takes ~18 min without Docker; 30 failures are Postgres/Redis connection-only.
+
 ## ▶ 2026-10-12 — "SITE DOWN" REPORT: NOT AN OUTAGE; FAILURE MESSAGES FIXED (local, NOT committed)
 - **Investigated (logs + prod DB, read-only):** prod `b8e269c` healthy. Since the tidy-up only two checks: `b918746c` (10 Oct, "Trump will cause world war 3") failed at EXTRACTION — Google, OpenAI and rule-based all found no checkable claim in a prediction (by design; extraction unchanged by the tidy-up) — and `c1d2a073` (12 Oct, Burnham/water) completed in 72 s, 19 sources, rendered with no console errors.
 - **Why it looked like an outage (all pre-date the tidy-up):** (1) `handle_pipeline_failure` re-ran the already-friendly `PipelineError` text through `get_user_friendly_error`, matched no key, and showed the generic "Something went wrong"; (2) refund line appended after a full stop → "again.. Your credit"; (3) the failure email hard-coded "during evidence gathering" and stated the refund twice (and cut the reason at 200 chars).
