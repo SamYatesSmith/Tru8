@@ -137,7 +137,11 @@ class EmailNotificationService:
             return False
 
     def send_check_failed_email_sync(
-        self, user_id: str, check_id: str, error_message: str
+        self,
+        user_id: str,
+        check_id: str,
+        error_message: str,
+        credit_refunded: bool = True,
     ) -> bool:
         """
         Send email when an evidence research check fails (SYNC version for Celery workers).
@@ -167,7 +171,9 @@ class EmailNotificationService:
                 )
 
                 html_content = self._render_check_failed_template(
-                    check_id=check_id, error_message=error_message
+                    check_id=check_id,
+                    error_message=error_message,
+                    credit_refunded=credit_refunded,
                 )
 
                 return self._send_email(
@@ -366,12 +372,22 @@ class EmailNotificationService:
 </html>
 """
 
-    def _render_check_failed_template(self, check_id: str, error_message: str) -> str:
-        """Render check failed email HTML"""
+    def _render_check_failed_template(
+        self, check_id: str, error_message: str, credit_refunded: bool = True
+    ) -> str:
+        """Render check failed email HTML.
+
+        ``error_message`` is the bare reason; the refund is stated once, here.
+        The intro names no stage: a check can stop at ingest, extraction or
+        later, and the reason below says which.
+        """
         frontend_url = settings.FRONTEND_URL
 
         # Sanitize and truncate error message
-        safe_error = error_message[:200].replace("<", "&lt;").replace(">", "&gt;")
+        safe_error = error_message[:400].replace("<", "&lt;").replace(">", "&gt;")
+        refund_line = (
+            " Your credit has been returned &mdash; no charge." if credit_refunded else ""
+        )
 
         return f"""
 <!DOCTYPE html>
@@ -402,7 +418,7 @@ class EmailNotificationService:
           </h2>
 
           <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
-            Something went wrong during evidence gathering. Your credit has been returned &mdash; no charge.
+            The check stopped before it finished.{refund_line}
           </p>
 
           <!-- Error detail -->

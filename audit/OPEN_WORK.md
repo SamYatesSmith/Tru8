@@ -12,6 +12,13 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-10-12 — "SITE DOWN" REPORT: NOT AN OUTAGE; FAILURE MESSAGES FIXED (local, NOT committed)
+- **Investigated (logs + prod DB, read-only):** prod `b8e269c` healthy. Since the tidy-up only two checks: `b918746c` (10 Oct, "Trump will cause world war 3") failed at EXTRACTION — Google, OpenAI and rule-based all found no checkable claim in a prediction (by design; extraction unchanged by the tidy-up) — and `c1d2a073` (12 Oct, Burnham/water) completed in 72 s, 19 sources, rendered with no console errors.
+- **Why it looked like an outage (all pre-date the tidy-up):** (1) `handle_pipeline_failure` re-ran the already-friendly `PipelineError` text through `get_user_friendly_error`, matched no key, and showed the generic "Something went wrong"; (2) refund line appended after a full stop → "again.. Your credit"; (3) the failure email hard-coded "during evidence gathering" and stated the refund twice (and cut the reason at 200 chars).
+- **Fix:** `PipelineError(user_facing=True)` on the four friendly raises (ingest ×2, extract ×2) is shown verbatim; raw-exception PipelineErrors stay generic. Single full stop. Email gets the bare reason + `credit_refunded`, says "The check stopped before it finished." and states the refund once (only if refunded). Tests: `tests/unit/test_failure_messages.py` (seen failing first; mutation-checked) + wiring asserts in `test_runner.py`.
+- **Owed:** commit; push is a founder call because it ALSO deploys the unpushed `fdf047c` (see 2026-10-10 below).
+- **Noted, not fixed:** web container lacks `sharp` and cannot write `.next/cache` (images unoptimised; pages fine).
+
 ## ▶ 2026-10-10 — PICK UP HERE (handoff from 2026-10-09)
 - **State:** `main` is 2 commits AHEAD of origin, NOT pushed: `fdf047c` (async `/agent/check` + polling MCP client + refund-safety fixes) and the handoff docs commit after it. Production runs `b8e269c` (SSE gzip fix + pydantic pin, live and verified).
 - **Founder decisions waiting (ask one at a time):**

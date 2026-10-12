@@ -813,6 +813,11 @@ def get_user_friendly_error(error: Exception) -> str:
     stack traces, internal paths) to users.  Anything unrecognised gets a
     generic message; the full error is still logged server-side.
     """
+    # A message already written for the user is shown as-is. Running it
+    # through the key lookup a second time matched nothing and replaced every
+    # specific reason with the generic text (check b918746c, 2026-10-12).
+    if isinstance(error, PipelineError) and error.user_facing:
+        return error.message
     error_str = str(error).lower()
     for key, message in USER_FRIENDLY_ERRORS.items():
         if key in error_str:
@@ -827,10 +832,20 @@ def get_user_friendly_error(error: Exception) -> str:
 class PipelineError(Exception):
     """Custom exception for pipeline failures."""
 
-    def __init__(self, message: str, stage: str = "unknown", recoverable: bool = False):
+    def __init__(
+        self,
+        message: str,
+        stage: str = "unknown",
+        recoverable: bool = False,
+        user_facing: bool = False,
+    ):
         self.message = message
         self.stage = stage
         self.recoverable = recoverable
+        # True only when ``message`` is safe to show the user verbatim (written
+        # for them, or already passed through get_user_friendly_error). Never
+        # set it on a message that embeds a raw exception.
+        self.user_facing = user_facing
         super().__init__(message)
 
 
@@ -949,12 +964,16 @@ async def run_pipeline_phase1(
         import traceback
 
         logger.error(f"[INLINE PIPELINE] Ingest traceback: {traceback.format_exc()}")
-        raise PipelineError(get_user_friendly_error(e), stage="ingest") from e
+        raise PipelineError(
+            get_user_friendly_error(e), stage="ingest", user_facing=True
+        ) from e
 
     if not content.get("success"):
         error_msg = content.get("message") or content.get("error", "Unknown error")
         raise PipelineError(
-            get_user_friendly_error(Exception(error_msg)), stage="ingest"
+            get_user_friendly_error(Exception(error_msg)),
+            stage="ingest",
+            user_facing=True,
         )
 
     stage_timings["ingest"] = (datetime.now(timezone.utc) - stage_start).total_seconds()
@@ -996,7 +1015,9 @@ async def run_pipeline_phase1(
         logger.error(
             f"[STAGE ERROR] check={check_id} stage=extract error={type(e).__name__}: {e}"
         )
-        raise PipelineError(get_user_friendly_error(e), stage="extract") from e
+        raise PipelineError(
+            get_user_friendly_error(e), stage="extract", user_facing=True
+        ) from e
 
     if not claims:
         raise PipelineError(
@@ -1005,6 +1026,7 @@ async def run_pipeline_phase1(
             "'The Eiffel Tower was completed in 1889'. "
             "Questions are accepted if they imply a verifiable claim.",
             stage="extract",
+            user_facing=True,
         )
 
     # Claim integrity (E — audit/CLAIM_INTEGRITY.md §4a): a single-sentence
@@ -3989,10 +4011,11 @@ async def handle_pipeline_failure(
         # Refund credit
         credit_refunded = await refund_check_credit_async(check_id, user_id, session)
 
-        # Build error message
-        error_msg = get_user_friendly_error(error)
+        # Build error message. ``reason`` already ends in a full stop.
+        reason = get_user_friendly_error(error)
+        error_msg = reason
         if credit_refunded:
-            error_msg = f"{error_msg}. Your credit has been returned."
+            error_msg = f"{reason.rstrip('.')}. Your credit has been returned."
 
         # Update status
         stmt = select(Check).where(Check.id == check_id)
@@ -4014,8 +4037,12 @@ async def handle_pipeline_failure(
             logger.warning(f"Push notification failed: {e}")
 
         try:
+            # The email states the refund itself, so it gets the bare reason.
             email_notification_service.send_check_failed_email_sync(
-                user_id=user_id, check_id=check_id, error_message=error_msg[:200]
+                user_id=user_id,
+                check_id=check_id,
+                error_message=reason,
+                credit_refunded=credit_refunded,
             )
         except Exception as e:
             logger.warning(f"Email notification failed: {e}")

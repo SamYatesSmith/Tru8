@@ -617,6 +617,9 @@ class TestRunPipelinePhase1:
         with pytest.raises(PipelineError) as exc_info:
             await run_pipeline_phase1("chk-1", "usr-1", {}, reporter)
         assert exc_info.value.stage == "extract"
+        # The specific reason must survive handle_pipeline_failure (2026-10-12).
+        assert exc_info.value.user_facing is True
+        assert "couldn't extract" in get_user_friendly_error(exc_info.value)
 
     @patch(
         "app.pipeline.runner.get_cache_service",
@@ -767,3 +770,4 @@ class TestRunPipelinePhase1:
             await run_pipeline_phase1("chk-1", "usr-1", {}, reporter)
         assert exc_info.value.stage == "ingest"
         assert "couldn't reach" in exc_info.value.message.lower()
+        assert exc_info.value.user_facing is True
