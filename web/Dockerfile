@@ -69,6 +69,11 @@ COPY --from=builder /app/web/.next/standalone ./
 COPY --from=builder /app/web/public ./web/public
 COPY --from=builder /app/web/.next/static ./web/.next/static
 
+# Next writes its prerender (ISR) and optimised-image caches to web/.next/cache
+# at runtime. Owned by root after COPY, so the nextjs user got EACCES on every
+# write and nothing was cached (2026-10-12).
+RUN mkdir -p web/.next/cache && chown -R nextjs:nodejs web/.next
+
 USER nextjs
 
 EXPOSE 3000
