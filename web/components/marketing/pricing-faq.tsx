@@ -106,6 +106,14 @@ export function PricingFaq() {
                 Evidence research for AI agents — how the pipeline works in automated workflows
               </Link>
             </li>
+            <li>
+              <Link
+                href="/blog/first-public-release"
+                className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+              >
+                Tru8 — A First Public Release — what the platform does and why it exists
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
