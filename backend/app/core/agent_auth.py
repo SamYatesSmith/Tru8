@@ -102,7 +102,11 @@ class AgentPaymentContext(AgentIdentity):
 
         # Credit provider: check and debit balance
         if self.provider == "credit":
+            from app.services.payment_hold import assert_no_payment_hold
             from app.services.payments.credit_provider import debit_credits
+
+            # Prepaid credits are frozen while a payment dispute is open.
+            await assert_no_payment_hold(self.session, self.user_id)
 
             debited = await debit_credits(self.user_id, amount_pence, self.session)
             if not debited:

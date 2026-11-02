@@ -175,6 +175,12 @@ async def enforce_usage_limit(
     )
     locked_user = locked_result.scalar_one()
 
+    # An open payment dispute stops all spending, admins included
+    # (app/services/payment_hold.py). Checked before the admin bypass.
+    from app.services.payment_hold import assert_no_payment_hold
+
+    await assert_no_payment_hold(session, locked_user.id)
+
     if _is_admin(locked_user):
         logger.info(f"Admin bypass: {locked_user.email} - skipping credit limit check")
         return locked_user

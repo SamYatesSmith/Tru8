@@ -104,6 +104,11 @@ async def create_checkout_session(
                 status_code=400, detail="User already has an active subscription"
             )
 
+        # No new purchase while a payment dispute is open (payment_hold.py).
+        from app.services.payment_hold import assert_no_payment_hold
+
+        await assert_no_payment_hold(session, user.id)
+
         # Reuse or create Stripe customer
         customer_id = await _get_or_create_stripe_customer(user, session)
 
@@ -139,6 +144,8 @@ async def create_checkout_session(
             session_id=checkout_session.id, url=checkout_session.url
         )
 
+    except HTTPException:
+        raise  # payment hold (403), already subscribed (400): shown as written
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error creating checkout session: {e}")
         raise HTTPException(
@@ -171,6 +178,7 @@ async def stripe_webhook(
     # Idempotency: skip duplicate event deliveries (72h TTL in Redis,
     # matching Stripe's 72h retry window)
     event_id = event["id"]
+    dedupe = None  # (client, key) once claimed; released if the handler fails
     try:
         from app.core.redis import get_redis
 
@@ -181,6 +189,7 @@ async def stripe_webhook(
                 logger.info(f"Duplicate Stripe event {event_id}, skipping")
                 return {"status": "success"}
             await redis_client.set(cache_key, "1", ex=259200)  # 72h
+            dedupe = (redis_client, cache_key)
     except Exception:
         pass  # Degrade gracefully if Redis unavailable
 
@@ -216,6 +225,11 @@ async def stripe_webhook(
             dispute = event["data"]["object"]
             await handle_charge_dispute(dispute, session)
 
+        elif event["type"] in ("charge.dispute.updated", "charge.dispute.closed"):
+            from app.services.payment_hold import record_dispute
+
+            await record_dispute(session, event["data"]["object"])
+
         elif event["type"] == "invoice.payment_failed":
             invoice = event["data"]["object"]
             await handle_invoice_payment_failed(invoice, session)
@@ -234,6 +248,14 @@ async def stripe_webhook(
         logger.error(
             f"Webhook handler failed for event {event_id} ({event['type']}): {e}"
         )
+        # Release the dedupe claim, or Stripe's retry of this very event is
+        # skipped as a duplicate and the event is lost for good (review
+        # 2026-11-02: a lost dispute event is a lost payment hold).
+        if dedupe:
+            try:
+                await dedupe[0].delete(dedupe[1])
+            except Exception:
+                pass
         raise HTTPException(status_code=500, detail="Webhook handler error") from e
 
     return {"status": "success"}
@@ -568,9 +590,35 @@ async def _revoke_credits_for_charge(
 
 
 async def handle_charge_refunded(charge: dict, session: AsyncSession) -> None:
-    """F-PAY-03: Stripe charge refunded — revoke matching subscription credits."""
+    """F-PAY-03: Stripe charge refunded — revoke matching subscription credits.
+
+    A FULL refund of a subscription payment also cancels that subscription in
+    Stripe (founder decision 2026-11-02): before, the subscription stayed
+    active and the next renewal reset the allowance, so a refunded annual plan
+    kept its 200 checks a month. Stripe then sends
+    customer.subscription.deleted, which ends it on our side as usual.
+    """
     await _revoke_credits_for_charge(charge, session, reason="REFUND")
     await session.commit()
+
+    if charge.get("refunded") is not True or not charge.get("id"):
+        return
+    # The webhook payload follows the endpoint's API version (2025-09-30.clover),
+    # which no longer carries `invoice` on a charge. The SDK pins its own
+    # requests to an older version that does, so read the charge back.
+    full = stripe.Charge.retrieve(charge["id"])
+    invoice_id = full.get("invoice")
+    if not invoice_id:
+        return  # a credit pack or one-off payment: nothing to cancel
+    sub_id = stripe.Invoice.retrieve(invoice_id).get("subscription")
+    if not sub_id:
+        return
+    if stripe.Subscription.retrieve(sub_id).get("status") == "canceled":
+        return  # already the outcome we want
+    stripe.Subscription.cancel(sub_id)
+    logger.warning(
+        f"[REFUND] full refund of {charge.get('id')}: cancelled subscription {sub_id}"
+    )
 
 
 async def handle_charge_dispute(dispute: dict, session: AsyncSession) -> None:
@@ -578,16 +626,19 @@ async def handle_charge_dispute(dispute: dict, session: AsyncSession) -> None:
 
     Stripe will follow up with a ``charge.dispute.closed`` event for the
     outcome; for now we treat the dispute as cash-loss until proven otherwise."""
+    from app.services.payment_hold import record_dispute
+
+    # The hold is what stops a disputer spending (payment_hold.py). Failures
+    # RAISE so the webhook returns 500 and Stripe retries — a swallowed
+    # Charge.retrieve error used to lose the event silently.
+    await record_dispute(session, dispute)
+
     # Dispute objects reference a charge id (string).
     charge_id = dispute.get("charge")
     if not charge_id:
-        logger.warning("Dispute event with no charge id; skipping")
+        logger.warning("Dispute event with no charge id; skipping revoke")
         return
-    try:
-        charge = stripe.Charge.retrieve(charge_id)
-    except Exception as e:
-        logger.error(f"Could not retrieve charge {charge_id} for dispute: {e}")
-        return
+    charge = stripe.Charge.retrieve(charge_id)
     await _revoke_credits_for_charge(charge, session, reason="DISPUTE")
     await session.commit()
 

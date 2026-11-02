@@ -111,6 +111,11 @@ async def create_comparison(
     if request.evidenceA == request.evidenceB:
         raise HTTPException(status_code=422, detail="invalid_pair")
 
+    # A comparison spends a model call; none while a dispute is open.
+    from app.services.payment_hold import assert_no_payment_hold
+
+    await assert_no_payment_hold(session, current_user["id"])
+
     claim = await _load_claim(session, check_id, claim_id)
     evidence_a = await _load_shown_evidence(session, claim_id, request.evidenceA)
     evidence_b = await _load_shown_evidence(session, claim_id, request.evidenceB)

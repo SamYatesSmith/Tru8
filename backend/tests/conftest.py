@@ -24,6 +24,33 @@ from fixtures.conftest import *
 
 
 @pytest.fixture(autouse=True)
+def _no_payment_hold_unless_tested(request, monkeypatch):
+    """Default: nobody is on payment hold.
+
+    Many older unit tests drive a mocked session with a fixed sequence of
+    query results; the hold lookup (2026-11-02) would consume one of them.
+    The hold itself is tested on a real session in test_payment_hold.py,
+    which opts out of this default.
+    """
+    if request.node.get_closest_marker("real_payment_hold") or (
+        request.module.__name__.endswith("test_payment_hold")
+    ):
+        yield
+        return
+    try:
+        import app.services.payment_hold as _ph
+    except Exception:
+        yield
+        return
+
+    async def _never_held(session, user_id):
+        return False
+
+    monkeypatch.setattr(_ph, "has_payment_hold", _never_held)
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _reset_google_ai_client():
     """Reset the google_ai module-level singleton between tests.
 

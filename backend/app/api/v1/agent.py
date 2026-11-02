@@ -1569,6 +1569,11 @@ async def purchase_credits(
     if body.pack not in pack_map:
         raise HTTPException(status_code=400, detail="Invalid pack. Choose 20 or 100.")
 
+    # No new purchase while a payment dispute is open (payment_hold.py).
+    from app.services.payment_hold import assert_no_payment_hold
+
+    await assert_no_payment_hold(session, identity.user_id)
+
     price_id, pence_value = pack_map[body.pack]
     if not price_id:
         raise HTTPException(

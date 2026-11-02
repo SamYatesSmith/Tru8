@@ -429,6 +429,11 @@ async def purchase_agent_credits(
     """
     user = await get_or_create_user(session, current_user)
 
+    # No new purchase while a payment dispute is open (payment_hold.py).
+    from app.services.payment_hold import assert_no_payment_hold
+
+    await assert_no_payment_hold(session, user.id)
+
     pack_map = {
         "20": (settings.STRIPE_PRICE_ID_CREDIT_PACK_20, 300),
         "100": (settings.STRIPE_PRICE_ID_CREDIT_PACK_100, 1500),
