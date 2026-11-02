@@ -11,3 +11,6 @@ black==24.3.0  # Updated from 23.12.1 (PYSEC-2024-48)
 isort==5.13.2
 mypy==1.8.0
 python-dotenv==1.0.0
+# tests/unit/test_sweep_real_session.py runs the sweep against a real ORM
+# session on SQLite; without aiosqlite CI errors before the test runs.
+aiosqlite==0.19.0

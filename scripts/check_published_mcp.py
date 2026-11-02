@@ -41,10 +41,13 @@ from __future__ import annotations
 
 import json
 import os
+import queue
 import shutil
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 import venv
 from pathlib import Path
 
@@ -93,31 +96,70 @@ def _handshake(python: Path) -> tuple[bool, set[str], str]:
     env["TRU8_API_KEY"] = "tru8_sk_health_check_not_a_real_key"
     env["TRU8_API_URL"] = "https://api.trueight.com"
 
-    proc = subprocess.run(
+    # stdin must stay OPEN until the tools/list reply arrives. Closing it at once
+    # (subprocess.run(input=...)) ends the session while tools/list is still in
+    # flight: the server logs "Processing request of type ListToolsRequest" and
+    # exits without replying. That race failed this monitor on ~1 run in 7 in CI
+    # and 11 of 20 locally (2026-11-02) against a package that works — a real
+    # client keeps the stream open, so users never saw it.
+    proc = subprocess.Popen(
         [str(python), "-m", MODULE],
-        input=payload,
-        capture_output=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
-        timeout=HANDSHAKE_TIMEOUT,
         env=env,
     )
+    lines: queue.Queue[str | None] = queue.Queue()
+
+    def _pump() -> None:
+        for raw in proc.stdout:
+            lines.put(raw)
+        lines.put(None)
+
+    err_chunks: list[str] = []
+    threading.Thread(target=_pump, daemon=True).start()
+    # Drain stderr as well, so a chatty server cannot block on a full pipe.
+    err_thread = threading.Thread(
+        target=lambda: err_chunks.append(proc.stderr.read()), daemon=True
+    )
+    err_thread.start()
+    proc.stdin.write(payload)
+    proc.stdin.flush()
 
     initialized = False
-    tools: set[str] = set()
-    for line in proc.stdout.splitlines():
-        line = line.strip()
-        if not line:
-            continue
+    tools: set[str] | None = None
+    deadline = time.monotonic() + HANDSHAKE_TIMEOUT
+    try:
+        while tools is None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(proc.args, HANDSHAKE_TIMEOUT)
+            try:
+                line = lines.get(timeout=remaining)
+            except queue.Empty:
+                continue
+            if line is None:  # server exited
+                break
+            try:
+                msg = json.loads(line.strip())
+            except json.JSONDecodeError:
+                continue
+            if msg.get("id") == 1 and "result" in msg:
+                initialized = True
+            if msg.get("id") == 2:
+                tools = {t.get("name") for t in msg.get("result", {}).get("tools", [])}
+    finally:
+        proc.stdin.close()
         try:
-            msg = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if msg.get("id") == 1 and "result" in msg:
-            initialized = True
-        if msg.get("id") == 2 and "result" in msg:
-            tools = {t.get("name") for t in msg["result"].get("tools", [])}
+            proc.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+    err_thread.join(timeout=5)
+    stderr = "".join(err_chunks)
 
-    return initialized, tools, (proc.stderr or "").strip()
+    return initialized, tools or set(), (stderr or "").strip()
 
 
 def main() -> int:

@@ -12,6 +12,12 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-11-02 — FAILURE EMAILS TRIAGED: NO PRODUCTION FAULT
+- **Production health (MCP package) emails were a monitor race, not a broken package.** `scripts/check_published_mcp.py` closed stdin straight after sending `tools/list`, so the server sometimes exited before replying (4 of ~28 scheduled runs; 11/20 locally). Now keeps stdin open until the reply; 0/20 misses, full monitor passes on `tru8-mcp` 1.0.5 + mcp 1.30.0.
+- **CI was red on every push since 2026-10-07:** `test_refresh_characterisation` compared wall-clock `seconds` (Windows rounds to 0.0, Linux does not) — now zeroed in `_normalise`, golden unchanged; and `aiosqlite` (needed by `test_sweep_real_session` since 2026-10-12) was missing from `requirements-dev.txt` — added.
+- **Sentry:** no backend issues in 30 days. JAVASCRIPT-NEXTJS-5 (`getReader`, /privacy-policy) has Deno `ext:core` frames — a scraper, not a browser; NEXTJS-A is one network blip.
+- Still owed (unchanged): `tru8-mcp` 1.0.6 to PyPI, backend lock file — see 2026-10-13 below.
+
 ## ▶ 2026-10-13 — PICK UP HERE (handoff from 2026-10-12)
 - **State:** `main` = origin = production = `c2caab4` (backend + web SUCCESS, health verified). Nothing unpushed. Working tree has unrelated uncommitted edits to `README.md`, `SYNOPSIS.md`, `.claude/settings.local.json` and untracked audit files — not touched this session.
 - **Shipped 2026-10-12:** `96fb823` failure messages (real reason shown, single full stop, honest email) · `fdf047c` async `/agent/check` + polling MCP client (deployed with it on founder approval) · `c2caab4` web `sharp` + writable `.next/cache` (images now WebP, cache HIT on repeat; web logs clean).

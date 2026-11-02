@@ -32,10 +32,25 @@ GOLDEN = Path(__file__).parent / "fixtures" / "refresh_characterisation.json"
 UPDATE = os.environ.get("REFRESH_CHARACTERISATION_UPDATE") == "1"
 
 
+def _zero_seconds(obj):
+    """Wall-clock call timings are not output. Windows' monotonic clock rounds a
+    mocked call to 0.0 while Linux reports ~1e-4, so CI failed this test on every
+    push from 2026-10-07 while it passed locally."""
+    if isinstance(obj, dict):
+        return {k: 0.0 if k == "seconds" else _zero_seconds(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_zero_seconds(v) for v in obj]
+    return obj
+
+
 def _normalise(obj):
     """What storage sees: enums by value, keys sorted (JSONB + sort_keys)."""
-    return json.loads(
-        json.dumps(obj, sort_keys=True, default=lambda o: getattr(o, "value", str(o)))
+    return _zero_seconds(
+        json.loads(
+            json.dumps(
+                obj, sort_keys=True, default=lambda o: getattr(o, "value", str(o))
+            )
+        )
     )
 
 
