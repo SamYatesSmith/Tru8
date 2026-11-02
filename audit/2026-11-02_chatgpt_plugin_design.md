@@ -176,3 +176,42 @@ Verdict: *proceed to P0 after fixes*. Blockers 1 and 2 were confirmed against th
 3. Countries.
 4. Starter credit.
 5. Individual vs business verification.
+
+## P0 results (2026-11-02, Clerk DEV instance `simple-polecat-98`, no production change)
+Setup: CIMD + JWT access tokens enabled on DEV by the founder. A temporary public OAuth client was created via the Backend API, put through one auth-code + PKCE flow (with `resource=https://api.trueight.com/mcp/`), then **deleted, and its tokens destroyed**.
+
+**Authorization server metadata (dev):**
+- `client_id_metadata_document_supported: true`, `code_challenge_methods_supported: [S256]`.
+- No `registration_endpoint` (DCR off).
+- `scopes_supported`: openid, profile, email, public_metadata, private_metadata, offline_access (no custom scope yet).
+- A device-code grant is also offered.
+- **Same `jwks_uri` and `kid` as session tokens.**
+
+**Claims observed (names only):**
+
+| | header `typ` | aud | sid | client_id | scope | other |
+|---|---|---|---|---|---|---|
+| OAuth **access** token | `at+jwt` | **none** | none | yes | yes | jti `oat_…` |
+| OIDC **ID** token | `JWT` | `[client_id]` | **yes** | none | none | at_hash, email, name |
+| Dashboard **session** token (minted via Backend API) | `JWT` (+ header `cat`) | none | yes | none | none | `v`, `fva`, `sts`; no `azp` when minted server-side |
+
+**H1 confirmed in practice:** the current `_verify_jwt_token` (dev config, `CLERK_JWT_AUDIENCE` unset) **ACCEPTED both the access token and the ID token** as dashboard sessions.
+
+**Findings that change the design:**
+1. **`resource` is ignored:** the access token has NO `aud`. Each OAuth application has an **`audience_uri`** field (null here), which is probably how `aud` is set. For CIMD clients (no stored app) this is unknown, so test it at P2 with a CIMD client. Until then, bind by **`client_id` allowlist + custom scope** (R3), not `aud`.
+2. **The reviewer's discriminator needs correcting:** "require `sid`" does NOT exclude ID tokens, which carry `sid`. "Require `azp`" would reject server-minted session tokens. **Session check rule (P1):**
+   - header `typ` ≠ `at+jwt`;
+   - no `client_id`, no `scope`;
+   - no `aud`, unless `CLERK_JWT_AUDIENCE` is set and matches;
+   - `sid` present and `v` present;
+   - if `azp` is present it must be in the web-origin allowlist.
+   - Negative tests use access- and ID-token claim shapes like those above; positive tests use the session shape.
+3. **OAuth check rule (P2):**
+   - `typ == at+jwt`;
+   - `client_id` in the allowlist;
+   - required custom scope present;
+   - issuer, signature and expiry valid;
+   - `sub` maps to an existing user (no auto-create).
+4. Token lifetimes as documented: access tokens 1 day, refresh tokens never expire (R11 stands).
+
+**⚠ Production:** the founder must NOT enable OAuth/CIMD on the production Clerk instance until P1 is deployed and verified. Whether Railway sets `CLERK_JWT_AUDIENCE` is unknown. Even if it is set, the session check must still reject `at+jwt`.
