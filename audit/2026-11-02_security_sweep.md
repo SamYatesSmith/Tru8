@@ -54,6 +54,7 @@ Noted, not exploitable: Stripe event dedupe is written before the handler, so a 
   - **#6 Sentry:** credential redaction across the query string, breadcrumbs (httpx `http.query`, log messages), exception values, `logentry` and `message`. Covers `key=`, `apikey=`, `api_key=`, `token=`, `tru8_sk_…` and Google `AIza…` keys.
   - **#8 error text:** 13 response sites no longer echo exception text (payments ×6, users ×3, checks ×2, agent ×2 + webhook payload, x402 ×2). Pipeline failures use `get_user_friendly_error`.
   - **Each fix has tests that fail on the old code.**
+- **Post-deploy (founder, 2026-11-02):** a real dashboard sign-in works under the new session check.
 - **Production pre-check (founder screenshot):** the Production "Customize session token" claims are `{}`, so there is no lockout risk from the shape check.
 - **Batch B (#2) DONE 2026-11-02:** connection-level validation for every attacker-influenced fetch (evidence, PDF, fact-check, Compare, title recovery, webhooks) — every redirect hop, pinned to the checked address. Record: `audit/2026-11-02_safe_fetch_design.md`. Remaining in #2: ingest `safe_get` (`requests`) still resolves twice.
 - **Open:** Batch C (#1 dispute behaviour — founder; #5 upload keys; #7 `/metrics` + PDF limit). `ENABLE_CLERK_AZP_ENFORCEMENT` stays off until production logs show the real `azp` values ("Clerk session azp not allowlisted").
