@@ -53,3 +53,25 @@ ChatGPT can only be a way in for users who already pay Tru8. It cannot sign up n
 
 ## Next step
 This is difficulty ≥3 (auth plus a protocol change), so it needs a design and review before any build. Step one: check whether Clerk can be the OAuth server. That decides whether this is days or weeks of work.
+
+## Clerk as the OAuth server (checked 2026-11-02, docs only)
+**Yes, Clerk can be the authorization server.** No custom OAuth server is needed.
+- **Client registration:** Clerk supports both ways ChatGPT registers itself: **CIMD** (generally available per the 2026-09-17 changelog; one docs page still says Beta, so check the dashboard) and **dynamic client registration** (a "Publish DCR support" toggle under OAuth applications, Settings).
+  - Clerk recommends CIMD because DCR opens a public registration endpoint.
+  - Turning on DCR forces the consent screen on.
+- **PKCE and consent:** PKCE S256 is required for CIMD clients, and the consent screen is always shown.
+- **Default scopes:** can be set for clients that omit `scope`. Clerk names ChatGPT and Claude as such clients.
+- **Token checking:** Clerk OAuth access tokens are JWTs or opaque. A JWT is checked against the instance's public keys, which our backend already uses for Clerk sessions. An opaque token is checked with a Clerk REST verify endpoint and our secret key.
+- **Official examples:** Express and Next.js only (`@clerk/mcp-tools`, `clerk/mcp-express-example`). We're Python/FastAPI, so we'd write the small pieces ourselves:
+  1. `/.well-known/oauth-protected-resource` and a pointer to the authorization server metadata.
+  2. A 401 with `WWW-Authenticate` on `/mcp` when no token is sent.
+  3. Bearer token checking on `/mcp`: signature, issuer, expiry, and audience/resource. Whether Clerk puts our resource URL in `aud` is **unconfirmed**; test it on a dev instance.
+  4. Mapping the token's `sub` (a Clerk user ID) to the Tru8 user. This already exists for dashboard sign-in.
+
+### Revised effort
+- **Auth:** days, not weeks. It's a few dashboard settings plus roughly four small backend pieces and their tests.
+- **The open design question is how hosted `/mcp` acts for the user.** Today the tools call our own API with the caller's API key. With OAuth they need either to forward the bearer token, with the API's dual auth accepting Clerk OAuth tokens, or to resolve the user inside the process.
+- **The ~60 s tool timeout is still the harder problem.** It's a design change to `tru8_check` for ChatGPT, and the limit is unconfirmed.
+- **Unconfirmed:** whether Clerk's OAuth provider is included on our Clerk plan. Check the dashboard (founder).
+
+Sources: clerk.com/docs/guides/configure/auth-strategies/oauth/how-clerk-implements-oauth · clerk.com/docs/guides/configure/auth-strategies/oauth/client-id-metadata-documents · clerk.com/changelog/2026-09-17-client-id-metadata-documents-ga · clerk.com/docs/guides/configure/auth-strategies/oauth/verify-oauth-tokens · clerk.com/docs/expressjs/guides/ai/mcp/build-mcp-server · clerk.com/changelog/2025-06-13-oauth-improvements
