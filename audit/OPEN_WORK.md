@@ -12,6 +12,42 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-11-03 — PICK UP HERE (handoff from 2026-11-02)
+- **State:** `main` = origin = production = `c3f9a72` (CI green, health verified). Nothing unpushed. The working tree has the founder's own uncommitted edits (`README.md`, `SYNOPSIS.md`, `.claude/settings.local.json`) and untracked audit files. Leave them alone. `backend/tru8_mcp/dist106/` is the 1.0.6 release folder; it is untracked and safe to delete.
+- **Shipped 2026-11-02:**
+  - `d9195c0`: failure emails triaged. The cause was the monitor race and CI, not prod.
+  - `c0a4949`: tru8-mcp 1.0.6 on PyPI, the registry and the mirror.
+  - `101cce4`: `constraints.txt` lock.
+  - `0503a32`: session-token shape check plus sweep Batch A.
+  - `e9777ec`: SSRF safe fetch.
+  - `efed6cb`: uploads, /metrics, PDF limits, real client IP.
+  - `fe33a77`: payment hold.
+  - `c3f9a72`: Stripe clover webhooks.
+  - Detail is in the entries below.
+- **REQUIRED: founder actions.** No code can do these. Ask about them one at a time and do not re-ask about one already done.
+  1. **Stripe dashboard → live webhook `we_1TEtiA` → add events `charge.dispute.closed` and `charge.dispute.updated`.** Without them a won dispute never lifts the hold automatically. Until then the founder lifts it with `python -m scripts.payment_hold release <dispute_id>`.
+  2. **Roll the LIVE Stripe secret key** that sits in local `backend/.env`. Never use it, never print it, never commit `.env`.
+  3. **`railway login` in the founder's own terminal.** It cannot run non-interactively. Once it is done, run these read-only steps:
+     - Railway variables: confirm `TRU8_API_KEY` is NOT set on the API service. Hosted `/mcp` ignores it now, but it should not be there.
+     - Compare prod `pip freeze` with `backend/constraints.txt`.
+     - Logs: search for `Clerk session azp not allowlisted`. Only when there are none should you propose `ENABLE_CLERK_AZP_ENFORCEMENT=True` (a founder decision).
+     - Logs: confirm that `[PAYMENT HOLD]` and `[URL LEDGER] dropped stage=unsafe_url` look sane.
+  4. *Optional:* in Stripe, resend a recent `customer.subscription.updated` event to prove the clover fix live. Otherwise wait for the next real renewal (see Watch).
+- **Watch:** the next real renewal or status change in Stripe should update our `Subscription` row (period rolls forward, allowance resets, past_due lands).
+- **Open decisions for the founder (ChatGPT plugin, design `audit/2026-11-02_chatgpt_plugin_design.md`):** which countries, starter credit, and individual vs business verification. The next build step is **P2**: OAuth verifier, protected-resource metadata, a per-user rate key, `securitySchemes`, MCP credential plumbing and a 45 s budget. P2 needs a design review first (difficulty ≥3).
+  - **Never enable OAuth/CIMD on the PRODUCTION Clerk instance** until P2 is built, reviewed and verified on DEV.
+  - The founder decided that an OAuth call uses the existing allowance (option A).
+- **Deferred LOW items (not blocking):**
+  - The Compare UI shows generic text for the hold 403.
+  - Cached comparisons are also blocked during a hold.
+  - Ingest has no per-address connect cap.
+  - There is no HTTPS SNI test for the urllib3 pinning.
+- **Then:** the older queue below: ledger decision (`DEBUG_EVIDENCE_LEDGER`), F2, F3/F4, then A−.
+- **Rules that bit this session:**
+  - The auto-mode guard blocks prod DB reads over `railway ssh`, credential searches and `twine upload`. Hand those to the founder as a single-line `! <command>`; long lines wrap and break.
+  - Ask before every paid run.
+  - `tests/conftest.py` has an autouse `_no_payment_hold_unless_tested` fixture. A new spend path must call `assert_no_payment_hold` and get its own test.
+
 ## ▶ 2026-11-02 (late) — STRIPE WEBHOOKS FIXED FOR clover; PAYMENT HOLD LIVE
 - **Stripe webhooks were broken by the API version (pre-existing).** The live endpoint sends `2025-09-30.clover`; basil removed `invoice.subscription` (moved to `parent.subscription_details`) and subscription-level `current_period_start/end`.
   - `invoice.paid` and `invoice.payment_failed` skipped every renewal, so a failed renewal never marked the subscription past_due.
