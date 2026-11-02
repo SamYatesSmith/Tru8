@@ -166,7 +166,12 @@ Verdict: *proceed to P0 after fixes*. Blockers 1 and 2 were confirmed against th
 - Server-card update.
 
 **Founder decisions, revised order:**
-1. **Ledger for OAuth calls (R4).**
+1. ~~Ledger for OAuth calls (R4).~~ **DECIDED 2026-11-02 (founder): A — the user's existing allowance.**
+   - An OAuth check draws on the dashboard allowance first, through the `usage_events` gate: Console monthly checks, or remaining trial checks.
+   - It then falls back to prepaid `credit_balance_pence` at the agent tier price.
+   - Refunds go back to whichever ledger was debited.
+   - Design consequence: the OAuth branch must NOT reuse `provider="credit"` blindly. It needs a payment provider that tries `enforce_usage_limit` and then `debit_credits`, recording which ledger it used on the transaction (refunds and the stranded sweep read it).
+   - *Assumption, confirm at build: trial checks count as allowance. This is the plain reading of "existing allowance".*
 2. Create a Clerk DEV instance for P0 (free, founder's Clerk account).
 3. Countries.
 4. Starter credit.
