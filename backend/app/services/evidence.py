@@ -5,6 +5,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 import re
 import httpx
+from app.core.url_safety import UnsafeUrlError, safe_async_client
 import trafilatura
 from readability import Document
 import bleach
@@ -480,7 +481,9 @@ class EvidenceExtractor:
                 # with this header set. A 403 here is not cosmetic — retrieval
                 # falls back to the search snippet, degrading evidence TEXT as
                 # well as the title. See app/utils/browser_headers.py.
-                async with httpx.AsyncClient(
+                # safe_async_client validates every connection, every
+                # redirect hop included (security sweep 2026-11-02, #2).
+                async with safe_async_client(
                     timeout=self.timeout,
                     follow_redirects=True,
                     headers=browser_headers(),
@@ -572,6 +575,14 @@ class EvidenceExtractor:
                     )
                 except Exception:
                     pass  # Don't let tracking affect pipeline
+                return None
+            except UnsafeUrlError as e:
+                # A page that sends us to an internal address is hostile:
+                # dropped outright, no snippet fallback (invariant 5 receipt).
+                logger.warning(
+                    f"[URL LEDGER] dropped stage=unsafe_url "
+                    f"url={search_result.url} reason={e}"
+                )
                 return None
             except httpx.HTTPStatusError as e:
                 domain = extract_domain(search_result.url, fallback="unknown")

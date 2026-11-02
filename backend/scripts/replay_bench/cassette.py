@@ -447,6 +447,12 @@ class HttpxCassette:
         if "_exception" in entry:
             # Recorded transport failure — replay it as an equivalent error so
             # the pipeline takes the same fetch-failed path deterministically.
+            if entry["_exception"] == "UnsafeUrlError":
+                # A refused (SSRF-blocked) fetch must replay as a refusal so the
+                # same [URL LEDGER] stage=unsafe_url path runs (2026-11-02).
+                from app.core.url_safety import UnsafeUrlError
+
+                raise UnsafeUrlError(f"replayed UnsafeUrlError for {entry.get('_url')}")
             exc_cls = getattr(httpx, entry["_exception"], httpx.ConnectError)
             raise exc_cls(f"replayed {entry['_exception']} for {entry.get('_url')}")
         return _response_from_entry(entry, request)

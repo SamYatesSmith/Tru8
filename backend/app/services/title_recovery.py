@@ -42,6 +42,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 import httpx
+from app.core.url_safety import UnsafeUrlError, safe_async_client
 
 from app.utils.browser_headers import TRU8_USER_AGENT
 from app.utils.page_title import pick_page_title
@@ -163,6 +164,8 @@ async def _recover_one(
                 f"[TITLE RECOVERY] {url} :: '{original[:48]}' -> '{headline[:64]}'"
             )
             return True
+        except UnsafeUrlError:
+            raise  # receipt logged by the caller ([URL LEDGER] stage=unsafe_url)
         except Exception as e:
             # Never fatal — a missing headline is strictly better than a
             # failed check.
@@ -207,7 +210,7 @@ async def recover_truncated_titles(
     semaphore = asyncio.Semaphore(concurrency)
     headers = {"User-Agent": TRU8_USER_AGENT}
     try:
-        async with httpx.AsyncClient(
+        async with safe_async_client(
             timeout=timeout, follow_redirects=True, headers=headers
         ) as client:
             results = await asyncio.wait_for(
@@ -217,6 +220,12 @@ async def recover_truncated_titles(
                 ),
                 timeout=overall_timeout,
             )
+        for item, r in zip(targets, results):
+            if isinstance(r, UnsafeUrlError):
+                logger.warning(
+                    f"[URL LEDGER] title recovery refused stage=unsafe_url "
+                    f"url={item.get('url')} reason={r}"
+                )
         fixed = sum(1 for r in results if r is True)
     except asyncio.TimeoutError:
         logger.info(

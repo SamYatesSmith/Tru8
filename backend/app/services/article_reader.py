@@ -28,7 +28,7 @@ from __future__ import annotations
 import logging
 from typing import Optional, Tuple
 
-import httpx
+from app.core.url_safety import UnsafeUrlError, safe_async_client
 
 from app.utils.browser_headers import browser_headers
 
@@ -67,7 +67,7 @@ async def fetch_article_text(url: str) -> Tuple[Optional[str], str, Optional[int
         return None, "failed", None
 
     try:
-        async with httpx.AsyncClient(
+        async with safe_async_client(
             timeout=FETCH_TIMEOUT_SECONDS,
             follow_redirects=True,
             headers=browser_headers(),
@@ -96,6 +96,9 @@ async def fetch_article_text(url: str) -> Tuple[Optional[str], str, Optional[int
 
             return text, "full", len(text.split())
 
+    except UnsafeUrlError as e:
+        logger.warning(f"[URL LEDGER] dropped stage=unsafe_url url={url} reason={e}")
+        return None, "failed", None
     except Exception as e:
         logger.info(f"[COMPARE FETCH] {type(e).__name__} for {url}")
         return None, "failed", None

@@ -9,6 +9,7 @@ import asyncio
 from typing import Dict, Any, List
 from io import BytesIO
 import httpx
+from app.core.url_safety import UnsafeUrlError, safe_async_client
 
 from app.utils.browser_headers import binary_fetch_headers
 
@@ -56,7 +57,7 @@ class PDFEvidenceExtractor:
             # Same identification as the HTML evidence fetch — a PDF host that
             # rejects "python-httpx/<version>" blocks us just as readily, and a
             # blocked primary-source PDF is a silently lost citation.
-            async with httpx.AsyncClient(
+            async with safe_async_client(
                 timeout=self.timeout, headers=binary_fetch_headers()
             ) as client:
                 async with client.stream("GET", url) as response:
@@ -107,6 +108,9 @@ class PDFEvidenceExtractor:
             # Return top matches
             return matches[:max_results]
 
+        except UnsafeUrlError as e:
+            logger.warning(f"[URL LEDGER] dropped stage=unsafe_url url={url} reason={e}")
+            return []
         except httpx.HTTPStatusError as e:
             # A8b: recoverable, caller treats [] as no PDF evidence available
             logger.warning(f"Failed to download PDF {url}: {e}")

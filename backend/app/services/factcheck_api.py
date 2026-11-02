@@ -1,6 +1,7 @@
 import hashlib
 
 import httpx
+from app.core.url_safety import UnsafeUrlError, safe_async_client
 import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta, timezone
@@ -44,7 +45,7 @@ class FactCheckAPI:
                 return cached_result
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with safe_async_client(timeout=10.0) as client:
                 params = {
                     "key": self.api_key,
                     "query": claim_text,
@@ -190,7 +191,7 @@ class FactCheckAPI:
             from app.services.evidence import EvidenceExtractor
 
             extractor = EvidenceExtractor()
-            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            async with safe_async_client(timeout=10.0, follow_redirects=True) as client:
                 response = await client.get(url)
                 response.raise_for_status()
                 content = extractor._extract_main_content(response.text, url)
@@ -202,6 +203,8 @@ class FactCheckAPI:
                         if last_space > 1500:
                             truncated = truncated[:last_space]
                     return truncated
+        except UnsafeUrlError as e:
+            logger.warning(f"[URL LEDGER] dropped stage=unsafe_url url={url} reason={e}")
         except Exception as e:
             logger.warning(f"Failed to extract fact-check text from {url}: {e}")
         return None

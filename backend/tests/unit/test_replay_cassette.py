@@ -226,3 +226,27 @@ async def test_record_captures_non_httpx_failure(tmp_path: Path, monkeypatch):
         async with httpx.AsyncClient() as c:
             with pytest.raises(httpx.HTTPError):
                 await c.get("https://slow.example/annual-report.pdf")
+
+
+@pytest.mark.asyncio
+async def test_ssrf_refusal_replays_as_a_refusal(tmp_path: Path, monkeypatch):
+    """A fetch refused by the safe backend (2026-11-02) is recorded as
+    `UnsafeUrlError`. Replay must raise the same error, not a ConnectError,
+    or live and replay take different paths (the [URL LEDGER] unsafe_url
+    receipt vs a plain fetch failure)."""
+    from app.core.url_safety import UnsafeUrlError
+
+    async def _refused(self, request, **kwargs):
+        raise UnsafeUrlError("Host evil.example resolves to blocked address 10.0.0.5")
+
+    monkeypatch.setattr(httpx.AsyncClient, "send", _refused)
+    cassette_path = tmp_path / "cassette.json"
+    with pytest.raises(UnsafeUrlError):
+        with HttpxCassette(cassette_path, "record"):
+            async with httpx.AsyncClient() as c:
+                await c.get("https://evil.example/page")
+
+    with HttpxCassette(cassette_path, "replay"):
+        async with httpx.AsyncClient() as c:
+            with pytest.raises(UnsafeUrlError):
+                await c.get("https://evil.example/page")

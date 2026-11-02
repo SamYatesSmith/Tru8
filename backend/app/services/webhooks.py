@@ -13,11 +13,14 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-import httpx
 from sqlalchemy import select
 
 from app.core.database import async_session
-from app.core.url_safety import UnsafeUrlError, safe_async_post
+from app.core.url_safety import (
+    UnsafeUrlError,
+    safe_async_client,
+    safe_async_post,
+)
 from app.models.webhook import Webhook
 
 logger = logging.getLogger(__name__)
@@ -93,7 +96,10 @@ async def _deliver(webhook: Webhook, event: str, data: Dict[str, Any]) -> None:
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            async with httpx.AsyncClient(timeout=WEBHOOK_TIMEOUT) as client:
+            # The safe client also pins the connection to the address it
+            # validated, closing the DNS-rebinding gap safe_async_post's own
+            # pre-check leaves (security sweep 2026-11-02, #2 review).
+            async with safe_async_client(timeout=WEBHOOK_TIMEOUT) as client:
                 # F-SEC-02: safe_async_post validates the URL before connect
                 # (rejects RFC1918/loopback/link-local/CGNAT/IPv6 ULA) and
                 # disables redirect-following — a webhook receiver redirecting
