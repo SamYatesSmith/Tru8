@@ -396,7 +396,20 @@ class ImageIngester(BaseIngester):
 
                 image_bytes = await storage_service.download(image_path)
             else:
-                with open(image_path, "rb") as f:
+                # Local files only from our own uploads folder: never an
+                # arbitrary path on the server (security sweep 2026-11-02, #5).
+                from pathlib import Path
+
+                uploads_dir = Path("uploads").resolve()
+                resolved = Path(image_path).resolve()
+                if uploads_dir not in resolved.parents:
+                    logger.warning(f"[INGEST] refused image path outside uploads: {image_path!r}")
+                    return {
+                        "success": False,
+                        "error": "Image not found",
+                        "content": "",
+                    }
+                with open(resolved, "rb") as f:
                     image_bytes = f.read()
 
             # Check file size (6MB limit)

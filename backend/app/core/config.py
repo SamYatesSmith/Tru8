@@ -229,6 +229,11 @@ class Settings(BaseSettings):
         False, env="ENABLE_CLERK_AZP_ENFORCEMENT"
     )
 
+    # Bearer token required to read /metrics. Unset = /metrics answers 404 to
+    # everyone (security sweep 2026-11-02, #7: it was public). Set it, and
+    # give the same token to a scraper, if Prometheus scraping is ever wired.
+    METRICS_TOKEN: str = Field("", env="METRICS_TOKEN")
+
     # Admin emails that bypass credit limits (for testing)
     ADMIN_EMAILS: List[str] = Field(default=[], env="ADMIN_EMAILS")
 

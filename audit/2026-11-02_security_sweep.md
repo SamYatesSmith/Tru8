@@ -57,4 +57,12 @@ Noted, not exploitable: Stripe event dedupe is written before the handler, so a 
 - **Post-deploy (founder, 2026-11-02):** a real dashboard sign-in works under the new session check.
 - **Production pre-check (founder screenshot):** the Production "Customize session token" claims are `{}`, so there is no lockout risk from the shape check.
 - **Batch B (#2) DONE 2026-11-02:** connection-level validation for every attacker-influenced fetch (evidence, PDF, fact-check, Compare, title recovery, webhooks) — every redirect hop, pinned to the checked address. Record: `audit/2026-11-02_safe_fetch_design.md`. Remaining in #2: ingest `safe_get` (`requests`) still resolves twice.
-- **Open:** Batch C (#1 dispute behaviour — founder; #5 upload keys; #7 `/metrics` + PDF limit). `ENABLE_CLERK_AZP_ENFORCEMENT` stays off until production logs show the real `azp` values ("Clerk session azp not allowlisted").
+- **Batch C part 1, 2026-11-02 (independently verified, no blockers):**
+  - **#5 uploads.** `/upload` records `upload_owner:<sha256(path)>` → user for 24 h (`app/services/upload_ownership.py`). An image check needs the caller to own the path, failing closed on Redis errors. Ingest refuses local paths outside `./uploads`.
+  - **#7 `/metrics` and PDF export.**
+    - `/metrics` returns 404 unless `Authorization: Bearer $METRICS_TOKEN` is set and matches; nothing scrapes it.
+    - Public PDF export is limited to 6/min and authenticated export to 20/min.
+  - **#2 remainder.** `safe_get` mounts `_PinnedHTTPAdapter` once per session, with env proxies off. The urllib3 connection validates and dials only the checked address, and TLS keeps the hostname, so DNS rebinding is closed for ingest too.
+  - **Verifier-found (pre-existing) rate-limit key.** Production is Cloudflare → Railway proxy → uvicorn with no trusted forwarded headers, so every IP-keyed limit was one site-wide bucket keyed on the proxy address. The key is now `CF-Connecting-IP`, then the first `X-Forwarded-For` hop, then the socket address.
+  - Every fix has tests that fail on the old code. Unit suite: 4,607 passed.
+- **Open:** Batch C (#1 dispute behaviour: founder chose A — pause checks + freeze prepaid credits on a dispute/full refund until resolved; design + review owed, needs a migration and the Stripe `charge.dispute.closed` event). `ENABLE_CLERK_AZP_ENFORCEMENT` stays off until production logs show the real `azp` values ("Clerk session azp not allowlisted").

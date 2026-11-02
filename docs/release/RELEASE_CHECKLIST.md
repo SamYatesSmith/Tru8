@@ -71,7 +71,7 @@ Use this checklist for final go/no-go decision. All P0 items must be checked.
 |------|----------|--------|-------|
 | `GET /api/v1/health` | `{"status": "healthy"}` | ____________ | [ ] |
 | `GET /api/v1/health/ready` | `{"ready": true}` | ____________ | [ ] |
-| `GET /metrics` | Prometheus output | ____________ | [ ] |
+| `GET /metrics` (no token) | 404 — private since 2026-11-02; with `Authorization: Bearer $METRICS_TOKEN` → Prometheus output | ____________ | [ ] |
 
 ### Authentication
 

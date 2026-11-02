@@ -211,6 +211,17 @@ async def _validate_and_create_check(
             status_code=400, detail="File path is required for image input type"
         )
 
+    # An image check may only read a file THIS caller uploaded (security
+    # sweep 2026-11-02, #5; app/services/upload_ownership.py).
+    if body.input_type == "image":
+        from app.services.upload_ownership import is_owned_by
+
+        if not await is_owned_by(body.file_path, current_user.get("id")):
+            raise HTTPException(
+                status_code=400,
+                detail="Upload not found or expired. Please upload the image again.",
+            )
+
     if body.input_type == "video" and not body.url:
         raise HTTPException(
             status_code=400, detail="URL is required for video input type"
@@ -347,6 +358,10 @@ async def upload_file(
             filename=filename,
             content_type=file.content_type,
         )
+        # Only the uploader may later run a check on this file (sweep #5).
+        from app.services.upload_ownership import register_upload
+
+        await register_upload(file_path, current_user["id"])
 
         return {
             "success": True,
@@ -2048,7 +2063,9 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
 
 
 @router.get("/{check_id}/export/pdf", summary="Export check as PDF")
+@limiter.limit("20/minute")
 async def export_check_pdf(
+    request: Request,
     check_id: str,
     current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
@@ -2087,7 +2104,11 @@ async def export_check_pdf(
 @router.get(
     "/public/{check_id}/export/pdf", summary="Export public check as PDF (no auth)"
 )
+# Public and CPU-heavy (WeasyPrint render): a tight per-caller limit stops it
+# being a free way to burn API CPU (security sweep 2026-11-02, #7).
+@limiter.limit("6/minute")
 async def export_public_check_pdf(
+    request: Request,
     check_id: str,
     session: AsyncSession = Depends(get_session),
 ):

@@ -19,8 +19,9 @@ Public surface:
   verifies the real hostname (httpcore takes SNI from the request origin).
   Use it for every fetch of a URL we did not hard-code.
 
-Known limitation: ``safe_get`` (``requests``, user-submitted ingest) still
-resolves twice, so a rebinding host can pass its check and connect elsewhere.
+``safe_get`` gets the same connection pinning for ``requests``
+(``_PinnedHTTPAdapter``, 2026-11-02): user-submitted ingest URLs are checked
+on every hop AND connected to the address that was checked.
 """
 
 from __future__ import annotations
@@ -35,6 +36,14 @@ import anyio
 import httpcore
 import httpx
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.connection import HTTPConnection, HTTPSConnection
+from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
+from urllib3.exceptions import (
+    ConnectTimeoutError,
+    NameResolutionError,
+    NewConnectionError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -214,6 +223,13 @@ def safe_get(
     own_session = session is None
     if own_session:
         session = requests.Session()
+    # Every connection this session opens is validated and pinned to the
+    # checked address; env proxies would connect to the proxy instead of the
+    # target, bypassing that, so they are off for this session.
+    session.trust_env = False
+    for prefix in ("http://", "https://"):
+        if not isinstance(session.get_adapter(prefix), _PinnedHTTPAdapter):
+            session.mount(prefix, _PinnedHTTPAdapter())
 
     try:
         current = url
@@ -418,3 +434,88 @@ def safe_async_client(**kwargs: Any) -> httpx.AsyncClient:
         network_backend=SafeNetworkBackend(),
     )
     return httpx.AsyncClient(transport=transport, trust_env=False, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# requests/urllib3 twin: pin safe_get's connections to the checked address
+# ---------------------------------------------------------------------------
+
+
+def _validated_addresses(host: str, port: int) -> list:
+    """Resolve ``host`` once and return its addresses, refusing the host if
+    ANY of them is blocked. A literal IP skips DNS."""
+    try:
+        literal = ipaddress.ip_address(host.strip("[]"))
+    except ValueError:
+        literal = None
+    if literal is not None:
+        if _ip_is_blocked(literal):
+            raise UnsafeUrlError(f"Connection to blocked address refused: {literal}")
+        return [str(literal)]
+    if _is_internal_hostname(host):
+        raise UnsafeUrlError(f"Connection to internal hostname refused: {host}")
+    addresses = []
+    for info in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM):
+        addr = info[4][0].split("%")[0]
+        if addr not in addresses:
+            addresses.append(addr)
+    if not addresses:
+        raise socket.gaierror(f"DNS returned no addresses for {host}")
+    for addr in addresses:
+        if _ip_is_blocked(ipaddress.ip_address(addr)):
+            raise UnsafeUrlError(f"Host {host} resolves to blocked address {addr}")
+    return addresses
+
+
+class _PinnedConnectionMixin:
+    """urllib3 connection that connects only to addresses it validated.
+
+    urllib3 dials ``self._dns_host``; TLS SNI and certificate checks use
+    ``self.host``, which is left alone, so HTTPS still verifies the real name.
+    """
+
+    def _new_conn(self):
+        try:
+            addresses = _validated_addresses(self._dns_host, self.port)
+        except socket.gaierror as e:
+            # Same error urllib3 raises itself: requests reports it as
+            # "failed to resolve", not "connection aborted".
+            raise NameResolutionError(self.host, self, e) from e
+        original = self._dns_host
+        last_error = None
+        for addr in addresses:
+            self._dns_host = addr
+            try:
+                return super()._new_conn()
+            except (NewConnectionError, ConnectTimeoutError) as exc:
+                last_error = exc
+            finally:
+                self._dns_host = original
+        raise last_error
+
+
+class _PinnedHTTPConnection(_PinnedConnectionMixin, HTTPConnection):
+    pass
+
+
+class _PinnedHTTPSConnection(_PinnedConnectionMixin, HTTPSConnection):
+    pass
+
+
+class _PinnedHTTPConnectionPool(HTTPConnectionPool):
+    ConnectionCls = _PinnedHTTPConnection
+
+
+class _PinnedHTTPSConnectionPool(HTTPSConnectionPool):
+    ConnectionCls = _PinnedHTTPSConnection
+
+
+class _PinnedHTTPAdapter(HTTPAdapter):
+    """requests adapter whose pools use the pinned connection classes."""
+
+    def init_poolmanager(self, *args, **kwargs):
+        super().init_poolmanager(*args, **kwargs)
+        self.poolmanager.pool_classes_by_scheme = {
+            "http": _PinnedHTTPConnectionPool,
+            "https": _PinnedHTTPSConnectionPool,
+        }

@@ -511,8 +511,32 @@ elif settings.SENTRY_DSN:
 # This ensures all requests have a correlation ID before any other middleware runs
 app.add_middleware(CorrelationIdMiddleware)
 
-# Metrics endpoint
-metrics_app = make_asgi_app()
+# Metrics endpoint — private (security sweep 2026-11-02, #7). It was mounted
+# with no auth; now it needs `Authorization: Bearer <METRICS_TOKEN>`, and with
+# no token configured it is 404 for everyone. Nothing in this repo scrapes it.
+_prometheus_app = make_asgi_app()
+
+
+async def metrics_app(scope, receive, send):
+    import hmac
+
+    if scope["type"] == "http":
+        token = settings.METRICS_TOKEN
+        supplied = dict(scope.get("headers") or []).get(b"authorization", b"")
+        expected = f"Bearer {token}".encode()
+        if not token or not hmac.compare_digest(supplied, expected):
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": 404,
+                    "headers": [(b"content-type", b"text/plain")],
+                }
+            )
+            await send({"type": "http.response.body", "body": b"Not Found"})
+            return
+    await _prometheus_app(scope, receive, send)
+
+
 app.mount("/metrics", metrics_app)
 
 # Remote MCP server (2026-08-04) — the same tools the published `tru8-mcp`
