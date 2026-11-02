@@ -489,6 +489,7 @@ app.mount("/metrics", metrics_app)
 from mcp.server.transport_security import TransportSecuritySettings
 
 from tru8_mcp.server import mcp as _tru8_mcp_server
+from tru8_mcp import __version__ as _tru8_mcp_version
 
 # FastMCP's own app serves at settings.streamable_http_path, which defaults to
 # "/mcp". Mounting THAT at "/mcp" would put the endpoint at "/mcp/mcp" — and
@@ -642,12 +643,11 @@ MCP_SERVER_CARD = {
     "serverInfo": {
         "name": "io.github.SamYatesSmith/tru8",
         "title": "Tru8 Evidence Research",
-        # Must track the published tru8-mcp package version — the 1.0.5
-        # release (3c8d3ff) missed this line and the drift guard caught it
-        # 2026-08-17. server.json (the registry manifest) is bumped only on a
-        # founder-gated re-publish; this card is what OUR API serves and has
-        # no such gate.
-        "version": "1.0.5",
+        # Read from the package, never typed here: a hand-typed copy was
+        # missed by the 1.0.5 release (caught 2026-08-17) AND the 1.0.6 one
+        # (2026-11-02). server.json is still bumped by hand on a publish;
+        # test_mcp_identity.py guards both against the package version.
+        "version": _tru8_mcp_version,
     },
     # Where the hosted transport actually is. Without this a scanner reading
     # the card has our identity but no endpoint to connect to.
