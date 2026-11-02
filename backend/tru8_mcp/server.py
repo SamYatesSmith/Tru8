@@ -88,6 +88,22 @@ if Icon is not None:
     ]
 
 
+# Set True by the API (main.py) when it mounts this server over HTTP. Belt and
+# braces with _is_http_request(): if a future SDK ever handed a hosted tool call
+# no request object, that call must still never fall back to the API process's
+# environment key — fail closed, not open (verifier, 2026-11-02).
+HOSTED_TRANSPORT = False
+
+
+def _is_http_request() -> bool:
+    """True when this tool call arrived over an HTTP transport (hosted /mcp)."""
+    try:
+        request = mcp.get_context().request_context.request
+    except Exception:
+        return False
+    return request is not None and hasattr(request, "headers")
+
+
 def _request_api_key() -> Optional[str]:
     """The calling user's API key for THIS request, or None.
 
@@ -139,7 +155,12 @@ def _get_client() -> Tru8APIClient:
     Under stdio ``_request_api_key()`` returns None and Tru8APIClient falls
     back to TRU8_API_KEY, so local behaviour is unchanged.
     """
-    return Tru8APIClient(api_key=_request_api_key())
+    # Over HTTP the caller's own key is the only acceptable credential; the
+    # server's environment is never a fallback (security sweep 2026-11-02, #4).
+    return Tru8APIClient(
+        api_key=_request_api_key(),
+        allow_env_key=not (HOSTED_TRANSPORT or _is_http_request()),
+    )
 
 
 def _format(data: dict) -> str:

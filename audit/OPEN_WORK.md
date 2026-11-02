@@ -12,6 +12,14 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-11-02 (afternoon) — SECURITY: token confusion closed + sweep Batch A
+- **ChatGPT plugin P0 (Clerk DEV) showed a real hole:** the dashboard session check ACCEPTED Clerk OAuth access tokens and ID tokens (same keys, same issuer). **Do NOT enable OAuth/CIMD on the PRODUCTION Clerk instance** until the fix below is live and verified. Design + P0 record: `audit/2026-11-02_chatgpt_plugin_design.md`.
+- **Fixed in the same push:** session-shape check (`auth._require_session_shape`) + the Batch A sweep items. Detail and the open items (Batch B safe fetch, Batch C dispute/uploads/metrics): `audit/2026-11-02_security_sweep.md`.
+- **Founder actions:**
+  - roll the LIVE Stripe secret key found in local `backend/.env`;
+  - the dispute behaviour (sweep #1);
+  - `railway login` so the prod `pip freeze` and Railway variables (`TRU8_API_KEY` must not be set on the API service) can be checked.
+
 ## ▶ 2026-11-02 — FAILURE EMAILS TRIAGED: NO PRODUCTION FAULT
 - **Production health (MCP package) emails were a monitor race, not a broken package.** `scripts/check_published_mcp.py` closed stdin straight after sending `tools/list`, so the server sometimes exited before replying (4 of ~28 scheduled runs; 11/20 locally). Now keeps stdin open until the reply; 0/20 misses, full monitor passes on `tru8-mcp` 1.0.5 + mcp 1.30.0.
 - **CI was red on every push since 2026-10-07:** `test_refresh_characterisation` compared wall-clock `seconds` (Windows rounds to 0.0, Linux does not) — now zeroed in `_normalise`, golden unchanged; and `aiosqlite` (needed by `test_sweep_real_session` since 2026-10-12) was missing from `requirements-dev.txt` — added.

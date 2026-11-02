@@ -136,6 +136,7 @@ async def _run_x402_pipeline(
     from app.core.database import async_session
     from app.pipeline.progress import ProgressReporter
     from app.pipeline.runner import (
+        get_user_friendly_error,
         DEFAULT_CONFIG,
         QUICK_CONFIG,
         PipelineError,
@@ -296,7 +297,9 @@ async def _run_x402_pipeline(
         tx.status = "failed"
         await session.commit()
         await handle_pipeline_failure(check.id, payment.user_id, e)
-        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}") from e
+        raise HTTPException(
+            status_code=502, detail=f"Pipeline error: {get_user_friendly_error(e)}"
+        ) from e
 
     except HTTPException:
         raise
@@ -308,7 +311,9 @@ async def _run_x402_pipeline(
         tx.status = "failed"
         await session.commit()
         await handle_pipeline_failure(check.id, payment.user_id, e)
-        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}") from e
+        raise HTTPException(
+            status_code=502, detail=f"Pipeline error: {get_user_friendly_error(e)}"
+        ) from e
 
     finally:
         inflight_unregister(check.id)

@@ -198,6 +198,17 @@ class TestSubmitFeedback:
 # ===========================================================================
 
 
+@pytest.fixture(autouse=True)
+def _fresh_rate_limits():
+    """/waitlist is limited to 5/minute per caller (security sweep 2026-11-02);
+    every test here is the same caller, so start each one with a clean slate."""
+    from app.core.rate_limit import limiter
+
+    limiter.reset()
+    yield
+    limiter.reset()
+
+
 class TestWaitlist:
     """POST /api/v1/waitlist -- public waitlist signup."""
 

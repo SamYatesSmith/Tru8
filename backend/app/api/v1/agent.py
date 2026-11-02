@@ -846,6 +846,7 @@ async def _run_agent_pipeline(
     from app.core.database import async_session
     from app.pipeline.progress import ProgressReporter
     from app.pipeline.runner import (
+        get_user_friendly_error,
         DEFAULT_CONFIG,
         QUICK_CONFIG,
         PipelineError,
@@ -1082,8 +1083,12 @@ async def _run_agent_pipeline(
         logger.error(f"[AGENT {tier.upper()}] Pipeline error for check {check.id}: {e}")
         await _refund_and_fail_tx(tx, payment, amount_pence, session)
         await handle_pipeline_failure(check.id, payment.user_id, e)
-        _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
-        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}") from e
+        _fire_agent_webhook_failed(
+            payment.user_id, check.id, get_user_friendly_error(e)
+        )
+        raise HTTPException(
+            status_code=502, detail=f"Pipeline error: {get_user_friendly_error(e)}"
+        ) from e
 
     except HTTPException:
         raise
@@ -1094,8 +1099,12 @@ async def _run_agent_pipeline(
         )
         await _refund_and_fail_tx(tx, payment, amount_pence, session)
         await handle_pipeline_failure(check.id, payment.user_id, e)
-        _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
-        raise HTTPException(status_code=502, detail=f"Pipeline error: {e}") from e
+        _fire_agent_webhook_failed(
+            payment.user_id, check.id, get_user_friendly_error(e)
+        )
+        raise HTTPException(
+            status_code=502, detail=f"Pipeline error: {get_user_friendly_error(e)}"
+        ) from e
 
     finally:
         inflight_unregister(check.id)

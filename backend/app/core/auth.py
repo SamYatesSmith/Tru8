@@ -35,6 +35,57 @@ API_KEY_PREFIX = "tru8_sk_"
 # ---------------------------------------------------------------------------
 
 
+# Claims that only OAuth access tokens / OIDC ID tokens carry. A Clerk SESSION
+# token has none of them. Clerk signs all three with the same instance keys and
+# issuer, so signature + issuer alone accepted an OAuth access token AND an ID
+# token as a dashboard session (observed on the dev instance, 2026-11-02): with
+# OAuth/CIMD on, any site a user consented to would hold full dashboard power.
+# Rejecting foreign markers (rather than requiring session-only claims such as
+# `v`) keeps older v1 session tokens working. Shapes and the P0 record:
+# audit/2026-11-02_chatgpt_plugin_design.md; tests/unit/test_session_token_shape.py
+_NON_SESSION_CLAIMS = ("client_id", "scope", "at_hash", "nonce")
+
+
+def _require_session_shape(header: dict, payload: dict) -> None:
+    """Raise 401 unless a verified token is shaped like a Clerk session token."""
+    reason = None
+    # RFC 9068 allows both "at+jwt" and "application/at+jwt".
+    if str(header.get("typ", "")).lower().removeprefix("application/") == "at+jwt":
+        reason = "oauth_access_token"
+    elif any(c in payload for c in _NON_SESSION_CLAIMS):
+        reason = "oauth_or_id_token_claims"
+    elif "aud" in payload and not settings.CLERK_JWT_AUDIENCE:
+        # With an audience configured, jwt.decode has already matched it.
+        reason = "unexpected_audience"
+    elif not payload.get("sid"):
+        reason = "no_session_id"
+    if reason:
+        logger.warning(f"Rejected non-session Clerk token as a session: {reason}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token: not a Clerk session token",
+        )
+
+    azp = payload.get("azp")
+    if azp and not isinstance(azp, str):
+        # A list azp must be a 401, never an AttributeError (500).
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token: unexpected authorized party",
+        )
+    if azp:
+        allowed = {o.rstrip("/") for o in settings.CORS_ORIGINS}
+        allowed.add(settings.FRONTEND_URL.rstrip("/"))
+        if azp.rstrip("/") not in allowed:
+            # Observed before enforced: see ENABLE_CLERK_AZP_ENFORCEMENT.
+            logger.warning(f"Clerk session azp not allowlisted: {azp}")
+            if settings.ENABLE_CLERK_AZP_ENFORCEMENT:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid token: unexpected authorized party",
+                )
+
+
 async def _verify_jwt_token(token: str) -> dict:
     """Shared JWT verification logic.
 
@@ -60,15 +111,20 @@ async def _verify_jwt_token(token: str) -> dict:
             decode_kwargs["audience"] = expected_audience
 
         payload = jwt.decode(token, signing_key.key, **decode_kwargs)
+        _require_session_shape(jwt.get_unverified_header(token), payload)
 
         return payload
     except jwt.ExpiredSignatureError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
         ) from err
-    except jwt.InvalidTokenError as e:
+    # PyJWTError also covers PyJWKClientError (unknown kid), which is not an
+    # InvalidTokenError and used to surface as a 500.
+    except jwt.PyJWTError as e:
+        # Library wording stays in the log (security sweep 2026-11-02, #8).
+        logger.info(f"JWT rejected: {e}")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {str(e)}"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
         ) from e
 
 

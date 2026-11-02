@@ -218,6 +218,17 @@ class Settings(BaseSettings):
         env="CORS_ORIGINS",
     )
 
+    # Reject a Clerk session token whose `azp` (authorized party) is present but
+    # not one of our web origins (CORS_ORIGINS + FRONTEND_URL). Default OFF:
+    # an origin list that misses a real frontend would sign every user out, so
+    # unknown values are LOGGED first (app.core.auth, "azp not allowlisted");
+    # switch on once production logs show only expected values. The token-type
+    # rules that stop OAuth/ID tokens posing as sessions do not depend on this.
+    # 2026-11-02, audit/2026-11-02_chatgpt_plugin_design.md P1.
+    ENABLE_CLERK_AZP_ENFORCEMENT: bool = Field(
+        False, env="ENABLE_CLERK_AZP_ENFORCEMENT"
+    )
+
     # Admin emails that bypass credit limits (for testing)
     ADMIN_EMAILS: List[str] = Field(default=[], env="ADMIN_EMAILS")
 

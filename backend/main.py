@@ -1,3 +1,4 @@
+import re
 import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -355,15 +356,43 @@ app.add_middleware(StreamAwareGZipMiddleware, minimum_size=1000)
 # and push actionable context out before real exceptions fire.
 
 
+# Credentials that can appear INSIDE free text Sentry captures: query strings
+# of our own outbound calls (Gemini/Places `?key=`, legal `?api_key=`), the
+# hosted /mcp `?apiKey=`, httpx breadcrumbs (`http.query`), and exception
+# messages that quote a full URL. Redacted wherever text leaves the process
+# (security sweep 2026-11-02, #6 + verifier). tests/unit/test_sentry_query_scrub.py
+_SECRET_PATTERNS = (
+    re.compile(
+        r"(?i)\b(key|apikey|api_key|tru8_api_key|token|access_token)=[^&\s\"']+"
+    ),
+    re.compile(r"tru8_sk_[A-Za-z0-9_\-]+"),
+    re.compile(r"AIza[0-9A-Za-z_\-]{20,}"),
+)
+
+
+def _redact_secrets(value):
+    """Redact credential-shaped substrings in any string, recursively."""
+    if isinstance(value, str):
+        value = _SECRET_PATTERNS[0].sub(lambda m: f"{m.group(1)}=[REDACTED]", value)
+        value = _SECRET_PATTERNS[1].sub("tru8_sk_[REDACTED]", value)
+        return _SECRET_PATTERNS[2].sub("[REDACTED]", value)
+    if isinstance(value, dict):
+        return {k: _redact_secrets(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_redact_secrets(v) for v in value]
+    return value
+
+
 def _filter_breadcrumb(crumb, hint):
     """Drop high-volume, low-signal breadcrumbs. Redis embedding cache writes
     produce 60+ breadcrumbs per check and push actionable context out of the
-    100-crumb buffer before real exceptions fire."""
+    100-crumb buffer before real exceptions fire. Every kept crumb is scrubbed
+    of credentials (httpx crumbs carry `http.query`; log crumbs carry URLs)."""
     if crumb.get("category") == "redis":
         msg = crumb.get("message", "") or ""
         if "'embedding:" in msg:
             return None
-    return crumb
+    return _redact_secrets(crumb)
 
 
 # F-SEC-07: keys that may carry user-submitted content or PII; redacted before
@@ -421,12 +450,29 @@ def _scrub_event_pii(event, hint):
                 for k, v in headers.items()
             }
         query = request.get("query_string")
-        if query and isinstance(query, str) and "token=" in query.lower():
+        # Credentials can ride in the query string: ?token= (legacy SSE) and
+        # ?apiKey= / ?api_key= / ?TRU8_API_KEY= (hosted /mcp, Smithery-style).
+        # Only token= was matched, so a /mcp exception sent the caller's API
+        # key to Sentry (security sweep 2026-11-02, #6).
+        if (
+            query
+            and isinstance(query, str)
+            and any(
+                k in query.lower()
+                for k in ("token=", "apikey=", "api_key=", "tru8_api_key=")
+            )
+        ):
             request["query_string"] = "[REDACTED]"
 
     extra = event.get("extra")
     if isinstance(extra, dict):
         event["extra"] = _redact_pii(extra)
+
+    # Free-text fields that can quote a URL with a key in it: exception
+    # messages (httpx errors include the full URL), log messages, breadcrumbs.
+    for field in ("exception", "logentry", "message", "breadcrumbs"):
+        if field in event:
+            event[field] = _redact_secrets(event[field])
 
     return event
 
@@ -488,6 +534,7 @@ app.mount("/metrics", metrics_app)
 #      see tests/unit/test_mcp_request_auth.py.
 from mcp.server.transport_security import TransportSecuritySettings
 
+import tru8_mcp.server as _tru8_mcp_module
 from tru8_mcp.server import mcp as _tru8_mcp_server
 from tru8_mcp import __version__ as _tru8_mcp_version
 
@@ -530,6 +577,8 @@ _tru8_mcp_server.settings.streamable_http_path = "/"
 #
 # Guard: tests/unit/test_mcp_stateless.py
 _tru8_mcp_server.settings.stateless_http = True
+# Hosted: tool calls never use this process's own TRU8_API_KEY (sweep 2026-11-02).
+_tru8_mcp_module.HOSTED_TRANSPORT = True
 
 # Transport security, stated rather than inherited (2026-08-05). The SDK ships
 # DNS rebinding protection that validates the Host and Origin headers, and

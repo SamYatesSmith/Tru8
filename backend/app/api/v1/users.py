@@ -99,7 +99,7 @@ async def get_or_create_user(session: AsyncSession, current_user: dict) -> User:
         user = result.scalar_one_or_none()
         if user:
             return user
-        raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}") from e
+        raise HTTPException(status_code=500, detail="Failed to create user") from e
 
 
 @router.get("/profile")
@@ -189,7 +189,7 @@ async def update_profile(
     except Exception as e:
         await session.rollback()
         raise HTTPException(
-            status_code=500, detail=f"Failed to update profile: {str(e)}"
+            status_code=500, detail="Failed to update profile"
         ) from e
 
     return {
@@ -838,7 +838,7 @@ async def update_email_preferences(
     except Exception as e:
         await session.rollback()
         raise HTTPException(
-            status_code=500, detail=f"Failed to update preferences: {str(e)}"
+            status_code=500, detail="Failed to update preferences"
         ) from e
 
     return {

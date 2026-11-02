@@ -85,8 +85,11 @@ async def create_checkout_session(
                 await session.refresh(user)
             except Exception as e:
                 await session.rollback()
+                # Database text stays in the log, never in the response
+                # (security sweep 2026-11-02, #8).
+                logger.error(f"Failed to create user during checkout: {e}")
                 raise HTTPException(
-                    status_code=500, detail=f"Failed to create user: {str(e)}"
+                    status_code=500, detail="Failed to create user"
                 ) from e
 
         # Check for existing active subscription
@@ -138,7 +141,9 @@ async def create_checkout_session(
 
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error creating checkout session: {e}")
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        raise HTTPException(
+            status_code=400, detail="Could not start checkout. Please try again."
+        ) from e
     except Exception as e:
         logger.error(f"Error creating checkout session: {e}")
         raise HTTPException(status_code=500, detail="Internal server error") from e
@@ -784,7 +789,7 @@ async def get_subscription_status(
         except Exception as e:
             await session.rollback()
             raise HTTPException(
-                status_code=500, detail=f"Failed to create user: {str(e)}"
+                status_code=500, detail="Failed to create user"
             ) from e
 
     # Get user's subscription
@@ -862,7 +867,9 @@ async def cancel_subscription(
 
     except stripe.error.StripeError as e:
         logger.error(f"Error cancelling subscription: {e}")
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        raise HTTPException(
+            status_code=400, detail="Payment provider error. Please try again."
+        ) from e
 
 
 @router.post("/create-portal-session")
@@ -900,7 +907,9 @@ async def create_billing_portal_session(
 
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error creating portal session: {e}")
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        raise HTTPException(
+            status_code=400, detail="Payment provider error. Please try again."
+        ) from e
     except Exception as e:
         logger.error(f"Error creating portal session: {e}")
         raise HTTPException(status_code=500, detail="Internal server error") from e
@@ -958,7 +967,9 @@ async def reactivate_subscription(
 
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error reactivating subscription: {e}")
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        raise HTTPException(
+            status_code=400, detail="Payment provider error. Please try again."
+        ) from e
     except Exception as e:
         logger.error(f"Error reactivating subscription: {e}")
         raise HTTPException(status_code=500, detail="Internal server error") from e

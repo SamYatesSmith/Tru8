@@ -174,6 +174,7 @@ class TestCredentialIsolation:
 class TestStdioUnchanged:
     def test_falls_back_to_environment(self, monkeypatch):
         monkeypatch.setenv("TRU8_API_KEY", "tru8_sk_from_env")
+        monkeypatch.setattr(server, "HOSTED_TRANSPORT", False)  # stdio process
         with patch.object(server.mcp, "get_context", return_value=_ctx(None)):
             assert server._get_client().api_key == "tru8_sk_from_env"
 
@@ -193,3 +194,49 @@ class TestStdioUnchanged:
         with patch.object(server.mcp, "get_context", return_value=_ctx(None)):
             with pytest.raises(ValueError, match="TRU8_API_KEY"):
                 server._get_client()
+
+
+# ---------------------------------------------------------------------------
+# Hosted transport never spends the server's own key (sweep 2026-11-02, #4)
+# ---------------------------------------------------------------------------
+
+
+class TestHostedNeverUsesServerEnvironment:
+    def test_keyless_http_call_does_not_fall_back_to_environment(self, monkeypatch):
+        """If TRU8_API_KEY were set on the API service, an anonymous /mcp
+        caller must get an auth error, not that account's credit."""
+        monkeypatch.setenv("TRU8_API_KEY", "tru8_sk_server_owner")
+        with patch.object(
+            server.mcp, "get_context", return_value=_ctx(_http_request())
+        ):
+            with pytest.raises(ValueError, match="X-API-Key"):
+                server._get_client()
+
+    def test_http_call_with_its_own_key_still_works(self, monkeypatch):
+        monkeypatch.setenv("TRU8_API_KEY", "tru8_sk_server_owner")
+        with patch.object(
+            server.mcp,
+            "get_context",
+            return_value=_ctx(_http_request(headers={"X-API-Key": "tru8_sk_alice"})),
+        ):
+            assert server._get_client().api_key == "tru8_sk_alice"
+
+    def test_stdio_still_uses_environment(self, monkeypatch):
+        monkeypatch.setenv("TRU8_API_KEY", "tru8_sk_local_user")
+        monkeypatch.setattr(server, "HOSTED_TRANSPORT", False)  # stdio process
+        with patch.object(server.mcp, "get_context", side_effect=LookupError):
+            assert server._get_client().api_key == "tru8_sk_local_user"
+
+    def test_hosted_flag_fails_closed_even_without_a_request(self, monkeypatch):
+        """If an SDK change ever dropped the request on a hosted call, the
+        mount flag alone still refuses the server's environment key."""
+        monkeypatch.setenv("TRU8_API_KEY", "tru8_sk_server_owner")
+        monkeypatch.setattr(server, "HOSTED_TRANSPORT", True)
+        with patch.object(server.mcp, "get_context", side_effect=LookupError):
+            with pytest.raises(ValueError):
+                server._get_client()
+
+    def test_importing_the_api_sets_the_hosted_flag(self):
+        import main  # noqa: F401
+
+        assert server.HOSTED_TRANSPORT is True

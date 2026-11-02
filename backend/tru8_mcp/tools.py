@@ -125,11 +125,17 @@ class Tru8APIClient:
         self,
         api_url: Optional[str] = None,
         api_key: Optional[str] = None,
+        allow_env_key: bool = True,
     ):
         self.base_url = (
             api_url or os.environ.get("TRU8_API_URL", "https://api.trueight.com")
         ).rstrip("/")
-        self.api_key = api_key or os.environ.get("TRU8_API_KEY", "")
+        # allow_env_key=False on the hosted HTTP transport: the API process's
+        # own environment must never pay for an anonymous caller. If
+        # TRU8_API_KEY were ever set on the server, every keyless /mcp request
+        # would have spent that account (security sweep 2026-11-02, #4).
+        env_key = os.environ.get("TRU8_API_KEY", "") if allow_env_key else ""
+        self.api_key = api_key or env_key
         if not self.api_key:
             # One class serves both transports, so this message must too. The
             # old wording named only the environment variable, which is the

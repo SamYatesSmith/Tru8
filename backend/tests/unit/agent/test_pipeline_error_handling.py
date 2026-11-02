@@ -144,7 +144,8 @@ class TestPipelineErrorHandling:
         ):
             from app.api.v1.agent import _run_agent_pipeline
 
-            mock_run.side_effect = RuntimeError("unexpected failure")
+            # Internal text that must never reach the caller (sweep 2026-11-02, #8).
+            mock_run.side_effect = RuntimeError("asyncpg: relation secret_table at 10.0.0.5")
             payment = _make_payment_context(mock_session)
             payment.charge = AsyncMock(return_value=mock_tx)
 
@@ -162,4 +163,6 @@ class TestPipelineErrorHandling:
                 )
 
             assert exc_info.value.status_code == 502
+            assert "secret_table" not in exc_info.value.detail
+            assert "10.0.0.5" not in exc_info.value.detail
             mock_refund.assert_called_once()

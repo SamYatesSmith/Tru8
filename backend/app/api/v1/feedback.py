@@ -3,27 +3,39 @@ Feedback API endpoint for beta testing period.
 Receives user feedback and sends email notifications to admin.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime, timezone
 from app.core.auth import get_current_user
 from app.core.config import settings
+from app.core.rate_limit import limiter
+import html
 import logging
+import re
+from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
+
+# Every caller-supplied field is escaped before it reaches the email HTML, and
+# reply_to must be a plain address. /waitlist is public, so unescaped fields let
+# anyone mail the founder phishing HTML from Tru8's own domain (security sweep
+# 2026-11-02, #3). tests/unit/test_feedback_email_escaping.py.
+_EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+_esc = html.escape
 
 router = APIRouter()
 
 
 class FeedbackRequest(BaseModel):
-    type: str  # fact-check, ui, bug, suggestion, other
-    message: str
-    checkId: Optional[str] = None
+    # Bounded: these reach the founder's inbox (security sweep 2026-11-02).
+    type: str = Field(max_length=40)  # fact-check, ui, bug, suggestion, other
+    message: str = Field(max_length=5000)
+    checkId: Optional[str] = Field(None, max_length=64)
     claimPosition: Optional[int] = None
-    claimText: Optional[str] = None
-    pageUrl: str
-    userEmail: Optional[str] = None
+    claimText: Optional[str] = Field(None, max_length=2000)
+    pageUrl: str = Field(max_length=500)
+    userEmail: Optional[str] = Field(None, max_length=254)
 
 
 class FeedbackResponse(BaseModel):
@@ -72,7 +84,7 @@ def _send_feedback_email(feedback: FeedbackRequest, user_id: str) -> bool:
         # Build email content
         subject = f"[Tru8 Feedback] {type_emoji} {type_label}"
         if feedback.checkId:
-            subject += f" - Check {feedback.checkId[:8]}"
+            subject += f" - Check {re.sub(r'[^A-Za-z0-9-]', '', feedback.checkId)[:8]}"
 
         # Build HTML email
         claim_section = ""
@@ -80,18 +92,21 @@ def _send_feedback_email(feedback: FeedbackRequest, user_id: str) -> bool:
             claim_section = f"""
             <tr>
                 <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">Claim #{feedback.claimPosition}</td>
-                <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">"{feedback.claimText[:100]}{'...' if len(feedback.claimText) > 100 else ''}"</td>
+                <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">"{_esc(feedback.claimText[:100])}{'...' if len(feedback.claimText) > 100 else ''}"</td>
             </tr>
             """
 
         check_section = ""
         if feedback.checkId:
-            check_url = f"https://tru8.com/dashboard/check/{feedback.checkId}"
+            check_url = _esc(
+                "https://www.trueight.com/dashboard/check/"
+                + quote(feedback.checkId, safe="")
+            )
             check_section = f"""
             <tr>
                 <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">Check ID</td>
                 <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">
-                    <a href="{check_url}" style="color: #f57a07;">{feedback.checkId}</a>
+                    <a href="{check_url}" style="color: #f57a07;">{_esc(feedback.checkId)}</a>
                 </td>
             </tr>
             """
@@ -115,22 +130,22 @@ def _send_feedback_email(feedback: FeedbackRequest, user_id: str) -> bool:
                 <div style="padding: 24px;">
                     <!-- Message -->
                     <div style="background-color: #0f172a; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
-                        <p style="color: #e2e8f0; margin: 0; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">{feedback.message}</p>
+                        <p style="color: #e2e8f0; margin: 0; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">{_esc(feedback.message)}</p>
                     </div>
 
                     <!-- Metadata -->
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
                             <td style="padding: 8px 0; color: #94a3b8; font-size: 14px; width: 100px;">From</td>
-                            <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">{feedback.userEmail or 'Unknown'}</td>
+                            <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">{_esc(feedback.userEmail or 'Unknown')}</td>
                         </tr>
                         <tr>
                             <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">User ID</td>
-                            <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px; font-family: monospace; font-size: 12px;">{user_id}</td>
+                            <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px; font-family: monospace; font-size: 12px;">{_esc(user_id)}</td>
                         </tr>
                         <tr>
                             <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">Page</td>
-                            <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">{feedback.pageUrl}</td>
+                            <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">{_esc(feedback.pageUrl)}</td>
                         </tr>
                         {check_section}
                         {claim_section}
@@ -162,7 +177,11 @@ def _send_feedback_email(feedback: FeedbackRequest, user_id: str) -> bool:
             "to": [admin_email],
             "subject": subject,
             "html": html_content,
-            "reply_to": feedback.userEmail if feedback.userEmail else None,
+            "reply_to": (
+                feedback.userEmail
+                if feedback.userEmail and _EMAIL_RE.fullmatch(feedback.userEmail)
+                else None
+            ),
         }
 
         # Remove None values
@@ -216,40 +235,40 @@ async def submit_feedback(
 
 
 class WaitlistRequest(BaseModel):
-    email: str
-    source: Optional[str] = "landing"  # Where they signed up from
+    email: str = Field(max_length=254)
+    source: Optional[str] = Field("landing", max_length=60)  # Where they signed up from
 
 
 @router.post("/waitlist", response_model=FeedbackResponse)
-async def join_waitlist(request: WaitlistRequest):
+@limiter.limit("5/minute")  # public: each call mails the founder
+async def join_waitlist(request: Request, body: WaitlistRequest):
     """
     Public endpoint for Pro subscription waitlist signup.
     Does not require authentication - anyone can join the waitlist.
     """
-    import re
-
     # Basic email validation
-    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-    if not re.match(email_pattern, request.email):
+    if not _EMAIL_RE.fullmatch(body.email):
         raise HTTPException(
             status_code=400, detail="Please enter a valid email address"
         )
 
-    logger.info(f"[WAITLIST] New signup: {request.email} from {request.source}")
+    # Free text from an anonymous caller: bounded here, escaped in the email.
+    source = (body.source or "landing")[:60]
+    logger.info(f"[WAITLIST] New signup: {body.email!r} from {source!r}")
 
     # Create a feedback request to reuse email sending
     feedback = FeedbackRequest(
         type="waitlist",
-        message=f"Pro subscription waitlist signup from {request.source} page",
-        pageUrl=request.source,
-        userEmail=request.email,
+        message=f"Pro subscription waitlist signup from {source} page",
+        pageUrl=source,
+        userEmail=body.email,
     )
 
     # Send email notification
     email_sent = _send_feedback_email(feedback, "anonymous")
 
     if not email_sent:
-        logger.warning(f"Waitlist email not sent for {request.email}, but logged")
+        logger.warning(f"Waitlist email not sent for {body.email!r}, but logged")
 
     return FeedbackResponse(
         success=True, message="You're on the list! We'll notify you when Pro launches."

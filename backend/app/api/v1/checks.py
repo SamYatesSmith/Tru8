@@ -675,6 +675,7 @@ async def create_check_sync(
     from app.core.database import async_session
     from app.pipeline.progress import ProgressReporter
     from app.pipeline.runner import (
+        get_user_friendly_error,
         run_pipeline,
         run_pipeline_phase2,
         save_check_results_async,
@@ -852,7 +853,7 @@ async def create_check_sync(
         await handle_pipeline_failure(check.id, user.id, e)
         raise HTTPException(
             status_code=502,
-            detail=f"Pipeline error: {e}",
+            detail=f"Pipeline error: {get_user_friendly_error(e)}",
         ) from e
 
     except HTTPException:
@@ -866,7 +867,7 @@ async def create_check_sync(
         await handle_pipeline_failure(check.id, user.id, e)
         raise HTTPException(
             status_code=502,
-            detail=f"Pipeline error: {e}",
+            detail=f"Pipeline error: {get_user_friendly_error(e)}",
         ) from e
 
 

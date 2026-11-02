@@ -98,12 +98,14 @@ class TestGetClient:
         per-request behaviour lives in tests/unit/test_mcp_request_auth.py.
         """
         monkeypatch.setenv("TRU8_API_KEY", "sk-lazy")
+        monkeypatch.setattr(server_module, "HOSTED_TRANSPORT", False)  # stdio
         first = _get_client()
         second = _get_client()
         assert first is not second
 
     def test_get_client_reads_env(self, monkeypatch):
         monkeypatch.setenv("TRU8_API_KEY", "sk-env-check")
+        monkeypatch.setattr(server_module, "HOSTED_TRANSPORT", False)  # stdio
         monkeypatch.delenv("TRU8_API_URL", raising=False)
         client = _get_client()
         assert client.api_key == "sk-env-check"
