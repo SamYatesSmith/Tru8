@@ -12,7 +12,7 @@ Submit a claim or URL, get back source-traced evidence organized by tier (primar
 servers at:
 
 ```
-https://api.trueight.com/mcp
+https://api.trueight.com/mcp/
 ```
 
 Authenticate with your Tru8 API key, sent either as an `X-API-Key` header or
@@ -98,6 +98,8 @@ tru8-mcp
 | `tru8_check` | Evidence research for a claim or article URL | 15-120s |
 | `tru8_get_result` | Retrieve completed check with computed analytics | <1s |
 | `tru8_get_result_raw` | Retrieve raw check data without computed analytics | <1s |
+
+A check that is still running after several minutes returns its `checkId` and status instead of the result. Fetch it later with `tru8_get_result` (free). Calling `tru8_check` again with the same claim within ten minutes returns the same check and is not charged twice.
 
 ## Environment Variables
 

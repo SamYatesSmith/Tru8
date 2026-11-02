@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tru8-mcp"
-version = "1.0.5"
+version = "1.0.6"
 description = "Tru8 Evidence Research MCP server — structured evidence research tools for AI agents"
 readme = "README.md"
 license = "MIT"
@@ -30,7 +30,12 @@ dependencies = [
     # sdist: `FastMCP.tool(name, title, description, annotations,
     # structured_output)` — present. Do not lower this without re-checking that
     # signature in the target version.
-    "mcp>=1.12,<2",
+    # FLOOR RAISED 1.12 -> 1.21.1 (2026-11-02, 1.0.6): pydantic 2.14 removed
+    # an internal (_typing_extra.eval_type_backport) that mcp 1.12.0-1.21.0
+    # import, so with a current pydantic those versions die on ImportError
+    # at startup. Swept with the built wheel: 1.21.0 fails, 1.21.1 and every
+    # later 1.x up to 1.30.0 complete the handshake.
+    "mcp>=1.21.1,<2",
     "httpx>=0.25.0",
 ]
 

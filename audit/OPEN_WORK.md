@@ -16,7 +16,8 @@
 - **Production health (MCP package) emails were a monitor race, not a broken package.** `scripts/check_published_mcp.py` closed stdin straight after sending `tools/list`, so the server sometimes exited before replying (4 of ~28 scheduled runs; 11/20 locally). Now keeps stdin open until the reply; 0/20 misses, full monitor passes on `tru8-mcp` 1.0.5 + mcp 1.30.0.
 - **CI was red on every push since 2026-10-07:** `test_refresh_characterisation` compared wall-clock `seconds` (Windows rounds to 0.0, Linux does not) — now zeroed in `_normalise`, golden unchanged; and `aiosqlite` (needed by `test_sweep_real_session` since 2026-10-12) was missing from `requirements-dev.txt` — added.
 - **Sentry:** no backend issues in 30 days. JAVASCRIPT-NEXTJS-5 (`getReader`, /privacy-policy) has Deno `ext:core` frames — a scraper, not a browser; NEXTJS-A is one network blip.
-- Still owed (unchanged): `tru8-mcp` 1.0.6 to PyPI, backend lock file — see 2026-10-13 below.
+- **`tru8-mcp` 1.0.6 released (founder-approved 2026-11-02):** async client + idempotency key fix. Pre-publish audit: wheel/sdist `twine check` PASSED, monitor in pre-publish mode passes on mcp 1.30, `mcp-publisher validate` OK. **Floor raised `mcp>=1.12` → `>=1.21.1`:** mcp 1.12.0–1.21.0 die on ImportError with pydantic ≥2.14 (swept with the built wheel). **Paid async test PASSED** (7p, check `688ddb5e`): `POST /agent/check?async=true` → 202, 4 polls, completed in 35 s at `quick`; `tru8_get_result` returns it with `_computed`.
+- Still owed: backend lock file (founder). Root `README.md`/`SYNOPSIS.md` (founder's uncommitted edits) still name 1.0.3/1.0.4.
 
 ## ▶ 2026-10-13 — PICK UP HERE (handoff from 2026-10-12)
 - **State:** `main` = origin = production = `c2caab4` (backend + web SUCCESS, health verified). Nothing unpushed. Working tree has unrelated uncommitted edits to `README.md`, `SYNOPSIS.md`, `.claude/settings.local.json` and untracked audit files — not touched this session.
