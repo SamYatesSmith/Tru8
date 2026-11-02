@@ -12,6 +12,18 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
+## ▶ 2026-11-02 (late) — STRIPE WEBHOOKS FIXED FOR clover; PAYMENT HOLD LIVE
+- **Stripe webhooks were broken by the API version (pre-existing).** The live endpoint sends `2025-09-30.clover`; basil removed `invoice.subscription` (moved to `parent.subscription_details`) and subscription-level `current_period_start/end`.
+  - `invoice.paid` and `invoice.payment_failed` skipped every renewal, so a failed renewal never marked the subscription past_due.
+  - `customer.subscription.updated` raised KeyError on every event, so status and plan changes never landed.
+  - **Fixed:** `_invoice_subscription_id` reads both formats; `subscription.updated` re-reads the subscription via the SDK, which is pinned to 2024-06-20, as checkout has done since 2026-07-13.
+  - `invoice.paid` now raises on a Stripe error so Stripe retries; before, it answered 200 and lost the renewal.
+  - Verified independently against Stripe's changelog and the SDK source. Tests use clover-shaped payloads, and the old code fails them.
+  - **⏳ Watch:** the next real renewal or status change in Stripe → our `Subscription` row updates.
+- **Payment hold LIVE (`fe33a77`):** spending pauses while a Stripe dispute is open; a full subscription refund cancels the subscription. Record: `audit/2026-11-02_payment_hold_design.md`.
+  - **Founder:** add `charge.dispute.closed` + `charge.dispute.updated` to the live webhook.
+- **Security sweep:** every item is closed except the Compare UI's hold-message wording (LOW). Record: `audit/2026-11-02_security_sweep.md`.
+
 ## ▶ 2026-11-02 (afternoon) — SECURITY: token confusion closed + sweep Batch A
 - **ChatGPT plugin P0 (Clerk DEV) showed a real hole:** the dashboard session check ACCEPTED Clerk OAuth access tokens and ID tokens (same keys, same issuer). **Do NOT enable OAuth/CIMD on the PRODUCTION Clerk instance** until the fix below is live and verified. Design + P0 record: `audit/2026-11-02_chatgpt_plugin_design.md`.
 - **Fixed in the same push:** session-shape check (`auth._require_session_shape`) + the Batch A sweep items. Detail and the open items (Batch B safe fetch, Batch C dispute/uploads/metrics): `audit/2026-11-02_security_sweep.md`.

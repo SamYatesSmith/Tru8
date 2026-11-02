@@ -480,6 +480,15 @@ async def handle_subscription_updated(subscription: dict, session: AsyncSession)
         logger.error(f"Subscription {stripe_subscription_id} not found in database")
         return
 
+    # The webhook payload follows the endpoint's API version (2025-09-30.clover),
+    # where basil REMOVED subscription-level current_period_start/end — so this
+    # handler raised KeyError on every event and status changes (past_due,
+    # plan changes) never landed. The SDK pins its own requests to 2024-06-20,
+    # which still returns them, so read the subscription back — the checkout
+    # path has done this since 2026-07-13. A failure raises: Stripe retries.
+    # https://docs.stripe.com/changelog/basil/2025-03-31/deprecate-subscription-current-period-start-and-end
+    subscription = stripe.Subscription.retrieve(stripe_subscription_id)
+
     db_subscription.status = subscription["status"]
     db_subscription.current_period_start = datetime.fromtimestamp(
         subscription["current_period_start"], tz=timezone.utc
@@ -648,7 +657,7 @@ async def handle_invoice_payment_failed(invoice: dict, session: AsyncSession) ->
     rest of the app can downgrade access. Credits are NOT reset to zero here;
     Stripe will retry the payment and either succeed (invoice.paid) or move
     to subscription cancellation."""
-    sub_id = invoice.get("subscription")
+    sub_id = _invoice_subscription_id(invoice)
     if not sub_id:
         logger.info(
             f"invoice.payment_failed for non-subscription invoice {invoice.get('id')}; skipping"
@@ -735,6 +744,26 @@ async def handle_subscription_cancelled(subscription: dict, session: AsyncSessio
     logger.info(f"Cancelled subscription {stripe_subscription_id}")
 
 
+def _invoice_subscription_id(invoice: dict):
+    """The subscription an invoice bills, in either webhook format.
+
+    The live endpoint sends API version 2025-09-30.clover, where basil
+    (2025-03-31) REMOVED ``invoice.subscription`` and moved it to
+    ``invoice.parent.subscription_details.subscription``. Reading only the old
+    field made every renewal (`invoice.paid`) and every failed renewal
+    (`invoice.payment_failed`) look like a non-subscription invoice and be
+    skipped. The old field is still read first for any pre-basil payload.
+    https://docs.stripe.com/changelog/basil/2025-03-31/adds-new-parent-field-to-invoicing-objects
+    """
+    sub = invoice.get("subscription")
+    if not sub:
+        parent = invoice.get("parent") or {}
+        sub = (parent.get("subscription_details") or {}).get("subscription")
+    if isinstance(sub, dict):  # expanded object
+        sub = sub.get("id")
+    return sub or None
+
+
 async def handle_invoice_paid(invoice: dict, session: AsyncSession):
     """
     Handle invoice.paid event from Stripe.
@@ -742,8 +771,8 @@ async def handle_invoice_paid(invoice: dict, session: AsyncSession):
     This fires on every successful payment including renewals.
     Updates subscription period dates and resets monthly credits.
     """
-    # Only process subscription invoices
-    stripe_subscription_id = invoice.get("subscription")
+    # Only process subscription invoices (either webhook format)
+    stripe_subscription_id = _invoice_subscription_id(invoice)
     if not stripe_subscription_id:
         logger.info("Invoice is not for a subscription, skipping")
         return
@@ -761,12 +790,11 @@ async def handle_invoice_paid(invoice: dict, session: AsyncSession):
         )
         return
 
-    # Fetch current subscription details from Stripe to get updated period
-    try:
-        stripe_subscription = stripe.Subscription.retrieve(stripe_subscription_id)
-    except stripe.error.StripeError as e:
-        logger.error(f"Failed to retrieve subscription from Stripe: {e}")
-        return
+    # Fetch current subscription details from Stripe to get updated period.
+    # A failure RAISES (webhook 500 -> Stripe retries): returning here answered
+    # 200 and a brief Stripe blip on renewal day silently dropped the renewal
+    # (verifier, 2026-11-02).
+    stripe_subscription = stripe.Subscription.retrieve(stripe_subscription_id)
 
     # Update subscription period dates
     new_period_start = datetime.fromtimestamp(
