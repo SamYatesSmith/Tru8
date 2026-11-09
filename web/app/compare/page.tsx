@@ -220,6 +220,14 @@ export default function ComparePage() {
               <ul className="space-y-2.5">
                 <li>
                   <Link
+                    href="/blog/first-public-release"
+                    className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+                  >
+                    Tru8 — A First Public Release — what the platform does and why it exists
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/blog/evidence-research-for-agents"
                     className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
                   >

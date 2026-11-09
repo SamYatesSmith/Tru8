@@ -239,6 +239,11 @@ export default function EvidenceResearchForAgentsPage() {
                   Tru8 — A First Public Release — the product behind the API
                 </Link>
               </li>
+              <li>
+                <Link href="/compare" className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors">
+                  How Tru8 compares with alternative research tools
+                </Link>
+              </li>
             </ul>
           </div>
 
